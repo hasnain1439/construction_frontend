@@ -15,6 +15,8 @@ export interface FlyoutProps {
   items: NavItem[];
   hrefFor: (item: NavItem) => string;
   onClose: () => void;
+  /** Live count per item (e.g. incoming deliveries). */
+  badgeFor?: (item: NavItem) => number | undefined;
   /** Left offset = rail width. */
   className?: string;
 }
@@ -23,7 +25,7 @@ export interface FlyoutProps {
  * Sub-menu panel beside the rail. Closes on Esc, outside click and navigation (the shell
  * closes it when the path changes).
  */
-export function Flyout({ section, items, hrefFor, onClose, className }: FlyoutProps) {
+export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }: FlyoutProps) {
   const t = useT();
   const language = useLanguage();
   const pathname = usePathname();
@@ -72,10 +74,11 @@ export function Flyout({ section, items, hrefFor, onClose, className }: FlyoutPr
           <X />
         </Button>
       </div>
-      <ul className="flex-1 space-y-1 overflow-y-auto p-3">
+      <ul className="scrollbar-slim flex-1 space-y-1 overflow-y-auto p-3">
         {items.map((item) => {
           const href = hrefFor(item);
           const current = pathname === href;
+          const count = badgeFor?.(item);
           return (
             <li key={item.id}>
               <Link
@@ -91,6 +94,11 @@ export function Flyout({ section, items, hrefFor, onClose, className }: FlyoutPr
                 <EllipsisVertical className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="flex-1">{pickLabel(item.label, language)}</span>
                 {!item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
+                {count ? (
+                  <span className="rounded-full bg-amber px-1.5 text-[11px] font-semibold text-slate-950" aria-label={`${count} waiting`}>
+                    {count}
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

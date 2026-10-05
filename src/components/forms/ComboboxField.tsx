@@ -44,6 +44,7 @@ export function Combobox({
   disabled,
   invalid,
   describedBy,
+  ariaLabel,
 }: ComboboxProps & {
   value: string | string[] | null | undefined;
   onChange: (value: string | string[] | null) => void;
@@ -51,6 +52,8 @@ export function Combobox({
   disabled?: boolean;
   invalid?: boolean;
   describedBy?: string;
+  /** Accessible name when there is no visible <label> (table cells). */
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
@@ -77,6 +80,7 @@ export function Combobox({
           aria-controls={listId}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
+          aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
             "flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-1.5 text-left text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",

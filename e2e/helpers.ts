@@ -1,3 +1,5 @@
+import { execSync } from "node:child_process";
+import path from "node:path";
 import { expect, type Page } from "@playwright/test";
 
 /** Seed accounts (construction-platform `npm run db:seed`). */
@@ -37,4 +39,15 @@ export async function cleanUpProject(page: Page, projectId: string) {
   for (const next of path) {
     await page.request.patch(`/api/v1/projects/${projectId}/status`, { data: { status: next, note: "E2E clean-up" } });
   }
+}
+
+/**
+ * A fresh LOGIN code for a phone, from the backend's dev helper (`npm run dev:otp`), so a
+ * munshi can sign in without reading the API console. Needs ../construction-platform.
+ */
+export function devOtp(phone: string): string {
+  const out = execSync(`npm run -s dev:otp -- ${phone}`, { cwd: path.resolve(__dirname, "../../construction-platform"), encoding: "utf8" });
+  const code = /OTP=(\d{6})/.exec(out)?.[1];
+  if (!code) throw new Error(`dev:otp gave no code: ${out}`);
+  return code;
 }

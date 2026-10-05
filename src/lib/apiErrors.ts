@@ -125,6 +125,22 @@ const MESSAGES: Record<string, Message> = {
   FLOOR_HAS_ROOMS: { en: "This floor has rooms. Remove them first.", ur: "Is floor par rooms hain. Pehle unhein hatayein." },
   FLOOR_NOT_EMPTY: { en: "The target floor already has rooms.", ur: "Target floor par pehle se rooms hain." },
   OPENINGS_EXCEED_WALL: { en: "Openings are larger than the walls.", ur: "Darwaze/khirkiyan deewar se bare hain." },
+
+  // Procurement & inventory (messages with material names / quantities come from the server)
+  SERVICE_BUSY: { en: "The server is busy. Please try again in a moment.", ur: "Server masroof hai. Thori dair baad dobara koshish karein." },
+  ALREADY_RECEIVED: { en: "This delivery has already been received.", ur: "Yeh maal pehle hi wusool ho chuka hai." },
+  DISPATCH_CANCELLED: { en: "This dispatch was cancelled.", ur: "Yeh dispatch cancel ho chuki hai." },
+  DISPATCH_NOT_CANCELLABLE: { en: "Only a dispatch that is still on the way can be cancelled.", ur: "Sirf raste mein maujood dispatch cancel ho sakti hai." },
+  SHORTAGE_RESOLVED: { en: "This shortage has already been resolved.", ur: "Is kami ka faisla pehle ho chuka hai." },
+  RATES_ALREADY_SET: { en: "This purchase already has its rates.", ur: "Is kharidari ke rates pehle se lag chuke hain." },
+  CHALLAN_REQUIRED: { en: "Upload the challan photo.", ur: "Challan ki photo upload karein." },
+  PURCHASE_ORDER_HAS_RECEIPTS: { en: "Goods were already received against this order; it can't be cancelled.", ur: "Is order par maal aa chuka hai, cancel nahi ho sakta." },
+  PURCHASE_ORDER_LOCKED: { en: "Only an open order without deliveries can be changed.", ur: "Sirf khula order (bina maal) badla ja sakta hai." },
+  PO_CLOSED: { en: "This purchase order is closed.", ur: "Yeh purchase order band hai." },
+  CHEQUE_ALREADY_SETTLED: { en: "This cheque is already settled.", ur: "Is cheque ka faisla ho chuka hai." },
+  PROJECT_IS_DRAFT: { en: "Activate the project before moving stock to its site.", ur: "Stock bhejne se pehle project active karein." },
+  SAME_LOCATION: { en: "Choose a different destination.", ur: "Koi aur jagah chunein." },
+  RESOLUTION_NOT_ALLOWED: { en: "That decision doesn't apply to this shortage.", ur: "Yeh faisla is kami par laagu nahi hota." },
 };
 
 export function isApiError(value: unknown): value is ApiError {

@@ -54,7 +54,7 @@ function LockedNotice({ project, readOnly }: { project: ProjectDetail; readOnly:
   return <ReadOnlyBanner message={`This project is ${statusMeta("project", project.status).label.toLowerCase()} — its records are read-only.`} />;
 }
 
-function ProjectPageShell({
+export function ProjectPageShell({
   projectId,
   title,
   crumb,

@@ -14,6 +14,7 @@ import {
   Lock,
   PauseCircle,
   TriangleAlert,
+  Truck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -81,6 +82,46 @@ const DOMAINS = {
   device: {
     ACTIVE: S("success", "Active", CircleCheck),
     REVOKED: S("neutral", "Logged out", Ban),
+  },
+  purchase: {
+    SAVED: S("success", "Saved", CircleCheck),
+    PENDING_RATE: S("warning", "Rates pending", Clock),
+    PENDING_RECEIPT: S("info", "Waiting at site", Truck),
+    RECEIVED: S("success", "Received", CircleCheck),
+    RECEIVED_WITH_SHORTAGE: S("warning", "Received — short", TriangleAlert),
+  },
+  purchaseOrder: {
+    OPEN: S("info", "Open", CircleDashed),
+    PARTLY_RECEIVED: S("warning", "Partly received", Hourglass),
+    RECEIVED: S("success", "Received", CircleCheck),
+    CANCELLED: S("neutral", "Cancelled", Ban),
+  },
+  dispatch: {
+    ON_THE_WAY: S("info", "On the way", Truck),
+    RECEIVED: S("success", "Received", CircleCheck),
+    RECEIVED_WITH_SHORTAGE: S("warning", "Received — short", TriangleAlert),
+    RECEIVED_WITH_EXCESS: S("warning", "Received — excess", TriangleAlert),
+    CANCELLED: S("neutral", "Cancelled", Ban),
+  },
+  shortage: {
+    OPEN: S("danger", "Open", TriangleAlert),
+    RESOLVED: S("success", "Resolved", CircleCheck),
+  },
+  shortageKind: {
+    DISPATCH_SHORT: S("warning", "Short", TriangleAlert),
+    DAMAGED: S("danger", "Damaged", CircleX),
+    EXCESS: S("info", "Excess", CircleDashed),
+    SUPPLIER_SHORT: S("warning", "Supplier short", TriangleAlert),
+  },
+  supplierPayment: {
+    CLEARED: S("success", "Cleared", CircleCheck),
+    PENDING: S("warning", "Cheque pending", Clock),
+    BOUNCED: S("danger", "Bounced", CircleX),
+  },
+  paymentMode: {
+    UDHAAR: S("warning", "Udhaar", Clock),
+    CASH: S("success", "Cash", CircleCheck),
+    PARTIAL: S("info", "Part paid", Hourglass),
   },
 } as const;
 

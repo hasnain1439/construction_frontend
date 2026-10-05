@@ -18,6 +18,7 @@ const ACCEPT: Record<AttachmentKind, string> = {
   RECEIPT: "image/jpeg,image/png,image/webp,application/pdf",
   DOCUMENT: "image/jpeg,image/png,image/webp,application/pdf",
   PAYMENT_SLIP: "image/jpeg,image/png,image/webp,application/pdf",
+  CHALLAN: "image/jpeg,image/png,image/webp,application/pdf",
   VOICE_NOTE: "audio/mpeg,audio/mp4,audio/ogg",
 };
 

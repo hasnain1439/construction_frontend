@@ -129,7 +129,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       </header>
       <div className="flex min-h-0 flex-1">
         <nav aria-label="Platform" className={cn("flex flex-col border-r bg-sidebar", collapsed ? "w-[72px]" : "w-60")}>
-          <ul className="flex-1 space-y-0.5 overflow-y-auto p-2">
+          <ul className="scrollbar-slim flex-1 space-y-0.5 overflow-y-auto p-2">
             {ADMIN_NAV.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);

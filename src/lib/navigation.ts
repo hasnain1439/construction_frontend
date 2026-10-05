@@ -53,6 +53,8 @@ export interface NavItem {
   /** Custom ComingSoon wording, e.g. "Estimate comes in Phase 2". */
   comingSoonNote?: string;
   keywords?: string[];
+  /** Live count shown next to the item (project mode: incoming deliveries). */
+  badge?: "incoming" | "pendingPayments";
 }
 
 export interface NavSection {
@@ -85,7 +87,7 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     items: [
       { id: "dashboard.overview", label: L("Company Overview", "Company ka jaiza"), href: "/dashboard", available: true },
-      soon("dashboard.approvals", L("My Approvals", "Meri approvals"), "/dashboard/approvals", OFFICE),
+      { id: "dashboard.approvals", label: L("My Approvals", "Meri approvals"), href: "/dashboard/approvals", available: true, access: OFFICE },
       soon("dashboard.alerts", L("Alerts & Notifications", "Alerts aur itla'at"), "/dashboard/alerts"),
     ],
   },
@@ -142,14 +144,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: OFFICE,
         keywords: ["dealer", "vendor"],
       },
-      soon("stock.purchases", L("Purchases (Maal Kharida)", "Maal kharida"), "/suppliers-stock/purchases", OFFICE),
-      soon("stock.returns", L("Purchase Returns", "Maal wapsi"), "/suppliers-stock/purchase-returns", OFFICE),
-      soon("stock.store", L("Store Stock", "Godown stock"), "/suppliers-stock/store-stock", THEKEDAR),
-      soon("stock.dispatches", L("Dispatches (Sent to Sites)", "Site bheja gaya maal"), "/suppliers-stock/dispatches", THEKEDAR),
-      soon("stock.shortages", L("Shortages", "Kami"), "/suppliers-stock/shortages", THEKEDAR),
-      soon("stock.ledger", L("Supplier Ledger (Khata)", "Supplier khata"), "/suppliers-stock/ledger", THEKEDAR),
-      soon("stock.orders", L("Purchase Orders", "Purchase orders"), "/suppliers-stock/purchase-orders", OFFICE),
-      soon("stock.payments", L("Supplier Payments", "Supplier adaigiyan"), "/suppliers-stock/payments", THEKEDAR),
+      { id: "stock.purchases", label: L("Purchases (Maal Kharida)", "Maal kharida"), href: "/suppliers-stock/purchases", available: true, access: OFFICE, keywords: ["challan", "purchase", "buy"] },
+      { id: "stock.returns", label: L("Purchase Returns", "Maal wapsi"), href: "/suppliers-stock/purchase-returns", available: true, access: OFFICE },
+      { id: "stock.store", label: L("Store Stock", "Godown stock"), href: "/suppliers-stock/store-stock", available: true, access: THEKEDAR, keywords: ["godown", "inventory", "low stock"] },
+      { id: "stock.dispatches", label: L("Dispatches (Sent to Sites)", "Site bheja gaya maal"), href: "/suppliers-stock/dispatches", available: true, access: THEKEDAR, keywords: ["gate pass", "gp", "truck"] },
+      { id: "stock.shortages", label: L("Shortages", "Kami"), href: "/suppliers-stock/shortages", available: true, access: THEKEDAR, keywords: ["short", "damaged"] },
+      { id: "stock.ledger", label: L("Supplier Ledger (Khata)", "Supplier khata"), href: "/suppliers-stock/ledger", available: true, access: THEKEDAR, keywords: ["udhaar", "khata", "balance"] },
+      { id: "stock.orders", label: L("Purchase Orders", "Purchase orders"), href: "/suppliers-stock/purchase-orders", available: true, access: OFFICE, keywords: ["po", "order"] },
+      { id: "stock.payments", label: L("Supplier Payments", "Supplier adaigiyan"), href: "/suppliers-stock/payments", available: true, access: THEKEDAR, keywords: ["cheque", "pay"] },
     ],
   },
   {
@@ -331,11 +333,11 @@ export const PROJECT_NAV: NavSection[] = [
     mode: "project",
     items: [
       soon("p.site.logs", L("Daily Logs & Photos", "Rozana log"), "/site/daily-logs"),
-      soon("p.site.incoming", L("Incoming Material", "Aane wala maal"), "/site/incoming"),
-      soon("p.site.deliveries", L("Deliveries (Maal Aaya)", "Maal aaya"), "/site/deliveries"),
-      soon("p.site.usage", L("Material Usage (Maal Lag Gaya)", "Maal lag gaya"), "/site/usage"),
-      soon("p.site.stock", L("Site Stock", "Site stock"), "/site/stock"),
-      soon("p.site.counts", L("Stock Counts & Transfers", "Ginti aur transfer"), "/site/counts"),
+      { id: "p.site.incoming", label: L("Incoming Material", "Aane wala maal"), href: "/site/incoming", available: true, badge: "incoming", keywords: ["receive", "gate pass"] },
+      { id: "p.site.deliveries", label: L("Deliveries (Maal Aaya)", "Maal aaya"), href: "/site/deliveries", available: true, keywords: ["owner delivery"] },
+      { id: "p.site.usage", label: L("Material Usage (Maal Lag Gaya)", "Maal lag gaya"), href: "/site/usage", available: true },
+      { id: "p.site.stock", label: L("Site Stock", "Site stock"), href: "/site/stock", available: true },
+      { id: "p.site.counts", label: L("Stock Counts & Transfers", "Ginti aur transfer"), href: "/site/counts", available: true },
       soon("p.site.equipment", L("Equipment on Site", "Site par saman"), "/site/equipment"),
     ],
   },
@@ -493,8 +495,8 @@ export const CREATE_ACTIONS: QuickAction[] = [
   { id: "create.supplier", label: L("New supplier", "Naya supplier"), href: "/suppliers-stock/suppliers?new=1", access: OFFICE, available: true },
   { id: "create.worker", label: L("New worker", "Naya mazdoor"), href: "/workforce/workers?new=1", access: OFFICE, available: true },
   { id: "create.quote", label: L("New quote", "Naya quote"), href: "/sales/quotes/new", access: OFFICE, available: false },
-  { id: "create.purchase", label: L("New purchase", "Nayi kharidari"), href: "/suppliers-stock/purchases", access: OFFICE, available: false },
-  { id: "create.dispatch", label: L("Dispatch to site", "Site bhejein"), href: "/suppliers-stock/dispatches", access: THEKEDAR, available: false },
+  { id: "create.purchase", label: L("New purchase", "Nayi kharidari"), href: "/suppliers-stock/purchases/new", access: OFFICE, available: true },
+  { id: "create.dispatch", label: L("Dispatch to site", "Site bhejein"), href: "/suppliers-stock/dispatches", access: THEKEDAR, available: true },
 ];
 
 /** Sticky footer: only quick actions that work today. */

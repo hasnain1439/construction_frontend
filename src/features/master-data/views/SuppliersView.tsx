@@ -7,6 +7,7 @@ import { useGetSuppliersQuery, useSetSupplierActiveMutation } from "@/api/servic
 import type { Supplier, SuppliersQuery } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
+import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -18,6 +19,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatPhone } from "@/lib/phone";
+import { AgeingText } from "@/features/procurement/views/SupplierMoneyViews";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
 
@@ -26,6 +28,7 @@ export function SuppliersView() {
   const readOnly = useReadOnly();
   const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
   const canToggle = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const seesRates = useCan({ permission: "rates.view" });
   const list = useListState({ isActive: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetSuppliersQuery(list.query as SuppliersQuery);
   const [setActive, { isLoading: toggling }] = useSetSupplierActiveMutation();
@@ -48,6 +51,15 @@ export function SuppliersView() {
     { id: "category", header: "Category", cell: (s) => s.category ?? "—", sortValue: (s) => s.category ?? "" },
     { id: "phone", header: "Phone", cell: (s) => <span className="tabular">{formatPhone(s.phone)}</span> },
     { id: "city", header: "City", cell: (s) => s.city ?? "—", sortValue: (s) => s.city ?? "" },
+    {
+      id: "udhaar",
+      header: "Udhaar",
+      align: "right",
+      hidden: !seesRates,
+      sortValue: (s) => Number(s.udhaarBalancePaisa ?? 0),
+      cell: (s) => <MoneyText paisa={s.udhaarBalancePaisa} className="font-medium" />,
+    },
+    { id: "age", header: "Oldest unpaid", align: "right", hidden: !seesRates, sortValue: (s) => s.oldestUnpaidDays ?? -1, cell: (s) => <AgeingText days={s.oldestUnpaidDays} /> },
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
       id: "actions",

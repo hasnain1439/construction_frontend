@@ -1,6 +1,7 @@
 "use client";
 
 import { History, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   useGetMaterialsQuery,
@@ -22,6 +23,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Combobox } from "@/components/forms/ComboboxField";
 import { MoneyInput } from "@/components/forms/MoneyInput";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SupplierLedgerPanel, SupplierPaymentsPanel } from "@/features/procurement/views/SupplierMoneyViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { formatDate, formatDateTime } from "@/lib/dates";
@@ -185,6 +188,9 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
   const isOwner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
   const query = useGetSupplierQuery(supplierId);
   const [editOpen, setEditOpen] = useState(false);
+  const seesRates = useCan({ permission: "rates.view" });
+  const params = useSearchParams();
+  const [tab, setTab] = useState(params.get("tab") ?? "info");
   const [setActive, { isLoading: toggling }] = useSetSupplierActiveMutation();
   const run = useMutationToast();
 
@@ -217,22 +223,45 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
               </>
             }
           />
-          <SectionCard title="Details">
-            <InfoList
-              columns={3}
-              items={[
-                { label: "Category", value: supplier.category },
-                { label: "Phone", value: formatPhone(supplier.phone) },
-                { label: "City", value: supplier.city },
-                { label: "Address", value: supplier.address },
-                { label: "NTN", value: supplier.ntn },
-                { label: "Added", value: formatDate(supplier.createdAt) },
-                { label: "Notes", value: supplier.notes },
-              ]}
-            />
-          </SectionCard>
-          <AgreedRates supplier={supplier} editable={isOwner} />
-          <RateHistory supplierId={supplier.id} />
+          <Tabs value={tab} onValueChange={setTab} className="gap-5">
+            <TabsList>
+              <TabsTrigger value="info">Info</TabsTrigger>
+              <TabsTrigger value="rates">Agreed Rates</TabsTrigger>
+              {seesRates ? <TabsTrigger value="ledger">Ledger</TabsTrigger> : null}
+              {seesRates ? <TabsTrigger value="payments">Payments</TabsTrigger> : null}
+            </TabsList>
+            <TabsContent value="info" className="space-y-5">
+              <SectionCard title="Details">
+                <InfoList
+                  columns={3}
+                  items={[
+                    { label: "Category", value: supplier.category },
+                    { label: "Phone", value: formatPhone(supplier.phone) },
+                    { label: "City", value: supplier.city },
+                    { label: "Address", value: supplier.address },
+                    { label: "NTN", value: supplier.ntn },
+                    { label: "Added", value: formatDate(supplier.createdAt) },
+                    ...(seesRates ? [{ label: "Udhaar balance", value: <MoneyText paisa={supplier.udhaarBalancePaisa} className="font-semibold" /> }] : []),
+                    { label: "Notes", value: supplier.notes },
+                  ]}
+                />
+              </SectionCard>
+            </TabsContent>
+            <TabsContent value="rates" className="space-y-5">
+              <AgreedRates supplier={supplier} editable={isOwner} />
+              <RateHistory supplierId={supplier.id} />
+            </TabsContent>
+            {seesRates ? (
+              <TabsContent value="ledger">
+                <SupplierLedgerPanel supplierId={supplier.id} />
+              </TabsContent>
+            ) : null}
+            {seesRates ? (
+              <TabsContent value="payments">
+                <SupplierPaymentsPanel supplierId={supplier.id} />
+              </TabsContent>
+            ) : null}
+          </Tabs>
           <SupplierSlideOver open={editOpen} supplier={supplier} onOpenChange={setEditOpen} />
         </>
       )}

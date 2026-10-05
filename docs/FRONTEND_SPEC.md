@@ -53,10 +53,10 @@ You are a Principal Frontend Engineer. Build the Next.js web app for a multi-ten
 Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mode (company | project), `available` (true if backend exists; false → ComingSoon page).
 
 **Company mode rail → flyout items**
-- Dashboard → Company Overview · My Approvals (ComingSoon) · Alerts & Notifications (ComingSoon)
+- Dashboard → Company Overview · My Approvals (open shortages + site purchases waiting for rates — Step 6) · Alerts & Notifications (ComingSoon)
 - Projects → All Projects · New Project · Closed & Archived
 - Sales → Clients (Owners) · Quote Pipeline (ComingSoon) · New Quote (ComingSoon) · Win / Loss Insights (ComingSoon)
-- Suppliers & Stock → All Suppliers · Purchases (ComingSoon) · Purchase Returns (ComingSoon) · Store Stock (ComingSoon) · Dispatches (ComingSoon) · Shortages (ComingSoon) · Supplier Ledger (ComingSoon) · Purchase Orders (ComingSoon) · Supplier Payments (ComingSoon)
+- Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments (all available since Phase 1 · Step 6)
 - Workforce → Workers Directory · Sub-contractors
 - Equipment → all items ComingSoon (Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Shuttering Demand)
 - Finance → all items ComingSoon (Receivables · Cash Flow Outlook · Profit & Loss · Cash Floats Overview) — THEKEDAR only
@@ -67,7 +67,8 @@ Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mo
 **Project mode rail → flyout items** (top of rail: "← All projects", project name + status badge)
 - Overview → Project Summary
 - Planning → Site Setup · Floors & Rooms · Supply Split · Estimate (BoQ) (ComingSoon "Phase 2") · Estimate Revisions (ComingSoon) · Owner Shopping List (ComingSoon)
-- Schedule, Site, Labor, Cash Book, Change Orders, Billing, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
+- Site → Incoming Material (badge = deliveries waiting) · Deliveries (Maal Aaya) · Material Usage (Maal Lag Gaya) · Site Stock · Stock Counts & Transfers — available since Step 6; Daily Logs & Photos and Equipment on Site → ComingSoon
+- Schedule, Labor, Cash Book, Change Orders, Billing, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
 
 **Super Admin console rail**
 Overview · Companies · Payments (badge = pending count) · Plans · Material Catalog · Holidays · Audit Logs · (Rulebook, Communication, Security → ComingSoon)

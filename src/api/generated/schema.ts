@@ -1858,6 +1858,7 @@ export interface paths {
                          *         "quoteValidityDays": 15,
                          *         "taxEnabled": false,
                          *         "pmCanSeeFinancials": false,
+                         *         "blindCountEnabled": true,
                          *         "defaultLanguage": "ROMAN_URDU"
                          *       }
                          *     }
@@ -1903,7 +1904,7 @@ export interface paths {
          *     - `missingLogAlertTime` HH:MM
          *     - `quoteValidityDays` 1–90
          *
-         *     `pmCanSeeFinancials` is the default for new PM invitations.
+         *     `pmCanSeeFinancials` is the default for new PM invitations. `blindCountEnabled` hides sent / challan quantities while a site counts a delivery.
          */
         patch: {
             parameters: {
@@ -1925,6 +1926,7 @@ export interface paths {
                         quoteValidityDays?: number;
                         taxEnabled?: boolean;
                         pmCanSeeFinancials?: boolean;
+                        blindCountEnabled?: boolean;
                         /** @enum {string} */
                         defaultLanguage?: "ENGLISH" | "ROMAN_URDU" | "URDU";
                     };
@@ -3869,7 +3871,7 @@ export interface paths {
          *     | kind | Accepts |
          *     |---|---|
          *     | LOGO, PROFILE_PHOTO, SITE_PHOTO | JPEG, PNG, WebP |
-         *     | RECEIPT, DOCUMENT | JPEG, PNG, WebP, PDF |
+         *     | RECEIPT, DOCUMENT, PAYMENT_SLIP, CHALLAN | JPEG, PNG, WebP, PDF |
          *     | VOICE_NOTE | MP3, M4A, OGG |
          *
          *     The file content is checked, not just its name. The response `url` is signed and expires (default 10 min).
@@ -3893,7 +3895,7 @@ export interface paths {
                          * @example LOGO
                          * @enum {string}
                          */
-                        kind: "LOGO" | "PROFILE_PHOTO" | "SITE_PHOTO" | "RECEIPT" | "DOCUMENT" | "VOICE_NOTE" | "PAYMENT_SLIP";
+                        kind: "LOGO" | "PROFILE_PHOTO" | "SITE_PHOTO" | "RECEIPT" | "DOCUMENT" | "VOICE_NOTE" | "PAYMENT_SLIP" | "CHALLAN";
                     };
                 };
             };
@@ -12157,6 +12159,5301 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/stock-locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stock locations
+         * @description All roles. THEKEDAR sees every location; PM the Central Store, transit and their project sites; MUNSHI only their project sites. Every company has one Central Store and one in-transit location; every non-draft project has a site location.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Locations */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null,
+                         *           "isActive": true,
+                         *           "project": null
+                         *         },
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000502",
+                         *           "type": "TRANSIT",
+                         *           "name": "In transit",
+                         *           "projectId": null,
+                         *           "isActive": true,
+                         *           "project": null
+                         *         },
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "isActive": true,
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "status": "ACTIVE"
+                         *           }
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{locationId}/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Store stock
+         * @description THEKEDAR, PM (rates.view). Per material: quantity in the store, quantity on the way to sites, weighted-average rate, value, last purchase and low-stock flag. Summary: total value, low-stock count, dispatches on the way.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    lowStockOnly?: "true" | "false";
+                };
+                header?: never;
+                path: {
+                    locationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Store stock */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "summary": {
+                         *           "totalValuePaisa": "68420000",
+                         *           "materials": 4,
+                         *           "lowStockCount": 2,
+                         *           "dispatchesOnTheWay": 2
+                         *         },
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "group": {
+                         *                 "code": "CEMENT",
+                         *                 "name": "Cement"
+                         *               }
+                         *             },
+                         *             "inStore": 220,
+                         *             "inTransit": 100,
+                         *             "avgRatePaisa": "145302",
+                         *             "valuePaisa": "31966440",
+                         *             "lastPurchaseAt": "2026-10-02T07:00:00.000Z",
+                         *             "minQty": 200,
+                         *             "lowStock": false
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STORE_NOT_FOUND | LOCATION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stores/{locationId}/low-stock-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set low-stock levels
+         * @description THEKEDAR. Below `minQty` a material shows as low stock. `minQty: 0` removes the level. Returns all levels of the location.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    locationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        materialId: string;
+                        /**
+                         * @description 0 removes the level
+                         * @example 200
+                         */
+                        minQty: number | string;
+                    }[];
+                };
+            };
+            responses: {
+                /** @description Levels */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "material": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "name": "Cement OPC",
+                         *             "unit": "bag"
+                         *           },
+                         *           "minQty": 200
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | INVALID_MATERIAL */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stock movement ledger
+         * @description THEKEDAR, PM (rates.view). The append-only ledger behind every balance, newest first. Filter by location, project (its site), material, type and date range (Pakistan time). PM only sees the store, transit and their sites.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    locationId?: string;
+                    projectId?: string;
+                    materialId?: string;
+                    type?: "PURCHASE_IN" | "PURCHASE_RETURN_OUT" | "DISPATCH_OUT" | "TRANSIT_IN" | "TRANSIT_OUT" | "RECEIPT_IN" | "OWNER_DELIVERY_IN" | "USAGE_OUT" | "COUNT_ADJUSTMENT" | "CORRECTION";
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Movements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "type": "PURCHASE_IN",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "material": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "name": "Cement OPC",
+                         *             "unit": "bag"
+                         *           },
+                         *           "quantity": 400,
+                         *           "ownerSupplied": false,
+                         *           "unitCostPaisa": "143000",
+                         *           "valuePaisa": "57200000",
+                         *           "refType": "PURCHASE",
+                         *           "refId": "0199a8c0-0000-7000-8000-000000000701",
+                         *           "note": null,
+                         *           "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           }
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Site stock of a project
+         * @description All roles with access to the project. Per material: received (contractor / owner), used, transferred out, adjustments, in stock and last count. `avgRatePaisa` / `valuePaisa` only with rates.view (never for MUNSHI).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Site stock */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "summary": {
+                         *           "materials": 3,
+                         *           "lastCountAt": null,
+                         *           "totalValuePaisa": "35204500"
+                         *         },
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "receivedContractor": 190,
+                         *             "receivedOwner": 0,
+                         *             "used": 53,
+                         *             "transferredOut": 0,
+                         *             "adjustments": 0,
+                         *             "inStock": 137,
+                         *             "inStockContractor": 137,
+                         *             "inStockOwner": 0,
+                         *             "lastCountAt": null,
+                         *             "avgRatePaisa": "145333",
+                         *             "valuePaisa": "19910621"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/material-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Material usage of a project
+         * @description All roles with project access, newest first. Values only with rates.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Usage */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "usageDate": "2026-10-05",
+                         *           "note": "Roof slab, first floor",
+                         *           "milestoneId": null,
+                         *           "items": [
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "qty": 20,
+                         *               "ownerSupplied": false,
+                         *               "valuePaisa": "2906667"
+                         *             }
+                         *           ],
+                         *           "totalValuePaisa": "2906667",
+                         *           "deviceCreatedAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "createdAt": "2026-10-05T12:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record material usage
+         * @description All roles with project access (ACTIVE / CLOSEOUT projects). Each quantity must be in the site stock (400 INSUFFICIENT_STOCK with `available`). Leaves at the average cost; owner-supplied stock (from the supply rules, or `ownerSupplied`) at 0.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        usageDate: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                            /** @description Defaults from the project supply rules */
+                            ownerSupplied?: boolean;
+                        }[];
+                        note?: string;
+                        /** Format: uuid */
+                        milestoneId?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description When the entry was made on the phone (offline sync)
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "usageDate": "2026-10-05",
+                         *         "note": "Roof slab, first floor",
+                         *         "milestoneId": null,
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "qty": 20,
+                         *             "ownerSupplied": false,
+                         *             "valuePaisa": "2906667"
+                         *           }
+                         *         ],
+                         *         "totalValuePaisa": "2906667",
+                         *         "deviceCreatedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-05T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_STOCK | INVALID_MATERIAL | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stock-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stock counts
+         * @description All roles; PM / MUNSHI only see their locations. Filter by location or project.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    locationId?: string;
+                    projectId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Counts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "number": "SC-0002",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "countedAt": "2026-10-05T12:00:00.000Z",
+                         *           "note": null,
+                         *           "items": [
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "ownerSupplied": false,
+                         *               "systemQty": 137,
+                         *               "countedQty": 134,
+                         *               "difference": -3,
+                         *               "reason": "HARDENED_IN_RAIN",
+                         *               "note": "Bags left open",
+                         *               "valuePaisa": "-436000"
+                         *             },
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *                 "name": "Clay bricks Class-1",
+                         *                 "unit": "nos"
+                         *               },
+                         *               "ownerSupplied": false,
+                         *               "systemQty": 3500,
+                         *               "countedQty": 3500,
+                         *               "difference": 0,
+                         *               "reason": null,
+                         *               "note": null,
+                         *               "valuePaisa": "0"
+                         *             }
+                         *           ],
+                         *           "summary": {
+                         *             "materials": 2,
+                         *             "withDifference": 1,
+                         *             "differenceValuePaisa": "-436000"
+                         *           },
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "createdAt": "2026-10-05T12:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a stock count
+         * @description Sites: THEKEDAR / PM / MUNSHI with access. The Central Store: THEKEDAR only (403). The system quantity is taken by the server; a non-zero difference needs a `reason` (400 REASON_REQUIRED) and becomes a COUNT_ADJUSTMENT. The response shows system vs counted.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        locationId: string;
+                        /**
+                         * Format: date-time
+                         * @description Defaults to now
+                         */
+                        countedAt?: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            countedQty: number | string;
+                            /**
+                             * @description Required when the count differs from the system
+                             * @enum {string}
+                             */
+                            reason?: "HARDENED_IN_RAIN" | "BREAKAGE" | "THEFT_SUSPECTED" | "MEASUREMENT" | "OTHER";
+                            note?: string;
+                            ownerSupplied?: boolean;
+                        }[];
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Counted */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *         "number": "SC-0002",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "countedAt": "2026-10-05T12:00:00.000Z",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "ownerSupplied": false,
+                         *             "systemQty": 137,
+                         *             "countedQty": 134,
+                         *             "difference": -3,
+                         *             "reason": "HARDENED_IN_RAIN",
+                         *             "note": "Bags left open",
+                         *             "valuePaisa": "-436000"
+                         *           },
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "ownerSupplied": false,
+                         *             "systemQty": 3500,
+                         *             "countedQty": 3500,
+                         *             "difference": 0,
+                         *             "reason": null,
+                         *             "note": null,
+                         *             "valuePaisa": "0"
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "materials": 2,
+                         *           "withDifference": 1,
+                         *           "differenceValuePaisa": "-436000"
+                         *         },
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-05T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | REASON_REQUIRED | INVALID_LOCATION | INVALID_MATERIAL | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List purchases
+         * @description THEKEDAR all; PM store purchases + their sites; MUNSHI only purchases delivered to their sites (no amounts). Filters: supplier, location, project, payment mode, status, date range, number / challan search. `meta.totalPaisa` sums the filtered bills (rates.view).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    supplierId?: string;
+                    locationId?: string;
+                    projectId?: string;
+                    paymentMode?: "UDHAAR" | "CASH" | "PARTIAL";
+                    status?: "SAVED" | "PENDING_RATE" | "PENDING_RECEIPT" | "RECEIVED" | "RECEIVED_WITH_SHORTAGE";
+                    from?: string;
+                    to?: string;
+                    /** @description Purchase or challan number */
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Purchases */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *           "number": "PUR-2026-0003",
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *             "name": "Al-Madina Cement Agency"
+                         *           },
+                         *           "deliverTo": "STORE",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "project": null,
+                         *           "challanNo": "CH-2231",
+                         *           "purchaseDate": "2026-10-02",
+                         *           "paymentMode": "UDHAAR",
+                         *           "status": "SAVED",
+                         *           "materials": [
+                         *             "Cement OPC"
+                         *           ],
+                         *           "openShortages": 0,
+                         *           "totalPaisa": "57200000",
+                         *           "paidNowPaisa": "0",
+                         *           "createdAt": "2026-10-02T07:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaisa": "57200000",
+                         *         "paidNowPaisa": "0"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a purchase (challan)
+         * @description **STORE** (THEKEDAR, PM): counted on arrival → SAVED, stock in at the rate. **SITE** (office): PENDING_RECEIPT until the site counts it (`POST /purchases/{id}/receive`). **MUNSHI**: SITE only, no rates or payment → PENDING_RATE until the office adds rates.
+         *
+         *     Rates default from the purchase order, then the supplier’s agreed rate (400 RATE_REQUIRED if none). Good quantity (counted − damaged) below the challan needs an item `note` (400 SHORTAGE_NOTE_REQUIRED) and creates SUPPLIER_SHORT / DAMAGED shortages.
+         *
+         *     Payment: UDHAAR → whole bill to the supplier ledger; CASH → bill + payment; PARTIAL → bill + payment of `paidNowPaisa` (0 < paid < bill). The challan photo is required (upload with kind CHALLAN).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        supplierId: string;
+                        /** @enum {string} */
+                        deliverTo: "STORE" | "SITE";
+                        /**
+                         * Format: uuid
+                         * @description Required for SITE; optional tag for STORE
+                         */
+                        projectId?: string;
+                        /** Format: uuid */
+                        purchaseOrderId?: string;
+                        /** @example CH-2231 */
+                        challanNo: string;
+                        /** @example LES-4521 */
+                        vehicleNo?: string;
+                        /** @example 2026-12-25 */
+                        purchaseDate: string;
+                        /**
+                         * @default UDHAAR
+                         * @enum {string}
+                         */
+                        paymentMode?: "UDHAAR" | "CASH" | "PARTIAL";
+                        /**
+                         * @description PARTIAL only (CASH pays the whole bill)
+                         * @example 2500000
+                         */
+                        paidNowPaisa?: string | number;
+                        /**
+                         * @description Required for CASH / PARTIAL
+                         * @enum {string}
+                         */
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                        /**
+                         * Format: uuid
+                         * @description Photo of the challan (upload with kind CHALLAN)
+                         */
+                        challanAttachmentId: string;
+                        /** Format: uuid */
+                        billAttachmentId?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            challanQty: number | string;
+                            /**
+                             * @description STORE (and MUNSHI site entries): counted on arrival, defaults to challanQty. SITE office entries are counted on receipt.
+                             * @example 200
+                             */
+                            countedQty?: number | string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            damagedQty?: number | string;
+                            /**
+                             * @description Defaults from the PO, then the supplier’s agreed rate. MUNSHI must not send rates.
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                            /** @description Required when the good quantity is less than the challan */
+                            note?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *         "number": "PUR-2026-0003",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "purchaseOrder": null,
+                         *         "challanNo": "CH-2231",
+                         *         "vehicleNo": "LES-4521",
+                         *         "purchaseDate": "2026-10-02",
+                         *         "paymentMode": "UDHAAR",
+                         *         "status": "SAVED",
+                         *         "locked": true,
+                         *         "blindCount": false,
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "challanQty": 400,
+                         *             "countedQty": 400,
+                         *             "damagedQty": 0,
+                         *             "goodQty": 400,
+                         *             "shortQty": 0,
+                         *             "note": null,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "57200000",
+                         *             "correctedQty": null,
+                         *             "correctedRatePaisa": null
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "57200000",
+                         *         "correctedTotalPaisa": "57200000",
+                         *         "paidNowPaisa": "0",
+                         *         "paidFrom": null,
+                         *         "udhaarAddedPaisa": "57200000",
+                         *         "ledgerEffect": [
+                         *           {
+                         *             "type": "PURCHASE",
+                         *             "amountPaisa": "57200000",
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "note": "PUR-2026-0003"
+                         *           }
+                         *         ],
+                         *         "payments": [],
+                         *         "challan": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000601",
+                         *           "fileName": "ch-2231.jpg",
+                         *           "url": "https://api.example.com/api/v1/attachments/…/file?…"
+                         *         },
+                         *         "bill": null,
+                         *         "corrections": [],
+                         *         "returns": [],
+                         *         "shortages": [],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "receivedAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RATE_REQUIRED | SHORTAGE_NOTE_REQUIRED | DAMAGED_EXCEEDS_COUNTED | INVALID_PAID_AMOUNT | CHALLAN_REQUIRED | INVALID_MATERIAL | SUPPLIER_INACTIVE | PO_SUPPLIER_MISMATCH | RATES_NOT_ALLOWED | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_NOT_FOUND | PROJECT_NOT_FOUND | PURCHASE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PO_CLOSED | PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Purchase detail
+         * @description Items, payment, attachments (signed links), ledger effect, corrections, returns and shortages. Amounts only with rates.view. While a site delivery waits for its count, MUNSHI does not see `challanQty` (blind count).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Purchase */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *         "number": "PUR-2026-0003",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "purchaseOrder": null,
+                         *         "challanNo": "CH-2231",
+                         *         "vehicleNo": "LES-4521",
+                         *         "purchaseDate": "2026-10-02",
+                         *         "paymentMode": "UDHAAR",
+                         *         "status": "SAVED",
+                         *         "locked": true,
+                         *         "blindCount": false,
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "challanQty": 400,
+                         *             "countedQty": 400,
+                         *             "damagedQty": 0,
+                         *             "goodQty": 400,
+                         *             "shortQty": 0,
+                         *             "note": null,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "57200000",
+                         *             "correctedQty": null,
+                         *             "correctedRatePaisa": null
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "57200000",
+                         *         "correctedTotalPaisa": "57200000",
+                         *         "paidNowPaisa": "0",
+                         *         "paidFrom": null,
+                         *         "udhaarAddedPaisa": "57200000",
+                         *         "ledgerEffect": [
+                         *           {
+                         *             "type": "PURCHASE",
+                         *             "amountPaisa": "57200000",
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "note": "PUR-2026-0003"
+                         *           }
+                         *         ],
+                         *         "payments": [],
+                         *         "challan": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000601",
+                         *           "fileName": "ch-2231.jpg",
+                         *           "url": "https://api.example.com/api/v1/attachments/…/file?…"
+                         *         },
+                         *         "bill": null,
+                         *         "corrections": [],
+                         *         "returns": [],
+                         *         "shortages": [],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "receivedAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Add rates to a munshi purchase
+         * @description THEKEDAR, PM (rates.view). PENDING_RATE only (409 RATES_ALREADY_SET). Missing rates default from the supplier’s agreed rate. Posts the bill (and payment) to the supplier ledger and adds the stock value. Status → RECEIVED / RECEIVED_WITH_SHORTAGE.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Paisa as a string (2500000 = Rs 25,000)
+                             * @example 2500000
+                             */
+                            ratePaisa: string | number;
+                        }[];
+                        /**
+                         * @default UDHAAR
+                         * @enum {string}
+                         */
+                        paymentMode?: "UDHAAR" | "CASH" | "PARTIAL";
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        paidNowPaisa?: string | number;
+                        /** @enum {string} */
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                    };
+                };
+            };
+            responses: {
+                /** @description Priced */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *         "number": "PUR-2026-0003",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "SITE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "purchaseOrder": null,
+                         *         "challanNo": "CH-2231",
+                         *         "vehicleNo": "LES-4521",
+                         *         "purchaseDate": "2026-10-02",
+                         *         "paymentMode": "UDHAAR",
+                         *         "status": "RECEIVED",
+                         *         "locked": true,
+                         *         "blindCount": false,
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "challanQty": 400,
+                         *             "countedQty": 400,
+                         *             "damagedQty": 0,
+                         *             "goodQty": 400,
+                         *             "shortQty": 0,
+                         *             "note": null,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "57200000",
+                         *             "correctedQty": null,
+                         *             "correctedRatePaisa": null
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "57200000",
+                         *         "correctedTotalPaisa": "57200000",
+                         *         "paidNowPaisa": "0",
+                         *         "paidFrom": null,
+                         *         "udhaarAddedPaisa": "57200000",
+                         *         "ledgerEffect": [
+                         *           {
+                         *             "type": "PURCHASE",
+                         *             "amountPaisa": "57200000",
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "note": "PUR-2026-0003"
+                         *           }
+                         *         ],
+                         *         "payments": [],
+                         *         "challan": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000601",
+                         *           "fileName": "ch-2231.jpg",
+                         *           "url": "https://api.example.com/api/v1/attachments/…/file?…"
+                         *         },
+                         *         "bill": null,
+                         *         "corrections": [],
+                         *         "returns": [],
+                         *         "shortages": [],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "receivedAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RATE_REQUIRED | NOT_IN_PURCHASE | INVALID_PAID_AMOUNT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RATES_ALREADY_SET */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Correct a saved purchase
+         * @description THEKEDAR. The original lines stay as they were; the correction is a visible entry with a reason. Each line gets its correct `qty` and/or `ratePaisa`: the stock gets a CORRECTION movement and the supplier ledger an ADJUSTMENT of the bill difference.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                        items: {
+                            /** Format: uuid */
+                            purchaseItemId: string;
+                            /**
+                             * @description Correct quantity (replaces the good quantity and the billed quantity)
+                             * @example 200
+                             */
+                            qty?: number | string;
+                            /**
+                             * @description Correct rate
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Corrected */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *         "number": "PUR-2026-0003",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "purchaseOrder": null,
+                         *         "challanNo": "CH-2231",
+                         *         "vehicleNo": "LES-4521",
+                         *         "purchaseDate": "2026-10-02",
+                         *         "paymentMode": "UDHAAR",
+                         *         "status": "SAVED",
+                         *         "locked": true,
+                         *         "blindCount": false,
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "challanQty": 400,
+                         *             "countedQty": 400,
+                         *             "damagedQty": 0,
+                         *             "goodQty": 400,
+                         *             "shortQty": 0,
+                         *             "note": null,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "57200000",
+                         *             "correctedQty": null,
+                         *             "correctedRatePaisa": null
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "57200000",
+                         *         "correctedTotalPaisa": "56800000",
+                         *         "paidNowPaisa": "0",
+                         *         "paidFrom": null,
+                         *         "udhaarAddedPaisa": "57200000",
+                         *         "ledgerEffect": [
+                         *           {
+                         *             "type": "PURCHASE",
+                         *             "amountPaisa": "57200000",
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "note": "PUR-2026-0003"
+                         *           }
+                         *         ],
+                         *         "payments": [],
+                         *         "challan": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000601",
+                         *           "fileName": "ch-2231.jpg",
+                         *           "url": "https://api.example.com/api/v1/attachments/…/file?…"
+                         *         },
+                         *         "bill": null,
+                         *         "corrections": [],
+                         *         "returns": [],
+                         *         "shortages": [],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "receivedAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOT_IN_PURCHASE | NOTHING_TO_CORRECT | INSUFFICIENT_STOCK */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FINAL */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/returns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Return goods to the supplier
+         * @description THEKEDAR, PM (rates.view). Saved / received purchases only. Quantity ≤ what is left of the purchase (400 RETURN_EXCEEDS_PURCHASE) and ≤ the stock at its location (400 RETURN_EXCEEDS_STOCK). Leaves stock at the purchase rate and credits the supplier.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                        }[];
+                        /** Format: uuid */
+                        attachmentId?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Returned */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000704",
+                         *         "number": "PRN-0001",
+                         *         "purchase": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *           "number": "PUR-2026-0003",
+                         *           "challanNo": "CH-2231"
+                         *         },
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "reason": "Hardened bags",
+                         *         "note": null,
+                         *         "attachmentId": null,
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "qty": 10,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "1430000"
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "1430000",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-05T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOT_IN_PURCHASE | RETURN_EXCEEDS_PURCHASE | RETURN_EXCEEDS_STOCK | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FINAL */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-returns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Purchase returns
+         * @description THEKEDAR, PM (rates.view). Filter by supplier or purchase.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    supplierId?: string;
+                    purchaseId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Returns */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000704",
+                         *           "number": "PRN-0001",
+                         *           "purchase": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *             "number": "PUR-2026-0003",
+                         *             "challanNo": "CH-2231"
+                         *           },
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *             "name": "Al-Madina Cement Agency"
+                         *           },
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "reason": "Hardened bags",
+                         *           "note": null,
+                         *           "attachmentId": null,
+                         *           "items": [
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "qty": 10,
+                         *               "ratePaisa": "143000",
+                         *               "amountPaisa": "1430000"
+                         *             }
+                         *           ],
+                         *           "totalPaisa": "1430000",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-05T07:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive a direct site delivery (blind count)
+         * @description THEKEDAR, PM, MUNSHI with access to the site. Count every material (`countedQty`, `damagedQty`); good quantity below the challan needs a note. Stock goes in at the purchase rate; differences become SUPPLIER_SHORT / DAMAGED shortages. The response reveals challan vs counted vs difference. A second receive → 409 ALREADY_RECEIVED.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            countedQty: number | string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            damagedQty?: number | string;
+                            /** @description Required when the good quantity is less than the challan */
+                            note?: string;
+                        }[];
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Received */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "purchase": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *           "number": "PUR-2026-0003",
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *             "name": "Al-Madina Cement Agency",
+                         *             "phone": "+924235761234"
+                         *           },
+                         *           "deliverTo": "SITE",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "purchaseOrder": null,
+                         *           "challanNo": "CH-2231",
+                         *           "vehicleNo": "LES-4521",
+                         *           "purchaseDate": "2026-10-02",
+                         *           "paymentMode": "UDHAAR",
+                         *           "status": "RECEIVED_WITH_SHORTAGE",
+                         *           "locked": true,
+                         *           "blindCount": false,
+                         *           "note": null,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "challanQty": 400,
+                         *               "countedQty": 400,
+                         *               "damagedQty": 0,
+                         *               "goodQty": 400,
+                         *               "shortQty": 0,
+                         *               "note": null,
+                         *               "ratePaisa": "143000",
+                         *               "amountPaisa": "57200000",
+                         *               "correctedQty": null,
+                         *               "correctedRatePaisa": null
+                         *             }
+                         *           ],
+                         *           "totalPaisa": "57200000",
+                         *           "correctedTotalPaisa": "57200000",
+                         *           "paidNowPaisa": "0",
+                         *           "paidFrom": null,
+                         *           "udhaarAddedPaisa": "57200000",
+                         *           "ledgerEffect": [
+                         *             {
+                         *               "type": "PURCHASE",
+                         *               "amountPaisa": "57200000",
+                         *               "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *               "note": "PUR-2026-0003"
+                         *             }
+                         *           ],
+                         *           "payments": [],
+                         *           "challan": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000601",
+                         *             "fileName": "ch-2231.jpg",
+                         *             "url": "https://api.example.com/api/v1/attachments/…/file?…"
+                         *           },
+                         *           "bill": null,
+                         *           "corrections": [],
+                         *           "returns": [],
+                         *           "shortages": [],
+                         *           "receivedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "receivedAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-02T07:00:00.000Z"
+                         *         },
+                         *         "comparison": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "expectedQty": 10000,
+                         *             "countedQty": 9800,
+                         *             "damagedQty": 150,
+                         *             "goodQty": 9650,
+                         *             "differenceQty": -350,
+                         *             "result": "SHORT_AND_DAMAGED"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | ITEMS_MISMATCH | SHORTAGE_NOTE_REQUIRED | DAMAGED_EXCEEDS_COUNTED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ALREADY_RECEIVED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List purchase orders
+         * @description THEKEDAR, PM (rates.view). Status follows the linked purchases: OPEN → PARTLY_RECEIVED → RECEIVED (or CANCELLED).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    supplierId?: string;
+                    projectId?: string;
+                    status?: "OPEN" | "PARTLY_RECEIVED" | "RECEIVED" | "CANCELLED";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Orders */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000702",
+                         *           "number": "PO-0001",
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *             "name": "Al-Madina Cement Agency",
+                         *             "phone": "+924235761234"
+                         *           },
+                         *           "deliverTo": "STORE",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "project": null,
+                         *           "expectedDate": "2026-10-10",
+                         *           "status": "PARTLY_RECEIVED",
+                         *           "note": null,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "orderedQty": 600,
+                         *               "receivedQty": 400,
+                         *               "pendingQty": 200,
+                         *               "ratePaisa": "143000",
+                         *               "amountPaisa": "85800000"
+                         *             }
+                         *           ],
+                         *           "totalPaisa": "85800000",
+                         *           "purchases": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *               "number": "PUR-2026-0003",
+                         *               "challanNo": "CH-2231",
+                         *               "purchaseDate": "2026-10-02",
+                         *               "status": "SAVED"
+                         *             }
+                         *           ],
+                         *           "cancelledAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-09-30T07:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a purchase order
+         * @description THEKEDAR, PM. Purchases can link to it (`purchaseOrderId`) and take its rates.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        supplierId: string;
+                        /** @enum {string} */
+                        deliverTo: "STORE" | "SITE";
+                        /** Format: uuid */
+                        projectId?: string;
+                        /** @example 2026-12-25 */
+                        expectedDate?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            orderedQty: number | string;
+                            /**
+                             * @description Paisa as a string (2500000 = Rs 25,000)
+                             * @example 2500000
+                             */
+                            ratePaisa: string | number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000702",
+                         *         "number": "PO-0001",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "expectedDate": "2026-10-10",
+                         *         "status": "OPEN",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "orderedQty": 600,
+                         *             "receivedQty": 400,
+                         *             "pendingQty": 200,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "85800000"
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "85800000",
+                         *         "purchases": [],
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-09-30T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_MATERIAL | SUPPLIER_INACTIVE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchase-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Purchase order detail
+         * @description THEKEDAR, PM. Ordered vs received vs pending per material, and the linked purchases.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Order */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000702",
+                         *         "number": "PO-0001",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "expectedDate": "2026-10-10",
+                         *         "status": "PARTLY_RECEIVED",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "orderedQty": 600,
+                         *             "receivedQty": 400,
+                         *             "pendingQty": 200,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "85800000"
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "85800000",
+                         *         "purchases": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *             "number": "PUR-2026-0003",
+                         *             "challanNo": "CH-2231",
+                         *             "purchaseDate": "2026-10-02",
+                         *             "status": "SAVED"
+                         *           }
+                         *         ],
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-09-30T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit an open purchase order
+         * @description THEKEDAR, PM. OPEN orders only (409 PURCHASE_ORDER_LOCKED). `items` replaces all lines.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        expectedDate?: string | null;
+                        note?: string | null;
+                        items?: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            orderedQty: number | string;
+                            /**
+                             * @description Paisa as a string (2500000 = Rs 25,000)
+                             * @example 2500000
+                             */
+                            ratePaisa: string | number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000702",
+                         *         "number": "PO-0001",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "expectedDate": "2026-10-10",
+                         *         "status": "OPEN",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "orderedQty": 600,
+                         *             "receivedQty": 400,
+                         *             "pendingQty": 200,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "85800000"
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "85800000",
+                         *         "purchases": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *             "number": "PUR-2026-0003",
+                         *             "challanNo": "CH-2231",
+                         *             "purchaseDate": "2026-10-02",
+                         *             "status": "SAVED"
+                         *           }
+                         *         ],
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-09-30T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_MATERIAL */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_ORDER_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/purchase-orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a purchase order
+         * @description THEKEDAR, PM. Only OPEN orders without any linked purchase (409 PURCHASE_ORDER_HAS_RECEIPTS).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Purchase order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000702",
+                         *         "number": "PO-0001",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "deliverTo": "STORE",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "project": null,
+                         *         "expectedDate": "2026-10-10",
+                         *         "status": "CANCELLED",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "orderedQty": 600,
+                         *             "receivedQty": 400,
+                         *             "pendingQty": 200,
+                         *             "ratePaisa": "143000",
+                         *             "amountPaisa": "85800000"
+                         *           }
+                         *         ],
+                         *         "totalPaisa": "85800000",
+                         *         "purchases": [],
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-09-30T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PURCHASE_ORDER_HAS_RECEIPTS | PURCHASE_ORDER_CANCELLED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Supplier ledger (udhaar)
+         * @description THEKEDAR, PM (rates.view). Entries newest first with the running balance of the whole account; filter by project or dates. `oldestUnpaidDays`: payments settle the oldest debits first (FIFO).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Supplier id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Ledger */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *           "name": "Al-Madina Cement Agency",
+                         *           "phone": "+924235761234"
+                         *         },
+                         *         "udhaarBalancePaisa": "74000000",
+                         *         "oldestUnpaidDays": 34,
+                         *         "openingBalancePaisa": "0",
+                         *         "totals": {
+                         *           "debitPaisa": "74000000",
+                         *           "creditPaisa": "0"
+                         *         },
+                         *         "entries": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *             "type": "PURCHASE",
+                         *             "amountPaisa": "57200000",
+                         *             "runningBalancePaisa": "74000000",
+                         *             "refType": "PURCHASE",
+                         *             "refId": "0199a8c0-0000-7000-8000-000000000701",
+                         *             "project": null,
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "note": "PUR-2026-0003",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           }
+                         *         ]
+                         *       },
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 2,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Supplier payments
+         * @description THEKEDAR, PM (rates.view). Filter by supplier, method, status and date. `meta.totalPaidPaisa` excludes bounced cheques.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    supplierId?: string;
+                    method?: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                    status?: "CLEARED" | "PENDING" | "BOUNCED";
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Payments */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000901",
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f2",
+                         *             "name": "Ittefaq Steel Traders"
+                         *           },
+                         *           "amountPaisa": "15000000",
+                         *           "method": "CHEQUE",
+                         *           "reference": null,
+                         *           "chequeNo": "00412377",
+                         *           "chequeDate": "2026-10-04",
+                         *           "status": "PENDING",
+                         *           "paidOn": "2026-10-04",
+                         *           "note": null,
+                         *           "project": null,
+                         *           "purchase": null,
+                         *           "statusChangedAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-04T07:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaidPaisa": "15000000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a supplier payment
+         * @description THEKEDAR. Credits the supplier ledger. Cheques start PENDING (cheque number required) until marked cleared or bounced.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        supplierId: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @enum {string} */
+                        method: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                        reference?: string;
+                        chequeNo?: string;
+                        /** @example 2026-12-25 */
+                        chequeDate?: string;
+                        /** @example 2026-12-25 */
+                        paidOn: string;
+                        /** Format: uuid */
+                        projectId?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000901",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f2",
+                         *           "name": "Ittefaq Steel Traders"
+                         *         },
+                         *         "amountPaisa": "15000000",
+                         *         "method": "CHEQUE",
+                         *         "reference": null,
+                         *         "chequeNo": "00412377",
+                         *         "chequeDate": "2026-10-04",
+                         *         "status": "PENDING",
+                         *         "paidOn": "2026-10-04",
+                         *         "note": null,
+                         *         "project": null,
+                         *         "purchase": null,
+                         *         "statusChangedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-04T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-payments/{id}/cheque-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Mark a cheque cleared or bounced
+         * @description THEKEDAR. PENDING cheques only. BOUNCED adds a PAYMENT_REVERSAL to the ledger (the supplier is owed the amount again).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Payment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "CLEARED" | "BOUNCED";
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000901",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f2",
+                         *           "name": "Ittefaq Steel Traders"
+                         *         },
+                         *         "amountPaisa": "15000000",
+                         *         "method": "CHEQUE",
+                         *         "reference": null,
+                         *         "chequeNo": "00412377",
+                         *         "chequeDate": "2026-10-04",
+                         *         "status": "BOUNCED",
+                         *         "paidOn": "2026-10-04",
+                         *         "note": null,
+                         *         "project": null,
+                         *         "purchase": null,
+                         *         "statusChangedAt": "2026-10-05T07:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-04T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description NOT_A_CHEQUE | CHEQUE_ALREADY_SETTLED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/dispatches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List dispatches (gate passes)
+         * @description All roles. PM / MUNSHI only see dispatches to or from their sites. Values only with rates.view; sent quantities are hidden from MUNSHI while on the way (blind count).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "ON_THE_WAY" | "RECEIVED" | "RECEIVED_WITH_SHORTAGE" | "RECEIVED_WITH_EXCESS" | "CANCELLED";
+                    fromLocationId?: string;
+                    toLocationId?: string;
+                    /** @description Dispatches to or from this project’s site */
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description GP number or vehicle */
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Dispatches */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *           "number": "GP-0142",
+                         *           "from": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "to": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "vehicleNo": "LES-4521",
+                         *           "driverName": "Nadeem",
+                         *           "driverPhone": "+923001112233",
+                         *           "dispatchedAt": "2026-10-03T05:00:00.000Z",
+                         *           "status": "ON_THE_WAY",
+                         *           "note": null,
+                         *           "blindCount": false,
+                         *           "loadPhotoUrl": null,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000811",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "sentQty": 200,
+                         *               "receivedQty": null,
+                         *               "damagedQty": null,
+                         *               "goodQty": null,
+                         *               "differenceQty": null,
+                         *               "note": null,
+                         *               "photoUrl": null,
+                         *               "unitCostPaisa": "145333",
+                         *               "valuePaisa": "29066600"
+                         *             },
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000812",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *                 "name": "Clay bricks Class-1",
+                         *                 "unit": "nos"
+                         *               },
+                         *               "sentQty": 5000,
+                         *               "receivedQty": null,
+                         *               "damagedQty": null,
+                         *               "goodQty": null,
+                         *               "differenceQty": null,
+                         *               "note": null,
+                         *               "photoUrl": null,
+                         *               "unitCostPaisa": "1700",
+                         *               "valuePaisa": "8500000"
+                         *             }
+                         *           ],
+                         *           "totalValuePaisa": "37566600",
+                         *           "shortages": [],
+                         *           "receivedBy": null,
+                         *           "receivedAt": null,
+                         *           "receiveNote": null,
+                         *           "cancelledAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-03T05:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Dispatch stock to a site
+         * @description THEKEDAR from the store or any site; PM only from a site they manage (to the store or another of their sites). Every item must be in stock at the source (400 INSUFFICIENT_STOCK with `available`). Stock leaves at the average cost into transit; the destination PM and munshis get an SMS, e.g. “GP-0142: 200 bags cement aur 5,000 eent aap ki site par aa rahe hain (LES-4521).”
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Central Store, or a site (transfer)
+                         */
+                        fromLocationId: string;
+                        /** Format: uuid */
+                        toLocationId?: string;
+                        /**
+                         * Format: uuid
+                         * @description Shortcut for the project’s site location
+                         */
+                        toProjectId?: string;
+                        /** @example LES-4521 */
+                        vehicleNo?: string;
+                        /** @example Nadeem */
+                        driverName?: string;
+                        /**
+                         * @description Pakistani mobile; normalised to +923001234567
+                         * @example 0300-1112233
+                         */
+                        driverPhone?: string;
+                        /**
+                         * Format: date-time
+                         * @description Defaults to now
+                         */
+                        dispatchedAt?: string;
+                        /** Format: uuid */
+                        loadPhotoAttachmentId?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Dispatched */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *         "number": "GP-0142",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "driverPhone": "+923001112233",
+                         *         "dispatchedAt": "2026-10-03T05:00:00.000Z",
+                         *         "status": "ON_THE_WAY",
+                         *         "note": null,
+                         *         "blindCount": false,
+                         *         "loadPhotoUrl": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000811",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "sentQty": 200,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "145333",
+                         *             "valuePaisa": "29066600"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000812",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "sentQty": 5000,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "1700",
+                         *             "valuePaisa": "8500000"
+                         *           }
+                         *         ],
+                         *         "totalValuePaisa": "37566600",
+                         *         "shortages": [],
+                         *         "receivedBy": null,
+                         *         "receivedAt": null,
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-03T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_STOCK | INVALID_LOCATION | SAME_LOCATION | INVALID_MATERIAL | INVALID_ATTACHMENT | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dispatch detail
+         * @description Sent vs received vs damaged per material, shortages found, photos.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Dispatch id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Dispatch */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *         "number": "GP-0142",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "driverPhone": "+923001112233",
+                         *         "dispatchedAt": "2026-10-03T05:00:00.000Z",
+                         *         "status": "ON_THE_WAY",
+                         *         "note": null,
+                         *         "blindCount": false,
+                         *         "loadPhotoUrl": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000811",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "sentQty": 200,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "145333",
+                         *             "valuePaisa": "29066600"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000812",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "sentQty": 5000,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "1700",
+                         *             "valuePaisa": "8500000"
+                         *           }
+                         *         ],
+                         *         "totalValuePaisa": "37566600",
+                         *         "shortages": [],
+                         *         "receivedBy": null,
+                         *         "receivedAt": null,
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-03T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DISPATCH_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatches/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a dispatch on the way
+         * @description THEKEDAR (PM for their own site transfers). ON_THE_WAY only (409 DISPATCH_NOT_CANCELLABLE). The stock comes out of transit back to the source at the same value.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Dispatch id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *         "number": "GP-0142",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "driverPhone": "+923001112233",
+                         *         "dispatchedAt": "2026-10-03T05:00:00.000Z",
+                         *         "status": "CANCELLED",
+                         *         "note": null,
+                         *         "blindCount": false,
+                         *         "loadPhotoUrl": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000811",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "sentQty": 200,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "145333",
+                         *             "valuePaisa": "29066600"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000812",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "sentQty": 5000,
+                         *             "receivedQty": null,
+                         *             "damagedQty": null,
+                         *             "goodQty": null,
+                         *             "differenceQty": null,
+                         *             "note": null,
+                         *             "photoUrl": null,
+                         *             "unitCostPaisa": "1700",
+                         *             "valuePaisa": "8500000"
+                         *           }
+                         *         ],
+                         *         "totalValuePaisa": "37566600",
+                         *         "shortages": [],
+                         *         "receivedBy": null,
+                         *         "receivedAt": null,
+                         *         "receiveNote": null,
+                         *         "cancelledAt": "2026-10-03T06:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-03T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DISPATCH_NOT_FOUND | LOCATION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DISPATCH_NOT_CANCELLABLE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/incoming": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Incoming material for a site
+         * @description All roles with project access. Dispatches on the way and direct purchases waiting for the count. With blind count on (company setting, default) `sentQty` / `challanQty` are left out, so the site counts what really arrived. Never shows values.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incoming */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "blindCount": true,
+                         *         "count": 2,
+                         *         "dispatches": [
+                         *           {
+                         *             "type": "DISPATCH",
+                         *             "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *             "number": "GP-0144",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "vehicleNo": "LEA-1029",
+                         *             "driverName": "Akbar",
+                         *             "driverPhone": "+923004445566",
+                         *             "dispatchedAt": "2026-10-05T05:00:00.000Z",
+                         *             "items": [
+                         *               {
+                         *                 "material": {
+                         *                   "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                   "name": "Cement OPC",
+                         *                   "unit": "bag"
+                         *                 }
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "purchases": [
+                         *           {
+                         *             "type": "PURCHASE",
+                         *             "id": "0199a8c0-0000-7000-8000-000000000701",
+                         *             "number": "PUR-2026-0006",
+                         *             "supplier": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *               "name": "Chaudhry Bricks Kiln",
+                         *               "phone": "+923216549870"
+                         *             },
+                         *             "challanNo": "CB-1190",
+                         *             "vehicleNo": null,
+                         *             "purchaseDate": "2026-10-04",
+                         *             "items": [
+                         *               {
+                         *                 "material": {
+                         *                   "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *                   "name": "Clay bricks Class-1",
+                         *                   "unit": "nos"
+                         *                 }
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dispatches/{id}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive a dispatch (blind count)
+         * @description THEKEDAR, PM, MUNSHI with access to the destination site. Count every material: `receivedQty` (all that arrived) and `damagedQty`. Good quantity below the sent quantity needs a note (400 SHORTAGE_NOTE_REQUIRED). Transit is cleared, the good quantity enters the site at the dispatch cost, and each difference becomes a shortage (DISPATCH_SHORT / DAMAGED / EXCESS) with its value. The response reveals sent vs counted vs difference. A second receive → 409 ALREADY_RECEIVED.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Dispatch id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Everything that arrived, damaged included
+                             * @example 200
+                             */
+                            receivedQty: number | string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            damagedQty?: number | string;
+                            /** @description Required when the good quantity is less than sent */
+                            note?: string;
+                            /** Format: uuid */
+                            photoAttachmentId?: string;
+                        }[];
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Received */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "dispatch": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *           "number": "GP-0142",
+                         *           "from": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "to": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "vehicleNo": "LES-4521",
+                         *           "driverName": "Nadeem",
+                         *           "driverPhone": "+923001112233",
+                         *           "dispatchedAt": "2026-10-03T05:00:00.000Z",
+                         *           "status": "RECEIVED_WITH_SHORTAGE",
+                         *           "note": null,
+                         *           "blindCount": false,
+                         *           "loadPhotoUrl": null,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000811",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "sentQty": 200,
+                         *               "receivedQty": null,
+                         *               "damagedQty": null,
+                         *               "goodQty": null,
+                         *               "differenceQty": null,
+                         *               "note": null,
+                         *               "photoUrl": null,
+                         *               "unitCostPaisa": "145333",
+                         *               "valuePaisa": "29066600"
+                         *             },
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000812",
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *                 "name": "Clay bricks Class-1",
+                         *                 "unit": "nos"
+                         *               },
+                         *               "sentQty": 5000,
+                         *               "receivedQty": null,
+                         *               "damagedQty": null,
+                         *               "goodQty": null,
+                         *               "differenceQty": null,
+                         *               "note": null,
+                         *               "photoUrl": null,
+                         *               "unitCostPaisa": "1700",
+                         *               "valuePaisa": "8500000"
+                         *             }
+                         *           ],
+                         *           "totalValuePaisa": "37566600",
+                         *           "shortages": [],
+                         *           "receivedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "receivedAt": "2026-10-03T09:00:00.000Z",
+                         *           "receiveNote": null,
+                         *           "cancelledAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-03T05:00:00.000Z"
+                         *         },
+                         *         "comparison": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "expectedQty": 200,
+                         *             "countedQty": 190,
+                         *             "damagedQty": 0,
+                         *             "goodQty": 190,
+                         *             "differenceQty": -10,
+                         *             "result": "SHORT"
+                         *           },
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d2",
+                         *               "name": "Clay bricks Class-1",
+                         *               "unit": "nos"
+                         *             },
+                         *             "expectedQty": 5000,
+                         *             "countedQty": 5000,
+                         *             "damagedQty": 200,
+                         *             "goodQty": 4800,
+                         *             "differenceQty": -200,
+                         *             "result": "DAMAGED"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | ITEMS_MISMATCH | SHORTAGE_NOTE_REQUIRED | DAMAGED_EXCEEDS_COUNTED | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DISPATCH_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ALREADY_RECEIVED | DISPATCH_CANCELLED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shortages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shortages
+         * @description THEKEDAR all; PM read-only for their projects. OPEN first. `meta.openCount` / `openValuePaisa` for the dashboard. `allowedResolutions` lists the valid decisions.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "OPEN" | "RESOLVED";
+                    kind?: "DISPATCH_SHORT" | "DAMAGED" | "EXCESS" | "SUPPLIER_SHORT";
+                    source?: "DISPATCH" | "PURCHASE";
+                    projectId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Shortages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000802",
+                         *           "kind": "DISPATCH_SHORT",
+                         *           "source": "DISPATCH",
+                         *           "status": "OPEN",
+                         *           "material": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "name": "Cement OPC",
+                         *             "unit": "bag"
+                         *           },
+                         *           "qty": 10,
+                         *           "valuePaisa": "1453330",
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "dispatch": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *             "number": "GP-0142",
+                         *             "vehicleNo": "LES-4521",
+                         *             "driverName": "Nadeem",
+                         *             "driverPhone": "+923001112233"
+                         *           },
+                         *           "purchase": null,
+                         *           "note": "10 bags missing from the truck",
+                         *           "allowedResolutions": [
+                         *             "SEND_REMAINING",
+                         *             "RETURN_TO_STORE",
+                         *             "ACCEPT_LOSS",
+                         *             "RECOVER_FROM_DRIVER"
+                         *           ],
+                         *           "resolution": null,
+                         *           "resolutionNote": null,
+                         *           "recoveredAmountPaisa": null,
+                         *           "newDispatch": null,
+                         *           "resolvedBy": null,
+                         *           "resolvedAt": null,
+                         *           "createdAt": "2026-10-03T09:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "openCount": 2,
+                         *         "openValuePaisa": "1793330"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shortages/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide on a shortage
+         * @description THEKEDAR. `note` required. **SEND_REMAINING** — a new dispatch of the quantity from the same source (stock checked). **RETURN_TO_STORE** — the goods go back to the source (EXCESS: back from the site). **ACCEPT_LOSS** — accepted as is. **RECOVER_FROM_DRIVER** — `recoveredAmountPaisa` required. **SUPPLIER_CREDIT** — purchase shortages only: the supplier ledger is credited with the value. Already resolved → 409.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Shortage id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        resolution: "SEND_REMAINING" | "RETURN_TO_STORE" | "ACCEPT_LOSS" | "RECOVER_FROM_DRIVER" | "SUPPLIER_CREDIT";
+                        note: string;
+                        /**
+                         * @description RECOVER_FROM_DRIVER only
+                         * @example 2500000
+                         */
+                        recoveredAmountPaisa?: string | number;
+                        /** @example LES-4521 */
+                        vehicleNo?: string;
+                        /** @example Nadeem */
+                        driverName?: string;
+                        /**
+                         * @description Pakistani mobile; normalised to +923001234567
+                         * @example 0300-1112233
+                         */
+                        driverPhone?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Resolved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000802",
+                         *         "kind": "DISPATCH_SHORT",
+                         *         "source": "DISPATCH",
+                         *         "status": "RESOLVED",
+                         *         "material": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *           "name": "Cement OPC",
+                         *           "unit": "bag"
+                         *         },
+                         *         "qty": 10,
+                         *         "valuePaisa": "1453330",
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "dispatch": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *           "number": "GP-0142",
+                         *           "vehicleNo": "LES-4521",
+                         *           "driverName": "Nadeem",
+                         *           "driverPhone": "+923001112233"
+                         *         },
+                         *         "purchase": null,
+                         *         "note": "10 bags missing from the truck",
+                         *         "allowedResolutions": [
+                         *           "SEND_REMAINING",
+                         *           "RETURN_TO_STORE",
+                         *           "ACCEPT_LOSS",
+                         *           "RECOVER_FROM_DRIVER"
+                         *         ],
+                         *         "resolution": "SEND_REMAINING",
+                         *         "resolutionNote": "Loaded short at the store",
+                         *         "recoveredAmountPaisa": null,
+                         *         "newDispatch": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *           "number": "GP-0145"
+                         *         },
+                         *         "resolvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "resolvedAt": "2026-10-04T05:00:00.000Z",
+                         *         "createdAt": "2026-10-03T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RESOLUTION_NOT_ALLOWED | INSUFFICIENT_STOCK */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SHORTAGE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SHORTAGE_RESOLVED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/owner-deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Owner deliveries of a project
+         * @description All roles with project access.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deliveries */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e01",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "deliveryDate": "2026-10-05",
+                         *           "note": "Owner sent tiles from his dealer",
+                         *           "items": [
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *                 "name": "Floor tiles",
+                         *                 "unit": "sqft"
+                         *               },
+                         *               "qty": 1200
+                         *             }
+                         *           ],
+                         *           "photos": [],
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "createdAt": "2026-10-05T10:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record an owner delivery
+         * @description All roles with project access (ACTIVE / CLOSEOUT). Only materials in a category the owner supplies on this project (400 NOT_OWNER_SUPPLIED). Enters the site’s owner-supplied stock at cost 0.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        deliveryDate: string;
+                        items: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                        }[];
+                        note?: string;
+                        /** @default [] */
+                        photoAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000e01",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "deliveryDate": "2026-10-05",
+                         *         "note": "Owner sent tiles from his dealer",
+                         *         "items": [
+                         *           {
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *               "name": "Floor tiles",
+                         *               "unit": "sqft"
+                         *             },
+                         *             "qty": 1200
+                         *           }
+                         *         ],
+                         *         "photos": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-05T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOT_OWNER_SUPPLIED | INVALID_MATERIAL | INVALID_ATTACHMENT | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/overview": {
         parameters: {
             query?: never;
@@ -14449,6 +19746,8 @@ export interface components {
             quoteValidityDays: number;
             taxEnabled: boolean;
             pmCanSeeFinancials: boolean;
+            /** @description Site receiving hides sent / challan quantities until counted */
+            blindCountEnabled: boolean;
             /** @enum {string} */
             defaultLanguage: "ENGLISH" | "ROMAN_URDU" | "URDU";
         };
@@ -14675,7 +19974,7 @@ export interface components {
              * @example LOGO
              * @enum {string}
              */
-            kind: "LOGO" | "PROFILE_PHOTO" | "SITE_PHOTO" | "RECEIPT" | "DOCUMENT" | "VOICE_NOTE" | "PAYMENT_SLIP";
+            kind: "LOGO" | "PROFILE_PHOTO" | "SITE_PHOTO" | "RECEIPT" | "DOCUMENT" | "VOICE_NOTE" | "PAYMENT_SLIP" | "CHALLAN";
             fileName: string;
             /** @example image/png */
             mimeType: string;
