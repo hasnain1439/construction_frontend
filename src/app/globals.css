@@ -89,6 +89,8 @@
   --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
   --accent: #eff6ff;
   --accent-foreground: #1d4ed8;
   --destructive: #dc2626;
@@ -137,6 +139,8 @@
   --secondary-foreground: #e2e8f0;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
+  --scrollbar-thumb: #334155;
+  --scrollbar-thumb-hover: #475569;
   --accent: #172554;
   --accent-foreground: #93c5fd;
   --destructive: #ef4444;
@@ -191,9 +195,54 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
   }
+
+  /*
+   * Scrollbars: thin rounded thumb on a transparent track, darker on hover, themed for
+   * light / dark. Chrome, Edge and Safari use the ::-webkit pseudo-elements; Firefox the
+   * standard properties (Chromium ignores the pseudo-elements when those are set).
+   */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+  }
 }
 
 @layer utilities {
+  /* Narrow rails (icon rail, flyout): a slimmer scrollbar that only shows on hover. */
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-width: 1px;
+  }
+  .scrollbar-slim:hover::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+  }
+
   .shadow-card {
     box-shadow: var(--shadow-card);
   }

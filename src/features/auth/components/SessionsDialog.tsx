@@ -26,17 +26,19 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="flex max-h-[85dvh] flex-col sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">{t("shell.sessions")}</DialogTitle>
-            <DialogDescription>Devices and browsers where you are signed in.</DialogDescription>
+            <DialogDescription>
+              Devices and browsers where you are signed in{data?.length ? ` (${data.length})` : ""}.
+            </DialogDescription>
           </DialogHeader>
           {isLoading ? (
             <TableSkeleton rows={3} columns={2} />
           ) : error ? (
             <ErrorState error={error} onRetry={refetch} compact />
           ) : (
-            <ul className="divide-y rounded-xl border">
+            <ul className="min-h-0 flex-1 divide-y overflow-y-auto rounded-xl border">
               {(data ?? []).map((session) => {
                 const Icon = session.platform === "WEB" ? Laptop : Smartphone;
                 return (
@@ -56,7 +58,7 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
               })}
             </ul>
           )}
-          <div className="flex justify-end">
+          <div className="flex shrink-0 justify-end">
             <Button variant="destructive-soft" onClick={() => setConfirm(true)}>
               <LogOut data-icon="inline-start" />
               Sign out everywhere

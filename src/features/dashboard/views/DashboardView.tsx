@@ -11,7 +11,6 @@ import {
   Milestone,
   PackageSearch,
   Plus,
-  Truck,
   UserPlus,
   Users,
   Wallet,
@@ -24,6 +23,7 @@ import { useGetSubscriptionQuery } from "@/api/services/subscription.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
 import type { ProjectListItem, ProjectStatus } from "@/api/types";
 import { ComingSoonCard } from "@/components/common/ComingSoonCard";
+import { StockOverview } from "../components/StockOverview";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
@@ -80,6 +80,7 @@ export function DashboardView() {
   const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
   const seesMoney = useCan({ permission: "billing.view" });
   const canCreate = useCan({ permission: "projects.manage" });
+  const seesStock = useCan({ roles: ["THEKEDAR", "PM"], permission: "rates.view" });
   const projects = useGetProjectsQuery({ limit: 100 });
   const users = useGetUsersQuery({ limit: 1 }, { skip: !isOffice });
   const subscription = useGetSubscriptionQuery(undefined, { skip: !isOwner });
@@ -184,6 +185,8 @@ export function DashboardView() {
         />
       </div>
 
+      {seesStock ? <StockOverview /> : null}
+
       <SectionCard title="Projects by status">
         <div className="flex flex-wrap gap-3">
           {STATUS_ORDER.map((status) => (
@@ -225,10 +228,8 @@ export function DashboardView() {
         <h2 className="text-base font-semibold">Coming next</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <ComingSoonCard title="Receivables" icon={Banknote} description="Owner payments due, collected and outstanding." />
-          <ComingSoonCard title="Supplier Udhaar" icon={Truck} description="What you owe suppliers and for how long." />
-          <ComingSoonCard title="Store Stock Value" icon={PackageSearch} description="Central store stock and dispatches on the way." />
           <ComingSoonCard title="Milestones" icon={Milestone} description="Stages completed this month." />
-          <ComingSoonCard title="Pending Approvals" icon={ClipboardCheck} description="Kharcha, shortages and slips waiting for you." />
+          <ComingSoonCard title="Kharcha Approvals" icon={ClipboardCheck} description="Site kharcha above your limit, waiting for you." />
           <ComingSoonCard title="Site Stats" icon={Users} description="Hazri, peshgi, site kharcha and deliveries today." />
         </div>
       </div>

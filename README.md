@@ -81,15 +81,33 @@ src/
 ├── components/
 │   ├── ui/                       # shadcn primitives (generated)
 │   ├── layout/                   # AppShell, TopBar, IconRail, Flyout, StickyFooter, ProjectRailHeader, AdminShell, PageHeader, Breadcrumbs
-│   ├── common/                   # DataTable, Pagination, FilterBar, SearchInput, DateRangePicker, StatusBadge, KpiCard, RingKpiCard, …
-│   └── forms/                    # Form, FormField, TextField, NumberField, MoneyInput, PhoneInput, SelectField, ComboboxField, …
+│   ├── common/                   # DataTable, Pagination, FilterBar, SearchInput, DateRangePicker, StatusBadge, KpiCard, RingKpiCard,
+│   │                             #   LineItemsEditor, DocumentHeader, LedgerTable, DifferenceBadge, StockStatusBadge, …
+│   └── forms/                    # Form, FormField, TextField, NumberField, MoneyInput, QuantityInput, MaterialPicker, AttachmentField, …
 ├── features/<module>/            # components/ views/ hooks/ schemas — auth, company, team, subscription,
-│                                 #   master-data, clients, projects (wizard/), dashboard, admin
+│                                 #   master-data, clients, projects (wizard/), dashboard, admin, procurement (purchases, POs, stock,
+│                                 #   dispatches, shortages, supplier ledger), site (project Site pages)
 ├── hooks/                        # useListState, useMutationToast, useReadOnly, useSearchFlag
 ├── lib/                          # money, phone, dates, permissions, apiErrors, navigation, status, options, validation, cn, session
 └── i18n/                         # en.ts, roman-ur.ts, useT.ts
 tests/unit/ · e2e/
 ```
+
+## Procurement & Inventory (Phase 1 · Step 6)
+
+| Where | Page | Who |
+|---|---|---|
+| Suppliers & Stock → Purchases | list (supplier / location / payment / status / dates), `…/purchases/new` (store or straight to a site, PO link fills lines, challan / counted / damaged / rate, Udhaar · Cash now · Part now, challan photo, live summary card), `…/purchases/:id` (items, payment + ledger effect, attachments, shortages, corrections, returns; actions **Create return**, **Correction** (Thekedar), **Add rates** for munshi entries) | THEKEDAR, PM |
+| Purchase Returns · Purchase Orders | returns list; PO list / detail (ordered vs received) / new / edit / cancel, **Record purchase** from a PO | THEKEDAR, PM |
+| Store Stock | KPIs (value, low stock, dispatches on the way), table with average rate / value / low-stock badge, row → movement history; **Dispatch to site**, **Stock count**, **Set low-stock levels** | THEKEDAR |
+| Dispatches · Shortages | gate passes list / detail / cancel; shortages with **Resolve** (decision cards, note, recovered amount) | THEKEDAR (PM reads shortages) |
+| Supplier Ledger · Supplier Payments | suppliers by udhaar + ageing; payments with cheque **Cleared / Bounced**; supplier detail tabs **Info · Agreed Rates · Ledger · Payments** | THEKEDAR (PM with rates.view reads) |
+| Dashboard | store stock value, supplier udhaar, open shortages, low stock + alerts; **My Approvals** (`/dashboard/approvals`) | THEKEDAR, PM |
+| Project → Site | **Incoming Material** (badge in the flyout) → **Receive** (blind count, then sent vs counted with `DifferenceBadge`), **Deliveries** (received + owner deliveries, record site purchase), **Material Usage**, **Site Stock**, **Stock Counts & Transfers** | all roles with project access; MUNSHI never sees rates or values (the API omits them) |
+
+New shared pieces: `LineItemsEditor` (every document's lines), `MaterialPicker`, `QuantityInput` / `QuantityField` (decimal strings, ≤ 3 dp, `lib/quantity.ts` for exact qty × rate), `AttachmentField`, `DifferenceBadge`, `DocumentHeader`, `LedgerTable` (money or quantity running balance), `StockStatusBadge`. Services: `inventory.api.ts`, `procurement.api.ts`, `dispatch.api.ts`.
+
+**E2E munshi sign-in:** `e2e/procurement.spec.ts` gets Rafaqat's SMS code from the backend's dev helper `npm run dev:otp -- <phone>` (in `../construction-platform`, refuses to run in production).
 
 ## Rules of the codebase
 

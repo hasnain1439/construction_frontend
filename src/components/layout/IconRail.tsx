@@ -47,7 +47,7 @@ export function IconRail({ sections, activeSectionId, openSectionId, onSelect, c
       aria-label="Main"
       data-collapsed={collapsed || undefined}
       className={cn(
-        "flex h-full flex-col overflow-y-auto border-r bg-sidebar pb-4",
+        "scrollbar-slim flex h-full flex-col overflow-y-auto border-r bg-sidebar pb-4",
         collapsed ? "w-[72px]" : "w-28",
       )}
     >

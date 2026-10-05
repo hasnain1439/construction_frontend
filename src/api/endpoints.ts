@@ -132,6 +132,43 @@ export const ENDPOINTS = {
     openingById: (openingId: string) => `/openings/${id(openingId)}`,
   },
 
+  inventory: {
+    locations: "/stock-locations",
+    storeStock: (locationId: string) => `/stores/${id(locationId)}/stock`,
+    lowStockLevels: (locationId: string) => `/stores/${id(locationId)}/low-stock-levels`,
+    movements: "/stock/movements",
+    projectStock: (projectId: string) => `/projects/${id(projectId)}/stock`,
+    projectUsage: (projectId: string) => `/projects/${id(projectId)}/material-usage`,
+    stockCounts: "/stock-counts",
+  },
+
+  procurement: {
+    purchaseOrders: "/purchase-orders",
+    purchaseOrderById: (orderId: string) => `/purchase-orders/${id(orderId)}`,
+    purchaseOrderCancel: (orderId: string) => `/purchase-orders/${id(orderId)}/cancel`,
+    purchases: "/purchases",
+    purchaseById: (purchaseId: string) => `/purchases/${id(purchaseId)}`,
+    purchaseRates: (purchaseId: string) => `/purchases/${id(purchaseId)}/rates`,
+    purchaseCorrections: (purchaseId: string) => `/purchases/${id(purchaseId)}/corrections`,
+    purchaseReturns: (purchaseId: string) => `/purchases/${id(purchaseId)}/returns`,
+    purchaseReceive: (purchaseId: string) => `/purchases/${id(purchaseId)}/receive`,
+    returns: "/purchase-returns",
+    supplierLedger: (supplierId: string) => `/suppliers/${id(supplierId)}/ledger`,
+    supplierPayments: "/supplier-payments",
+    chequeStatus: (paymentId: string) => `/supplier-payments/${id(paymentId)}/cheque-status`,
+  },
+
+  dispatch: {
+    list: "/dispatches",
+    byId: (dispatchId: string) => `/dispatches/${id(dispatchId)}`,
+    cancel: (dispatchId: string) => `/dispatches/${id(dispatchId)}/cancel`,
+    receive: (dispatchId: string) => `/dispatches/${id(dispatchId)}/receive`,
+    incoming: (projectId: string) => `/projects/${id(projectId)}/incoming`,
+    shortages: "/shortages",
+    resolveShortage: (shortageId: string) => `/shortages/${id(shortageId)}/resolve`,
+    ownerDeliveries: (projectId: string) => `/projects/${id(projectId)}/owner-deliveries`,
+  },
+
   admin: {
     overview: "/admin/overview",
     health: "/admin/health",

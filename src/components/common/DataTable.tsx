@@ -120,7 +120,7 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn("overflow-hidden", className)}>
+    <div className={cn("min-w-0 overflow-hidden", className)}>
       {body ?? (
         <Table aria-busy={loading || undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}

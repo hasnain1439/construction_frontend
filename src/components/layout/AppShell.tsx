@@ -3,6 +3,7 @@
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useGetMeQuery } from "@/api/services/auth.api";
+import { useGetIncomingQuery } from "@/api/services/dispatch.api";
 import { CommandSearch } from "@/components/common/CommandSearch";
 import { PlanLimitDialog } from "@/components/common/PlanLimitDialog";
 import { ReadOnlyBanner } from "@/components/common/ReadOnlyBanner";
@@ -55,6 +56,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   const flyoutFor = useAppSelector((state) => state.ui.flyoutFor);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const { signOut } = useLogout();
+  const incoming = useGetIncomingQuery(projectId ?? "", { skip: !projectId || !me, pollingInterval: 120_000 });
 
   const status = error && "status" in error ? error.status : undefined;
   useEffect(() => {
@@ -122,6 +124,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
           items={openSection?.items ?? []}
           hrefFor={hrefFor}
           onClose={onCloseFlyout}
+          badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
           className={collapsed ? "left-[72px]" : "left-28"}
         />
         <main id="main" className={cn("min-w-0 flex-1 overflow-y-auto")}>

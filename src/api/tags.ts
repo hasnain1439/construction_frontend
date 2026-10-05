@@ -34,6 +34,19 @@ export const COMPANY_TAGS = [
   "ProjectReview",
   "Floors",
   "SupplyPresets",
+  "StockLocations",
+  "Stock",
+  "Purchase",
+  "PurchaseOrder",
+  "PurchaseReturn",
+  "SupplierLedger",
+  "SupplierPayment",
+  "Dispatch",
+  "Shortage",
+  "Usage",
+  "StockCount",
+  "Incoming",
+  "OwnerDelivery",
 ] as const;
 
 export const ADMIN_TAGS = [

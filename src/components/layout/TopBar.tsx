@@ -142,7 +142,7 @@ function CompanyBrand() {
           {me.tenant.name.charAt(0)}
         </span>
       )}
-      <span className="hidden truncate text-base font-semibold sm:block">{me.tenant.name}</span>
+      <span className="hidden max-w-56 truncate text-base font-semibold lg:block">{me.tenant.name}</span>
     </Link>
   );
 }

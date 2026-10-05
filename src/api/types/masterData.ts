@@ -151,6 +151,9 @@ export interface Supplier {
   notes: string | null;
   isActive: boolean;
   createdAt: IsoDateTime;
+  /** Present with rates.view (THEKEDAR, PM). */
+  udhaarBalancePaisa?: Paisa;
+  oldestUnpaidDays?: number | null;
 }
 
 export interface SupplierCurrentRate {
