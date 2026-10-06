@@ -17,17 +17,19 @@ import {
   useGetOwnerStatementPdfMutation,
   useGetOwnerStatementQuery,
   useGetReceiptPdfMutation,
-  useGetReceivablesQuery,
   useIssueInvoiceMutation,
   useSetClientChequeStatusMutation,
   useUpdateInvoiceMutation,
   useUpdateStageMutation,
 } from "@/api/services/billing.api";
+import { useGetFinanceReceivablesQuery } from "@/api/services/finance.api";
 import type { ClientPayment, Invoice, InvoiceStatus, InvoiceType, ScheduleStage, UnpaidStageWarning } from "@/api/types";
+import { AgeingBar } from "@/components/common/AgeingBar";
 import { ChequeStatusBadge, InvoiceStatusBadge, PaymentMethodIcon } from "@/components/common/BillingBadges";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { DocumentHeader } from "@/components/common/DocumentHeader";
+import { ExportMenu } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
@@ -709,17 +711,22 @@ export function StatementView({ projectId }: { projectId: string }) {
 export function ReceivablesView() {
   const router = useRouter();
   const [overdueOnly, setOverdueOnly] = useState(false);
-  const q = useGetReceivablesQuery(overdueOnly ? { overdueOnly: "true" } : undefined);
+  const q = useGetFinanceReceivablesQuery(overdueOnly ? { overdueOnly: "true" } : undefined);
   const t = q.data?.totals;
   return (
     <div className="space-y-6">
-      <PageHeader title="Receivables" description="What owners owe across projects." breadcrumbs={[{ label: "Finance" }, { label: "Receivables" }]} />
+      <PageHeader title="Receivables" description="What owners owe across projects." breadcrumbs={[{ label: "Finance" }, { label: "Receivables" }]} actions={<ExportMenu name="receivables-ageing" filters={{}} />} />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Invoiced" icon={FileText} value={formatPKRShort(t?.invoicedPaisa ?? "0")} loading={q.isLoading} />
         <KpiCard label="Received" icon={CheckCircle2} tone="success" value={formatPKRShort(t?.receivedPaisa ?? "0")} loading={q.isLoading} />
         <KpiCard label="Outstanding" icon={HandCoins} value={formatPKRShort(t?.outstandingPaisa ?? "0")} hint={t && t.pendingChequesPaisa !== "0" ? `${formatPKRShort(t.pendingChequesPaisa)} in pending cheques` : undefined} loading={q.isLoading} />
         <KpiCard label="Overdue" icon={TriangleAlert} tone="danger" value={formatPKRShort(t?.overduePaisa ?? "0")} hint={t ? `${t.overdueProjects} project${t.overdueProjects === 1 ? "" : "s"}` : undefined} loading={q.isLoading} />
       </div>
+      {t?.ageing ? (
+        <SectionCard title="Ageing" description="Outstanding by days since the invoice was issued.">
+          <AgeingBar ageing={t.ageing} />
+        </SectionCard>
+      ) : null}
       <SectionCard
         flush
         title="By project"
@@ -762,6 +769,7 @@ export function ReceivablesView() {
               sortValue: (r) => Number(r.overduePaisa),
               cell: (r) => (r.overduePaisa === "0" ? "—" : <span className="text-danger"><MoneyText paisa={r.overduePaisa} /> · {r.oldestOverdueDays} d</span>),
             },
+            { id: "ageing", header: "Ageing", cell: (r) => (r.outstandingPaisa === "0" ? "—" : <AgeingBar ageing={r.ageing} compact className="min-w-28" />) },
             { id: "next", header: "Next to bill", cell: (r) => (r.nextBillableStage ? <span className="text-sm">{r.nextBillableStage.label}{r.nextBillableStage.status === "READY" ? <StatusBadge domain="billingStage" value="READY" className="ml-2" /> : null}</span> : "—") },
           ]}
         />

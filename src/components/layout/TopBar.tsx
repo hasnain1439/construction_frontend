@@ -1,10 +1,11 @@
 "use client";
 
-import { Bell, ChevronDown, KeyRound, LogOut, Menu, Plus, Search } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Menu, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AvatarName } from "@/components/common/AvatarName";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { NotificationBell } from "@/components/common/NotificationBell";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { CREATE_ACTIONS } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
@@ -40,23 +40,6 @@ export function SearchTrigger() {
       <span className="hidden md:inline">{t("shell.searchMenu")}</span>
       <kbd className="hidden rounded border bg-muted px-1.5 text-[11px] font-medium lg:inline">Ctrl K</kbd>
     </button>
-  );
-}
-
-export function NotificationsBell() {
-  const t = useT();
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t("shell.notifications")}>
-          <Bell />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72">
-        <p className="text-sm font-semibold">{t("shell.notifications")}</p>
-        <p className="mt-2 text-sm text-muted-foreground">{t("shell.noNotifications")}</p>
-      </PopoverContent>
-    </Popover>
   );
 }
 
@@ -172,7 +155,7 @@ export function TopBar({
       <div className="flex min-w-0 items-center justify-end gap-1.5">
         <CreateMenu />
         <ThemeToggle />
-        <NotificationsBell />
+        <NotificationBell />
         {rightExtra}
         <UserMenu onSessions={onSessions} onLogout={onLogout} />
       </div>

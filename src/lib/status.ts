@@ -12,7 +12,9 @@ import {
   Clock,
   Flag,
   Hourglass,
+  Info,
   Lock,
+  OctagonAlert,
   PauseCircle,
   Send,
   TriangleAlert,
@@ -171,6 +173,11 @@ const DOMAINS = {
     PENDING: S("warning", "Pending", Clock),
     APPROVED: S("success", "Sent", CircleCheck),
     REJECTED: S("danger", "Rejected", CircleX),
+  },
+  severity: {
+    INFO: S("info", "Info", Info),
+    WARNING: S("warning", "Warning", TriangleAlert),
+    CRITICAL: S("danger", "Critical", OctagonAlert),
   },
 } as const;
 

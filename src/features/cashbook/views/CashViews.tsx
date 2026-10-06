@@ -14,7 +14,8 @@ import {
   useRejectExpenseMutation,
   useRejectTopupMutation,
 } from "@/api/services/cashbook.api";
-import type { CashAccount, CashEntry, ProjectDetail, TopupRequest } from "@/api/types";
+import { useGetCashFloatsQuery } from "@/api/services/finance.api";
+import type { CashAccount, CashEntry, CashFloatItem, ProjectDetail, TopupRequest } from "@/api/types";
 import { ApprovalActions } from "@/components/common/ApprovalActions";
 import { BalanceCard } from "@/components/common/BalanceCard";
 import { categoryLabel, CategoryChips, type KharchaCategory } from "@/components/common/CategoryChips";
@@ -469,10 +470,10 @@ export function CashCountsView({ projectId }: { projectId: string }) {
 // ─── Company: cash floats overview (THEKEDAR) ───────────────────────────────
 
 export function CashFloatsOverviewView() {
-  const accounts = useGetCashAccountsQuery();
+  const accounts = useGetCashFloatsQuery();
   const [sending, setSending] = useState<string | null | undefined>(undefined);
   const t = accounts.data?.totals;
-  const columns: Column<CashAccount>[] = [
+  const columns: Column<CashFloatItem>[] = [
     {
       id: "holder",
       header: "Holder",
@@ -480,15 +481,33 @@ export function CashFloatsOverviewView() {
       cell: (a) => (
         <div>
           <p className="font-medium">{a.holder.name}</p>
-          <p className="text-xs text-muted-foreground">{a.holder.role === "PM" ? "Project manager" : "Munshi"}</p>
+          <p className="text-xs text-muted-foreground">
+            {a.holder.role === "PM" ? "Project manager" : "Munshi"} · {a.holder.phone}
+          </p>
         </div>
       ),
     },
+    { id: "sites", header: "Sites", cell: (a) => (a.projects.length ? a.projects.map((p) => p.code).join(", ") : "—") },
     { id: "balance", header: "In hand", align: "right", sortValue: (a) => Number(a.balancePaisa), cell: (a) => <MoneyText paisa={a.balancePaisa} className="font-semibold" /> },
+    { id: "week", header: "Spent this week", align: "right", cell: (a) => (a.spentThisWeekPaisa === "0" ? "—" : <MoneyText paisa={a.spentThisWeekPaisa} />) },
+    { id: "floated", header: "Floated (total)", align: "right", cell: (a) => <MoneyText paisa={a.totalFloatedPaisa} short /> },
     { id: "ack", header: "Not received yet", align: "right", cell: (a) => (a.pendingAckPaisa === "0" ? "—" : <MoneyText paisa={a.pendingAckPaisa} />) },
     { id: "approval", header: "Waiting approval", align: "right", cell: (a) => (a.pendingApprovalPaisa === "0" ? "—" : <MoneyText paisa={a.pendingApprovalPaisa} className="text-warning" />) },
     { id: "recover", header: "To pay back", align: "right", cell: (a) => (a.recoverablePaisa === "0" ? "—" : <MoneyText paisa={a.recoverablePaisa} className="text-danger" />) },
-    { id: "count", header: "Last count", cell: (a) => (a.lastCountAt ? formatDate(a.lastCountAt) : <StatusBadge tone="warning" label="Never" />) },
+    {
+      id: "count",
+      header: "Last count",
+      cell: (a) =>
+        a.lastCount ? (
+          <span>
+            {formatDate(a.lastCount.countedAt)}
+            {a.lastCount.differencePaisa !== "0" ? <MoneyText paisa={a.lastCount.differencePaisa} className="block text-xs text-danger" /> : <span className="block text-xs text-success">Matched</span>}
+          </span>
+        ) : (
+          <StatusBadge tone="warning" label="Never" />
+        ),
+    },
+    { id: "topup", header: "Top-up asked", align: "right", cell: (a) => (a.pendingTopup ? <MoneyText paisa={a.pendingTopup.amountPaisa} className="text-warning" /> : "—") },
     { id: "last", header: "Last entry", cell: (a) => formatDate(a.lastEntryAt) },
     {
       id: "actions",
@@ -517,11 +536,11 @@ export function CashFloatsOverviewView() {
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Cash with site staff" icon={Wallet} value={formatPKRShort(t?.balancePaisa ?? "0")} loading={accounts.isLoading} />
-        <KpiCard label="Floats not received yet" icon={Clock} value={formatPKRShort(t?.pendingAckPaisa ?? "0")} loading={accounts.isLoading} />
+        <KpiCard label="Floats not received yet" icon={Clock} value={formatPKRShort(t?.pendingAckPaisa ?? "0")} loading={accounts.isLoading} hint={t ? `Spent this week ${formatPKRShort(t.spentThisWeekPaisa)}` : undefined} />
         <KpiCard label="Kharcha waiting approval" icon={Hourglass} tone="warning" value={formatPKRShort(t?.pendingApprovalPaisa ?? "0")} loading={accounts.isLoading} />
         <KpiCard label="To pay back" icon={TriangleAlert} tone="danger" value={formatPKRShort(t?.recoverablePaisa ?? "0")} loading={accounts.isLoading} />
       </div>
-      <SectionCard flush title="Holders">
+      <SectionCard flush title="Holders" description={t ? `${t.holders} holder${t.holders === 1 ? "" : "s"} · ${t.pendingTopups} top-up${t.pendingTopups === 1 ? "" : "s"} waiting` : undefined}>
         <DataTable rows={accounts.data?.items} getRowId={(a) => a.id} loading={accounts.isLoading} error={accounts.error} onRetry={accounts.refetch} columns={columns} empty={{ title: "Nobody holds site cash yet", icon: Wallet }} />
       </SectionCard>
       <SectionCard flush title="Top-up requests waiting">

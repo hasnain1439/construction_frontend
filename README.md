@@ -140,13 +140,36 @@ Shown only with `billing.view` (THEKEDAR, or a PM with financials — hidden, no
 | Billing → **Owner Statement** | date range, opening → invoices / payments (cheque status) → closing, credit, unbilled owner purchases; `PdfActions` | billing.view |
 | Project Overview | `MoneySummaryCards` (contract, invoiced, received, pending cheques, outstanding/overdue, own money invested) + next billable stage | billing.view |
 | Finance → **Receivables** | per-project table + totals, "Overdue only"; row → project invoices | THEKEDAR |
-| Dashboard | receivables outstanding (% collected ring), overdue, **Alerts** (overdue invoices, bounced cheques, ready-but-unbilled stages) with action links; **My Approvals** adds stages ready to bill | THEKEDAR |
+| Dashboard | receivables, overdue and billing alerts — now part of the Step 9 overview (below) | THEKEDAR |
 | Sales → Client detail | **Statements** tab (per project, `PdfActions`) | billing.view |
 | Settings → Alerts & Limits | payment terms, tax rate + name, "PMs can record owner payments" | THEKEDAR |
 
 New shared pieces: `StageTimeline`, `InvoiceStatusBadge` / `ChequeStatusBadge` / `PaymentMethodIcon` (`BillingBadges.tsx`), `AllocationEditor` (auto oldest-first, manual amounts, remainder kept as credit), `MoneySummaryCards`, `PdfActions` (Preview, Download, **WhatsApp** → `https://wa.me/<phone>?text=<message>`), `DocumentPreview`. Service: `billing.api.ts` (payments / cheque status invalidate invoices, payments, receivables, stages and alerts). `BILLING_ACCESS` in `lib/navigation.ts` is the one rule for money screens.
 
 **E2E:** `e2e/billing.spec.ts` creates a small ACTIVE project, marks a stage ready, issues the invoice, records a cheque (pending) and clears it (invoice PAID, receivables move), then bounces a second cheque (balance back, alert on the dashboard). The project is handed over at the end.
+
+## Dashboard, Finance, Reports & Notifications (Phase 1 · Step 9)
+
+Money is shown only with `billing.view` (P&L with `profit.view`); a PM without financials gets the operational version (no money keys come from the API, and no money cards render). A MUNSHI lands on their **site dashboard**.
+
+| Where | Page | Who |
+|---|---|---|
+| Top bar | **NotificationBell** — unread count (polled every 60 s and on window focus; red when something critical is unread), latest 10 grouped by day, mark one / all read, click → its page, "View all" | everyone |
+| Dashboard → **Company Overview** | `GET /dashboard/overview`: project + date filter (chips Today / This week / This month, default last 30 days); KPI row 1 Active projects (at risk), Pending approvals (→ My Approvals), Open shortages; row 2 rings Receivables (% collected) · Supplier udhaar (% paid, oldest days) · Store stock value (dispatches on the way); cash with site staff, own money invested; Projects summary (contract, billed vs spent bars, received, outstanding / overdue, own money, next stage, status + at risk); Site stats, Labour analysis (wages by worker type, sub-contractors overpaid), Payment analysis (by method, cheques cleared / pending / bounced), Alerts with Open buttons | THEKEDAR, PM (money parts with billing.view) |
+| Dashboard (MUNSHI) | **Site dashboard** (`GET /dashboard/site/:projectId`, site switcher when several): today's hazri + **Mark hazri**, material on the way + **Receive**, my cash + **Request top-up** / **Add kharcha**, to-do list, recent usage and own kharcha — no rates or values | MUNSHI (PM / owner can open it too) |
+| Dashboard → **My Approvals** | `GET /approvals` grouped (wages, kharcha, top-ups, measurements, shortages, purchases without rates, stages ready to bill, draft invoices, cheques to clear) with counts and totals; select items → **BulkActionBar** runs the actions they all allow (note / method asked once); each item links to its page; "Nothing waiting for you" | THEKEDAR, PM |
+| Dashboard → **Alerts & Notifications** | all my notifications: unread only, severity, type filters, pagination, mark all read | everyone |
+| Finance → **Receivables** | Step 8 table + ageing card and an ageing bar per project (0–15 / 16–30 / 31–60 / 60+ days), export | THEKEDAR |
+| Finance → **Cash Flow Outlook** | 3 / 6 / 12 months: expected in vs planned out chart, KPIs, month-by-month table (with own money invested after each month) and the **How this is estimated** panel listing the API's assumptions | THEKEDAR |
+| Finance → **Profit & Loss** | company KPIs (billed, cost, gross profit, margin), billed-vs-cost by month, cost-by-bucket donut, per-project table (6 cost buckets, gross profit, margin, billed vs spent, projected margin "Available after estimates (Phase 2)"); row → **project P&L** (donut, contract, trend) | THEKEDAR, PM with profit.view (own projects) |
+| Finance → **Cash Floats Overview** | now from `GET /finance/cash-floats`: holder phone, sites, in hand, spent this week, total floated, last count (difference), top-up asked | THEKEDAR |
+| Reports → **Project Summary · Material Audit · Labor & Peshgi · Cash Book · Supplier Ageing · Receivables Ageing · Stock Valuation** | one generic `ReportView`: `ReportFilterBar` (project / dates where the report uses them), notes, totals, `DataTable` built from the API's columns, **ExportMenu** (CSV / Excel / PDF → signed link opened in a new tab). Delay Analysis stays ComingSoon (needs the schedule) | per report (`features/reports/reports.config.ts`) |
+
+New shared components: `NotificationBell`, `NotificationList` (grouped by Karachi day, severity icon + label), `ApprovalItem` (type icon, title, project, amount, age, only the API's quick actions; note / method dialog) + `BulkActionBar` (`commonActions`), `ChartCard` + `ChartLegend`, `BarChartCard` / `AreaChartCard` / `DonutChartCard` (recharts on one money axis, 4px rounded bars, 2px surface gaps, legend for ≥ 2 series, exact rupees in tooltips), `AgeingBar` (one hue, older = darker), `ExportMenu`, `ReportFilterBar`, `BarList` (labelled horizontal bars) and `ProgressPair` (% billed vs % spent). Chart colours are the validated `--chart-1 … --chart-6` and `--age-1 … --age-4` tokens in `globals.css` (light and dark).
+
+Services: `notifications.api.ts` (`UNREAD_POLL_MS`), `approvals.api.ts` (bulk invalidates every module it touches), `dashboard.api.ts`, `finance.api.ts`, `reports.api.ts` (JSON query + export mutation). Types in `src/api/types/dashboard.ts`. The old Step 6–8 dashboard widgets and the labour section on the Shortages page are replaced by the overview and My Approvals.
+
+**E2E:** `e2e/dashboard.spec.ts` creates a small project with a kharcha above the company limit, a sub-contract measurement and a bounced cheque (through the API), checks the dashboard KPIs, bulk-approves the kharcha and the measurement in My Approvals (the pending count drops by 2), exports Supplier Ageing as Excel (signed link returned) and marks the bounced-cheque notification read from the bell (count drops by 1). It cancels the invoice and hands the project over at the end.
 
 ## Rules of the codebase
 

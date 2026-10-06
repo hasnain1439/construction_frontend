@@ -64,6 +64,11 @@ export const COMPANY_TAGS = [
   "ClientPayments",
   "Receivables",
   "BillingEvents",
+  "Notifications",
+  "Approvals",
+  "Dashboard",
+  "Finance",
+  "Reports",
 ] as const;
 
 export const ADMIN_TAGS = [

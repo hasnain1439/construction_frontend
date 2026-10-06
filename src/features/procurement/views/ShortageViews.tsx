@@ -1,11 +1,9 @@
 "use client";
 
-import { ClipboardCheck, Tag, TriangleAlert } from "lucide-react";
+import { ClipboardCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useGetShortagesQuery } from "@/api/services/dispatch.api";
-import { useGetPurchasesQuery } from "@/api/services/procurement.api";
 import type { Shortage, ShortagesQuery } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
@@ -22,7 +20,6 @@ import { formatQty } from "@/lib/quantity";
 import { humanize } from "@/lib/status";
 import { ResolveShortageSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
-import { LaborApprovals } from "@/features/dashboard/components/LaborApprovals";
 
 function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>[] {
   return [
@@ -141,57 +138,8 @@ export function ShortagesView() {
           pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
         />
       </SectionCard>
-      <LaborApprovals />
       <ResolveShortageSlideOver shortage={resolving} open={Boolean(resolving)} onOpenChange={(o) => (!o ? setResolving(null) : undefined)} />
     </>
   );
 }
 
-/** Dashboard → My Approvals: open shortages and site purchases waiting for rates. */
-export function ApprovalsView() {
-  const router = useRouter();
-  const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
-  const shortages = useGetShortagesQuery({ status: "OPEN", limit: 50 });
-  const pendingRates = useGetPurchasesQuery({ status: "PENDING_RATE", limit: 50 });
-  const [resolving, setResolving] = useState<Shortage | null>(null);
-  const columns = useShortageColumns(owner ? setResolving : undefined);
-  return (
-    <>
-      <PageHeader title="My Approvals" description="Decisions waiting for you." breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "My Approvals" }]} />
-      <SectionCard title={<span className="flex items-center gap-2"><TriangleAlert className="size-4 text-warning" aria-hidden />Open shortages</span>} description={shortages.data?.meta.openValuePaisa !== undefined ? <>Value <MoneyText paisa={shortages.data.meta.openValuePaisa} /></> : undefined} flush>
-        <DataTable
-          rows={shortages.data?.items}
-          columns={columns}
-          getRowId={(s) => s.id}
-          loading={shortages.isLoading}
-          error={shortages.error}
-          onRetry={shortages.refetch}
-          clientPageSize={10}
-          empty={{ title: "No open shortages", compact: true }}
-        />
-      </SectionCard>
-      <SectionCard title={<span className="flex items-center gap-2"><Tag className="size-4 text-primary" aria-hidden />Site purchases waiting for rates</span>} flush>
-        <DataTable
-          rows={pendingRates.data?.items}
-          getRowId={(p) => p.id}
-          loading={pendingRates.isLoading}
-          error={pendingRates.error}
-          onRetry={pendingRates.refetch}
-          clientPageSize={10}
-          onRowClick={(p) => router.push(`/suppliers-stock/purchases/${p.id}`)}
-          empty={{ title: "Nothing waiting for rates", compact: true }}
-          columns={[
-            { id: "number", header: "Purchase", cell: (p) => <span className="font-medium tabular">{p.number}</span> },
-            { id: "supplier", header: "Supplier", cell: (p) => p.supplier.name },
-            { id: "site", header: "Site", cell: (p) => p.project?.name ?? p.location.name },
-            { id: "materials", header: "Materials", cell: (p) => p.materials.join(", ") },
-            { id: "date", header: "Date", cell: (p) => formatDate(p.purchaseDate) },
-            { id: "action", header: <span className="sr-only">Action</span>, align: "right", cell: () => <Button size="sm" variant="outline">Add rates</Button> },
-          ]}
-        />
-      </SectionCard>
-      <ResolveShortageSlideOver shortage={resolving} open={Boolean(resolving)} onOpenChange={(o) => (!o ? setResolving(null) : undefined)} />
-    </>
-  );
-}

@@ -1,64 +1,42 @@
 "use client";
 
-import {
-  BadgeCheck,
-  CircleCheck,
-  CircleDashed,
-  FolderKanban,
-  ImageUp,
-  Milestone,
-  PackageSearch,
-  Plus,
-  UserPlus,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { CircleCheck, ClipboardList, FolderKanban, ImageUp, PackageSearch, PackageX, Plus, Store, Truck, UserPlus, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useState } from "react";
+import { useGetDashboardOverviewQuery } from "@/api/services/dashboard.api";
 import { useGetProjectsQuery } from "@/api/services/projects.api";
-import { useGetSubscriptionQuery } from "@/api/services/subscription.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
-import type { ProjectListItem, ProjectStatus } from "@/api/types";
-import { ComingSoonCard } from "@/components/common/ComingSoonCard";
-import { BillingOverview } from "../components/BillingOverview";
-import { LaborOverview } from "../components/LaborOverview";
-import { StockOverview } from "../components/StockOverview";
-import { DataTable, type Column } from "@/components/common/DataTable";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { QueryState } from "@/components/common/QueryState";
+import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
+import { RingKpiCard } from "@/components/common/RingKpiCard";
 import { SectionCard } from "@/components/common/SectionCard";
-import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/dates";
-import { sumPaisa } from "@/lib/money";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/dates";
+import { formatPKRShort } from "@/lib/money";
 import { useMe } from "@/store/hooks";
+import { AlertsList, LaborAnalysis, PaymentAnalysis, ProjectsSummary, SiteStats } from "../components/OverviewSections";
+import { SiteDashboardView } from "./SiteDashboardView";
 
-const STATUS_ORDER: ProjectStatus[] = ["ACTIVE", "CLOSEOUT", "DRAFT", "HANDED_OVER", "CLOSED", "READ_ONLY"];
-
-function OnboardingChecklist({ hasLogo, hasTeam, hasProject }: { hasLogo: boolean; hasTeam: boolean; hasProject: boolean }) {
+function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: boolean }) {
   const isOwner = useCan({ roles: ["THEKEDAR"] });
   const steps = [
     { done: hasLogo, label: "Add your company logo", href: "/settings/company", icon: ImageUp, owner: true },
     { done: hasTeam, label: "Invite your PMs and Munshis", href: "/team/invitations?new=1", icon: UserPlus, owner: true },
     { done: false, label: "Check materials and set your rates", href: "/settings/price-list", icon: PackageSearch, owner: true },
-    { done: hasProject, label: "Create your first project", href: "/projects/new", icon: FolderKanban, owner: false },
+    { done: false, label: "Create your first project", href: "/projects/new", icon: FolderKanban, owner: false },
   ].filter((s) => isOwner || !s.owner);
   return (
     <SectionCard title="Get started" description="A few steps to set up your company.">
       <ul className="grid gap-3 md:grid-cols-2">
         {steps.map(({ done, label, href, icon: Icon }) => (
           <li key={label}>
-            <Link
-              href={href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border p-4 transition-colors hover:border-primary/50 hover:bg-accent/40",
-                done && "bg-success-soft/50",
-              )}
-            >
+            <Link href={href} className={cn("flex items-center gap-3 rounded-xl border p-4 transition-colors hover:border-primary/50 hover:bg-accent/40", done && "bg-success-soft/50")}>
               <span className={cn("flex size-9 items-center justify-center rounded-lg", done ? "bg-success text-white" : "bg-accent text-primary")}>
                 {done ? <CircleCheck className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
               </span>
@@ -72,51 +50,39 @@ function OnboardingChecklist({ hasLogo, hasTeam, hasProject }: { hasLogo: boolea
   );
 }
 
-/** Company overview with real data only; modules that don't exist yet show "next phase" cards. */
-export function DashboardView() {
-  const router = useRouter();
-  const me = useMe();
-  const isOwner = useCan({ roles: ["THEKEDAR"] });
-  const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
-  const seesMoney = useCan({ permission: "billing.view" });
-  const canCreate = useCan({ permission: "projects.manage" });
-  const seesStock = useCan({ roles: ["THEKEDAR", "PM"], permission: "rates.view" });
-  const projects = useGetProjectsQuery({ limit: 100 });
-  const users = useGetUsersQuery({ limit: 1 }, { skip: !isOffice });
-  const subscription = useGetSubscriptionQuery(undefined, { skip: !isOwner });
-
-  const items = projects.data?.items;
-  const byStatus = useMemo(() => {
-    const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, 0])) as Record<ProjectStatus, number>;
-    for (const p of items ?? []) counts[p.status] += 1;
-    return counts;
-  }, [items]);
-  const activeValue = useMemo(
-    () => sumPaisa((items ?? []).filter((p) => p.status === "ACTIVE" || p.status === "CLOSEOUT").map((p) => p.contractValuePaisa)),
-    [items],
+function OverviewSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-36 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-64 rounded-xl" />
+    </div>
   );
+}
 
-  const usage = users.data?.meta.usage;
-  const sub = subscription.data;
-  const recent = (items ?? []).slice(0, 6);
+/**
+ * Dashboard → Company Overview (design brief §6) from GET /dashboard/overview. Money (row 2,
+ * project money columns, payment analysis) only comes — and only shows — with billing.view.
+ * A MUNSHI lands on their site dashboard instead.
+ */
+export function DashboardView() {
+  const me = useMe();
+  if (me?.user.role === "MUNSHI") return <SiteDashboardView />;
+  return <CompanyOverview />;
+}
 
-  const columns: Column<ProjectListItem>[] = [
-    {
-      id: "name",
-      header: "Project",
-      cell: (p) => (
-        <div className="min-w-0">
-          <p className="truncate font-medium">{p.name}</p>
-          <p className="text-xs text-muted-foreground">{p.code}</p>
-        </div>
-      ),
-    },
-    { id: "client", header: "Client", cell: (p) => p.client?.name ?? "—" },
-    { id: "status", header: "Status", cell: (p) => <StatusBadge domain="project" value={p.status} /> },
-    { id: "value", header: "Contract", align: "right", cell: (p) => <MoneyText paisa={p.contractValuePaisa} short />, hidden: !isOffice },
-    { id: "pm", header: "PM", cell: (p) => p.pm?.name ?? <span className="text-muted-foreground">—</span> },
-    { id: "end", header: "End date", cell: (p) => formatDate(p.endDate) },
-  ];
+function CompanyOverview() {
+  const me = useMe();
+  const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
+  const canCreate = useCan({ permission: "projects.manage" });
+  const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
+  const overview = useGetDashboardOverviewQuery(reportParams(filters), { refetchOnMountOrArgChange: 30 });
+  const projects = useGetProjectsQuery({ limit: 1 });
+  const users = useGetUsersQuery({ limit: 1 }, { skip: !isOffice });
+  const d = overview.data;
 
   return (
     <>
@@ -136,104 +102,91 @@ export function DashboardView() {
         }
       />
 
-      {projects.data && projects.data.meta.total === 0 ? (
-        <OnboardingChecklist hasLogo={Boolean(me?.tenant.logoUrl)} hasTeam={(usage?.officeUsers ?? 1) > 1} hasProject={false} />
-      ) : null}
+      {projects.data && projects.data.meta.total === 0 ? <OnboardingChecklist hasLogo={Boolean(me?.tenant.logoUrl)} hasTeam={(users.data?.meta.usage?.officeUsers ?? 1) > 1} /> : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="Active projects"
-          icon={FolderKanban}
-          value={byStatus.ACTIVE}
-          loading={projects.isLoading}
-          hint={`${byStatus.CLOSEOUT} in closeout · ${byStatus.DRAFT} draft${byStatus.DRAFT === 1 ? "" : "s"}`}
-        />
-        <KpiCard
-          label="Contract value (running)"
-          icon={Wallet}
-          tone="success"
-          value={seesMoney ? <MoneyText paisa={activeValue} short /> : <MoneyText paisa={undefined} />}
-          loading={projects.isLoading}
-          hint="Active + closeout projects"
-        />
-        {isOffice ? (
-          <KpiCard
-            label="Office users"
-            icon={Users}
-            tone="primary"
-            value={usage ? `${usage.officeUsers}${usage.maxOfficeUsers !== null ? ` / ${usage.maxOfficeUsers}` : ""}` : "—"}
-            loading={users.isLoading}
-            hint="Munshis are free"
-          />
-        ) : null}
-        <KpiCard
-          label="Subscription"
-          icon={BadgeCheck}
-          tone={sub?.status === "GRACE" || sub?.status === "TRIAL" ? "warning" : sub?.status === "LAPSED" ? "danger" : "success"}
-          value={<span className="text-2xl">{sub?.plan.name ?? me?.subscription?.plan.name ?? "—"}</span>}
-          loading={isOwner && subscription.isLoading}
-          hint={
-            sub ? (
-              <span className="inline-flex items-center gap-2">
-                <StatusBadge domain="subscription" value={sub.status} className="h-5 px-2 text-[11px]" />
-                {sub.daysLeft} day{sub.daysLeft === 1 ? "" : "s"} left
-              </span>
-            ) : me?.subscription ? (
-              <StatusBadge domain="subscription" value={me.subscription.status} className="h-5 px-2 text-[11px]" />
-            ) : undefined
-          }
-        />
-      </div>
+      <ReportFilterBar value={filters} onChange={setFilters} dateLabel="Last 30 days" trailing={d ? <span className="px-2 text-xs text-muted-foreground">{formatDate(d.period.from)} – {formatDate(d.period.to)}</span> : null} />
 
-      {isOwner ? <BillingOverview /> : null}
+      <QueryState query={overview} skeleton={<OverviewSkeleton />}>
+        {(data) => {
+          const k = data.kpis;
+          const money = data.seesFinancials;
+          return (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <KpiCard
+                  label="Active projects"
+                  icon={FolderKanban}
+                  value={k.activeProjects.count}
+                  tone={k.activeProjects.atRisk ? "warning" : "primary"}
+                  hint={money ? `${k.activeProjects.atRisk} at risk` : `${k.dispatchesOnTheWay} dispatch${k.dispatchesOnTheWay === 1 ? "" : "es"} on the way`}
+                />
+                <Link href="/dashboard/approvals" className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                  <KpiCard label="Pending approvals" icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint="Open My Approvals" className="h-full transition-colors hover:border-primary/50" />
+                </Link>
+                <KpiCard label="Open shortages" icon={PackageX} value={k.openShortages} tone={k.openShortages ? "danger" : "success"} hint={k.openShortages ? "Waiting for your decision" : "Nothing short"} />
+              </div>
 
-      {isOffice ? <LaborOverview /> : null}
+              {money ? (
+                <div className="grid gap-4 md:grid-cols-3">
+                  <RingKpiCard
+                    label="Receivables"
+                    value={<MoneyText paisa={k.receivablesOutstandingPaisa} short />}
+                    percent={k.collectedPercent ?? 0}
+                    ringLabel="collected"
+                    tone={k.overduePaisa && k.overduePaisa !== "0" ? "warning" : "success"}
+                    hint={k.overduePaisa && k.overduePaisa !== "0" ? `${formatPKRShort(k.overduePaisa)} overdue` : "Nothing overdue"}
+                  />
+                  <RingKpiCard
+                    label="Supplier udhaar"
+                    value={<MoneyText paisa={k.supplierUdhaarPaisa} short />}
+                    percent={k.supplierPaidPercent ?? 0}
+                    ringLabel="paid"
+                    tone="warning"
+                    hint={k.supplierOldestDays ? `Oldest ${k.supplierOldestDays} days` : "Nothing owed"}
+                  />
+                  <KpiCard
+                    label="Store stock value"
+                    icon={Store}
+                    value={<MoneyText paisa={k.storeStockValuePaisa} short />}
+                    hint={
+                      <span className="inline-flex items-center gap-1">
+                        <Truck className="size-3.5" aria-hidden />
+                        {k.dispatchesOnTheWay} dispatch{k.dispatchesOnTheWay === 1 ? "" : "es"} on the way
+                      </span>
+                    }
+                  />
+                </div>
+              ) : null}
 
-      {seesStock ? <StockOverview /> : null}
+              {money ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <KpiCard label="Cash with site staff" icon={Wallet} value={<MoneyText paisa={k.cashWithSiteStaffPaisa} short />} hint={<Link className="underline-offset-2 hover:underline" href="/finance/cash-floats">Cash floats overview</Link>} />
+                  <KpiCard
+                    label="Own money invested"
+                    icon={Wallet}
+                    tone={k.ownMoneyInvestedPaisa && !k.ownMoneyInvestedPaisa.startsWith("-") && k.ownMoneyInvestedPaisa !== "0" ? "warning" : "success"}
+                    value={<MoneyText paisa={k.ownMoneyInvestedPaisa} short />}
+                    hint="Spent to date − received (negative: owners have paid ahead)"
+                  />
+                </div>
+              ) : null}
 
-      <SectionCard title="Projects by status">
-        <div className="flex flex-wrap gap-3">
-          {STATUS_ORDER.map((status) => (
-            <Link
-              key={status}
-              href={status === "CLOSED" || status === "HANDED_OVER" ? "/projects/closed" : `/projects?status=${status}`}
-              className="flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors hover:bg-muted"
-            >
-              <StatusBadge domain="project" value={status} />
-              <span className="text-lg font-semibold tabular">{projects.isLoading ? "…" : byStatus[status]}</span>
-            </Link>
-          ))}
-        </div>
-      </SectionCard>
+              <ProjectsSummary rows={data.projects} money={money} />
 
-      <SectionCard
-        title="Recent projects"
-        flush
-        actions={
-          <Button asChild variant="outline" size="sm">
-            <Link href="/projects">All projects</Link>
-          </Button>
-        }
-      >
-        <DataTable
-          rows={projects.data ? recent : undefined}
-          columns={columns}
-          getRowId={(p) => p.id}
-          loading={projects.isLoading}
-          error={projects.error}
-          onRetry={projects.refetch}
-          clientPageSize={0}
-          onRowClick={(p) => router.push(p.status === "DRAFT" ? `/projects/${p.id}/edit` : `/projects/${p.id}/overview`)}
-          empty={{ title: "No projects yet", description: "Create your first project to see it here.", icon: CircleDashed }}
-        />
-      </SectionCard>
-
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold">Coming next</h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <ComingSoonCard title="Milestones" icon={Milestone} description="Stages completed this month." />
-        </div>
-      </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="space-y-4">
+                  <SiteStats site={data.site} />
+                  <LaborAnalysis labor={data.labor} />
+                </div>
+                <div className="space-y-4">
+                  {data.payments ? <PaymentAnalysis payments={data.payments} /> : null}
+                  <AlertsList alerts={data.alerts} />
+                </div>
+              </div>
+            </div>
+          );
+        }}
+      </QueryState>
     </>
   );
 }

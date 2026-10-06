@@ -238,6 +238,34 @@ export const ENDPOINTS = {
     events: "/billing-events",
   },
 
+  notifications: {
+    list: "/notifications",
+    unreadCount: "/notifications/unread-count",
+    read: (notificationId: string) => `/notifications/${id(notificationId)}/read`,
+    readAll: "/notifications/read-all",
+  },
+
+  approvals: {
+    list: "/approvals",
+    bulk: "/approvals/bulk",
+  },
+
+  dashboard: {
+    overview: "/dashboard/overview",
+    site: (projectId: string) => `/dashboard/site/${id(projectId)}`,
+  },
+
+  finance: {
+    receivables: "/finance/receivables",
+    cashFlow: "/finance/cash-flow",
+    pnl: "/finance/pnl",
+    cashFloats: "/finance/cash-floats",
+  },
+
+  reports: {
+    byName: (name: string) => `/reports/${id(name)}`,
+  },
+
   admin: {
     overview: "/admin/overview",
     health: "/admin/health",
