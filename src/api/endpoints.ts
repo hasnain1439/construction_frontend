@@ -216,6 +216,28 @@ export const ENDPOINTS = {
     projectCashbook: (projectId: string) => `/projects/${id(projectId)}/cashbook`,
   },
 
+  billing: {
+    stages: (projectId: string) => `/projects/${id(projectId)}/billing-stages`,
+    stageById: (stageId: string) => `/billing-stages/${id(stageId)}`,
+    stageMarkReady: (stageId: string) => `/billing-stages/${id(stageId)}/mark-ready`,
+    progress: (projectId: string) => `/projects/${id(projectId)}/billing-progress`,
+    progressById: (progressId: string) => `/billing-progress/${id(progressId)}`,
+    invoices: (projectId: string) => `/projects/${id(projectId)}/invoices`,
+    invoiceById: (invoiceId: string) => `/invoices/${id(invoiceId)}`,
+    invoiceIssue: (invoiceId: string) => `/invoices/${id(invoiceId)}/issue`,
+    invoiceCancel: (invoiceId: string) => `/invoices/${id(invoiceId)}/cancel`,
+    invoicePdf: (invoiceId: string) => `/invoices/${id(invoiceId)}/pdf`,
+    payments: (projectId: string) => `/projects/${id(projectId)}/payments`,
+    paymentById: (paymentId: string) => `/payments/${id(paymentId)}`,
+    chequeStatus: (paymentId: string) => `/payments/${id(paymentId)}/cheque-status`,
+    receiptPdf: (paymentId: string) => `/payments/${id(paymentId)}/receipt-pdf`,
+    projectReceivables: (projectId: string) => `/projects/${id(projectId)}/receivables`,
+    receivables: "/receivables",
+    statement: (projectId: string) => `/projects/${id(projectId)}/owner-statement`,
+    statementPdf: (projectId: string) => `/projects/${id(projectId)}/owner-statement/pdf`,
+    events: "/billing-events",
+  },
+
   admin: {
     overview: "/admin/overview",
     health: "/admin/health",

@@ -10,16 +10,20 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar } from "@/components/common/FilterBar";
 import { InfoList } from "@/components/common/InfoList";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientStatements } from "@/features/billing/components/ClientStatements";
 import { useListState } from "@/hooks/useListState";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatDate } from "@/lib/dates";
+import { BILLING_ACCESS } from "@/lib/navigation";
 import { formatPhone } from "@/lib/phone";
 import { ClientSlideOver } from "./ClientSlideOver";
 
@@ -79,6 +83,7 @@ export function ClientsView() {
 function ClientDetailBody({ client }: { client: ClientDetail }) {
   const router = useRouter();
   const readOnly = useReadOnly();
+  const seesBilling = useCan(BILLING_ACCESS);
   const [editOpen, setEditOpen] = useState(false);
   return (
     <>
@@ -117,6 +122,12 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
           ]}
         />
       </SectionCard>
+      <Tabs defaultValue="projects">
+        <TabsList>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
+          {seesBilling ? <TabsTrigger value="statements">Statements</TabsTrigger> : null}
+        </TabsList>
+        <TabsContent value="projects">
       <SectionCard title="Projects" flush>
         <DataTable
           rows={client.projects}
@@ -143,6 +154,13 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
           ]}
         />
       </SectionCard>
+        </TabsContent>
+        {seesBilling ? (
+          <TabsContent value="statements">
+            <ClientStatements client={client} />
+          </TabsContent>
+        ) : null}
+      </Tabs>
       <ClientSlideOver open={editOpen} client={client} onOpenChange={setEditOpen} />
     </>
   );

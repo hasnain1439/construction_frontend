@@ -58,6 +58,12 @@ export const COMPANY_TAGS = [
   "CashEntries",
   "Topups",
   "CashCounts",
+  "BillingStages",
+  "BillingProgress",
+  "Invoices",
+  "ClientPayments",
+  "Receivables",
+  "BillingEvents",
 ] as const;
 
 export const ADMIN_TAGS = [

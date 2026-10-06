@@ -59,7 +59,7 @@ Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mo
 - Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments (all available since Phase 1 · Step 6)
 - Workforce → Workers Directory · Sub-contractors (office: name → detail page with sites, wages, peshgi / accounts — Step 7)
 - Equipment → all items ComingSoon (Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Shuttering Demand)
-- Finance → Cash Floats Overview (available since Step 7); Receivables · Cash Flow Outlook · Profit & Loss → ComingSoon — THEKEDAR only
+- Finance → Receivables (Step 8) · Cash Floats Overview (Step 7) available; Cash Flow Outlook · Profit & Loss → ComingSoon — THEKEDAR only
 - Reports → all items ComingSoon
 - Team → Members · Invitations · Devices — THEKEDAR only (PM may view Members read-only)
 - Settings → Company Profile · Materials · Price List · Labor Rates · Payment Templates · Holidays · Alerts & Limits · Subscription · Rulebook (ComingSoon) · Tax (ComingSoon) — THEKEDAR only (PM may view Materials and Price List)
@@ -70,7 +70,8 @@ Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mo
 - Site → Incoming Material (badge = deliveries waiting) · Deliveries (Maal Aaya) · Material Usage (Maal Lag Gaya) · Site Stock · Stock Counts & Transfers — available since Step 6; Daily Logs & Photos and Equipment on Site → ComingSoon
 - Labor → **Team on Site** (new, top of the flyout: assign worker / add sub-contract) · Hazri Register · Sub-contractor Accounts (office) · Work Measurements · Peshgi · Weekly Settlements — available since Step 7
 - Cash Book → Site Kharcha · Cash Floats · Top-up Requests · Cash Counts & Handover — available since Step 7
-- Schedule, Change Orders, Billing, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
+- Billing (billing.view only) → Payment Schedule (+ Progress tab for running bills) · Invoices & Running Bills · Payments Received · Owner Statement — available since Step 8
+- Schedule, Change Orders, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
 
 **Super Admin console rail**
 Overview · Companies · Payments (badge = pending count) · Plans · Material Catalog · Holidays · Audit Logs · (Rulebook, Communication, Security → ComingSoon)

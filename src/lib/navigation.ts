@@ -198,7 +198,7 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     access: THEKEDAR,
     items: [
-      soon("finance.receivables", L("Receivables", "Wasooliyan"), "/finance/receivables", THEKEDAR),
+      { id: "finance.receivables", label: L("Receivables", "Wasooliyan"), href: "/finance/receivables", available: true, access: THEKEDAR, keywords: ["outstanding", "overdue", "wasooli"] },
       soon("finance.cashflow", L("Cash Flow Outlook", "Cash flow"), "/finance/cash-flow", THEKEDAR),
       soon("finance.pl", L("Profit & Loss", "Nafa aur nuqsan"), "/finance/profit-loss", THEKEDAR),
       { id: "finance.floats", label: L("Cash Floats Overview", "Cash floats"), href: "/finance/cash-floats", available: true, access: THEKEDAR, keywords: ["site cash", "kharcha", "munshi"] },
@@ -291,6 +291,8 @@ export const COMPANY_NAV: NavSection[] = [
 // ─── Project mode (hrefs relative to /projects/:id) ─────────────────────────
 
 const BILLING = { permission: "billing.view" } as const satisfies AccessRule;
+/** Money screens and cards: THEKEDAR, or a PM who may see financials (never a MUNSHI). */
+export const BILLING_ACCESS = { roles: ["THEKEDAR", "PM"], permission: "billing.view" } as const satisfies AccessRule;
 const PROFIT = { permission: "profit.view" } as const satisfies AccessRule;
 
 export const PROJECT_NAV: NavSection[] = [
@@ -385,10 +387,10 @@ export const PROJECT_NAV: NavSection[] = [
     mode: "project",
     access: BILLING,
     items: [
-      soon("p.billing.schedule", L("Payment Schedule", "Adaigi schedule"), "/billing/schedule", BILLING),
-      soon("p.billing.invoices", L("Invoices & Running Bills", "Invoices aur bills"), "/billing/invoices", BILLING),
-      soon("p.billing.received", L("Payments Received", "Wasool adaigiyan"), "/billing/payments", BILLING),
-      soon("p.billing.statement", L("Owner Statement", "Maalik ka statement"), "/billing/statement", BILLING),
+      { id: "p.billing.schedule", label: L("Payment Schedule", "Adaigi schedule"), href: "/billing/schedule", available: true, access: BILLING, keywords: ["stages", "mark ready", "running bill"] },
+      { id: "p.billing.invoices", label: L("Invoices & Running Bills", "Invoices aur bills"), href: "/billing/invoices", available: true, access: BILLING, keywords: ["invoice", "bill"] },
+      { id: "p.billing.received", label: L("Payments Received", "Wasool adaigiyan"), href: "/billing/payments", available: true, access: BILLING, keywords: ["cheque", "receipt"] },
+      { id: "p.billing.statement", label: L("Owner Statement", "Maalik ka statement"), href: "/billing/statement", available: true, access: BILLING, keywords: ["statement", "hisaab"] },
     ],
   },
   {

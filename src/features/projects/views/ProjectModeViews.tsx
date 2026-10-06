@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
-import { projectHref } from "@/lib/navigation";
+import { BILLING_ACCESS, projectHref } from "@/lib/navigation";
 import { statusMeta } from "@/lib/status";
 import {
   ClientCard,
@@ -34,6 +34,7 @@ import {
   SupplyRulesCard,
   TeamCard,
 } from "../components/ProjectSections";
+import { ProjectMoneyCard } from "@/features/billing/components/ProjectMoneyCard";
 import { LOCKED_STATUSES, OPENING_LABEL, ROOM_TYPE_LABEL, STATUS_TRANSITIONS } from "../constants";
 import { formatArea } from "../utils/calc";
 import { wizardHref } from "../utils/links";
@@ -171,6 +172,7 @@ function StatusActions({ project }: { project: ProjectDetail }) {
 export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const canManage = useCan({ permission: "projects.manage" });
   const isMunshi = useCan({ roles: ["MUNSHI"] });
+  const seesBilling = useCan(BILLING_ACCESS);
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -209,6 +211,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
                 Finish the 6 setup steps and activate it to start site work. Drafts don&apos;t count against your plan.
               </InlineAlert>
             ) : null}
+            {seesBilling && project.status !== "DRAFT" ? <ProjectMoneyCard projectId={project.id} /> : null}
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               <ClientCard project={project} canEdit={canEdit} />
               <ContractCard project={project} canEdit={canEdit} />

@@ -128,6 +128,26 @@ New shared pieces: `WeekPicker`, `AttendanceGrid`, `StepperInput`, `ApprovalActi
 
 **E2E:** `e2e/labor-cashbook.spec.ts` creates a small ACTIVE project for the run (Bilal PM, Rafaqat munshi), then: Thekedar float → munshi acknowledges · hazri → site-cash peshgi → generate + submit · PM approves · munshi pays from site cash and the balance drops by peshgi + wages. The project is handed over at the end.
 
+## Billing & Receivables (Phase 1 · Step 8)
+
+Shown only with `billing.view` (THEKEDAR, or a PM with financials — hidden, not greyed, for everyone else).
+
+| Where | Page | Who |
+|---|---|---|
+| Project → Billing → **Payment Schedule** | `StageTimeline` + stages table: **Mark ready** (proof photos), **Create invoice** (from a ready stage), expected date (owner); amber banner when an earlier stage is unpaid past due. Running-bill projects get a **Progress** tab (sq ft list, **Add progress**, **Bill a period**) | billing.view |
+| Billing → **Invoices & Running Bills** | list (status / type / date filters, invoiced / received / balance KPIs) + **New invoice** (Stage · Running bill · Recoverable · Retention · Other with manual lines, subtotal preview) → detail (`DocumentHeader`, lines, totals incl. tax, payments; **Edit** / **Delete draft** / **Issue**, **Cancel** with a reason, `PdfActions`) | billing.view (issue / cancel / Other: THEKEDAR) |
+| Billing → **Payments Received** | payments with method icon and cheque status; **Record payment** (cheque fields, WHT when tax is on, slip photo, `AllocationEditor`); **Mark cleared / Bounced** (reason); receipt `PdfActions` | billing.view (cheques: THEKEDAR) |
+| Billing → **Owner Statement** | date range, opening → invoices / payments (cheque status) → closing, credit, unbilled owner purchases; `PdfActions` | billing.view |
+| Project Overview | `MoneySummaryCards` (contract, invoiced, received, pending cheques, outstanding/overdue, own money invested) + next billable stage | billing.view |
+| Finance → **Receivables** | per-project table + totals, "Overdue only"; row → project invoices | THEKEDAR |
+| Dashboard | receivables outstanding (% collected ring), overdue, **Alerts** (overdue invoices, bounced cheques, ready-but-unbilled stages) with action links; **My Approvals** adds stages ready to bill | THEKEDAR |
+| Sales → Client detail | **Statements** tab (per project, `PdfActions`) | billing.view |
+| Settings → Alerts & Limits | payment terms, tax rate + name, "PMs can record owner payments" | THEKEDAR |
+
+New shared pieces: `StageTimeline`, `InvoiceStatusBadge` / `ChequeStatusBadge` / `PaymentMethodIcon` (`BillingBadges.tsx`), `AllocationEditor` (auto oldest-first, manual amounts, remainder kept as credit), `MoneySummaryCards`, `PdfActions` (Preview, Download, **WhatsApp** → `https://wa.me/<phone>?text=<message>`), `DocumentPreview`. Service: `billing.api.ts` (payments / cheque status invalidate invoices, payments, receivables, stages and alerts). `BILLING_ACCESS` in `lib/navigation.ts` is the one rule for money screens.
+
+**E2E:** `e2e/billing.spec.ts` creates a small ACTIVE project, marks a stage ready, issues the invoice, records a cheque (pending) and clears it (invoice PAID, receivables move), then bounces a second cheque (balance back, alert on the dashboard). The project is handed over at the end.
+
 ## Rules of the codebase
 
 1. **Reusable components.** Any UI pattern used twice or more lives in `src/components`

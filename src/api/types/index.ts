@@ -6,3 +6,4 @@ export * from "./projects";
 export * from "./admin";
 export * from "./inventory";
 export * from "./labor";
+export * from "./billing";
