@@ -109,6 +109,25 @@ New shared pieces: `LineItemsEditor` (every document's lines), `MaterialPicker`,
 
 **E2E munshi sign-in:** `e2e/procurement.spec.ts` gets Rafaqat's SMS code from the backend's dev helper `npm run dev:otp -- <phone>` (in `../construction-platform`, refuses to run in production).
 
+## Labor & Cash Book (Phase 1 · Step 7)
+
+| Where | Page | Who |
+|---|---|---|
+| Project → Labor → **Team on Site** | workers on the site (project rate, "Project rate" badge, today's mark, **Peshgi** / change rate / remove), sub-contracts (**Measure**); **Assign worker** (munshi: default rate only), **Add sub-contract** (office); KPIs hazri today, daily wage bill | all roles; sub-contract money hidden from MUNSHI |
+| Labor → Hazri Register | `WeekPicker` + `AttendanceGrid` (tap P → ½ → A, keys F/H/A, arrows, overtime steppers), **Mark today present**, unsaved bar (**Save hazri** posts one bulk call per day), locked-week banner with a link to the settlement, today chips; MUNSHI edits the last 7 days | all roles |
+| Labor → Work Measurements · Peshgi | measurements with **Verify** / **Reject** (comment); peshgi register (outstanding / partly / adjusted) + **Give peshgi** (munshi: site cash only) | all roles (verify: office) |
+| Labor → Weekly Settlements | list + **Generate** for a week → detail: KPIs, lines (days, OT, peshgi cut with override ✎, net), `StatusTimeline`, **Recalculate**, **Submit**, **Approve / Return** (comment), **Pay all / Pay selected** (site cash for the munshi) | all roles (approve / adjust: office) |
+| Labor → Sub-contractor Accounts | value, retention, paid, balance due, **Overpaid** badge; **Ledger**, **Progress** (lump sum), **Pay** (running / final / retention), **Deduct** (THEKEDAR) | THEKEDAR, PM |
+| Project → Cash Book | **Site Kharcha** (`BalanceCard`, cash book, `CategoryChips` filter, spend-by-category bars, **Add kharcha** incl. urgent material → site stock with `LineItemsEditor`, approvals queue for the office), **Cash Floats** (**Send float**, **Mil gaye** acknowledge), **Top-up Requests**, **Cash Counts & Handover** | all roles (own cash for MUNSHI) |
+| Finance → Cash Floats Overview | holders with balance / not received / waiting approval / to pay back / last count, **Send float**, top-ups waiting, kharcha waiting | THEKEDAR |
+| Workforce → worker / sub-contractor detail | sites and rates, days this week, peshgi outstanding, wages history · sub-contracts with accounts | THEKEDAR, PM |
+| Dashboard | **Sites today** KPIs (hazri today, peshgi this week, site kharcha this week, cash with site staff); **My Approvals** adds wages, kharcha, top-ups and measurements to verify | THEKEDAR, PM |
+| Team → Members | deactivating someone who still holds site cash shows `CASH_BALANCE_OPEN` with the amount and a link to Cash Floats | THEKEDAR |
+
+New shared pieces: `WeekPicker`, `AttendanceGrid`, `StepperInput`, `ApprovalActions` (return / reject always need a comment), `BalanceCard`, `CategoryChips`, `PayeeSelect`, `StatusTimeline`; `lib/weeks.ts`. Services: `labor.api.ts`, `cashbook.api.ts`. Offline-safe creates send a UUID v7 `clientId` (`newClientId()`).
+
+**E2E:** `e2e/labor-cashbook.spec.ts` creates a small ACTIVE project for the run (Bilal PM, Rafaqat munshi), then: Thekedar float → munshi acknowledges · hazri → site-cash peshgi → generate + submit · PM approves · munshi pays from site cash and the balance drops by peshgi + wages. The project is handed over at the end.
+
 ## Rules of the codebase
 
 1. **Reusable components.** Any UI pattern used twice or more lives in `src/components`

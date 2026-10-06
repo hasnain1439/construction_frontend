@@ -1,6 +1,7 @@
 "use client";
 
 import { HardHat, Plus, UsersRound } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import {
   useGetSubcontractorsQuery,
@@ -38,6 +39,7 @@ export function WorkersView() {
   const canAdd = useCan({ roles: ["THEKEDAR", "PM", "MUNSHI"] }) && !readOnly;
   const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
   const canSeeRates = useCan({ permission: "rates.view" });
+  const office = useCan({ roles: ["THEKEDAR", "PM"] });
   const list = useListState({ type: "", isActive: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetWorkersQuery(list.query as WorkersQuery);
   const [setActive, { isLoading: toggling }] = useSetWorkerActiveMutation();
@@ -46,7 +48,19 @@ export function WorkersView() {
   const run = useMutationToast();
 
   const columns: Column<Worker>[] = [
-    { id: "name", header: "Name", cell: (w) => <span className="font-medium">{w.name}</span>, sortValue: (w) => w.name },
+    {
+      id: "name",
+      header: "Name",
+      cell: (w) =>
+        office ? (
+          <Link href={`/workforce/workers/${w.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
+            {w.name}
+          </Link>
+        ) : (
+          <span className="font-medium">{w.name}</span>
+        ),
+      sortValue: (w) => w.name,
+    },
     { id: "type", header: "Type", cell: (w) => WORKER_TYPE_LABEL[w.type] ?? w.type, sortValue: (w) => w.type },
     { id: "phone", header: "Phone", cell: (w) => <span className="tabular">{formatPhone(w.phone)}</span> },
     {
@@ -137,7 +151,19 @@ export function SubcontractorsView() {
   const run = useMutationToast();
 
   const columns: Column<Subcontractor>[] = [
-    { id: "name", header: "Name", cell: (s) => <span className="font-medium">{s.name}</span>, sortValue: (s) => s.name },
+    {
+      id: "name",
+      header: "Name",
+      cell: (s) =>
+        canEdit ? (
+          <Link href={`/workforce/subcontractors/${s.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
+            {s.name}
+          </Link>
+        ) : (
+          <span className="font-medium">{s.name}</span>
+        ),
+      sortValue: (s) => s.name,
+    },
     { id: "trade", header: "Trade", cell: (s) => TRADE_LABEL[s.trade] ?? s.trade, sortValue: (s) => s.trade },
     { id: "phone", header: "Phone", cell: (s) => <span className="tabular">{formatPhone(s.phone)}</span> },
     { id: "notes", header: "Notes", cell: (s) => <span className="line-clamp-1 text-muted-foreground">{s.notes ?? "—"}</span> },

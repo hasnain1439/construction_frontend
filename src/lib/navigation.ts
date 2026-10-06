@@ -201,7 +201,7 @@ export const COMPANY_NAV: NavSection[] = [
       soon("finance.receivables", L("Receivables", "Wasooliyan"), "/finance/receivables", THEKEDAR),
       soon("finance.cashflow", L("Cash Flow Outlook", "Cash flow"), "/finance/cash-flow", THEKEDAR),
       soon("finance.pl", L("Profit & Loss", "Nafa aur nuqsan"), "/finance/profit-loss", THEKEDAR),
-      soon("finance.floats", L("Cash Floats Overview", "Cash floats"), "/finance/cash-floats", THEKEDAR),
+      { id: "finance.floats", label: L("Cash Floats Overview", "Cash floats"), href: "/finance/cash-floats", available: true, access: THEKEDAR, keywords: ["site cash", "kharcha", "munshi"] },
     ],
   },
   {
@@ -347,11 +347,12 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Users,
     mode: "project",
     items: [
-      soon("p.labor.hazri", L("Hazri Register", "Hazri register"), "/labor/hazri"),
-      soon("p.labor.accounts", L("Sub-contractor Accounts", "Theke daar hisaab"), "/labor/subcontractor-accounts"),
-      soon("p.labor.measurements", L("Work Measurements", "Kaam ki paimaish"), "/labor/measurements"),
-      soon("p.labor.peshgi", L("Peshgi", "Peshgi"), "/labor/peshgi"),
-      soon("p.labor.settlements", L("Weekly Settlements", "Hafta war hisaab"), "/labor/settlements"),
+      { id: "p.labor.team", label: L("Team on Site", "Site par team"), href: "/labor/team", available: true, keywords: ["assign", "workers", "sub-contract"] },
+      { id: "p.labor.hazri", label: L("Hazri Register", "Hazri register"), href: "/labor/hazri", available: true, keywords: ["attendance", "present"] },
+      { id: "p.labor.accounts", label: L("Sub-contractor Accounts", "Theke daar hisaab"), href: "/labor/subcontractor-accounts", available: true, access: OFFICE, keywords: ["retention", "theka"] },
+      { id: "p.labor.measurements", label: L("Work Measurements", "Kaam ki paimaish"), href: "/labor/measurements", available: true, keywords: ["sqft", "measurement"] },
+      { id: "p.labor.peshgi", label: L("Peshgi", "Peshgi"), href: "/labor/peshgi", available: true, keywords: ["advance"] },
+      { id: "p.labor.settlements", label: L("Weekly Settlements", "Hafta war hisaab"), href: "/labor/settlements", available: true, keywords: ["wages", "payroll"] },
     ],
   },
   {
@@ -360,10 +361,10 @@ export const PROJECT_NAV: NavSection[] = [
     icon: BookOpen,
     mode: "project",
     items: [
-      soon("p.cash.kharcha", L("Site Kharcha", "Site kharcha"), "/cash-book/kharcha"),
-      soon("p.cash.floats", L("Cash Floats", "Cash floats"), "/cash-book/floats"),
-      soon("p.cash.topups", L("Top-up Requests", "Top-up darkhwastein"), "/cash-book/top-ups"),
-      soon("p.cash.counts", L("Cash Counts & Handover", "Cash ginti aur hawalgi"), "/cash-book/counts"),
+      { id: "p.cash.kharcha", label: L("Site Kharcha", "Site kharcha"), href: "/cash-book/kharcha", available: true, keywords: ["expense", "petty cash"] },
+      { id: "p.cash.floats", label: L("Cash Floats", "Cash floats"), href: "/cash-book/floats", available: true, keywords: ["acknowledge", "easypaisa"] },
+      { id: "p.cash.topups", label: L("Top-up Requests", "Top-up darkhwastein"), href: "/cash-book/top-ups", available: true },
+      { id: "p.cash.counts", label: L("Cash Counts & Handover", "Cash ginti aur hawalgi"), href: "/cash-book/counts", available: true },
     ],
   },
   {

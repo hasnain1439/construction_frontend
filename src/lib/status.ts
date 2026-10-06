@@ -15,6 +15,7 @@ import {
   PauseCircle,
   TriangleAlert,
   Truck,
+  Undo2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -122,6 +123,38 @@ const DOMAINS = {
     UDHAAR: S("warning", "Udhaar", Clock),
     CASH: S("success", "Cash", CircleCheck),
     PARTIAL: S("info", "Part paid", Hourglass),
+  },
+  settlement: {
+    DRAFT: S("neutral", "Draft", CircleDashed),
+    SUBMITTED: S("warning", "Waiting for approval", Clock),
+    APPROVED: S("success", "Approved", CircleCheck),
+    RETURNED: S("danger", "Returned", Undo2),
+  },
+  linePayment: {
+    UNPAID: S("warning", "Unpaid", Clock),
+    PAID: S("success", "Paid", CircleCheck),
+  },
+  measurement: {
+    RECORDED: S("warning", "To verify", Clock),
+    VERIFIED: S("success", "Verified", CircleCheck),
+    REJECTED: S("danger", "Rejected", CircleX),
+  },
+  advance: {
+    OUTSTANDING: S("warning", "Outstanding", Clock),
+    PARTLY_ADJUSTED: S("info", "Partly adjusted", Hourglass),
+    ADJUSTED: S("success", "Adjusted", CircleCheck),
+  },
+  cashEntry: {
+    PENDING_ACK: S("info", "Not received yet", Clock),
+    PENDING_APPROVAL: S("warning", "Waiting for approval", Hourglass),
+    APPROVED: S("success", "Approved", CircleCheck),
+    REJECTED: S("danger", "Rejected", CircleX),
+    POSTED: S("success", "Done", CircleCheck),
+  },
+  topup: {
+    PENDING: S("warning", "Pending", Clock),
+    APPROVED: S("success", "Sent", CircleCheck),
+    REJECTED: S("danger", "Rejected", CircleX),
   },
 } as const;
 

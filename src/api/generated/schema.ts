@@ -1859,6 +1859,18 @@ export interface paths {
                          *         "taxEnabled": false,
                          *         "pmCanSeeFinancials": false,
                          *         "blindCountEnabled": true,
+                         *         "settlementWeekStart": "MONDAY",
+                         *         "workingDays": [
+                         *           "MONDAY",
+                         *           "TUESDAY",
+                         *           "WEDNESDAY",
+                         *           "THURSDAY",
+                         *           "FRIDAY",
+                         *           "SATURDAY"
+                         *         ],
+                         *         "hoursPerDay": 8,
+                         *         "overtimeMultiplier": null,
+                         *         "subcontractPaymentsByPm": false,
                          *         "defaultLanguage": "ROMAN_URDU"
                          *       }
                          *     }
@@ -1905,6 +1917,8 @@ export interface paths {
          *     - `quoteValidityDays` 1–90
          *
          *     `pmCanSeeFinancials` is the default for new PM invitations. `blindCountEnabled` hides sent / challan quantities while a site counts a delivery.
+         *
+         *     Labour: `settlementWeekStart`, `workingDays`, `hoursPerDay` (1–16), `overtimeMultiplier` (1–3, null = the DAILY labour rate multiplier) and `subcontractPaymentsByPm`.
          */
         patch: {
             parameters: {
@@ -1927,6 +1941,12 @@ export interface paths {
                         taxEnabled?: boolean;
                         pmCanSeeFinancials?: boolean;
                         blindCountEnabled?: boolean;
+                        /** @enum {string} */
+                        settlementWeekStart?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+                        workingDays?: ("MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY")[];
+                        hoursPerDay?: number;
+                        overtimeMultiplier?: number | null;
+                        subcontractPaymentsByPm?: boolean;
                         /** @enum {string} */
                         defaultLanguage?: "ENGLISH" | "ROMAN_URDU" | "URDU";
                     };
@@ -6417,7 +6437,7 @@ export interface paths {
         };
         /**
          * List suppliers
-         * @description THEKEDAR, PM. Search matches name, city or phone.
+         * @description All roles (MUNSHI picks the seller of urgent material bought with site cash). Udhaar balances only with rates.view. Search matches name, city or phone.
          */
         get: {
             parameters: {
@@ -17086,6 +17106,11 @@ export interface paths {
                          * @example 2500000
                          */
                         recoveredAmountPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description ACCEPT_LOSS only (THEKEDAR): charge the loss to this sub-contract as a deduction
+                         */
+                        chargeToAssignmentId?: string;
                         /** @example LES-4521 */
                         vehicleNo?: string;
                         /** @example Nadeem */
@@ -17448,6 +17473,6502 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/labor/workers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workers on the project
+         * @description All roles with project access (PM / MUNSHI: assigned projects, else 404). Each row has the project rate and the worker’s own default rate.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Workers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "worker": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *             "name": "Ustad Akram",
+                         *             "type": "MISTRI",
+                         *             "phone": "+923001110001"
+                         *           },
+                         *           "dailyRatePaisa": "280000",
+                         *           "defaultRatePaisa": "300000",
+                         *           "rateOverridden": true,
+                         *           "startDate": "2026-09-14",
+                         *           "endDate": null,
+                         *           "isActive": true
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Assign a worker
+         * @description THEKEDAR, PM, MUNSHI. The rate defaults to the worker’s daily rate; only the office may set another (MUNSHI → 403 RATE_CHANGE_NOT_ALLOWED). A worker taken off earlier is put back on. Project must be ACTIVE / CLOSEOUT.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        workerId: string;
+                        /**
+                         * @description Defaults to the worker's own daily rate. MUNSHI may not change it.
+                         * @example 2500000
+                         */
+                        dailyRatePaisa?: string | number;
+                        /**
+                         * @description Defaults to today
+                         * @example 2026-12-25
+                         */
+                        startDate?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Assigned */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000a11",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "worker": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "name": "Ustad Akram",
+                         *           "type": "MISTRI",
+                         *           "phone": "+923001110001"
+                         *         },
+                         *         "dailyRatePaisa": "280000",
+                         *         "defaultRatePaisa": "300000",
+                         *         "rateOverridden": true,
+                         *         "startDate": "2026-09-14",
+                         *         "endDate": null,
+                         *         "isActive": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_WORKER */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | RATE_CHANGE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description WORKER_ALREADY_ASSIGNED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/project-workers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a worker from the project
+         * @description THEKEDAR, PM. A worker with hazri or peshgi here is only taken off (kept for history); otherwise the row is deleted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ProjectWorker id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Removed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "removed": false,
+                         *         "deactivated": true,
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "worker": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *             "name": "Ustad Akram",
+                         *             "type": "MISTRI",
+                         *             "phone": "+923001110001"
+                         *           },
+                         *           "dailyRatePaisa": "280000",
+                         *           "defaultRatePaisa": "300000",
+                         *           "rateOverridden": true,
+                         *           "startDate": "2026-09-14",
+                         *           "endDate": "2026-10-06",
+                         *           "isActive": false
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_WORKER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change a worker’s project rate / dates
+         * @description THEKEDAR, PM. A new rate applies to settlements generated from now on. `isActive: false` takes the worker off (end date today).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ProjectWorker id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        dailyRatePaisa?: string | number;
+                        /** @example 2026-12-25 */
+                        endDate?: string | null;
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000a11",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "worker": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "name": "Ustad Akram",
+                         *           "type": "MISTRI",
+                         *           "phone": "+923001110001"
+                         *         },
+                         *         "dailyRatePaisa": "280000",
+                         *         "defaultRatePaisa": "300000",
+                         *         "rateOverridden": true,
+                         *         "startDate": "2026-09-14",
+                         *         "endDate": null,
+                         *         "isActive": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_WORKER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/labor/subcontracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sub-contracts on the project
+         * @description All roles with project access. MUNSHI gets no `ratePaisa`, `contractValuePaisa` or `retentionPercent`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Sub-contracts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           },
+                         *           "scope": "Slab shuttering — ground + first floor",
+                         *           "rateType": "PER_SQFT",
+                         *           "unit": "sqft",
+                         *           "ratePaisa": "4500",
+                         *           "contractValuePaisa": null,
+                         *           "retentionPercent": 5,
+                         *           "progressPercent": 0,
+                         *           "startDate": "2026-09-01",
+                         *           "isActive": true
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Give work to a sub-contractor
+         * @description THEKEDAR, PM. Unit (sqft, ton, brick, rft, cft) follows `rateType`. The rate — or a LUMPSUM value — defaults to the company’s SUBCONTRACT labour rate for the trade (400 RATE_REQUIRED when there is none in that unit). Retention defaults to 5%.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subcontractorId: string;
+                        /** @example Shuttering — ground + first floor slabs */
+                        scope: string;
+                        /** @enum {string} */
+                        rateType: "PER_SQFT" | "PER_TON" | "PER_BRICK" | "PER_RFT" | "PER_CFT" | "LUMPSUM";
+                        /**
+                         * @description Unit rate. Defaults to the company's SUBCONTRACT labour rate for the trade.
+                         * @example 2500000
+                         */
+                        ratePaisa?: string | number;
+                        /**
+                         * @description LUMPSUM only. Defaults to the trade's LUMPSUM labour rate.
+                         * @example 2500000
+                         */
+                        contractValuePaisa?: string | number;
+                        /** @description Default 5 */
+                        retentionPercent?: number;
+                        /** @example 2026-12-25 */
+                        startDate?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Assigned */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "subcontractor": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *           "name": "Ustad Sharif Shuttering",
+                         *           "trade": "SHUTTERING",
+                         *           "phone": "+923004440001"
+                         *         },
+                         *         "scope": "Slab shuttering — ground + first floor",
+                         *         "rateType": "PER_SQFT",
+                         *         "unit": "sqft",
+                         *         "ratePaisa": "4500",
+                         *         "contractValuePaisa": null,
+                         *         "retentionPercent": 5,
+                         *         "progressPercent": 0,
+                         *         "startDate": "2026-09-01",
+                         *         "isActive": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_SUBCONTRACTOR | RATE_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontract-assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change a sub-contract
+         * @description THEKEDAR, PM. A new rate applies to measurements verified from now on (verified work keeps its value).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description SubcontractAssignment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        scope?: string;
+                        /**
+                         * @description Applies to measurements verified from now on
+                         * @example 2500000
+                         */
+                        ratePaisa?: string | number;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        contractValuePaisa?: string | number;
+                        retentionPercent?: number;
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "subcontractor": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *           "name": "Ustad Sharif Shuttering",
+                         *           "trade": "SHUTTERING",
+                         *           "phone": "+923004440001"
+                         *         },
+                         *         "scope": "Slab shuttering — ground + first floor",
+                         *         "rateType": "PER_SQFT",
+                         *         "unit": "sqft",
+                         *         "ratePaisa": "4500",
+                         *         "contractValuePaisa": null,
+                         *         "retentionPercent": 5,
+                         *         "progressPercent": 0,
+                         *         "startDate": "2026-09-01",
+                         *         "isActive": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | LUMPSUM_HAS_NO_RATE | NOT_LUMPSUM */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/labor/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Labour & cash overview (dashboard)
+         * @description THEKEDAR, PM (their ACTIVE / CLOSEOUT projects). Hazri today, peshgi and kharcha this week, cash with site staff, and counts waiting for approval (submitted settlements, kharcha above the limit, top-ups — THEKEDAR — and measurements to verify).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Overview */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "date": "2026-10-06",
+                         *         "week": {
+                         *           "weekStart": "2026-10-05",
+                         *           "weekEnd": "2026-10-11"
+                         *         },
+                         *         "hazriToday": {
+                         *           "assigned": 8,
+                         *           "full": 6,
+                         *           "half": 1,
+                         *           "absent": 1,
+                         *           "unmarked": 0
+                         *         },
+                         *         "peshgiThisWeekPaisa": "150000",
+                         *         "kharchaThisWeekPaisa": "475000",
+                         *         "cashWithSiteStaffPaisa": "3080000",
+                         *         "pending": {
+                         *           "settlements": 1,
+                         *           "kharcha": 1,
+                         *           "topups": 1,
+                         *           "measurements": 1
+                         *         },
+                         *         "lastWeekStart": "2026-09-28"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workers/{id}/labor-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Worker across projects
+         * @description THEKEDAR, PM (their projects). Sites and rates, days this week, outstanding peshgi, recent advances and the last 12 settlement lines.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Worker id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Worker summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "worker": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "name": "Ustad Akram",
+                         *           "type": "MISTRI",
+                         *           "phone": "+923001110001",
+                         *           "dailyRatePaisa": "300000",
+                         *           "isActive": true
+                         *         },
+                         *         "projects": [
+                         *           {
+                         *             "projectWorkerId": "0199a8c0-0000-7000-8000-000000000a11",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "status": "ACTIVE"
+                         *             },
+                         *             "dailyRatePaisa": "280000",
+                         *             "startDate": "2026-09-14",
+                         *             "endDate": null,
+                         *             "isActive": true
+                         *           }
+                         *         ],
+                         *         "thisWeek": {
+                         *           "weekStart": "2026-10-05",
+                         *           "daysWorked": 2
+                         *         },
+                         *         "outstandingAdvancePaisa": "500000",
+                         *         "advances": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "status": "ACTIVE"
+                         *             },
+                         *             "date": "2026-09-22",
+                         *             "amountPaisa": "500000",
+                         *             "paidFrom": "OFFICE_CASH",
+                         *             "note": "Child sick"
+                         *           }
+                         *         ],
+                         *         "settlements": [
+                         *           {
+                         *             "settlementId": "0199a8c0-0000-7000-8000-000000000c11",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "status": "ACTIVE"
+                         *             },
+                         *             "weekStart": "2026-09-21",
+                         *             "status": "SUBMITTED",
+                         *             "daysWorked": 6,
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description WORKER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontractors/{id}/labor-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sub-contractor across projects
+         * @description THEKEDAR, PM (their projects). Every sub-contract with its account and the totals.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Subcontractor id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Sub-contractor summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "subcontractor": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *           "name": "Ustad Sharif Shuttering",
+                         *           "trade": "SHUTTERING",
+                         *           "phone": "+923004440001",
+                         *           "isActive": true
+                         *         },
+                         *         "assignments": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "subcontractor": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *               "name": "Ustad Sharif Shuttering",
+                         *               "trade": "SHUTTERING",
+                         *               "phone": "+923004440001"
+                         *             },
+                         *             "scope": "Slab shuttering — ground + first floor",
+                         *             "rateType": "PER_SQFT",
+                         *             "unit": "sqft",
+                         *             "ratePaisa": "4500",
+                         *             "contractValuePaisa": null,
+                         *             "retentionPercent": 5,
+                         *             "progressPercent": 0,
+                         *             "startDate": "2026-09-01",
+                         *             "isActive": true,
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "status": "ACTIVE"
+                         *             },
+                         *             "account": {
+                         *               "valuePaisa": "36900000",
+                         *               "retentionPaisa": "1845000",
+                         *               "retentionReleasedPaisa": "0",
+                         *               "retentionHeldPaisa": "1845000",
+                         *               "advancesPaisa": "0",
+                         *               "paidPaisa": "32000000",
+                         *               "deductionsPaisa": "0",
+                         *               "balanceDuePaisa": "3055000",
+                         *               "overpaid": false,
+                         *               "overpaidPaisa": "0"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "valuePaisa": "36900000",
+                         *           "paidPaisa": "32000000",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "balanceDuePaisa": "3055000"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUBCONTRACTOR_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Hazri register (grid)
+         * @description All roles with project access. Rows = workers, columns = days. Default: the current settlement week; at most 62 days. `weeks` lists settlements in the range (locked = submitted / approved).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Grid */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "from": "2026-09-21",
+                         *         "to": "2026-09-27",
+                         *         "dates": [
+                         *           "2026-09-21",
+                         *           "2026-09-22"
+                         *         ],
+                         *         "weekStart": "MONDAY",
+                         *         "workers": [
+                         *           {
+                         *             "projectWorkerId": "0199a8c0-0000-7000-8000-000000000a11",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "dailyRatePaisa": "280000",
+                         *             "isActive": true,
+                         *             "days": {
+                         *               "2026-09-21": {
+                         *                 "status": "FULL",
+                         *                 "overtimeHours": 0,
+                         *                 "note": null
+                         *               }
+                         *             },
+                         *             "totals": {
+                         *               "full": 6,
+                         *               "half": 0,
+                         *               "absent": 0,
+                         *               "daysWorked": 6,
+                         *               "overtimeHours": 0
+                         *             }
+                         *           }
+                         *         ],
+                         *         "dayTotals": [
+                         *           {
+                         *             "date": "2026-09-21",
+                         *             "weekday": "MONDAY",
+                         *             "workingDay": true,
+                         *             "full": 8,
+                         *             "half": 0,
+                         *             "absent": 0,
+                         *             "unmarked": 0
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "daysWorked": 44.5,
+                         *           "overtimeHours": 0
+                         *         },
+                         *         "weeks": [
+                         *           {
+                         *             "settlementId": "0199a8c0-0000-7000-8000-000000000c11",
+                         *             "weekStart": "2026-09-21",
+                         *             "status": "SUBMITTED",
+                         *             "locked": true
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RANGE_TOO_LONG */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Mark hazri (bulk upsert)
+         * @description THEKEDAR, PM, MUNSHI. One call per day; marking a worker again overwrites the mark. Rules: every worker must be on the project (400 WORKER_NOT_ASSIGNED), no future days (400 FUTURE_DATE), MUNSHI at most 7 days back (400 DATE_TOO_OLD), and a week with a submitted / approved settlement is locked (409 WEEK_LOCKED). ABSENT clears overtime.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        date: string;
+                        entries: {
+                            /** Format: uuid */
+                            workerId: string;
+                            /** @enum {string} */
+                            status: "FULL" | "HALF" | "ABSENT";
+                            overtimeHours?: number;
+                            note?: string;
+                        }[];
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved — the day after saving */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "date": "2026-10-06",
+                         *         "created": 1,
+                         *         "updated": 1,
+                         *         "day": {
+                         *           "date": "2026-10-06",
+                         *           "weekday": "TUESDAY",
+                         *           "assigned": 8,
+                         *           "marked": 8,
+                         *           "full": 6,
+                         *           "half": 1,
+                         *           "absent": 1,
+                         *           "unmarked": 0,
+                         *           "overtimeHours": 2,
+                         *           "workers": [
+                         *             {
+                         *               "worker": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *                 "name": "Ustad Akram",
+                         *                 "type": "MISTRI"
+                         *               },
+                         *               "status": "FULL",
+                         *               "overtimeHours": 2,
+                         *               "note": null
+                         *             }
+                         *           ]
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | WORKER_NOT_ASSIGNED | FUTURE_DATE | DATE_TOO_OLD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description WEEK_LOCKED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/attendance/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Today’s hazri
+         * @description All roles with project access. Everyone on the project with today’s mark (`status: null` = not marked yet).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Today */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "date": "2026-10-06",
+                         *         "weekday": "TUESDAY",
+                         *         "assigned": 8,
+                         *         "marked": 8,
+                         *         "full": 6,
+                         *         "half": 1,
+                         *         "absent": 1,
+                         *         "unmarked": 0,
+                         *         "overtimeHours": 2,
+                         *         "workers": [
+                         *           {
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "status": "FULL",
+                         *             "overtimeHours": 2,
+                         *             "note": null
+                         *           }
+                         *         ],
+                         *         "workingDay": true,
+                         *         "locked": false
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/work-measurements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Measurements
+         * @description All roles with project access (money hidden from MUNSHI). `meta.pendingCount` = waiting for verification.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    assignmentId?: string;
+                    status?: "RECORDED" | "VERIFIED" | "REJECTED";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Measurements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b21",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "assignment": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *             "scope": "Slab shuttering",
+                         *             "rateType": "PER_SQFT",
+                         *             "subcontractor": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *               "name": "Ustad Sharif Shuttering",
+                         *               "trade": "SHUTTERING",
+                         *               "phone": "+923004440001"
+                         *             }
+                         *           },
+                         *           "date": "2026-10-04",
+                         *           "description": "First-floor slab",
+                         *           "quantity": 1250.5,
+                         *           "unit": "sqft",
+                         *           "attachmentIds": [
+                         *             "0199a8c0-0000-7000-8000-000000000602"
+                         *           ],
+                         *           "status": "VERIFIED",
+                         *           "ratePaisa": "4500",
+                         *           "valuePaisa": "5627250",
+                         *           "verifiedById": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "verifiedAt": "2026-10-05T10:00:00.000Z",
+                         *           "note": null,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "deviceCreatedAt": "2026-10-04T16:00:00.000Z",
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-10-04T16:00:05.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "pendingCount": 2
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a measurement
+         * @description THEKEDAR, PM, MUNSHI (offline-safe: a repeated `clientId` returns the saved record with 200). Unit comes from the sub-contract. LUMPSUM contracts use % progress instead (400 LUMPSUM_USES_PROGRESS). MUNSHI never sees rates or values.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        assignmentId: string;
+                        /** @example 2026-12-25 */
+                        date: string;
+                        /** @example First-floor slab shuttering */
+                        description: string;
+                        /**
+                         * @description Number (or numeric string) with at most 3 decimals
+                         * @example 200
+                         */
+                        quantity: number | string;
+                        attachmentIds?: string[];
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Already saved (same clientId) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b21",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "scope": "Slab shuttering",
+                         *           "rateType": "PER_SQFT",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           }
+                         *         },
+                         *         "date": "2026-10-04",
+                         *         "description": "First-floor slab",
+                         *         "quantity": 1250.5,
+                         *         "unit": "sqft",
+                         *         "attachmentIds": [
+                         *           "0199a8c0-0000-7000-8000-000000000602"
+                         *         ],
+                         *         "status": "VERIFIED",
+                         *         "ratePaisa": "4500",
+                         *         "valuePaisa": "5627250",
+                         *         "verifiedById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "verifiedAt": "2026-10-05T10:00:00.000Z",
+                         *         "note": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": "2026-10-04T16:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-04T16:00:05.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b21",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "scope": "Slab shuttering",
+                         *           "rateType": "PER_SQFT",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           }
+                         *         },
+                         *         "date": "2026-10-04",
+                         *         "description": "First-floor slab",
+                         *         "quantity": 1250.5,
+                         *         "unit": "sqft",
+                         *         "attachmentIds": [
+                         *           "0199a8c0-0000-7000-8000-000000000602"
+                         *         ],
+                         *         "status": "RECORDED",
+                         *         "ratePaisa": "4500",
+                         *         "valuePaisa": "5627250",
+                         *         "verifiedById": null,
+                         *         "verifiedAt": null,
+                         *         "note": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": "2026-10-04T16:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-04T16:00:05.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ASSIGNMENT | LUMPSUM_USES_PROGRESS | FUTURE_DATE | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/work-measurements/{id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify a measurement
+         * @description THEKEDAR, PM. Adds quantity × rate to the sub-contractor’s account (WORK_VALUE). Only RECORDED ones (409 MEASUREMENT_NOT_PENDING).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WorkMeasurement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Verified */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b21",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "scope": "Slab shuttering",
+                         *           "rateType": "PER_SQFT",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           }
+                         *         },
+                         *         "date": "2026-10-04",
+                         *         "description": "First-floor slab",
+                         *         "quantity": 1250.5,
+                         *         "unit": "sqft",
+                         *         "attachmentIds": [
+                         *           "0199a8c0-0000-7000-8000-000000000602"
+                         *         ],
+                         *         "status": "VERIFIED",
+                         *         "ratePaisa": "4500",
+                         *         "valuePaisa": "5627250",
+                         *         "verifiedById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "verifiedAt": "2026-10-05T10:00:00.000Z",
+                         *         "note": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": "2026-10-04T16:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-04T16:00:05.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MEASUREMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MEASUREMENT_NOT_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/work-measurements/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject a measurement
+         * @description THEKEDAR, PM. A note is required.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WorkMeasurement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rejected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000b21",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "scope": "Slab shuttering",
+                         *           "rateType": "PER_SQFT",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           }
+                         *         },
+                         *         "date": "2026-10-04",
+                         *         "description": "First-floor slab",
+                         *         "quantity": 1250.5,
+                         *         "unit": "sqft",
+                         *         "attachmentIds": [
+                         *           "0199a8c0-0000-7000-8000-000000000602"
+                         *         ],
+                         *         "status": "REJECTED",
+                         *         "ratePaisa": "4500",
+                         *         "valuePaisa": "5627250",
+                         *         "verifiedById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "verifiedAt": "2026-10-05T10:00:00.000Z",
+                         *         "note": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": "2026-10-04T16:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-04T16:00:05.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MEASUREMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MEASUREMENT_NOT_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/advances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Peshgi register
+         * @description All roles with project access. Status: OUTSTANDING → PARTLY_ADJUSTED → ADJUSTED (cut in an approved settlement). Totals in `meta`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    payeeType?: "WORKER" | "SUBCONTRACTOR";
+                    workerId?: string;
+                    assignmentId?: string;
+                    status?: "OUTSTANDING" | "PARTLY_ADJUSTED" | "ADJUSTED";
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Advances */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "payeeType": "WORKER",
+                         *           "worker": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *             "name": "Ustad Akram",
+                         *             "type": "MISTRI"
+                         *           },
+                         *           "assignment": null,
+                         *           "amountPaisa": "500000",
+                         *           "adjustedPaisa": "0",
+                         *           "outstandingPaisa": "500000",
+                         *           "status": "OUTSTANDING",
+                         *           "settlements": [],
+                         *           "date": "2026-09-22",
+                         *           "paidFrom": "SITE_CASH",
+                         *           "cashAccountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "reference": null,
+                         *           "note": "Child sick",
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "deviceCreatedAt": null,
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-09-22T09:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaisa": "500000",
+                         *         "outstandingPaisa": "500000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Give peshgi
+         * @description THEKEDAR, PM, MUNSHI (MUNSHI from SITE_CASH only — 403 PAID_FROM_NOT_ALLOWED). SITE_CASH leaves the holder’s cash book (400 INSUFFICIENT_CASH). A worker’s peshgi is cut from weekly wages (oldest first); a sub-contractor’s goes to their account at once. Offline-safe via `clientId`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        payeeType: "WORKER" | "SUBCONTRACTOR";
+                        /** Format: uuid */
+                        workerId?: string;
+                        /** Format: uuid */
+                        assignmentId?: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @example 2026-12-25 */
+                        date: string;
+                        /** @enum {string} */
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        /**
+                         * Format: uuid
+                         * @description SITE_CASH: whose cash. Defaults to the caller's own.
+                         */
+                        cashAccountId?: string;
+                        reference?: string;
+                        note?: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Already saved (same clientId) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "payeeType": "WORKER",
+                         *         "worker": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "name": "Ustad Akram",
+                         *           "type": "MISTRI"
+                         *         },
+                         *         "assignment": null,
+                         *         "amountPaisa": "500000",
+                         *         "adjustedPaisa": "0",
+                         *         "outstandingPaisa": "500000",
+                         *         "status": "OUTSTANDING",
+                         *         "settlements": [],
+                         *         "date": "2026-09-22",
+                         *         "paidFrom": "SITE_CASH",
+                         *         "cashAccountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "reference": null,
+                         *         "note": "Child sick",
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": null,
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-09-22T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description Given */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "payeeType": "WORKER",
+                         *         "worker": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *           "name": "Ustad Akram",
+                         *           "type": "MISTRI"
+                         *         },
+                         *         "assignment": null,
+                         *         "amountPaisa": "500000",
+                         *         "adjustedPaisa": "0",
+                         *         "outstandingPaisa": "500000",
+                         *         "status": "OUTSTANDING",
+                         *         "settlements": [],
+                         *         "date": "2026-09-22",
+                         *         "paidFrom": "SITE_CASH",
+                         *         "cashAccountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "reference": null,
+                         *         "note": "Child sick",
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "deviceCreatedAt": null,
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-09-22T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | WORKER_NOT_ASSIGNED | INVALID_ASSIGNMENT | INSUFFICIENT_CASH | NO_CASH_ACCOUNT | FUTURE_DATE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | PAID_FROM_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | CASH_ACCOUNT_NOT_FOUND | ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/settlements/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate / regenerate a week
+         * @description THEKEDAR, PM, MUNSHI. From hazri: days = full + ½ half; gross = days × rate + OT hours × rate / hoursPerDay × OT multiplier; peshgi cut oldest-first up to gross (hand overrides are kept); net = gross − peshgi. Regenerates a DRAFT / RETURNED week; SUBMITTED / APPROVED → 409 SETTLEMENT_LOCKED. `weekStart` must be the company’s week start day.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-09-21 */
+                        weekStart: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Settlement (DRAFT) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "DRAFT",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": null,
+                         *         "submittedAt": null,
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_WEEK_START | FUTURE_WEEK */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_LOCKED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Settlements of a project
+         * @description All roles with project access. Newest week first, without lines.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "DRAFT" | "SUBMITTED" | "APPROVED" | "RETURNED";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Settlements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "weekStart": "2026-09-21",
+                         *           "weekEnd": "2026-09-27",
+                         *           "status": "SUBMITTED",
+                         *           "workers": 8,
+                         *           "daysWorked": 44.5,
+                         *           "grossPaisa": "8360000",
+                         *           "advancePaisa": "1250000",
+                         *           "netPaisa": "7110000",
+                         *           "paidPaisa": "0",
+                         *           "unpaidPaisa": "7110000",
+                         *           "fullyPaid": false,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "createdAt": "2026-09-27T12:00:00.000Z",
+                         *           "submittedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *           "approvedBy": null,
+                         *           "approvedAt": null,
+                         *           "returnComment": null
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Settlements across projects
+         * @description THEKEDAR, PM (their projects). E.g. `?status=SUBMITTED` for “My approvals”.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "DRAFT" | "SUBMITTED" | "APPROVED" | "RETURNED";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Settlements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "weekStart": "2026-09-21",
+                         *           "weekEnd": "2026-09-27",
+                         *           "status": "SUBMITTED",
+                         *           "workers": 8,
+                         *           "daysWorked": 44.5,
+                         *           "grossPaisa": "8360000",
+                         *           "advancePaisa": "1250000",
+                         *           "netPaisa": "7110000",
+                         *           "paidPaisa": "0",
+                         *           "unpaidPaisa": "7110000",
+                         *           "fullyPaid": false,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "createdAt": "2026-09-27T12:00:00.000Z",
+                         *           "submittedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *           "approvedBy": null,
+                         *           "approvedAt": null,
+                         *           "returnComment": null
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Settlement detail
+         * @description All roles with project access. KPIs, lines (with the advances each line cuts) and who submitted / approved.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WageSettlement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Settlement */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "SUBMITTED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}/lines/{lineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Override the peshgi cut on a line
+         * @description THEKEDAR, PM. DRAFT / RETURNED only; a note is required; at most the outstanding peshgi and the gross (400 ADVANCE_TOO_HIGH). Kept when the week is regenerated.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    lineId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Peshgi to cut from this week (0 = none)
+                         * @example 2500000
+                         */
+                        advanceAdjustedPaisa: string | number;
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Settlement */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "SUBMITTED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | ADVANCE_TOO_HIGH */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND | LINE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit for approval
+         * @description THEKEDAR, PM, MUNSHI. DRAFT / RETURNED → SUBMITTED; the week’s hazri is locked from now on.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WageSettlement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Submitted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "SUBMITTED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description EMPTY_SETTLEMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve
+         * @description THEKEDAR, PM (their projects). SUBMITTED → APPROVED: hazri and the peshgi it cut are locked; wages can be paid.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WageSettlement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "APPROVED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000002",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "approvedAt": "2026-09-28T06:00:00.000Z",
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_SUBMITTED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Return with a comment
+         * @description THEKEDAR, PM. SUBMITTED / APPROVED → RETURNED (unlocks it) while nothing is paid (409 SETTLEMENT_PAID).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WageSettlement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        comment: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Returned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "RETURNED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "0",
+                         *         "unpaidPaisa": "7110000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": "Akram was on leave Wednesday — fix hazri",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_SUBMITTED | SETTLEMENT_PAID */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settlements/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pay wages
+         * @description THEKEDAR, PM, MUNSHI (MUNSHI from SITE_CASH only). APPROVED only. SITE_CASH posts one WAGE_PAYMENT per line to the holder’s cash book (400 INSUFFICIENT_CASH checks the total first).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description WageSettlement id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        lineIds: string[];
+                        /** @enum {string} */
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        /** Format: uuid */
+                        cashAccountId?: string;
+                        reference?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Settlement after payment */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000c11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "weekStart": "2026-09-21",
+                         *         "weekEnd": "2026-09-27",
+                         *         "status": "APPROVED",
+                         *         "workers": 8,
+                         *         "daysWorked": 44.5,
+                         *         "grossPaisa": "8360000",
+                         *         "advancePaisa": "1250000",
+                         *         "netPaisa": "7110000",
+                         *         "paidPaisa": "1180000",
+                         *         "unpaidPaisa": "5930000",
+                         *         "fullyPaid": false,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-09-27T12:00:00.000Z",
+                         *         "submittedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "submittedAt": "2026-09-27T12:05:00.000Z",
+                         *         "approvedBy": null,
+                         *         "approvedAt": null,
+                         *         "returnComment": null,
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c12",
+                         *             "worker": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01",
+                         *               "name": "Ustad Akram",
+                         *               "type": "MISTRI"
+                         *             },
+                         *             "fullDays": 6,
+                         *             "halfDays": 0,
+                         *             "daysWorked": 6,
+                         *             "dailyRatePaisa": "280000",
+                         *             "overtimeHours": 0,
+                         *             "overtimePaisa": "0",
+                         *             "grossPaisa": "1680000",
+                         *             "advanceAdjustedPaisa": "500000",
+                         *             "advanceOverride": false,
+                         *             "overrideNote": null,
+                         *             "netPaisa": "1180000",
+                         *             "paymentStatus": "UNPAID",
+                         *             "paidFrom": null,
+                         *             "paidAt": null,
+                         *             "cashEntryId": null,
+                         *             "advances": [
+                         *               {
+                         *                 "advanceId": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "date": "2026-09-22",
+                         *                 "amountPaisa": "500000"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | LINE_NOT_FOUND | INSUFFICIENT_CASH | NO_CASH_ACCOUNT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | PAID_FROM_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SETTLEMENT_NOT_APPROVED | ALREADY_PAID */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/subcontract-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sub-contractor accounts
+         * @description THEKEDAR, PM. Per sub-contract: value of verified work (+ adjustments), retention held, paid (advances + running payments), deductions and balance due = value − retention − paid − deductions. Negative → `overpaid`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "subcontractor": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *               "name": "Ustad Sharif Shuttering",
+                         *               "trade": "SHUTTERING",
+                         *               "phone": "+923004440001"
+                         *             },
+                         *             "scope": "Slab shuttering — ground + first floor",
+                         *             "rateType": "PER_SQFT",
+                         *             "unit": "sqft",
+                         *             "ratePaisa": "4500",
+                         *             "contractValuePaisa": null,
+                         *             "retentionPercent": 5,
+                         *             "progressPercent": 0,
+                         *             "startDate": "2026-09-01",
+                         *             "isActive": true,
+                         *             "verifiedQty": 8200,
+                         *             "pendingMeasurements": 1,
+                         *             "account": {
+                         *               "valuePaisa": "36900000",
+                         *               "retentionPaisa": "1845000",
+                         *               "retentionReleasedPaisa": "0",
+                         *               "retentionHeldPaisa": "1845000",
+                         *               "advancesPaisa": "0",
+                         *               "paidPaisa": "32000000",
+                         *               "deductionsPaisa": "0",
+                         *               "balanceDuePaisa": "3055000",
+                         *               "overpaid": false,
+                         *               "overpaidPaisa": "0"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "valuePaisa": "36900000",
+                         *           "paidPaisa": "32000000",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "balanceDuePaisa": "3055000",
+                         *           "overpaidCount": 1
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontract-assignments/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sub-contractor ledger
+         * @description THEKEDAR, PM. Entries newest first with running balance (+ owed to them, − paid / deducted) and the account summary.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description SubcontractAssignment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Ledger */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           },
+                         *           "scope": "Slab shuttering — ground + first floor",
+                         *           "rateType": "PER_SQFT",
+                         *           "unit": "sqft",
+                         *           "ratePaisa": "4500",
+                         *           "contractValuePaisa": null,
+                         *           "retentionPercent": 5,
+                         *           "progressPercent": 0,
+                         *           "startDate": "2026-09-01",
+                         *           "isActive": true
+                         *         },
+                         *         "account": {
+                         *           "valuePaisa": "36900000",
+                         *           "retentionPaisa": "1845000",
+                         *           "retentionReleasedPaisa": "0",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "advancesPaisa": "0",
+                         *           "paidPaisa": "32000000",
+                         *           "deductionsPaisa": "0",
+                         *           "balanceDuePaisa": "3055000",
+                         *           "overpaid": false,
+                         *           "overpaidPaisa": "0"
+                         *         },
+                         *         "entries": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *             "type": "WORK_VALUE",
+                         *             "amountPaisa": "5627250",
+                         *             "runningPaisa": "5627250",
+                         *             "refType": "MEASUREMENT",
+                         *             "refId": "0199a8c0-0000-7000-8000-000000000b21",
+                         *             "occurredAt": "2026-10-05T07:00:00.000Z",
+                         *             "note": "1250.5 sqft × 45",
+                         *             "createdById": "0199a8c0-0000-7000-8000-000000000001"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontract-assignments/{id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post lump-sum progress
+         * @description THEKEDAR, PM. LUMPSUM only. `percent` is the cumulative total (must move ahead, ≤ 100); the increase × contract value becomes WORK_VALUE.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description SubcontractAssignment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Cumulative % complete
+                         * @example 40
+                         */
+                        percent: number;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           },
+                         *           "scope": "Slab shuttering — ground + first floor",
+                         *           "rateType": "PER_SQFT",
+                         *           "unit": "sqft",
+                         *           "ratePaisa": "4500",
+                         *           "contractValuePaisa": null,
+                         *           "retentionPercent": 5,
+                         *           "progressPercent": 0,
+                         *           "startDate": "2026-09-01",
+                         *           "isActive": true
+                         *         },
+                         *         "account": {
+                         *           "valuePaisa": "36900000",
+                         *           "retentionPaisa": "1845000",
+                         *           "retentionReleasedPaisa": "0",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "advancesPaisa": "0",
+                         *           "paidPaisa": "32000000",
+                         *           "deductionsPaisa": "0",
+                         *           "balanceDuePaisa": "3055000",
+                         *           "overpaid": false,
+                         *           "overpaidPaisa": "0"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOT_LUMPSUM | PROGRESS_NOT_AHEAD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontract-assignments/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pay a sub-contractor
+         * @description THEKEDAR; PM only when the company setting `subcontractPaymentsByPm` is on. RUNNING / FINAL up to the balance due (400 EXCEEDS_BALANCE unless `allowAdvance`); FINAL also closes the sub-contract. RETENTION_RELEASE up to the retention held (400 EXCEEDS_RETENTION). SITE_CASH also leaves the cash book.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description SubcontractAssignment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        type: "RUNNING" | "FINAL" | "RETENTION_RELEASE";
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @enum {string} */
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        /** Format: uuid */
+                        cashAccountId?: string;
+                        reference?: string;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                        note?: string;
+                        /** @description Pay more than the balance due (the extra becomes an advance) */
+                        allowAdvance?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account after payment */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           },
+                         *           "scope": "Slab shuttering — ground + first floor",
+                         *           "rateType": "PER_SQFT",
+                         *           "unit": "sqft",
+                         *           "ratePaisa": "4500",
+                         *           "contractValuePaisa": null,
+                         *           "retentionPercent": 5,
+                         *           "progressPercent": 0,
+                         *           "startDate": "2026-09-01",
+                         *           "isActive": true
+                         *         },
+                         *         "account": {
+                         *           "valuePaisa": "36900000",
+                         *           "retentionPaisa": "1845000",
+                         *           "retentionReleasedPaisa": "0",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "advancesPaisa": "0",
+                         *           "paidPaisa": "32000000",
+                         *           "deductionsPaisa": "0",
+                         *           "balanceDuePaisa": "3055000",
+                         *           "overpaid": false,
+                         *           "overpaidPaisa": "0"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | EXCEEDS_BALANCE | EXCEEDS_RETENTION | INSUFFICIENT_CASH | NO_CASH_ACCOUNT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ASSIGNMENT_NOT_FOUND | CASH_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subcontract-assignments/{id}/deductions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deduct from a sub-contractor
+         * @description THEKEDAR. E.g. material wasted or work redone. (A shortage can also be charged here via `chargeToAssignmentId` when it is resolved as ACCEPT_LOSS.)
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description SubcontractAssignment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        reason: string;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "assignment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000b11",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "subcontractor": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000b01",
+                         *             "name": "Ustad Sharif Shuttering",
+                         *             "trade": "SHUTTERING",
+                         *             "phone": "+923004440001"
+                         *           },
+                         *           "scope": "Slab shuttering — ground + first floor",
+                         *           "rateType": "PER_SQFT",
+                         *           "unit": "sqft",
+                         *           "ratePaisa": "4500",
+                         *           "contractValuePaisa": null,
+                         *           "retentionPercent": 5,
+                         *           "progressPercent": 0,
+                         *           "startDate": "2026-09-01",
+                         *           "isActive": true
+                         *         },
+                         *         "account": {
+                         *           "valuePaisa": "36900000",
+                         *           "retentionPaisa": "1845000",
+                         *           "retentionReleasedPaisa": "0",
+                         *           "retentionHeldPaisa": "1845000",
+                         *           "advancesPaisa": "0",
+                         *           "paidPaisa": "32000000",
+                         *           "deductionsPaisa": "0",
+                         *           "balanceDuePaisa": "3055000",
+                         *           "overpaid": false,
+                         *           "overpaidPaisa": "0"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ASSIGNMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cash accounts
+         * @description THEKEDAR: every holder; PM: their own and the munshis on their projects; MUNSHI: only their own. Balance = Σ entries except floats not yet acknowledged; kharcha waiting for approval is already out of the balance (`pendingApprovalPaisa`); rejected kharcha is owed back (`recoverablePaisa`).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *             "name": "Rafaqat Ali — site cash",
+                         *             "holder": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali",
+                         *               "role": "MUNSHI"
+                         *             },
+                         *             "isActive": true,
+                         *             "balancePaisa": "930000",
+                         *             "pendingAckPaisa": "0",
+                         *             "pendingApprovalPaisa": "0",
+                         *             "recoverablePaisa": "0",
+                         *             "lastCountAt": "2026-09-28T12:00:00.000Z",
+                         *             "lastEntryAt": "2026-10-05T09:30:00.000Z"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "balancePaisa": "930000",
+                         *           "pendingAckPaisa": "0",
+                         *           "pendingApprovalPaisa": "0",
+                         *           "recoverablePaisa": "0"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cash account
+         * @description Same visibility as the list (else 404).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CashAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "name": "Rafaqat Ali — site cash",
+                         *         "holder": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali",
+                         *           "role": "MUNSHI"
+                         *         },
+                         *         "isActive": true,
+                         *         "balancePaisa": "930000",
+                         *         "pendingAckPaisa": "0",
+                         *         "pendingApprovalPaisa": "0",
+                         *         "recoverablePaisa": "0",
+                         *         "lastCountAt": "2026-09-28T12:00:00.000Z",
+                         *         "lastEntryAt": "2026-10-05T09:30:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CASH_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-accounts/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cash book entries
+         * @description Newest first in posting order, each with `runningBalancePaisa` after it. `meta.balancePaisa` is the current balance.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    from?: string;
+                    to?: string;
+                    type?: "FLOAT_IN" | "EXPENSE" | "PESHGI" | "WAGE_PAYMENT" | "SUBCONTRACT_PAYMENT" | "PURCHASE" | "HANDOVER_OUT" | "HANDOVER_IN" | "COUNT_ADJUSTMENT" | "REFUND_IN";
+                };
+                header?: never;
+                path: {
+                    /** @description CashAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Entries */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "type": "EXPENSE",
+                         *           "amountPaisa": "-565000",
+                         *           "category": "FUEL",
+                         *           "costBucket": "EQUIPMENT",
+                         *           "description": "Diesel for the mixer",
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *           "status": "APPROVED",
+                         *           "method": null,
+                         *           "reference": null,
+                         *           "approvedById": null,
+                         *           "approvedAt": null,
+                         *           "reviewNote": null,
+                         *           "recoverableFromHolder": false,
+                         *           "refType": null,
+                         *           "refId": null,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-10-02T07:00:00.000Z",
+                         *           "runningBalancePaisa": "930000"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "balancePaisa": "930000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CASH_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-floats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a float
+         * @description THEKEDAR. Cash for a munshi / PM (their account opens on the first float). Waits as PENDING_ACK — not in the balance — until the holder acknowledges. The holder gets an SMS.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description The munshi / PM receiving the cash
+                         */
+                        holderUserId: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @enum {string} */
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        /** @example EP88213 */
+                        reference?: string;
+                        /** Format: uuid */
+                        projectId?: string;
+                        note?: string;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Float (PENDING_ACK) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "FLOAT_IN",
+                         *         "amountPaisa": "5000000",
+                         *         "category": null,
+                         *         "costBucket": null,
+                         *         "description": "Float via easypaisa",
+                         *         "attachmentId": null,
+                         *         "status": "PENDING_ACK",
+                         *         "method": "EASYPAISA",
+                         *         "reference": "EP88213",
+                         *         "approvedById": null,
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": false,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": null,
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_HOLDER */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-floats/{entryId}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Acknowledge a float
+         * @description The holder only (anyone else → 404). PENDING_ACK → POSTED; the amount joins the balance.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    entryId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Acknowledged */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "FLOAT_IN",
+                         *         "amountPaisa": "5000000",
+                         *         "category": null,
+                         *         "costBucket": null,
+                         *         "description": "Float via easypaisa",
+                         *         "attachmentId": null,
+                         *         "status": "POSTED",
+                         *         "method": "EASYPAISA",
+                         *         "reference": "EP88213",
+                         *         "approvedById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": false,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": null,
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FLOAT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ALREADY_ACKNOWLEDGED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kharcha list
+         * @description Visible accounts only. `?status=PENDING_APPROVAL` is the approval queue. Amounts are positive here; `meta.totalPaisa` sums them.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "PENDING_ACK" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "POSTED";
+                    projectId?: string;
+                    accountId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Kharcha */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "type": "EXPENSE",
+                         *           "amountPaisa": "565000",
+                         *           "category": "FUEL",
+                         *           "costBucket": "EQUIPMENT",
+                         *           "description": "Diesel for the mixer",
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *           "status": "APPROVED",
+                         *           "method": null,
+                         *           "reference": null,
+                         *           "approvedById": null,
+                         *           "approvedAt": null,
+                         *           "reviewNote": null,
+                         *           "recoverableFromHolder": false,
+                         *           "refType": null,
+                         *           "refId": null,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-10-02T07:00:00.000Z",
+                         *           "holder": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           }
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaisa": "565000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record kharcha
+         * @description Any cash holder, from their own cash, on a project they can see (offline-safe via `clientId`). Above the company kharcha limit → PENDING_APPROVAL (the cash is still counted as spent). Not enough cash → 400 INSUFFICIENT_CASH. Cost bucket follows the category (OWNER_PURCHASE → RECOVERABLE_FROM_OWNER). URGENT_MATERIAL with `supplierId` + `items` also enters the goods into site stock as a purchase (rates added later by the office; that purchase is then paid from this site cash).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        projectId: string;
+                        /** @enum {string} */
+                        category: "TEA_WATER" | "TRANSPORT" | "UNLOADING" | "FUEL" | "SMALL_TOOLS" | "URGENT_MATERIAL" | "OWNER_PURCHASE" | "REPAIRS" | "OTHER";
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @example Diesel for mixer */
+                        description: string;
+                        /**
+                         * Format: uuid
+                         * @description Receipt photo (upload with kind RECEIPT)
+                         */
+                        attachmentId?: string;
+                        /**
+                         * @description Defaults to today
+                         * @example 2026-12-25
+                         */
+                        date?: string;
+                        /**
+                         * Format: uuid
+                         * @description URGENT_MATERIAL: who sold it
+                         */
+                        supplierId?: string;
+                        challanNo?: string;
+                        /** @description URGENT_MATERIAL with a supplier: the goods go into site stock (rates added by the office) */
+                        items?: {
+                            /** Format: uuid */
+                            materialId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                        }[];
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Already saved (same clientId) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "EXPENSE",
+                         *         "amountPaisa": "-565000",
+                         *         "category": "FUEL",
+                         *         "costBucket": "EQUIPMENT",
+                         *         "description": "Diesel for the mixer",
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *         "status": "APPROVED",
+                         *         "method": null,
+                         *         "reference": null,
+                         *         "approvedById": null,
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": false,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "EXPENSE",
+                         *         "amountPaisa": "-565000",
+                         *         "category": "FUEL",
+                         *         "costBucket": "EQUIPMENT",
+                         *         "description": "Diesel for the mixer",
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *         "status": "APPROVED",
+                         *         "method": null,
+                         *         "reference": null,
+                         *         "approvedById": null,
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": false,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_CASH | NO_CASH_ACCOUNT | FUTURE_DATE | INVALID_ATTACHMENT | CHALLAN_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-expenses/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve kharcha
+         * @description THEKEDAR, PM (their projects; not their own kharcha). PENDING_APPROVAL only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CashEntry id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "EXPENSE",
+                         *         "amountPaisa": "-565000",
+                         *         "category": "FUEL",
+                         *         "costBucket": "EQUIPMENT",
+                         *         "description": "Diesel for the mixer",
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *         "status": "APPROVED",
+                         *         "method": null,
+                         *         "reference": null,
+                         *         "approvedById": "0199a8c0-0000-7000-8000-000000000002",
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": false,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | OWN_EXPENSE */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EXPENSE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EXPENSE_NOT_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-expenses/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject kharcha
+         * @description THEKEDAR, PM. A note is required. The money stays spent and is owed back by the holder (`recoverableFromHolder`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CashEntry id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rejected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "type": "EXPENSE",
+                         *         "amountPaisa": "-565000",
+                         *         "category": "FUEL",
+                         *         "costBucket": "EQUIPMENT",
+                         *         "description": "Diesel for the mixer",
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *         "status": "REJECTED",
+                         *         "method": null,
+                         *         "reference": null,
+                         *         "approvedById": null,
+                         *         "approvedAt": null,
+                         *         "reviewNote": null,
+                         *         "recoverableFromHolder": true,
+                         *         "refType": null,
+                         *         "refId": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *         "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *         "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "createdAt": "2026-10-02T07:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EXPENSE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EXPENSE_NOT_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/topup-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top-up requests
+         * @description Visible accounts only, with each holder’s current balance.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "PENDING" | "APPROVED" | "REJECTED";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Requests */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d21",
+                         *           "account": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *             "name": "Rafaqat Ali — site cash"
+                         *           },
+                         *           "holder": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "amountPaisa": "4000000",
+                         *           "note": "Wages on Saturday",
+                         *           "status": "PENDING",
+                         *           "balancePaisa": "930000",
+                         *           "decidedById": null,
+                         *           "decidedAt": null,
+                         *           "decisionNote": null,
+                         *           "floatEntryId": null,
+                         *           "createdAt": "2026-10-05T10:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Ask for a top-up
+         * @description A munshi / PM for their own cash. One open request at a time (409 TOPUP_PENDING). Offline-safe via `clientId`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        note?: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Requested */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d21",
+                         *         "account": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "name": "Rafaqat Ali — site cash"
+                         *         },
+                         *         "holder": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "amountPaisa": "4000000",
+                         *         "note": "Wages on Saturday",
+                         *         "status": "PENDING",
+                         *         "balancePaisa": "930000",
+                         *         "decidedById": null,
+                         *         "decidedAt": null,
+                         *         "decisionNote": null,
+                         *         "floatEntryId": null,
+                         *         "createdAt": "2026-10-05T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TOPUP_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/topup-requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve a top-up
+         * @description THEKEDAR. Sends a float (amount defaults to the request) that the holder acknowledges.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description TopupRequest id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Defaults to the amount asked for
+                         * @example 2500000
+                         */
+                        amountPaisa?: string | number;
+                        /** @enum {string} */
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        reference?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d21",
+                         *         "account": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "name": "Rafaqat Ali — site cash"
+                         *         },
+                         *         "holder": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "amountPaisa": "4000000",
+                         *         "note": "Wages on Saturday",
+                         *         "status": "APPROVED",
+                         *         "balancePaisa": "930000",
+                         *         "decidedById": null,
+                         *         "decidedAt": null,
+                         *         "decisionNote": null,
+                         *         "floatEntryId": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "createdAt": "2026-10-05T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TOPUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TOPUP_DECIDED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/topup-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject a top-up
+         * @description THEKEDAR. A note is required; the holder gets an SMS.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description TopupRequest id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rejected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d21",
+                         *         "account": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "name": "Rafaqat Ali — site cash"
+                         *         },
+                         *         "holder": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "amountPaisa": "4000000",
+                         *         "note": "Wages on Saturday",
+                         *         "status": "REJECTED",
+                         *         "balancePaisa": "930000",
+                         *         "decidedById": null,
+                         *         "decidedAt": null,
+                         *         "decisionNote": null,
+                         *         "floatEntryId": null,
+                         *         "createdAt": "2026-10-05T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TOPUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TOPUP_DECIDED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cash counts */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    accountId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Counts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d31",
+                         *           "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "systemPaisa": "840000",
+                         *           "countedPaisa": "830000",
+                         *           "differencePaisa": "-10000",
+                         *           "note": "Change to tea boy",
+                         *           "adjustmentEntryId": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "countedById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "countedAt": "2026-09-28T12:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Count the cash in hand
+         * @description Own cash (or, THEKEDAR / PM, a visible account). A difference from the book needs a note (400 NOTE_REQUIRED) and becomes a COUNT_ADJUSTMENT entry.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Defaults to the caller's own
+                         */
+                        accountId?: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        countedPaisa: string | number;
+                        /** @description Required when the count differs from the book */
+                        note?: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Counted */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d31",
+                         *         "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *         "systemPaisa": "840000",
+                         *         "countedPaisa": "830000",
+                         *         "differencePaisa": "-10000",
+                         *         "note": "Change to tea boy",
+                         *         "adjustmentEntryId": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "countedById": "0199a8c0-0000-7000-8000-000000000004",
+                         *         "countedAt": "2026-09-28T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOTE_REQUIRED | NO_CASH_ACCOUNT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CASH_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-handovers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hand cash over
+         * @description From your own cash (THEKEDAR: anyone’s) to another active team member: HANDOVER_OUT on one book, HANDOVER_IN on the other. Needed before a holder can be deactivated (409 CASH_BALANCE_OPEN).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Defaults to the caller's own (THEKEDAR may hand over anyone's)
+                         */
+                        fromAccountId?: string;
+                        /** Format: uuid */
+                        toUserId: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Handed over */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "out": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "type": "HANDOVER_OUT",
+                         *           "amountPaisa": "-930000",
+                         *           "category": "FUEL",
+                         *           "costBucket": "EQUIPMENT",
+                         *           "description": "Diesel for the mixer",
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *           "status": "APPROVED",
+                         *           "method": null,
+                         *           "reference": null,
+                         *           "approvedById": null,
+                         *           "approvedAt": null,
+                         *           "reviewNote": null,
+                         *           "recoverableFromHolder": false,
+                         *           "refType": null,
+                         *           "refId": null,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-10-02T07:00:00.000Z"
+                         *         },
+                         *         "in": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "type": "HANDOVER_IN",
+                         *           "amountPaisa": "930000",
+                         *           "category": "FUEL",
+                         *           "costBucket": "EQUIPMENT",
+                         *           "description": "Diesel for the mixer",
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *           "status": "APPROVED",
+                         *           "method": null,
+                         *           "reference": null,
+                         *           "approvedById": null,
+                         *           "approvedAt": null,
+                         *           "reviewNote": null,
+                         *           "recoverableFromHolder": false,
+                         *           "refType": null,
+                         *           "refId": null,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *           "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *           "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "createdAt": "2026-10-02T07:00:00.000Z"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_CASH | INVALID_RECEIVER | NO_CASH_ACCOUNT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CASH_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/cashbook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Project cash book
+         * @description All roles with project access (MUNSHI: only their own entries). Entries with holder, spend by category / type, kharcha this week, and the cash accounts on the project.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    from?: string;
+                    to?: string;
+                    category?: "TEA_WATER" | "TRANSPORT" | "UNLOADING" | "FUEL" | "SMALL_TOOLS" | "URGENT_MATERIAL" | "OWNER_PURCHASE" | "REPAIRS" | "OTHER";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cash book */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entries": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *             "accountId": "0199a8c0-0000-7000-8000-000000000d01",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "type": "EXPENSE",
+                         *             "amountPaisa": "-565000",
+                         *             "category": "FUEL",
+                         *             "costBucket": "EQUIPMENT",
+                         *             "description": "Diesel for the mixer",
+                         *             "attachmentId": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "status": "APPROVED",
+                         *             "method": null,
+                         *             "reference": null,
+                         *             "approvedById": null,
+                         *             "approvedAt": null,
+                         *             "reviewNote": null,
+                         *             "recoverableFromHolder": false,
+                         *             "refType": null,
+                         *             "refId": null,
+                         *             "clientId": "0199a8c0-0000-7000-8000-00000000ff01",
+                         *             "occurredAt": "2026-10-02T07:00:00.000Z",
+                         *             "createdById": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "createdAt": "2026-10-02T07:00:00.000Z",
+                         *             "holder": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "spentByCategory": [
+                         *             {
+                         *               "category": "FUEL",
+                         *               "amountPaisa": "565000"
+                         *             }
+                         *           ],
+                         *           "spentByType": [
+                         *             {
+                         *               "type": "EXPENSE",
+                         *               "amountPaisa": "565000"
+                         *             }
+                         *           ],
+                         *           "kharchaThisWeekPaisa": "565000",
+                         *           "week": {
+                         *             "weekStart": "2026-10-05",
+                         *             "weekEnd": "2026-10-11"
+                         *           }
+                         *         },
+                         *         "accounts": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000d01",
+                         *             "name": "Rafaqat Ali — site cash",
+                         *             "holder": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali",
+                         *               "role": "MUNSHI"
+                         *             },
+                         *             "isActive": true,
+                         *             "balancePaisa": "930000",
+                         *             "pendingAckPaisa": "0",
+                         *             "pendingApprovalPaisa": "0",
+                         *             "recoverablePaisa": "0",
+                         *             "lastCountAt": "2026-09-28T12:00:00.000Z",
+                         *             "lastEntryAt": "2026-10-05T09:30:00.000Z"
+                         *           }
+                         *         ]
+                         *       },
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -19748,6 +26269,18 @@ export interface components {
             pmCanSeeFinancials: boolean;
             /** @description Site receiving hides sent / challan quantities until counted */
             blindCountEnabled: boolean;
+            /**
+             * @description Weekly wage settlements start on this day
+             * @enum {string}
+             */
+            settlementWeekStart: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            workingDays: ("MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY")[];
+            /** @example 8 */
+            hoursPerDay: number;
+            /** @description null = the DAILY labour rate multiplier (×1.5 by default) */
+            overtimeMultiplier: number | null;
+            /** @description A PM may pay sub-contractors (THEKEDAR always can) */
+            subcontractPaymentsByPm: boolean;
             /** @enum {string} */
             defaultLanguage: "ENGLISH" | "ROMAN_URDU" | "URDU";
         };

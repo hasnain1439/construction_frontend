@@ -53,13 +53,13 @@ You are a Principal Frontend Engineer. Build the Next.js web app for a multi-ten
 Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mode (company | project), `available` (true if backend exists; false → ComingSoon page).
 
 **Company mode rail → flyout items**
-- Dashboard → Company Overview · My Approvals (open shortages + site purchases waiting for rates — Step 6) · Alerts & Notifications (ComingSoon)
+- Dashboard → Company Overview (+ Sites today KPIs — Step 7) · My Approvals (open shortages + site purchases waiting for rates — Step 6; weekly wages, kharcha above the limit, top-ups, measurements to verify — Step 7) · Alerts & Notifications (ComingSoon)
 - Projects → All Projects · New Project · Closed & Archived
 - Sales → Clients (Owners) · Quote Pipeline (ComingSoon) · New Quote (ComingSoon) · Win / Loss Insights (ComingSoon)
 - Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments (all available since Phase 1 · Step 6)
-- Workforce → Workers Directory · Sub-contractors
+- Workforce → Workers Directory · Sub-contractors (office: name → detail page with sites, wages, peshgi / accounts — Step 7)
 - Equipment → all items ComingSoon (Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Shuttering Demand)
-- Finance → all items ComingSoon (Receivables · Cash Flow Outlook · Profit & Loss · Cash Floats Overview) — THEKEDAR only
+- Finance → Cash Floats Overview (available since Step 7); Receivables · Cash Flow Outlook · Profit & Loss → ComingSoon — THEKEDAR only
 - Reports → all items ComingSoon
 - Team → Members · Invitations · Devices — THEKEDAR only (PM may view Members read-only)
 - Settings → Company Profile · Materials · Price List · Labor Rates · Payment Templates · Holidays · Alerts & Limits · Subscription · Rulebook (ComingSoon) · Tax (ComingSoon) — THEKEDAR only (PM may view Materials and Price List)
@@ -68,7 +68,9 @@ Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mo
 - Overview → Project Summary
 - Planning → Site Setup · Floors & Rooms · Supply Split · Estimate (BoQ) (ComingSoon "Phase 2") · Estimate Revisions (ComingSoon) · Owner Shopping List (ComingSoon)
 - Site → Incoming Material (badge = deliveries waiting) · Deliveries (Maal Aaya) · Material Usage (Maal Lag Gaya) · Site Stock · Stock Counts & Transfers — available since Step 6; Daily Logs & Photos and Equipment on Site → ComingSoon
-- Schedule, Labor, Cash Book, Change Orders, Billing, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
+- Labor → **Team on Site** (new, top of the flyout: assign worker / add sub-contract) · Hazri Register · Sub-contractor Accounts (office) · Work Measurements · Peshgi · Weekly Settlements — available since Step 7
+- Cash Book → Site Kharcha · Cash Floats · Top-up Requests · Cash Counts & Handover — available since Step 7
+- Schedule, Change Orders, Billing, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
 
 **Super Admin console rail**
 Overview · Companies · Payments (badge = pending count) · Plans · Material Catalog · Holidays · Audit Logs · (Rulebook, Communication, Security → ComingSoon)

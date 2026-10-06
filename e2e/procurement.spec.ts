@@ -56,10 +56,10 @@ test("purchase → dispatch → munshi receives short → owner sends the remain
   await munshi.getByRole("tab", { name: "Phone OTP" }).click();
   await munshi.getByRole("textbox", { name: "Mobile number" }).fill("0321 1234567");
   await munshi.getByRole("button", { name: "Send code" }).click();
-  await expect(munshi.getByText("Enter the code")).toBeVisible();
+  await expect(munshi.getByText("Enter the code").first()).toBeVisible();
   const code = devOtp("+923211234567");
   for (const [i, digit] of [...code].entries()) await munshi.getByRole("textbox", { name: `Digit ${i + 1}` }).fill(digit);
-  await expect(munshi.getByText("Choose a company")).toBeVisible();
+  await expect(munshi.getByText("Choose a company").first()).toBeVisible();
   await munshi.getByRole("button", { name: /Malik & Sons Builders/ }).click();
   await expect(munshi).toHaveURL(/\/dashboard$/);
 

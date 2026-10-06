@@ -141,6 +141,28 @@ const MESSAGES: Record<string, Message> = {
   PROJECT_IS_DRAFT: { en: "Activate the project before moving stock to its site.", ur: "Stock bhejne se pehle project active karein." },
   SAME_LOCATION: { en: "Choose a different destination.", ur: "Koi aur jagah chunein." },
   RESOLUTION_NOT_ALLOWED: { en: "That decision doesn't apply to this shortage.", ur: "Yeh faisla is kami par laagu nahi hota." },
+
+  // Labour & cash book (messages with amounts / dates come from the server)
+  WORKER_NOT_ASSIGNED: { en: "Some workers are not on this site — add them in Team on Site first.", ur: "Kuch mazdoor is site par nahi — pehle Team on Site mein shamil karein." },
+  WORKER_ALREADY_ASSIGNED: { en: "This worker is already on this site.", ur: "Yeh mazdoor pehle se is site par hai." },
+  RATE_CHANGE_NOT_ALLOWED: { en: "A munshi assigns at the worker's normal rate — the office can change it.", ur: "Munshi mazdoor ke aam rate par hi lagata hai — rate office badal sakta hai." },
+  PAID_FROM_NOT_ALLOWED: { en: "A munshi pays from site cash only.", ur: "Munshi sirf site cash se adaigi kar sakta hai." },
+  FUTURE_DATE: { en: "The date can't be in the future.", ur: "Aane wali tareekh nahi ho sakti." },
+  FUTURE_WEEK: { en: "This week hasn't started yet.", ur: "Yeh hafta abhi shuru nahi hua." },
+  SETTLEMENT_NOT_APPROVED: { en: "Wages can be paid only after approval.", ur: "Mazdoori approval ke baad hi di ja sakti hai." },
+  SETTLEMENT_NOT_SUBMITTED: { en: "Only a submitted week can be approved or returned.", ur: "Sirf jama shuda hafta approve ya wapas ho sakta hai." },
+  SETTLEMENT_PAID: { en: "Some wages are already paid — this week can't be returned now.", ur: "Kuch mazdoori di ja chuki hai — yeh hafta ab wapas nahi ho sakta." },
+  ALREADY_PAID: { en: "Some workers are already paid.", ur: "Kuch mazdooron ko pehle hi adaigi ho chuki hai." },
+  EMPTY_SETTLEMENT: { en: "Nobody worked this week — nothing to submit.", ur: "Is hafte kisi ne kaam nahi kiya — jama karne ko kuch nahi." },
+  MEASUREMENT_NOT_PENDING: { en: "This measurement is already decided.", ur: "Is paimaish ka faisla ho chuka hai." },
+  LUMPSUM_USES_PROGRESS: { en: "A lump-sum contract is paid by % progress, not measurements.", ur: "Theka (lump sum) % taraqqi se chalta hai, paimaish se nahi." },
+  ALREADY_ACKNOWLEDGED: { en: "This float is already acknowledged.", ur: "Yeh raqam pehle hi wusool tasleem ho chuki hai." },
+  EXPENSE_NOT_PENDING: { en: "This kharcha is already decided.", ur: "Is kharche ka faisla ho chuka hai." },
+  OWN_EXPENSE: { en: "Your own kharcha is approved by the owner.", ur: "Apna kharcha maalik approve karta hai." },
+  TOPUP_PENDING: { en: "You already have a top-up request waiting.", ur: "Aap ki top-up darkhwast pehle se zair-e-ghaur hai." },
+  TOPUP_DECIDED: { en: "This request is already decided.", ur: "Is darkhwast ka faisla ho chuka hai." },
+  NO_CASH_ACCOUNT: { en: "You hold no site cash yet — the office sends a float first.", ur: "Aap ke paas abhi site cash nahi — pehle office raqam bheje." },
+  INVALID_HOLDER: { en: "Choose an active munshi or project manager.", ur: "Koi active munshi ya PM chunein." },
 };
 
 export function isApiError(value: unknown): value is ApiError {
