@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserCheck, UserX } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ import { RadioCards } from "@/components/forms/RadioCards";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
+import { isApiError } from "@/lib/apiErrors";
+import { formatPKR } from "@/lib/money";
 import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
@@ -109,9 +112,10 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
     if (confirm === "deactivate") {
       const ok = await run(() => deactivate(user.id).unwrap(), {
         success: `${user.name} deactivated`,
-        onError: (code) => {
+        onError: (code, error) => {
           if (code !== "CASH_BALANCE_OPEN") return false;
-          setBlocked(`${user.name} holds site cash. Hand over the cash balance first.`);
+          const balance = isApiError(error) ? (error.details as { balancePaisa?: string } | undefined)?.balancePaisa : undefined;
+          setBlocked(`${user.name} still holds ${balance ? formatPKR(balance) : "site cash"}. Record a cash handover (or a count) first, then deactivate.`);
           setConfirm(null);
           return true;
         },
@@ -137,7 +141,19 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
           { label: "Language", value: LANGUAGE_LABEL[user.language] ?? user.language },
         ]}
       />
-      {blocked ? <InlineAlert tone="warning">{blocked}</InlineAlert> : null}
+      {blocked ? (
+        <InlineAlert
+          tone="warning"
+          title="Cash balance open"
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link href="/finance/cash-floats">Open cash floats</Link>
+            </Button>
+          }
+        >
+          {blocked}
+        </InlineAlert>
+      ) : null}
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         {!isOwner ? (
           <FormSection title="Where they work">

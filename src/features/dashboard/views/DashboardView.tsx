@@ -5,7 +5,6 @@ import {
   Banknote,
   CircleCheck,
   CircleDashed,
-  ClipboardCheck,
   FolderKanban,
   ImageUp,
   Milestone,
@@ -23,6 +22,7 @@ import { useGetSubscriptionQuery } from "@/api/services/subscription.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
 import type { ProjectListItem, ProjectStatus } from "@/api/types";
 import { ComingSoonCard } from "@/components/common/ComingSoonCard";
+import { LaborOverview } from "../components/LaborOverview";
 import { StockOverview } from "../components/StockOverview";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { KpiCard } from "@/components/common/KpiCard";
@@ -185,6 +185,8 @@ export function DashboardView() {
         />
       </div>
 
+      {isOffice ? <LaborOverview /> : null}
+
       {seesStock ? <StockOverview /> : null}
 
       <SectionCard title="Projects by status">
@@ -229,8 +231,6 @@ export function DashboardView() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <ComingSoonCard title="Receivables" icon={Banknote} description="Owner payments due, collected and outstanding." />
           <ComingSoonCard title="Milestones" icon={Milestone} description="Stages completed this month." />
-          <ComingSoonCard title="Kharcha Approvals" icon={ClipboardCheck} description="Site kharcha above your limit, waiting for you." />
-          <ComingSoonCard title="Site Stats" icon={Users} description="Hazri, peshgi, site kharcha and deliveries today." />
         </div>
       </div>
     </>

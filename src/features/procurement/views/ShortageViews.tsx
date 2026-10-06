@@ -22,6 +22,7 @@ import { formatQty } from "@/lib/quantity";
 import { humanize } from "@/lib/status";
 import { ResolveShortageSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
+import { LaborApprovals } from "@/features/dashboard/components/LaborApprovals";
 
 function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>[] {
   return [
@@ -140,6 +141,7 @@ export function ShortagesView() {
           pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
         />
       </SectionCard>
+      <LaborApprovals />
       <ResolveShortageSlideOver shortage={resolving} open={Boolean(resolving)} onOpenChange={(o) => (!o ? setResolving(null) : undefined)} />
     </>
   );
