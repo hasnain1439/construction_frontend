@@ -27,6 +27,10 @@ const defaults = (s: CompanySettings): Values => ({
   missingLogAlertTime: s.missingLogAlertTime,
   quoteValidityDays: s.quoteValidityDays,
   taxEnabled: s.taxEnabled,
+  taxRatePercent: s.taxRatePercent,
+  taxLabel: s.taxLabel ?? "",
+  paymentTermsDays: s.paymentTermsDays,
+  pmCanRecordPayments: s.pmCanRecordPayments,
   pmCanSeeFinancials: s.pmCanSeeFinancials,
   defaultLanguage: s.defaultLanguage,
 });
@@ -56,7 +60,7 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
   });
 
   const onSubmit = async (values: z.output<typeof companySettingsSchema>) => {
-    const result = await run(() => update(values).unwrap(), { success: "Settings saved", setError: form.setError });
+    const result = await run(() => update({ ...values, taxLabel: values.taxLabel || null }).unwrap(), { success: "Settings saved", setError: form.setError });
     if (result) form.reset(defaults(result));
   };
 
@@ -80,6 +84,15 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       <SettingCard title="Quote validity" help="How many days a quotation stays valid by default (1–90).">
         <NumberField name="quoteValidityDays" label="Quote validity" hideLabel unit="days" decimals={0} required />
       </SettingCard>
+      <SettingCard title="Payment terms" help="An invoice is due this many days after it is issued (0–90).">
+        <NumberField name="paymentTermsDays" label="Payment terms" hideLabel unit="days" decimals={0} required />
+      </SettingCard>
+      <SettingCard title="Tax rate on invoices" help="Used only when tax is switched on below, e.g. 16 % PRA or 15 % SRB.">
+        <div className="grid grid-cols-2 gap-2">
+          <NumberField name="taxRatePercent" label="Tax rate" hideLabel unit="%" decimals={2} required />
+          <TextField name="taxLabel" label="Tax name" hideLabel placeholder="PRA" />
+        </div>
+      </SettingCard>
       <SettingCard title="Default language" help="Language for SMS and new team members.">
         <SelectField
           name="defaultLanguage"
@@ -92,6 +105,11 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
         name="pmCanSeeFinancials"
         label="New PMs can see financials"
         description="Default for new PM invitations: contract value, billing and profit. You can change it per person."
+      />
+      <ToggleField
+        name="pmCanRecordPayments"
+        label="PMs can record owner payments"
+        description="Project managers who see financials may record payments received from owners (only you mark cheques cleared / bounced)."
       />
       <ToggleField
         name="taxEnabled"

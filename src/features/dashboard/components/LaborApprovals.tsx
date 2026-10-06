@@ -10,6 +10,7 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { PendingKharcha, TopupTable } from "@/features/cashbook/views/CashViews";
+import { ReadyStagesApprovals } from "./BillingOverview";
 import { formatDateTime } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
 import { formatWeekRange } from "@/lib/weeks";
@@ -50,6 +51,7 @@ export function LaborApprovals() {
           ]}
         />
       </SectionCard>
+      {owner ? <ReadyStagesApprovals /> : null}
       <PendingKharcha />
       {owner ? (
         <SectionCard flush title="Top-up requests">

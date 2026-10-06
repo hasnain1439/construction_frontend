@@ -2,7 +2,6 @@
 
 import {
   BadgeCheck,
-  Banknote,
   CircleCheck,
   CircleDashed,
   FolderKanban,
@@ -22,6 +21,7 @@ import { useGetSubscriptionQuery } from "@/api/services/subscription.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
 import type { ProjectListItem, ProjectStatus } from "@/api/types";
 import { ComingSoonCard } from "@/components/common/ComingSoonCard";
+import { BillingOverview } from "../components/BillingOverview";
 import { LaborOverview } from "../components/LaborOverview";
 import { StockOverview } from "../components/StockOverview";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -185,6 +185,8 @@ export function DashboardView() {
         />
       </div>
 
+      {isOwner ? <BillingOverview /> : null}
+
       {isOffice ? <LaborOverview /> : null}
 
       {seesStock ? <StockOverview /> : null}
@@ -229,7 +231,6 @@ export function DashboardView() {
       <div className="space-y-3">
         <h2 className="text-base font-semibold">Coming next</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <ComingSoonCard title="Receivables" icon={Banknote} description="Owner payments due, collected and outstanding." />
           <ComingSoonCard title="Milestones" icon={Milestone} description="Stages completed this month." />
         </div>
       </div>

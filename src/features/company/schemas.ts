@@ -32,6 +32,16 @@ export const companySettingsSchema = z.object({
     .nullable()
     .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 1 && v <= 90, "Between 1 and 90 days"),
   taxEnabled: z.boolean(),
+  taxRatePercent: z
+    .number({ error: "Enter a percentage" })
+    .nullable()
+    .refine((v): v is number => v !== null && v >= 0 && v <= 30, "Between 0 and 30 %"),
+  taxLabel: z.string().trim().max(20),
+  paymentTermsDays: z
+    .number({ error: "Enter days" })
+    .nullable()
+    .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 90, "Between 0 and 90 days"),
+  pmCanRecordPayments: z.boolean(),
   pmCanSeeFinancials: z.boolean(),
   defaultLanguage: z.enum(["ENGLISH", "ROMAN_URDU", "URDU"]),
 });
