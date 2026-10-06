@@ -22,6 +22,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -110,11 +111,18 @@
   --neutral-soft: #f1f5f9;
   --info-soft: #eff6ff;
 
+  /* Categorical order (validated: lightness band, CVD, normal-vision; always with a legend / labels). */
   --chart-1: #2563eb;
   --chart-2: #f59e0b;
   --chart-3: #059669;
   --chart-4: #8b5cf6;
-  --chart-5: #94a3b8;
+  --chart-5: #0891b2;
+  --chart-6: #db2777;
+  /* Ageing buckets: one hue, light → dark = newer → older. */
+  --age-1: #fcd34d;
+  --age-2: #f59e0b;
+  --age-3: #d97706;
+  --age-4: #b45309;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
@@ -161,10 +169,15 @@
   --info-soft: #172554;
 
   --chart-1: #3b82f6;
-  --chart-2: #fbbf24;
-  --chart-3: #10b981;
-  --chart-4: #a78bfa;
-  --chart-5: #64748b;
+  --chart-2: #d97706;
+  --chart-3: #059669;
+  --chart-4: #8b5cf6;
+  --chart-5: #0891b2;
+  --chart-6: #db2777;
+  --age-1: #92400e;
+  --age-2: #b45309;
+  --age-3: #d97706;
+  --age-4: #fbbf24;
 
   --sidebar: #111827;
   --sidebar-foreground: #e2e8f0;

@@ -53,14 +53,14 @@ You are a Principal Frontend Engineer. Build the Next.js web app for a multi-ten
 Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mode (company | project), `available` (true if backend exists; false → ComingSoon page).
 
 **Company mode rail → flyout items**
-- Dashboard → Company Overview (+ Sites today KPIs — Step 7) · My Approvals (open shortages + site purchases waiting for rates — Step 6; weekly wages, kharcha above the limit, top-ups, measurements to verify — Step 7) · Alerts & Notifications (ComingSoon)
+- Dashboard → Company Overview (GET /dashboard/overview — Step 9; a MUNSHI gets the Site Dashboard here) · My Approvals (GET /approvals, one inbox with bulk actions — Step 9) · Alerts & Notifications (Step 9) — all available; the top-bar bell shows unread notifications
 - Projects → All Projects · New Project · Closed & Archived
 - Sales → Clients (Owners) · Quote Pipeline (ComingSoon) · New Quote (ComingSoon) · Win / Loss Insights (ComingSoon)
 - Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments (all available since Phase 1 · Step 6)
 - Workforce → Workers Directory · Sub-contractors (office: name → detail page with sites, wages, peshgi / accounts — Step 7)
 - Equipment → all items ComingSoon (Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Shuttering Demand)
-- Finance → Receivables (Step 8) · Cash Floats Overview (Step 7) available; Cash Flow Outlook · Profit & Loss → ComingSoon — THEKEDAR only
-- Reports → all items ComingSoon
+- Finance → Receivables (+ ageing) · Cash Flow Outlook · Profit & Loss · Cash Floats Overview — all available (Step 9); THEKEDAR, except Profit & Loss which a PM with profit.view also sees (own projects)
+- Reports → Project Summary (billing.view) · Material Audit · Labor & Peshgi · Cash Book · Supplier Ageing · Receivables Ageing · Stock Valuation (THEKEDAR for the last three) — available with CSV / Excel / PDF export (Step 9); Delay Analysis → ComingSoon
 - Team → Members · Invitations · Devices — THEKEDAR only (PM may view Members read-only)
 - Settings → Company Profile · Materials · Price List · Labor Rates · Payment Templates · Holidays · Alerts & Limits · Subscription · Rulebook (ComingSoon) · Tax (ComingSoon) — THEKEDAR only (PM may view Materials and Price List)
 

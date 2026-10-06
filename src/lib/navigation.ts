@@ -69,6 +69,12 @@ export interface NavSection {
 const L = (en: string, ur: string): Label => ({ en, ur });
 const THEKEDAR = { roles: ["THEKEDAR"] } as const satisfies AccessRule;
 const OFFICE = { roles: ["THEKEDAR", "PM"] } as const satisfies AccessRule;
+/** P&L: the owner, or a PM with profit access. */
+const PROFIT_OFFICE = { roles: ["THEKEDAR", "PM"], permission: "profit.view" } as const satisfies AccessRule;
+/** The Finance menu: the owner, or a PM who may see profit (they get P&L only). */
+const FINANCE = PROFIT_OFFICE;
+/** Money reports: the owner, or a PM with financials. */
+const FINANCIALS = { roles: ["THEKEDAR", "PM"], permission: "billing.view" } as const satisfies AccessRule;
 const soon = (id: string, label: Label, href: string, access?: AccessRule): NavItem => ({
   id,
   label,
@@ -88,7 +94,7 @@ export const COMPANY_NAV: NavSection[] = [
     items: [
       { id: "dashboard.overview", label: L("Company Overview", "Company ka jaiza"), href: "/dashboard", available: true },
       { id: "dashboard.approvals", label: L("My Approvals", "Meri approvals"), href: "/dashboard/approvals", available: true, access: OFFICE },
-      soon("dashboard.alerts", L("Alerts & Notifications", "Alerts aur itla'at"), "/dashboard/alerts"),
+      { id: "dashboard.alerts", label: L("Alerts & Notifications", "Alerts aur itla'at"), href: "/dashboard/alerts", available: true, keywords: ["notifications", "bell", "bounced", "overdue"] },
     ],
   },
   {
@@ -196,11 +202,11 @@ export const COMPANY_NAV: NavSection[] = [
     label: L("Finance", "Hisaab"),
     icon: Wallet,
     mode: "company",
-    access: THEKEDAR,
+    access: FINANCE,
     items: [
       { id: "finance.receivables", label: L("Receivables", "Wasooliyan"), href: "/finance/receivables", available: true, access: THEKEDAR, keywords: ["outstanding", "overdue", "wasooli"] },
-      soon("finance.cashflow", L("Cash Flow Outlook", "Cash flow"), "/finance/cash-flow", THEKEDAR),
-      soon("finance.pl", L("Profit & Loss", "Nafa aur nuqsan"), "/finance/profit-loss", THEKEDAR),
+      { id: "finance.cashflow", label: L("Cash Flow Outlook", "Cash flow"), href: "/finance/cash-flow", available: true, access: THEKEDAR, keywords: ["forecast", "outlook", "udhaar"] },
+      { id: "finance.pl", label: L("Profit & Loss", "Nafa aur nuqsan"), href: "/finance/profit-loss", available: true, access: PROFIT_OFFICE, keywords: ["profit", "margin", "p&l"] },
       { id: "finance.floats", label: L("Cash Floats Overview", "Cash floats"), href: "/finance/cash-floats", available: true, access: THEKEDAR, keywords: ["site cash", "kharcha", "munshi"] },
     ],
   },
@@ -211,11 +217,13 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     access: OFFICE,
     items: [
-      soon("reports.summary", L("Project Summary", "Project khulasa"), "/reports/project-summary"),
-      soon("reports.material", L("Material Audit", "Maal ka audit"), "/reports/material-audit"),
-      soon("reports.labor", L("Labor & Peshgi", "Mazdoori aur peshgi"), "/reports/labor-peshgi"),
-      soon("reports.cashbook", L("Cash Book", "Cash book"), "/reports/cash-book"),
-      soon("reports.ageing", L("Supplier Ageing", "Supplier udhaar ki umar"), "/reports/supplier-ageing", THEKEDAR),
+      { id: "reports.summary", label: L("Project Summary", "Project khulasa"), href: "/reports/project-summary", available: true, access: FINANCIALS },
+      { id: "reports.material", label: L("Material Audit", "Maal ka audit"), href: "/reports/material-audit", available: true },
+      { id: "reports.labor", label: L("Labor & Peshgi", "Mazdoori aur peshgi"), href: "/reports/labor-peshgi", available: true },
+      { id: "reports.cashbook", label: L("Cash Book", "Cash book"), href: "/reports/cash-book", available: true },
+      { id: "reports.ageing", label: L("Supplier Ageing", "Supplier udhaar ki umar"), href: "/reports/supplier-ageing", available: true, access: THEKEDAR },
+      { id: "reports.receivables", label: L("Receivables Ageing", "Wasooli ki umar"), href: "/reports/receivables-ageing", available: true, access: THEKEDAR },
+      { id: "reports.stock", label: L("Stock Valuation", "Stock ki qeemat"), href: "/reports/stock-valuation", available: true, access: THEKEDAR },
       soon("reports.delay", L("Delay Analysis", "Takheer ka jaiza"), "/reports/delay-analysis"),
     ],
   },

@@ -92,7 +92,7 @@ test("stage ready → invoice issued → cheque cleared (PAID) → second cheque
     await expect(page.getByTestId("invoice-balance")).toHaveText("Rs 7,50,000");
 
     await page.goto("/dashboard");
-    await expect(page.getByRole("row").filter({ hasText: `E2E billing ${tag}` }).filter({ hasText: "Cheque bounced" })).toBeVisible();
+    await expect(page.getByRole("list", { name: "Alerts" }).getByRole("listitem").filter({ hasText: `E2E billing ${tag}` }).filter({ hasText: "Cheque bounced" })).toBeVisible({ timeout: 30_000 });
   } finally {
     // Leave the dev data tidy: the unpaid invoice is cancelled (its bounce alert closes with it).
     if (bouncedInvoice) await page.request.post(`/api/v1/invoices/${bouncedInvoice}/cancel`, { data: { reason: "E2E clean-up" } });

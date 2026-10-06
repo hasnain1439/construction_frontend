@@ -168,6 +168,13 @@ export interface ProjectReceivables {
   stages: Array<{ id: Id; label: string; percent: number; amountPaisa: Paisa; status: StageStatus; isRetention: boolean; expectedDate: IsoDate | null; invoiceId: Id | null; invoiceNumber: string | null; dueDate: IsoDate | null }>;
 }
 
+export type AgeingBucket = "0-15" | "16-30" | "31-60" | "60+";
+/** Outstanding by days since the invoice was issued (or the purchase, for suppliers). */
+export interface AgeingAmount {
+  bucket: AgeingBucket;
+  amountPaisa: Paisa;
+}
+
 export interface CompanyReceivablesRow {
   project: ProjectRef & { status: string };
   client: (NamedRef & { phone: string | null }) | null;
@@ -181,6 +188,7 @@ export interface CompanyReceivablesRow {
   creditPaisa: Paisa;
   retentionHeldPaisa: Paisa;
   nextBillableStage: { id: Id; label: string; status: StageStatus; amountPaisa: Paisa } | null;
+  ageing: AgeingAmount[];
 }
 
 export interface CompanyReceivables {
@@ -195,6 +203,7 @@ export interface CompanyReceivables {
     overduePaisa: Paisa;
     retentionHeldPaisa: Paisa;
     overdueProjects: number;
+    ageing: AgeingAmount[];
   };
 }
 
