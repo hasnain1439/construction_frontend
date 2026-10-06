@@ -26,7 +26,7 @@ import { TopBar } from "./TopBar";
 
 function ShellSkeleton() {
   return (
-    <div className="flex h-dvh flex-col" aria-busy="true" aria-label="Loading">
+    <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
       <div className="h-20 border-b bg-card" />
       <div className="flex flex-1">
         <div className="w-28 border-r bg-card" />
@@ -98,7 +98,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
 
   if (isLoading || !me) {
     return error && status !== 401 ? (
-      <div className="flex h-dvh items-center justify-center p-6 text-center text-sm text-muted-foreground">
+      <div className="fixed inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground">
         Could not load your account. Check that the API is running and refresh the page.
       </div>
     ) : (
@@ -107,28 +107,34 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="fixed inset-0 flex flex-col overflow-hidden">
       <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
       <div className="relative flex min-h-0 flex-1">
-        <IconRail
-          sections={sections}
-          activeSectionId={current?.id}
-          openSectionId={flyoutFor}
-          onSelect={onSelect}
-          collapsed={collapsed}
-          header={projectId ? <ProjectRailHeader projectId={projectId} collapsed={collapsed} /> : undefined}
-          footer={<RailLogoutButton label={t("shell.logout")} collapsed={collapsed} onClick={() => void signOut()} />}
-        />
+        {/* The menu button slides the rail out to the left (and back); the content takes the room. */}
+        <div
+          className={cn("h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out", collapsed ? "w-0" : "w-28")}
+          aria-hidden={collapsed || undefined}
+          inert={collapsed}
+        >
+          <IconRail
+            sections={sections}
+            activeSectionId={current?.id}
+            openSectionId={flyoutFor}
+            onSelect={onSelect}
+            header={projectId ? <ProjectRailHeader projectId={projectId} /> : undefined}
+            footer={<RailLogoutButton label={t("shell.logout")} onClick={() => void signOut()} />}
+          />
+        </div>
         <Flyout
-          section={openSection}
+          section={collapsed ? null : openSection}
           items={openSection?.items ?? []}
           hrefFor={hrefFor}
           onClose={onCloseFlyout}
           badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
-          className={collapsed ? "left-[72px]" : "left-28"}
+          className="left-28"
         />
         <main id="main" className={cn("min-w-0 flex-1 overflow-y-auto")}>
-          <div className="mx-auto w-full max-w-[1400px] space-y-6 px-6 py-6">
+          <div className="w-full space-y-6 px-6 py-6">
             <ReadOnlyBanner />
             {children}
           </div>

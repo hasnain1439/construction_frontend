@@ -72,7 +72,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (isLoading || !admin) {
     return (
-      <div className="flex h-dvh flex-col" aria-busy="true" aria-label="Loading">
+      <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
         <div className="h-16 border-b bg-card" />
         <div className="flex flex-1">
           <div className="w-60 border-r bg-card" />
@@ -86,7 +86,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
+    <div className="fixed inset-0 flex flex-col overflow-hidden">
       <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => dispatch(toggleRail())} aria-label={t("shell.toggleMenu")}>
@@ -128,8 +128,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="flex min-h-0 flex-1">
-        <nav aria-label="Platform" className={cn("flex flex-col border-r bg-sidebar", collapsed ? "w-[72px]" : "w-60")}>
-          <ul className="scrollbar-slim flex-1 space-y-0.5 overflow-y-auto p-2">
+        {/* The menu button slides the sidebar out to the left (and back). */}
+        <nav
+          aria-label="Platform"
+          aria-hidden={collapsed || undefined}
+          inert={collapsed}
+          className={cn(
+            "flex shrink-0 flex-col overflow-hidden bg-sidebar transition-[width] duration-200 ease-out",
+            collapsed ? "w-0" : "w-60 border-r",
+          )}
+        >
+          <ul className="scrollbar-slim w-60 flex-1 space-y-0.5 overflow-y-auto p-2">
             {ADMIN_NAV.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -140,7 +149,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    title={collapsed ? label : undefined}
                     className={cn(
                       "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active
@@ -149,8 +157,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
                     )}
                   >
                     <Icon className="size-5 shrink-0" aria-hidden />
-                    {collapsed ? <span className="sr-only">{label}</span> : <span className="flex-1">{label}</span>}
-                    {!collapsed && !item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
+                    <span className="flex-1 whitespace-nowrap">{label}</span>
+                    {!item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
                     {badge ? (
                       <span className="ml-auto rounded-full bg-amber px-1.5 text-[11px] font-semibold text-slate-950" aria-label={`${badge} pending`}>
                         {badge}
@@ -161,21 +169,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
               );
             })}
           </ul>
-          {collapsed ? null : <HealthCard />}
-          <div className="border-t p-2">
+          <div className="w-60">
+            <HealthCard />
+          </div>
+          <div className="w-60 border-t p-2">
             <button
               type="button"
               onClick={() => void signOut()}
-              title={collapsed ? t("shell.logout") : undefined}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
             >
               <LogOut className="size-5 shrink-0" aria-hidden />
-              {collapsed ? <span className="sr-only">{t("shell.logout")}</span> : t("shell.logout")}
+              {t("shell.logout")}
             </button>
           </div>
         </nav>
         <main className="min-w-0 flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-[1400px] space-y-6 px-6 py-6">{children}</div>
+          <div className="w-full space-y-6 px-6 py-6">{children}</div>
         </main>
       </div>
       <CommandSearch mode="admin" />
