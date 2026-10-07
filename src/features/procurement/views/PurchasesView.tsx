@@ -13,6 +13,7 @@ import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
+import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ export function PurchasesView() {
         <div className="flex flex-wrap gap-1">
           <StatusBadge domain="purchase" value={p.status} />
           {p.openShortages ? <StatusBadge tone="danger" label={`${p.openShortages} shortage${p.openShortages > 1 ? "s" : ""}`} /> : null}
+          {p.lateSync ? <LateSyncBadge /> : null}
         </div>
       ),
     },

@@ -26,6 +26,7 @@ import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
+import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ const entryColumns = (withHolder: boolean): Column<CashEntry>[] => [
       <div>
         <p className="font-medium">{e.description}</p>
         <p className="text-xs text-muted-foreground">{e.type === "EXPENSE" ? categoryLabel(e.category) : (CASH_ENTRY_LABELS[e.type] ?? e.type)}</p>
+        {e.lateSync ? <LateSyncBadge className="mt-1" /> : null}
       </div>
     ),
   },

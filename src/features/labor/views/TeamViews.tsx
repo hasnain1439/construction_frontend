@@ -1,6 +1,20 @@
 "use client";
 
-import { CalendarCheck, HardHat, Lock, Pencil, Plus, Ruler, Save, Timer, Trash2, Undo2, UserPlus, Users, Wallet } from "lucide-react";
+import {
+  CalendarCheck,
+  HardHat,
+  Lock,
+  Pencil,
+  Plus,
+  Ruler,
+  Save,
+  Timer,
+  Trash2,
+  Undo2,
+  UserPlus,
+  Users,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -22,6 +36,7 @@ import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
+import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { WeekPicker } from "@/components/common/WeekPicker";
@@ -36,11 +51,21 @@ import { formatDate, todayPK } from "@/lib/dates";
 import { formatPKR, sumPaisa } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { addDays, formatWeekRange, weekDates, type WeekDayName } from "@/lib/weeks";
-import { AdvanceSlideOver, AssignSubcontractSlideOver, AssignWorkerSlideOver, MeasurementSlideOver, useIsMunshi } from "../components/LaborSlideOvers";
+import {
+  AdvanceSlideOver,
+  AssignSubcontractSlideOver,
+  AssignWorkerSlideOver,
+  MeasurementSlideOver,
+  useIsMunshi,
+} from "../components/LaborSlideOvers";
 import { rateTypeLabel, workerTypeLabel } from "../options";
 
 const OFFICE = { roles: ["THEKEDAR", "PM"] } as const;
-const STATUS_TEXT: Record<AttendanceStatus, string> = { FULL: "Full day", HALF: "Half day", ABSENT: "Absent" };
+const STATUS_TEXT: Record<AttendanceStatus, string> = {
+  FULL: "Full day",
+  HALF: "Half day",
+  ABSENT: "Absent",
+};
 
 // ─── Team on Site ───────────────────────────────────────────────────────────
 
@@ -51,7 +76,9 @@ function RateDialog({ worker, onClose }: { worker: ProjectWorker | null; onClose
   if (!worker) return null;
   const save = async () => {
     if (!value) return;
-    const ok = await run(() => update({ id: worker.id, body: { dailyRatePaisa: value } }).unwrap(), { success: `${worker.worker.name}: ${formatPKR(value)} / day` });
+    const ok = await run(() => update({ id: worker.id, body: { dailyRatePaisa: value } }).unwrap(), {
+      success: `${worker.worker.name}: ${formatPKR(value)} / day`,
+    });
     if (ok) onClose();
   };
   return (
@@ -62,8 +89,15 @@ function RateDialog({ worker, onClose }: { worker: ProjectWorker | null; onClose
         </DialogHeader>
         <div className="space-y-1.5">
           <Label htmlFor="rate-input">Per day on this project</Label>
-          <MoneyInput id="rate-input" value={value ?? worker.dailyRatePaisa} onChange={setValue} suffix="/ day" />
-          <p className="text-xs text-muted-foreground">Normal rate {formatPKR(worker.defaultRatePaisa)}. Applies to settlements generated from now on.</p>
+          <MoneyInput
+            id="rate-input"
+            value={value ?? worker.dailyRatePaisa}
+            onChange={setValue}
+            suffix="/ day"
+          />
+          <p className="text-xs text-muted-foreground">
+            Normal rate {formatPKR(worker.defaultRatePaisa)}. Applies to settlements generated from now on.
+          </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
@@ -94,6 +128,7 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
 
   const active = (workers.data ?? []).filter((w) => w.isActive);
   const marks = new Map((today.data?.workers ?? []).map((w) => [w.worker.id, w.status]));
+  const lateToday = new Set((today.data?.workers ?? []).filter((w) => w.lateSync).map((w) => w.worker.id));
 
   const workerColumns: Column<ProjectWorker>[] = [
     {
@@ -125,7 +160,19 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       header: "Today",
       cell: (w) => {
         const s = marks.get(w.worker.id);
-        return !w.isActive ? <StatusBadge tone="neutral" label={`Left ${formatDate(w.endDate)}`} /> : s ? <StatusBadge tone={s === "ABSENT" ? "danger" : s === "HALF" ? "warning" : "success"} label={STATUS_TEXT[s]} /> : <span className="text-muted-foreground">Not marked</span>;
+        return !w.isActive ? (
+          <StatusBadge tone="neutral" label={`Left ${formatDate(w.endDate)}`} />
+        ) : s ? (
+          <span className="inline-flex flex-wrap gap-1">
+            <StatusBadge
+              tone={s === "ABSENT" ? "danger" : s === "HALF" ? "warning" : "success"}
+              label={STATUS_TEXT[s]}
+            />
+            {lateToday.has(w.worker.id) ? <LateSyncBadge /> : null}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Not marked</span>
+        );
       },
     },
     {
@@ -148,10 +195,20 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
             </Button>
             {office ? (
               <>
-                <Button size="icon" variant="ghost" aria-label={`Change rate for ${w.worker.name}`} onClick={() => setRateFor(w)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Change rate for ${w.worker.name}`}
+                  onClick={() => setRateFor(w)}
+                >
                   <Pencil aria-hidden />
                 </Button>
-                <Button size="icon" variant="ghost" aria-label={`Remove ${w.worker.name}`} onClick={() => setRemoveFor(w)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Remove ${w.worker.name}`}
+                  onClick={() => setRemoveFor(w)}
+                >
                   <Trash2 aria-hidden />
                 </Button>
               </>
@@ -178,9 +235,21 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       header: "Rate / value",
       align: "right",
       hidden: munshi,
-      cell: (s) => (s.rateType === "LUMPSUM" ? <MoneyText paisa={s.contractValuePaisa ?? undefined} /> : <span><MoneyText paisa={s.ratePaisa ?? undefined} /> / {s.unit}</span>),
+      cell: (s) =>
+        s.rateType === "LUMPSUM" ? (
+          <MoneyText paisa={s.contractValuePaisa ?? undefined} />
+        ) : (
+          <span>
+            <MoneyText paisa={s.ratePaisa ?? undefined} /> / {s.unit}
+          </span>
+        ),
     },
-    { id: "progress", header: "Progress", align: "right", cell: (s) => (s.rateType === "LUMPSUM" ? `${s.progressPercent}%` : "—") },
+    {
+      id: "progress",
+      header: "Progress",
+      align: "right",
+      cell: (s) => (s.rateType === "LUMPSUM" ? `${s.progressPercent}%` : "—"),
+    },
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
       id: "actions",
@@ -232,12 +301,25 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
               label="Hazri today"
               icon={CalendarCheck}
               value={today.data ? `${today.data.full + today.data.half} / ${today.data.assigned}` : "—"}
-              hint={today.data ? `${today.data.unmarked} not marked · ${today.data.absent} absent` : undefined}
+              hint={
+                today.data ? `${today.data.unmarked} not marked · ${today.data.absent} absent` : undefined
+              }
               loading={today.isLoading}
               tone={today.data?.unmarked ? "warning" : "success"}
             />
-            <KpiCard label="Daily wage bill" icon={Wallet} value={formatPKR(sumPaisa(active.map((w) => w.dailyRatePaisa)))} hint="All workers present" loading={workers.isLoading} />
-            <KpiCard label="Sub-contracts" icon={HardHat} value={(subs.data ?? []).filter((s) => s.isActive).length} loading={subs.isLoading} />
+            <KpiCard
+              label="Daily wage bill"
+              icon={Wallet}
+              value={formatPKR(sumPaisa(active.map((w) => w.dailyRatePaisa)))}
+              hint="All workers present"
+              loading={workers.isLoading}
+            />
+            <KpiCard
+              label="Sub-contracts"
+              icon={HardHat}
+              value={(subs.data ?? []).filter((s) => s.isActive).length}
+              loading={subs.isLoading}
+            />
           </div>
           <SectionCard
             flush
@@ -258,16 +340,56 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
               error={workers.error}
               onRetry={workers.refetch}
               columns={workerColumns}
-              empty={{ title: "Nobody on this site yet", description: "Assign workers to start marking hazri.", icon: Users }}
+              empty={{
+                title: "Nobody on this site yet",
+                description: "Assign workers to start marking hazri.",
+                icon: Users,
+              }}
             />
           </SectionCard>
-          <SectionCard flush title="Sub-contracts" description={munshi ? "Record measurements for piece-rate work; the office verifies them." : undefined}>
-            <DataTable rows={subs.data} getRowId={(s) => s.id} loading={subs.isLoading} error={subs.error} onRetry={subs.refetch} columns={subColumns} empty={{ title: "No sub-contracts yet", icon: HardHat, compact: true }} />
+          <SectionCard
+            flush
+            title="Sub-contracts"
+            description={
+              munshi ? "Record measurements for piece-rate work; the office verifies them." : undefined
+            }
+          >
+            <DataTable
+              rows={subs.data}
+              getRowId={(s) => s.id}
+              loading={subs.isLoading}
+              error={subs.error}
+              onRetry={subs.refetch}
+              columns={subColumns}
+              empty={{ title: "No sub-contracts yet", icon: HardHat, compact: true }}
+            />
           </SectionCard>
-          <AssignWorkerSlideOver open={open === "worker"} onOpenChange={(o) => setOpen(o ? "worker" : null)} projectId={project.id} />
-          <AssignSubcontractSlideOver open={open === "sub"} onOpenChange={(o) => setOpen(o ? "sub" : null)} projectId={project.id} />
-          {open === "peshgi" ? <AdvanceSlideOver open onOpenChange={(o) => setOpen(o ? "peshgi" : null)} projectId={project.id} defaultWorkerId={peshgiFor} /> : null}
-          {open === "measure" ? <MeasurementSlideOver open onOpenChange={(o) => setOpen(o ? "measure" : null)} projectId={project.id} defaultAssignmentId={measureFor} /> : null}
+          <AssignWorkerSlideOver
+            open={open === "worker"}
+            onOpenChange={(o) => setOpen(o ? "worker" : null)}
+            projectId={project.id}
+          />
+          <AssignSubcontractSlideOver
+            open={open === "sub"}
+            onOpenChange={(o) => setOpen(o ? "sub" : null)}
+            projectId={project.id}
+          />
+          {open === "peshgi" ? (
+            <AdvanceSlideOver
+              open
+              onOpenChange={(o) => setOpen(o ? "peshgi" : null)}
+              projectId={project.id}
+              defaultWorkerId={peshgiFor}
+            />
+          ) : null}
+          {open === "measure" ? (
+            <MeasurementSlideOver
+              open
+              onOpenChange={(o) => setOpen(o ? "measure" : null)}
+              projectId={project.id}
+              defaultAssignmentId={measureFor}
+            />
+          ) : null}
           {rateFor ? <RateDialog worker={rateFor} onClose={() => setRateFor(null)} /> : null}
           <ConfirmDialog
             open={!!removeFor}
@@ -325,7 +447,8 @@ export function HazriView({ projectId }: { projectId: string }) {
     [grid.data, pending],
   );
 
-  const onChange = (workerId: string, date: string, value: HazriMark) => setPending((p) => ({ ...p, [workerId]: { ...(p[workerId] ?? {}), [date]: value } }));
+  const onChange = (workerId: string, date: string, value: HazriMark) =>
+    setPending((p) => ({ ...p, [workerId]: { ...(p[workerId] ?? {}), [date]: value } }));
 
   /** Everyone on site not yet marked today → present. */
   const markToday = () => {
@@ -336,19 +459,29 @@ export function HazriView({ projectId }: { projectId: string }) {
     }
     setPending((p) => {
       const next = { ...p };
-      for (const id of ids) next[id] = { ...(next[id] ?? {}), [todayDate]: { status: "FULL", overtimeHours: 0 } };
+      for (const id of ids)
+        next[id] = { ...(next[id] ?? {}), [todayDate]: { status: "FULL", overtimeHours: 0 } };
       return next;
     });
     if (weekStart && !dates.includes(todayDate)) setWeek(null);
   };
 
   const save = async () => {
-    const byDate = new Map<string, Array<{ workerId: string; status: AttendanceStatus; overtimeHours: number }>>();
+    const byDate = new Map<
+      string,
+      Array<{ workerId: string; status: AttendanceStatus; overtimeHours: number }>
+    >();
     for (const [workerId, days] of Object.entries(pending)) {
-      for (const [date, m] of Object.entries(days)) byDate.set(date, [...(byDate.get(date) ?? []), { workerId, status: m.status, overtimeHours: m.overtimeHours }]);
+      for (const [date, m] of Object.entries(days))
+        byDate.set(date, [
+          ...(byDate.get(date) ?? []),
+          { workerId, status: m.status, overtimeHours: m.overtimeHours },
+        ]);
     }
     for (const [date, entries] of [...byDate.entries()].sort()) {
-      const ok = await run(() => mark({ projectId, body: { date, entries, deviceCreatedAt: new Date().toISOString() } }).unwrap());
+      const ok = await run(() =>
+        mark({ projectId, body: { date, entries, deviceCreatedAt: new Date().toISOString() } }).unwrap(),
+      );
       if (!ok) return;
       setPending((p) => {
         const next: typeof p = {};
@@ -382,7 +515,10 @@ export function HazriView({ projectId }: { projectId: string }) {
               <StatusBadge tone="success" label={`${today.data.full} full`} />
               <StatusBadge tone="warning" label={`${today.data.half} half`} />
               <StatusBadge tone="danger" label={`${today.data.absent} absent`} />
-              <StatusBadge tone={today.data.unmarked ? "info" : "neutral"} label={`${today.data.unmarked} not marked`} />
+              <StatusBadge
+                tone={today.data.unmarked ? "info" : "neutral"}
+                label={`${today.data.unmarked} not marked`}
+              />
               {!today.data.workingDay ? <StatusBadge tone="neutral" label="Not a working day" /> : null}
             </div>
           ) : null}
@@ -411,32 +547,54 @@ export function HazriView({ projectId }: { projectId: string }) {
                 </label>
               </div>
               {locked ? (
-                <InlineAlert tone="warning" title={`This week is ${locked.status === "APPROVED" ? "approved" : "waiting for approval"}`}>
+                <InlineAlert
+                  tone="warning"
+                  title={`This week is ${locked.status === "APPROVED" ? "approved" : "waiting for approval"}`}
+                >
                   <span className="inline-flex items-center gap-1">
-                    <Lock className="size-3.5" aria-hidden /> Hazri is locked. To change it the office returns the settlement.
+                    <Lock className="size-3.5" aria-hidden /> Hazri is locked. To change it the office returns
+                    the settlement.
                   </span>{" "}
-                  <Link className="underline" href={projectHref(project.id, `/labor/settlements/${locked.settlementId}`)}>
+                  <Link
+                    className="underline"
+                    href={projectHref(project.id, `/labor/settlements/${locked.settlementId}`)}
+                  >
                     Open settlement
                   </Link>
                 </InlineAlert>
               ) : munshi ? (
-                <p className="text-xs text-muted-foreground">You can fill the last {MUNSHI_DAYS_BACK} days. Older days are fixed by the office.</p>
+                <p className="text-xs text-muted-foreground">
+                  You can fill the last {MUNSHI_DAYS_BACK} days. Older days are fixed by the office.
+                </p>
               ) : null}
               {grid.isLoading ? (
                 <CardsSkeleton count={1} height="h-72" />
               ) : rows.length === 0 ? (
                 <InlineAlert tone="info" title="No workers on this site">
-                  Add them in <Link className="underline" href={projectHref(project.id, "/labor/team")}>Team on Site</Link> first.
+                  Add them in{" "}
+                  <Link className="underline" href={projectHref(project.id, "/labor/team")}>
+                    Team on Site
+                  </Link>{" "}
+                  first.
                 </InlineAlert>
               ) : (
-                <AttendanceGrid dates={dates} rows={rows} onChange={onChange} canEdit={canEdit} overtimeMode={overtime} workingDays={undefined} today={todayDate} />
+                <AttendanceGrid
+                  dates={dates}
+                  rows={rows}
+                  onChange={onChange}
+                  canEdit={canEdit}
+                  overtimeMode={overtime}
+                  workingDays={undefined}
+                  today={todayDate}
+                />
               )}
             </div>
           </SectionCard>
           {changes ? (
             <div className="sticky bottom-0 z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3 shadow-card">
               <p className="text-sm">
-                <span className="font-semibold">{changes}</span> unsaved {changes === 1 ? "change" : "changes"}
+                <span className="font-semibold">{changes}</span> unsaved{" "}
+                {changes === 1 ? "change" : "changes"}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setPending({})} disabled={saving}>

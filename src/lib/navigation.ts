@@ -342,7 +342,7 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Building2,
     mode: "project",
     items: [
-      soon("p.site.logs", L("Daily Logs & Photos", "Rozana log"), "/site/daily-logs"),
+      { id: "p.site.logs", label: L("Daily Logs & Photos", "Rozana log"), href: "/site/daily-logs", available: true, keywords: ["diary", "photos", "voice note", "site log"] },
       { id: "p.site.incoming", label: L("Incoming Material", "Aane wala maal"), href: "/site/incoming", available: true, badge: "incoming", keywords: ["receive", "gate pass"] },
       { id: "p.site.deliveries", label: L("Deliveries (Maal Aaya)", "Maal aaya"), href: "/site/deliveries", available: true, keywords: ["owner delivery"] },
       { id: "p.site.usage", label: L("Material Usage (Maal Lag Gaya)", "Maal lag gaya"), href: "/site/usage", available: true },

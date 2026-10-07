@@ -2,6 +2,7 @@
 
 import { useRef, type KeyboardEvent } from "react";
 import { StepperInput } from "@/components/forms/StepperInput";
+import { LATE_SYNC_HINT } from "@/components/common/LateSyncBadge";
 import { cn } from "@/lib/cn";
 import { formatDayHeader, weekdayOf, type WeekDayName } from "@/lib/weeks";
 
@@ -10,6 +11,8 @@ export type HazriStatus = "FULL" | "HALF" | "ABSENT";
 export interface HazriMark {
   status: HazriStatus;
   overtimeHours: number;
+  /** Marked on a phone and synced more than 48 h later. */
+  lateSync?: boolean;
 }
 
 export interface AttendanceGridRow {
@@ -169,6 +172,11 @@ export function AttendanceGrid({
                           />
                         ) : mark?.overtimeHours ? (
                           <span className="text-[10px] font-medium text-primary tabular">+{mark.overtimeHours}h</span>
+                        ) : null}
+                        {mark?.lateSync ? (
+                          <span className="text-[10px]" title={LATE_SYNC_HINT} aria-label="late sync" data-testid={`late-${row.id}-${date}`}>
+                            📱
+                          </span>
                         ) : null}
                       </div>
                     </td>

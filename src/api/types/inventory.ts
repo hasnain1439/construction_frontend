@@ -212,6 +212,8 @@ export interface PurchaseListRow {
   status: PurchaseStatus;
   materials: string[];
   openShortages: number;
+  /** Received / entered on a phone and synced more than 48 h later. */
+  lateSync?: boolean;
   totalPaisa?: Paisa;
   paidNowPaisa?: Paisa;
   createdAt: IsoDateTime;
@@ -273,6 +275,7 @@ export interface Purchase {
   shortages: ShortageRef[];
   receivedBy: NamedRef | null;
   receivedAt: IsoDateTime | null;
+  lateSync?: boolean;
   createdBy: NamedRef | null;
   createdAt: IsoDateTime;
 }
@@ -402,6 +405,8 @@ export interface Dispatch {
   shortages: ShortageRef[];
   receivedBy: NamedRef | null;
   receivedAt: IsoDateTime | null;
+  /** Received on a phone and synced more than 48 h later. */
+  lateSync?: boolean;
   receiveNote: string | null;
   cancelledAt: IsoDateTime | null;
   createdBy: NamedRef | null;

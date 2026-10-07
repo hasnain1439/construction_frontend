@@ -367,6 +367,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/mobile-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mobile app start-up config (public)
+         * @description Called by the app on every start: below `minimumAppVersion` it shows a "please update" screen. Also the API version, OTP length / resend wait, sync interval, upload limit and feature flags.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Config */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "minimumAppVersion": "1.0.0",
+                         *         "latestAppVersion": "1.0.0",
+                         *         "apiVersion": "v1",
+                         *         "otpLength": 6,
+                         *         "otpResendSeconds": 60,
+                         *         "syncIntervalMinutes": 15,
+                         *         "maxUploadBytes": 2097152,
+                         *         "features": {
+                         *           "offlineSync": true,
+                         *           "dailyLogs": true,
+                         *           "voiceNotes": true,
+                         *           "sitePurchases": true
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: {
+                                minimumAppVersion: string;
+                                latestAppVersion: string;
+                                apiVersion: string;
+                                otpLength: number;
+                                otpResendSeconds: number;
+                                syncIntervalMinutes: number;
+                                maxUploadBytes: number;
+                                features: {
+                                    [key: string]: boolean;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/otp/request": {
         parameters: {
             query?: never;
@@ -27673,7 +27747,7 @@ export interface paths {
                          *                 "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/labor/measurements",
                          *                 "quickActions": [
                          *                   {
-                         *                     "action": "verify",
+                         *                     "action": "approve",
                          *                     "label": "Verify",
                          *                     "needsNote": false,
                          *                     "needsMethod": false
@@ -27738,7 +27812,7 @@ export interface paths {
         put?: never;
         /**
          * Run quick actions on several items
-         * @description Calls the owning module for each item (approve / return settlements, approve / reject kharcha, send / reject top-ups (owner, `method` needed), verify / reject measurements, issue draft invoices (owner), clear / bounce cheques (owner)). reject / return / bounce need a `note`. Items are independent: the answer lists each result; one failure does not undo the others.
+         * @description Calls the owning module for each item (approve / return settlements, approve / reject kharcha, send / reject top-ups (owner, `method` needed), approve (= verify) / reject measurements, issue draft invoices (owner), clear / bounce cheques (owner)). reject / return / bounce need a `note`. Items are independent: the answer lists each result; one failure does not undo the others.
          */
         post: {
             parameters: {
@@ -29627,6 +29701,923 @@ export interface paths {
                 };
                 /** @description PDF_UNAVAILABLE */
                 503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/daily-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily logs of a project
+         * @description THEKEDAR, PM, MUNSHI with access to the project (outside → 404). Newest day first; photo thumbnails and voice-note links are signed (10 min).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    from?: string;
+                    to?: string;
+                    /** @description Only this user’s logs */
+                    author?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Logs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "logDate": "2026-10-06",
+                         *           "note": "Power cut 2–5 PM, generator used for the mixer",
+                         *           "conditions": [
+                         *             "CURING",
+                         *             "POWER_CUT"
+                         *           ],
+                         *           "workDone": "1F column curing day 10, water given twice",
+                         *           "author": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali",
+                         *             "role": "MUNSHI"
+                         *           },
+                         *           "photos": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *               "mimeType": "image/jpeg",
+                         *               "url": "https://res.cloudinary.com/demo/image/authenticated/…",
+                         *               "thumbUrl": "https://res.cloudinary.com/demo/image/authenticated/w_320/…"
+                         *             }
+                         *           ],
+                         *           "voiceNotes": [],
+                         *           "editable": true,
+                         *           "lateSync": false,
+                         *           "clientId": "0199a8c0-0000-7000-8000-00000000ab01",
+                         *           "deviceCreatedAt": "2026-10-06T12:40:00.000Z",
+                         *           "createdAt": "2026-10-06T12:41:02.000Z",
+                         *           "updatedAt": "2026-10-06T12:41:02.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Write (or update today’s) daily log
+         * @description THEKEDAR, PM, MUNSHI with access to the project (outside → 404). One log per person per project per day (default today, Asia/Karachi; up to 7 days back). Sending again for a day you already logged updates it — only on the same day, else `409 LOG_LOCKED`. A repeated `clientId` returns the saved log (200). Photos are SITE_PHOTO attachments, voice notes VOICE_NOTE (≤ 2 MB). `lateSync` = received more than 48 h after `deviceCreatedAt`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Default today (Asia/Karachi); up to 7 days back
+                         * @example 2026-12-25
+                         */
+                        logDate?: string;
+                        note?: string;
+                        /**
+                         * @example [
+                         *       "CURING",
+                         *       "POWER_CUT"
+                         *     ]
+                         */
+                        conditions?: ("NORMAL" | "RAIN" | "POWER_CUT" | "WATER_SHORTAGE" | "CURING" | "LABOUR_SHORT" | "MATERIAL_SHORT" | "OTHER")[];
+                        /** @example First-floor column curing (day 10), water given twice */
+                        workDone?: string;
+                        /** @description SITE_PHOTO attachments */
+                        photoAttachmentIds?: string[];
+                        /** @description VOICE_NOTE attachments (15–30 s) */
+                        voiceAttachmentIds?: string[];
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created (200 when it updated today’s log or replayed a clientId) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "logDate": "2026-10-06",
+                         *         "note": "Power cut 2–5 PM, generator used for the mixer",
+                         *         "conditions": [
+                         *           "CURING",
+                         *           "POWER_CUT"
+                         *         ],
+                         *         "workDone": "1F column curing day 10, water given twice",
+                         *         "author": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali",
+                         *           "role": "MUNSHI"
+                         *         },
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://res.cloudinary.com/demo/image/authenticated/…",
+                         *             "thumbUrl": "https://res.cloudinary.com/demo/image/authenticated/w_320/…"
+                         *           }
+                         *         ],
+                         *         "voiceNotes": [],
+                         *         "editable": true,
+                         *         "lateSync": false,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab01",
+                         *         "deviceCreatedAt": "2026-10-06T12:40:00.000Z",
+                         *         "createdAt": "2026-10-06T12:41:02.000Z",
+                         *         "updatedAt": "2026-10-06T12:41:02.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE | DATE_TOO_OLD | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOG_LOCKED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One log with the day around it
+         * @description THEKEDAR, PM, MUNSHI with access to the project (outside → 404). `summary`: hazri marked that day, material used, kharcha of the day — a MUNSHI sees only his own kharcha (`scope: MINE`), the office the whole project.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Daily log id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "logDate": "2026-10-06",
+                         *         "note": "Power cut 2–5 PM, generator used for the mixer",
+                         *         "conditions": [
+                         *           "CURING",
+                         *           "POWER_CUT"
+                         *         ],
+                         *         "workDone": "1F column curing day 10, water given twice",
+                         *         "author": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali",
+                         *           "role": "MUNSHI"
+                         *         },
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://res.cloudinary.com/demo/image/authenticated/…",
+                         *             "thumbUrl": "https://res.cloudinary.com/demo/image/authenticated/w_320/…"
+                         *           }
+                         *         ],
+                         *         "voiceNotes": [],
+                         *         "editable": true,
+                         *         "lateSync": false,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab01",
+                         *         "deviceCreatedAt": "2026-10-06T12:40:00.000Z",
+                         *         "createdAt": "2026-10-06T12:41:02.000Z",
+                         *         "updatedAt": "2026-10-06T12:41:02.000Z",
+                         *         "summary": {
+                         *           "hazri": {
+                         *             "full": 7,
+                         *             "half": 1,
+                         *             "absent": 0,
+                         *             "present": 8
+                         *           },
+                         *           "usage": [
+                         *             {
+                         *               "material": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "name": "Cement OPC",
+                         *                 "unit": "bag"
+                         *               },
+                         *               "quantity": 30
+                         *             }
+                         *           ],
+                         *           "kharcha": {
+                         *             "scope": "MINE",
+                         *             "entries": 2,
+                         *             "totalPaisa": "420000"
+                         *           }
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DAILY_LOG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change today’s log
+         * @description The author only, and only on the log’s day (else `409 LOG_LOCKED`).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Daily log id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note?: string;
+                        /**
+                         * @example [
+                         *       "CURING",
+                         *       "POWER_CUT"
+                         *     ]
+                         */
+                        conditions?: ("NORMAL" | "RAIN" | "POWER_CUT" | "WATER_SHORTAGE" | "CURING" | "LABOUR_SHORT" | "MATERIAL_SHORT" | "OTHER")[];
+                        /** @example First-floor column curing (day 10), water given twice */
+                        workDone?: string;
+                        /** @description SITE_PHOTO attachments */
+                        photoAttachmentIds?: string[];
+                        /** @description VOICE_NOTE attachments (15–30 s) */
+                        voiceAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000d11",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "logDate": "2026-10-06",
+                         *         "note": "Power cut 2–5 PM, generator used for the mixer",
+                         *         "conditions": [
+                         *           "CURING",
+                         *           "POWER_CUT"
+                         *         ],
+                         *         "workDone": "1F column curing day 10, water given twice",
+                         *         "author": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali",
+                         *           "role": "MUNSHI"
+                         *         },
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://res.cloudinary.com/demo/image/authenticated/…",
+                         *             "thumbUrl": "https://res.cloudinary.com/demo/image/authenticated/w_320/…"
+                         *           }
+                         *         ],
+                         *         "voiceNotes": [],
+                         *         "editable": true,
+                         *         "lateSync": false,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab01",
+                         *         "deviceCreatedAt": "2026-10-06T12:40:00.000Z",
+                         *         "createdAt": "2026-10-06T12:41:02.000Z",
+                         *         "updatedAt": "2026-10-06T12:41:02.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DAILY_LOG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOG_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/sync/pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pull changes (mobile read model)
+         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention or the caller’s project access changed — wipe the local DB and pull without a cursor. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays and own notifications. Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Omit for a full snapshot; otherwise the `cursor` of the previous pull */
+                    cursor?: string;
+                    /** @description Change rows per page (incremental pulls) */
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Changes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "cursor": "1842",
+                         *         "hasMore": false,
+                         *         "resetRequired": false,
+                         *         "serverTime": "2026-10-06T12:00:00.000Z",
+                         *         "changes": {
+                         *           "attendance": {
+                         *             "upserts": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *                 "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                 "workerId": "0199a8c0-0000-7000-8000-000000000c02",
+                         *                 "date": "2026-10-06",
+                         *                 "status": "FULL",
+                         *                 "overtimeHours": 0,
+                         *                 "note": null,
+                         *                 "clientId": null,
+                         *                 "lateSync": false
+                         *               }
+                         *             ],
+                         *             "deletes": []
+                         *           },
+                         *           "dispatches": {
+                         *             "upserts": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000801",
+                         *                 "number": "GP-0144",
+                         *                 "status": "ON_THE_WAY",
+                         *                 "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                 "toLocationId": "0199a8c0-0000-7000-8000-000000000503",
+                         *                 "from": "Central Store",
+                         *                 "blindCount": true,
+                         *                 "items": [
+                         *                   {
+                         *                     "id": "0199a8c0-0000-7000-8000-000000000703",
+                         *                     "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                     "receivedQty": null,
+                         *                     "damagedQty": null,
+                         *                     "note": null
+                         *                   }
+                         *                 ]
+                         *               }
+                         *             ],
+                         *             "deletes": []
+                         *           },
+                         *           "cash_accounts": {
+                         *             "upserts": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000901",
+                         *                 "name": "Rafaqat Ali — site cash",
+                         *                 "isActive": true,
+                         *                 "balancePaisa": "930000",
+                         *                 "pendingAckPaisa": "0",
+                         *                 "pendingApprovalPaisa": "0",
+                         *                 "recoverablePaisa": "0"
+                         *               }
+                         *             ],
+                         *             "deletes": []
+                         *           }
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sync/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Push queued mutations
+         * @description Up to 100 mutations, applied in order, each through the same service and permission checks as its REST endpoint, each in its own transaction. Result per mutation: **APPLIED** (serverId) · **DUPLICATE** (clientId seen before — same serverId, nothing done again) · **REJECTED** (permanent: code, message, details — e.g. WEEK_LOCKED, INSUFFICIENT_CASH, ALREADY_RECEIVED, INSUFFICIENT_STOCK, VALIDATION_ERROR, DEPENDENCY_REJECTED) · **RETRY** (transient; everything after it is RETRY too). Payload = the REST body plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId); any id may be the clientId of an earlier mutation or of an attachment uploaded with a clientId. Header `X-Pending-Mutations` = items still queued on the phone (shown to the office). Entries reaching the server more than 48 h after `deviceCreatedAt` are flagged `lateSync`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description The app’s device id (must match the signed-in device) */
+                        deviceId?: string;
+                        mutations: {
+                            /** Format: uuid */
+                            clientId: string;
+                            /** @enum {string} */
+                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE";
+                            /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId). Ids may be clientIds of earlier mutations or attachments. */
+                            payload: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: date-time */
+                            deviceCreatedAt?: string;
+                            dependsOn?: string[];
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Per-mutation results */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "results": [
+                         *           {
+                         *             "clientId": "0199a8c0-0000-7000-8000-00000000ab11",
+                         *             "type": "WORKER_CREATE",
+                         *             "status": "APPLIED",
+                         *             "serverId": "0199a8c0-0000-7000-8000-000000000c21",
+                         *             "error": null
+                         *           },
+                         *           {
+                         *             "clientId": "0199a8c0-0000-7000-8000-00000000ab12",
+                         *             "type": "PROJECT_WORKER_ASSIGN",
+                         *             "status": "DUPLICATE",
+                         *             "serverId": "0199a8c0-0000-7000-8000-000000000c22",
+                         *             "error": null
+                         *           },
+                         *           {
+                         *             "clientId": "0199a8c0-0000-7000-8000-00000000ab13",
+                         *             "type": "ATTENDANCE_UPSERT",
+                         *             "status": "REJECTED",
+                         *             "serverId": null,
+                         *             "error": {
+                         *               "code": "WEEK_LOCKED",
+                         *               "message": "This week is already submitted"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "applied": 1,
+                         *         "duplicates": 1,
+                         *         "rejected": 1,
+                         *         "retry": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | DEVICE_MISMATCH */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sync/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Device sync status
+         * @description The caller’s devices (every device of the company for THEKEDAR): last sync, items waiting on the phone and the last 10 rejected mutations with their codes.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Devices */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c31",
+                         *           "user": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Asif Mehmood",
+                         *             "role": "MUNSHI"
+                         *           },
+                         *           "platform": "ANDROID",
+                         *           "model": "Tecno Spark 10",
+                         *           "appVersion": "1.0.0",
+                         *           "revoked": false,
+                         *           "lastActiveAt": "2026-10-06T07:00:00.000Z",
+                         *           "lastSyncAt": "2026-10-06T06:58:00.000Z",
+                         *           "pendingUploads": 12,
+                         *           "lastRejected": [
+                         *             {
+                         *               "clientId": "0199a8c0-0000-7000-8000-00000000ab21",
+                         *               "type": "CASH_EXPENSE_CREATE",
+                         *               "code": "INSUFFICIENT_CASH",
+                         *               "message": "Only Rs 2,150 is in hand",
+                         *               "deviceCreatedAt": "2026-10-05T11:00:00.000Z",
+                         *               "at": "2026-10-06T06:58:00.000Z"
+                         *             }
+                         *           ]
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };

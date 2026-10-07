@@ -65,6 +65,8 @@ export const COMPANY_TAGS = [
   "Receivables",
   "BillingEvents",
   "Notifications",
+  "DailyLogs",
+  "SyncStatus",
   "Approvals",
   "Dashboard",
   "Finance",

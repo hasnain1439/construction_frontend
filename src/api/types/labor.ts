@@ -60,6 +60,8 @@ export interface AttendanceMark {
   status: AttendanceStatus;
   overtimeHours: number;
   note: string | null;
+  /** Entered on a phone, reached the server more than 48 h later. */
+  lateSync?: boolean;
 }
 
 export interface AttendanceDay {
@@ -72,7 +74,7 @@ export interface AttendanceDay {
   absent: number;
   unmarked: number;
   overtimeHours: number;
-  workers: Array<{ worker: WorkerRef; status: AttendanceStatus | null; overtimeHours: number; note: string | null }>;
+  workers: Array<{ worker: WorkerRef; status: AttendanceStatus | null; overtimeHours: number; note: string | null; lateSync?: boolean }>;
 }
 
 export interface TodayAttendance extends AttendanceDay {
@@ -319,6 +321,8 @@ export interface CashEntry {
   recoverableFromHolder: boolean;
   refType: string | null;
   refId: Id | null;
+  /** Entered on a phone, reached the server more than 48 h later. */
+  lateSync?: boolean;
   occurredAt: IsoDateTime;
   createdById: Id | null;
   createdAt: IsoDateTime;
