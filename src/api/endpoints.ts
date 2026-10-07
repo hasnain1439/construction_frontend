@@ -62,6 +62,16 @@ export const ENDPOINTS = {
     byId: (deviceId: string) => `/devices/${id(deviceId)}`,
   },
 
+  sync: {
+    /** Phones' sync health: last sync, entries waiting, last refused entries. */
+    status: "/sync/status",
+  },
+
+  dailyLogs: {
+    list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
+    byId: (logId: string) => `/daily-logs/${id(logId)}`,
+  },
+
   subscription: {
     current: "/subscription",
     plans: "/subscription/plans",
@@ -184,7 +194,8 @@ export const ENDPOINTS = {
     projectSettlements: (projectId: string) => `/projects/${id(projectId)}/settlements`,
     settlements: "/settlements",
     settlementById: (settlementId: string) => `/settlements/${id(settlementId)}`,
-    settlementLine: (settlementId: string, lineId: string) => `/settlements/${id(settlementId)}/lines/${id(lineId)}`,
+    settlementLine: (settlementId: string, lineId: string) =>
+      `/settlements/${id(settlementId)}/lines/${id(lineId)}`,
     settlementSubmit: (settlementId: string) => `/settlements/${id(settlementId)}/submit`,
     settlementApprove: (settlementId: string) => `/settlements/${id(settlementId)}/approve`,
     settlementReturn: (settlementId: string) => `/settlements/${id(settlementId)}/return`,
@@ -193,7 +204,8 @@ export const ENDPOINTS = {
     subcontractLedger: (assignmentId: string) => `/subcontract-assignments/${id(assignmentId)}/ledger`,
     subcontractProgress: (assignmentId: string) => `/subcontract-assignments/${id(assignmentId)}/progress`,
     subcontractPayments: (assignmentId: string) => `/subcontract-assignments/${id(assignmentId)}/payments`,
-    subcontractDeductions: (assignmentId: string) => `/subcontract-assignments/${id(assignmentId)}/deductions`,
+    subcontractDeductions: (assignmentId: string) =>
+      `/subcontract-assignments/${id(assignmentId)}/deductions`,
     overview: "/labor/overview",
     workerSummary: (workerId: string) => `/workers/${id(workerId)}/labor-summary`,
     subcontractorSummary: (subcontractorId: string) => `/subcontractors/${id(subcontractorId)}/labor-summary`,

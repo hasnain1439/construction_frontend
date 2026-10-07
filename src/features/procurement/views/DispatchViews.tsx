@@ -17,6 +17,7 @@ import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
+import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -158,7 +159,12 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
       <DocumentHeader
         title="Gate pass"
         number={dispatch.number}
-        status={<StatusBadge domain="dispatch" value={dispatch.status} />}
+        status={
+          <span className="flex flex-wrap gap-1">
+            <StatusBadge domain="dispatch" value={dispatch.status} />
+            {dispatch.lateSync ? <LateSyncBadge /> : null}
+          </span>
+        }
         locked={dispatch.status !== "ON_THE_WAY"}
         party={`${place(dispatch.from)} → ${place(dispatch.to)}`}
         meta={[

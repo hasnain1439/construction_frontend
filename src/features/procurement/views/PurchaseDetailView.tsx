@@ -12,6 +12,7 @@ import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
+import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -145,7 +146,12 @@ function PurchaseBody({ purchase }: { purchase: Purchase }) {
       <DocumentHeader
         title="Purchase (challan)"
         number={purchase.number}
-        status={<StatusBadge domain="purchase" value={purchase.status} />}
+        status={
+          <span className="flex flex-wrap gap-1">
+            <StatusBadge domain="purchase" value={purchase.status} />
+            {purchase.lateSync ? <LateSyncBadge /> : null}
+          </span>
+        }
         locked={purchase.locked}
         party={
           <>
