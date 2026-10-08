@@ -25,24 +25,29 @@ const DEAD_LINK = new Set(["INVITE_EXPIRED", "INVITE_CANCELLED", "INVITE_NOT_FOU
 
 function PasswordFields() {
   const munshi = useWatch({ name: "munshi" }) as boolean;
-  if (munshi) {
-    return (
-      <InlineAlert tone="info">
-        You&apos;ll sign in with a 6-digit code sent to your phone — no password needed.
-      </InlineAlert>
-    );
-  }
   return (
     <>
-      <PasswordField name="password" label="Choose a password" required autoComplete="new-password" showStrength />
-      <PasswordField name="confirmPassword" label="Confirm password" required autoComplete="new-password" />
+      {munshi ? (
+        <InlineAlert tone="info">
+          On the mobile app you can sign in two ways: a 6-digit code (sent by SMS, and by email if you have one) or a
+          password. Choose a password below if you want the password option.
+        </InlineAlert>
+      ) : null}
+      <PasswordField
+        name="password"
+        label={munshi ? "Choose a password (optional)" : "Choose a password"}
+        required={!munshi}
+        autoComplete="new-password"
+        showStrength
+      />
+      <PasswordField name="confirmPassword" label="Confirm password" required={!munshi} autoComplete="new-password" />
     </>
   );
 }
 
 /**
- * Accept a team invitation (link from the SMS). A PM sets a password; a Munshi can join
- * without one and signs in with phone OTP afterwards. The backend has no "preview
+ * Accept a team invitation (link from the SMS or email). A PM sets a password; a Munshi may
+ * set one too (password sign-in) or skip it and sign in with a phone code. The backend has no "preview
  * invitation" endpoint, so the company / role are shown after accepting.
  */
 export function AcceptInviteView({ token }: { token: string }) {
@@ -61,10 +66,12 @@ export function AcceptInviteView({ token }: { token: string }) {
     try {
       const result = await accept({
         token,
-        body: { ...(values.name ? { name: values.name } : {}), ...(values.munshi ? {} : { password: values.password }) },
+        body: { ...(values.name ? { name: values.name } : {}), ...(values.password ? { password: values.password } : {}) },
       }).unwrap();
       toast.success(`Welcome to ${result.tenant.name}!`);
-      if (result.user.role === "MUNSHI") toast.info("Next time, sign in with the phone code (OTP) option.");
+      if (result.user.role === "MUNSHI") {
+        toast.info(values.password ? "On the mobile app, sign in with your phone and password — or with a code." : "On the mobile app, sign in with your phone and a code.");
+      }
       await afterLogin("/dashboard");
     } catch (err) {
       const code = errorCode(err);
@@ -119,7 +126,7 @@ export function AcceptInviteView({ token }: { token: string }) {
       <Form form={form} onSubmit={onSubmit}>
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
         <TextField name="name" label="Your name" autoComplete="name" hint="Leave empty to keep the name your Thekedar entered." />
-        <ToggleField name="munshi" label="I'm a Munshi (site supervisor)" description="Munshis sign in with a phone code instead of a password." />
+        <ToggleField name="munshi" label="I'm a Munshi (site supervisor)" description="Munshis sign in on the mobile app with a phone code or a password." />
         <PasswordFields />
         <FormActions submitLabel="Accept invitation" loading={isLoading} fullWidth />
       </Form>

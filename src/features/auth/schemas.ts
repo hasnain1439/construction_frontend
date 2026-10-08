@@ -50,11 +50,11 @@ export const acceptInviteSchema = z
       .optional(),
     password: z.string(),
     confirmPassword: z.string(),
-    /** Munshis may join without a password (they sign in with a phone code). */
+    /** Munshis may join without a password (they sign in with a phone code) or set one for password sign-in. */
     munshi: z.boolean(),
   })
   .superRefine((v, ctx) => {
-    if (v.munshi) return;
+    if (v.munshi && !v.password && !v.confirmPassword) return;
     const result = passwordSchema.safeParse(v.password);
     if (!result.success) ctx.addIssue({ code: "custom", path: ["password"], message: result.error.issues[0].message });
     else if (v.password !== v.confirmPassword) ctx.addIssue({ code: "custom", path: ["confirmPassword"], message: "Passwords don't match" });
