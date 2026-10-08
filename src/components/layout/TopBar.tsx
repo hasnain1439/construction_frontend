@@ -23,7 +23,7 @@ import { canAccess } from "@/lib/permissions";
 import { useAppDispatch, useMe } from "@/store/hooks";
 import { setCommandOpen, toggleRail } from "@/store/slices/uiSlice";
 
-/** Round search button + "Search menu…" (opens CommandSearch, Ctrl+K). */
+/** Search pill styled like an input: "Search menu…" (opens CommandSearch, Ctrl+K). */
 export function SearchTrigger() {
   const t = useT();
   const dispatch = useAppDispatch();
@@ -31,14 +31,12 @@ export function SearchTrigger() {
     <button
       type="button"
       onClick={() => dispatch(setCommandOpen(true))}
-      className="group flex items-center gap-2.5 rounded-full py-1 pr-3 pl-1 text-sm text-muted-foreground transition-colors hover:bg-muted"
+      className="group flex h-10 items-center gap-2.5 rounded-full border glass px-2.5 shadow-card text-sm text-muted-foreground transition-colors hover:text-foreground md:w-64 md:px-4"
       aria-keyshortcuts="Control+K"
     >
-      <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-        <Search className="size-4" aria-hidden />
-      </span>
-      <span className="hidden md:inline">{t("shell.searchMenu")}</span>
-      <kbd className="hidden rounded border bg-muted px-1.5 text-[11px] font-medium lg:inline">Ctrl K</kbd>
+      <Search className="size-4 shrink-0" aria-hidden />
+      <span className="hidden flex-1 text-left md:inline">{t("shell.searchMenu")}</span>
+      <kbd className="hidden rounded-full bg-muted px-2 text-[11px] font-medium lg:inline">Ctrl K</kbd>
     </button>
   );
 }
@@ -81,7 +79,7 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1 rounded-full py-1 pr-2 pl-1 text-left transition-colors hover:bg-muted"
+          className="flex items-center gap-1 rounded-full border glass py-1 pr-2 pl-1 text-left shadow-card transition-colors hover:bg-card"
           aria-label="Account menu"
         >
           <AvatarName name={me.user.name} subtitle={me.tenant.name} photoUrl={me.user.photoUrl} className="max-w-52" />
@@ -115,13 +113,13 @@ function CompanyBrand() {
   const me = useMe();
   if (!me) return null;
   return (
-    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1 hover:bg-muted">
+    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-3 pl-1 hover:bg-muted">
       {me.tenant.logoUrl ? (
         // Signed, short-lived logo URL from the API.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={me.tenant.logoUrl} alt="" className="size-10 rounded-lg border object-contain" />
+        <img src={me.tenant.logoUrl} alt="" className="size-10 rounded-full border bg-card object-contain" />
       ) : (
-        <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground">
+        <span className="flex size-10 items-center justify-center rounded-full bg-charcoal text-base font-bold text-white dark:bg-primary dark:text-primary-foreground">
           {me.tenant.name.charAt(0)}
         </span>
       )}
@@ -143,7 +141,7 @@ export function TopBar({
   const t = useT();
   const dispatch = useAppDispatch();
   return (
-    <header className="grid h-20 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b bg-card px-4">
+    <header className="relative z-10 grid h-20 grid-cols-[1fr_auto_1fr] items-center gap-4 bg-transparent px-4 shadow-(--shadow-topbar)">
       <div className="flex min-w-0 items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => dispatch(toggleRail())} aria-label={t("shell.toggleMenu")}>
           <Menu />

@@ -46,7 +46,17 @@ export interface DataTableProps<T> {
   rowClassName?: (row: T) => string | undefined;
   caption?: string;
   className?: string;
+  /** Cap the table's height: rows scroll inside the card and the header row stays visible. */
+  maxHeight?: keyof typeof maxHeightClass;
 }
+
+/** Literal classes (Tailwind can't see computed ones): height cap on the scroll container + sticky header. */
+const maxHeightClass = {
+  sm: "[&_[data-slot=table-container]]:max-h-80",
+  md: "[&_[data-slot=table-container]]:max-h-[28rem]",
+} as const;
+const scrollClass =
+  "[&_[data-slot=table-container]]:overflow-y-auto [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead_tr]:bg-muted [&_thead_tr]:hover:bg-muted";
 
 type SortDirection = "asc" | "desc";
 
@@ -76,6 +86,7 @@ export function DataTable<T>({
   rowClassName,
   caption,
   className,
+  maxHeight,
 }: DataTableProps<T>) {
   const [sort, setSort] = useState<{ id: string; direction: SortDirection } | null>(defaultSort ?? null);
   const [clientPage, setClientPage] = useState(1);
@@ -120,7 +131,7 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn("min-w-0 overflow-hidden", className)}>
+    <div className={cn("min-w-0 overflow-hidden", maxHeight && [maxHeightClass[maxHeight], scrollClass], className)}>
       {body ?? (
         <Table aria-busy={loading || undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}

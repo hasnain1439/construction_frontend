@@ -45,7 +45,7 @@ export function StepTabs({
   };
 
   return (
-    <div role="tablist" aria-label={ariaLabel} className={cn("flex gap-1 overflow-x-auto rounded-xl border bg-card p-1.5 shadow-card", className)}>
+    <div role="tablist" aria-label={ariaLabel} className={cn("flex gap-1 overflow-x-auto rounded-2xl border border-transparent bg-card p-1.5 shadow-card", className)}>
       {steps.map((step, index) => {
         const active = step.id === current;
         return (

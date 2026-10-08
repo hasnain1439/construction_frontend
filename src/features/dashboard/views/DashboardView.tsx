@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useGetDashboardOverviewQuery } from "@/api/services/dashboard.api";
 import { useGetProjectsQuery } from "@/api/services/projects.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
-import { KpiCard } from "@/components/common/KpiCard";
+import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
@@ -36,8 +36,8 @@ function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: 
       <ul className="grid gap-3 md:grid-cols-2">
         {steps.map(({ done, label, href, icon: Icon }) => (
           <li key={label}>
-            <Link href={href} className={cn("flex items-center gap-3 rounded-xl border p-4 transition-colors hover:border-primary/50 hover:bg-accent/40", done && "bg-success-soft/50")}>
-              <span className={cn("flex size-9 items-center justify-center rounded-lg", done ? "bg-success text-white" : "bg-accent text-primary")}>
+            <Link href={href} className={cn("flex items-center gap-3 rounded-2xl bg-muted p-3 pr-4 transition-colors hover:bg-accent", done && "bg-success-soft")}>
+              <span className={cn("flex size-10 items-center justify-center rounded-full", done ? "bg-success text-white" : "bg-card text-foreground shadow-card")}>
                 {done ? <CircleCheck className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
               </span>
               <span className={cn("text-sm font-medium", done && "text-muted-foreground line-through")}>{label}</span>
@@ -53,12 +53,12 @@ function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: 
 function OverviewSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 rounded-3xl bg-card p-4 shadow-card sm:p-5 md:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-36 rounded-xl" />
+          <Skeleton key={i} className="h-32 rounded-2xl" />
         ))}
       </div>
-      <Skeleton className="h-64 rounded-xl" />
+      <Skeleton className="h-64 rounded-3xl" />
     </div>
   );
 }
@@ -112,19 +112,21 @@ function CompanyOverview() {
           const money = data.seesFinancials;
           return (
             <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
+              <KpiGroup>
                 <KpiCard
+                  variant="tile"
+                  highlight
                   label="Active projects"
                   icon={FolderKanban}
                   value={k.activeProjects.count}
                   tone={k.activeProjects.atRisk ? "warning" : "primary"}
                   hint={money ? `${k.activeProjects.atRisk} at risk` : `${k.dispatchesOnTheWay} dispatch${k.dispatchesOnTheWay === 1 ? "" : "es"} on the way`}
                 />
-                <Link href="/dashboard/approvals" className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
-                  <KpiCard label="Pending approvals" icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint="Open My Approvals" className="h-full transition-colors hover:border-primary/50" />
+                <Link href="/dashboard/approvals" className="rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                  <KpiCard variant="tile" label="Pending approvals" icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint="Open My Approvals" className="h-full transition-colors hover:bg-accent" />
                 </Link>
-                <KpiCard label="Open shortages" icon={PackageX} value={k.openShortages} tone={k.openShortages ? "danger" : "success"} hint={k.openShortages ? "Waiting for your decision" : "Nothing short"} />
-              </div>
+                <KpiCard variant="tile" label="Open shortages" icon={PackageX} value={k.openShortages} tone={k.openShortages ? "danger" : "success"} hint={k.openShortages ? "Waiting for your decision" : "Nothing short"} />
+              </KpiGroup>
 
               {money ? (
                 <div className="grid gap-4 md:grid-cols-3">

@@ -50,24 +50,24 @@ function LetterheadPreview() {
   ];
   return (
     <SectionCard title="Letterhead preview" description="As it appears on PDFs sent to clients.">
-      <div className="rounded-lg border bg-white p-5 text-slate-900 shadow-sm">
-        <div className="flex items-start gap-4 border-b-2 border-blue-600 pb-4">
+      <div className="rounded-2xl border bg-popover p-5 text-popover-foreground shadow-card">
+        <div className="flex items-start gap-4 border-b-2 border-sand pb-4">
           {logo?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logo.url} alt="" className="size-16 rounded object-contain" />
           ) : (
-            <span className="flex size-16 items-center justify-center rounded bg-blue-600 text-2xl font-bold text-white">
+            <span className="flex size-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
               {(name || "?").charAt(0)}
             </span>
           )}
           <div className="min-w-0 space-y-1">
             <p className="text-lg leading-tight font-bold">{name || "Company name"}</p>
             {address ? (
-              <p className="flex items-center gap-1 text-xs text-slate-600">
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="size-3" aria-hidden /> {address}
               </p>
             ) : null}
-            <p className="flex flex-wrap gap-x-3 text-xs text-slate-600">
+            <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
               {phone ? (
                 <span className="flex items-center gap-1">
                   <Phone className="size-3" aria-hidden /> {phone}
@@ -79,13 +79,13 @@ function LetterheadPreview() {
                 </span>
               ) : null}
             </p>
-            {ntn ? <p className="text-xs text-slate-600">NTN {ntn}</p> : null}
+            {ntn ? <p className="text-xs text-muted-foreground">NTN {ntn}</p> : null}
           </div>
         </div>
         <div className="space-y-2 pt-4" aria-hidden>
-          <div className="h-2 w-3/4 rounded bg-slate-100" />
-          <div className="h-2 w-2/3 rounded bg-slate-100" />
-          <div className="h-2 w-1/2 rounded bg-slate-100" />
+          <div className="h-2 w-3/4 rounded-full bg-muted" />
+          <div className="h-2 w-2/3 rounded-full bg-muted" />
+          <div className="h-2 w-1/2 rounded-full bg-muted" />
         </div>
       </div>
     </SectionCard>

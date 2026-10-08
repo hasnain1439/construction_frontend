@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import type { DashboardAlert, DashboardOverview, OverviewProjectRow } from "@/api/types";
-import { BarList } from "@/components/common/BarList";
+import { ShareColumns } from "@/components/common/ShareColumns";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { MoneyText } from "@/components/common/MoneyText";
@@ -22,8 +22,20 @@ const plot = (p: string | undefined) => Number(toPaisaBigInt(p ?? "0") ?? BigInt
 
 // ─── Projects summary ───────────────────────────────────────────────────────
 
+/** The dashboard shows a short list; the full one is on the Projects page. */
+const SUMMARY_LIMIT = 5;
+const STATUS_RANK: Record<string, number> = { ACTIVE: 0, CLOSEOUT: 1 };
+
+/** At-risk first, then active, then closeout, then the rest (handed over…) — order kept within each group. */
+function mostRelevant(rows: OverviewProjectRow[]): OverviewProjectRow[] {
+  const rank = (r: OverviewProjectRow) => (r.atRisk ? 0 : 1) * 10 + (STATUS_RANK[r.project.status] ?? 2);
+  return [...rows].sort((a, b) => rank(a) - rank(b)).slice(0, SUMMARY_LIMIT);
+}
+
 export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjectRow[] | undefined; money: boolean; loading?: boolean }) {
   const router = useRouter();
+  const shown = rows ? mostRelevant(rows) : undefined;
+  const total = rows?.length ?? 0;
   const columns: Column<OverviewProjectRow>[] = [
     {
       id: "project",
@@ -80,7 +92,7 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
   return (
     <SectionCard title="Projects summary" flush actions={<Button asChild variant="outline" size="sm"><Link href="/projects">All projects</Link></Button>}>
       <DataTable
-        rows={rows}
+        rows={shown}
         columns={columns}
         getRowId={(r) => r.project.id}
         loading={loading}
@@ -88,6 +100,16 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
         onRowClick={(r) => router.push(`/projects/${r.project.id}/overview`)}
         empty={{ title: "No running projects", description: "Active, closeout and handed-over projects show up here.", icon: CircleDashed }}
       />
+      {total > SUMMARY_LIMIT ? (
+        <div className="flex items-center justify-between gap-3 border-t px-4 py-3 text-sm text-muted-foreground">
+          <span>
+            Showing {SUMMARY_LIMIT} of {total} projects
+          </span>
+          <Link href="/projects" className="font-medium text-foreground underline-offset-2 hover:underline">
+            View all
+          </Link>
+        </div>
+      ) : null}
     </SectionCard>
   );
 }
@@ -96,8 +118,8 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
 
 function Chip({ icon: Icon, label, value, hint }: { icon: typeof Users; label: string; value: ReactNode; hint?: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border px-4 py-3">
-      <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-primary">
+    <div className="flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-foreground shadow-card">
         <Icon className="size-5" aria-hidden />
       </span>
       <div className="min-w-0">
@@ -126,7 +148,7 @@ export function SiteStats({ site }: { site: DashboardOverview["site"] }) {
 export function LaborAnalysis({ labor }: { labor: DashboardOverview["labor"] }) {
   return (
     <SectionCard title="Labour analysis" description={`Wages from weekly settlements · ${formatDate(labor.period.from)} – ${formatDate(labor.period.to)}`}>
-      <BarList
+      <ShareColumns
         ariaLabel="Wages by worker type"
         items={labor.byWorkerType.map((t) => ({ key: t.type, label: humanize(t.type), value: plot(t.wagesPaisa), display: <MoneyText paisa={t.wagesPaisa} short />, hint: `${t.days} days` }))}
         empty="No weekly settlements in this period."
@@ -158,7 +180,7 @@ const METHOD_LABEL: Record<string, string> = { CASH: "Cash", BANK_TRANSFER: "Ban
 export function PaymentAnalysis({ payments }: { payments: NonNullable<DashboardOverview["payments"]> }) {
   return (
     <SectionCard title="Payment analysis" description={`Received from owners · ${formatDate(payments.period.from)} – ${formatDate(payments.period.to)}`}>
-      <BarList
+      <ShareColumns
         ariaLabel="Payments by method"
         items={payments.byMethod
           .filter((m) => m.count > 0)
@@ -194,8 +216,8 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
             const meta = statusMeta("severity", a.severity);
             const Icon = meta.icon;
             return (
-              <li key={`${a.source}:${a.id}`} className="flex items-center gap-3 rounded-lg border p-3">
-                <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg border", TONE_CLASSES[meta.tone])}>
+              <li key={`${a.source}:${a.id}`} className="flex items-center gap-3 rounded-2xl bg-muted p-3">
+                <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full border", TONE_CLASSES[meta.tone])}>
                   <Icon className="size-4" aria-hidden />
                   <span className="sr-only">{meta.label}</span>
                 </span>

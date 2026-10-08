@@ -27,14 +27,14 @@ export function RingKpiCard({ label, value, percent, ringLabel, hint, loading, t
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   return (
-    <div className={cn("flex items-center gap-5 rounded-xl border bg-card p-5 shadow-card", className)}>
+    <div className={cn("flex items-center gap-5 rounded-3xl border border-transparent bg-card p-5 shadow-card", className)}>
       <div
         className="relative size-20 shrink-0"
         role="img"
         aria-label={`${Math.round(clamped)}%${ringLabel ? ` ${ringLabel}` : ""}`}
       >
         <svg viewBox="0 0 72 72" className="size-20 -rotate-90">
-          <circle cx="36" cy="36" r={radius} fill="none" strokeWidth="8" className="stroke-muted" />
+          <circle cx="36" cy="36" r={radius} fill="none" strokeWidth="8" className="stroke-secondary" />
           <circle
             cx="36"
             cy="36"
@@ -53,7 +53,7 @@ export function RingKpiCard({ label, value, percent, ringLabel, hint, loading, t
       </div>
       <div className="min-w-0 space-y-1">
         <p className="text-sm text-muted-foreground">{label}</p>
-        {loading ? <Skeleton className="h-9 w-28" /> : <p className="text-kpi font-semibold text-primary tabular">{value}</p>}
+        {loading ? <Skeleton className="h-9 w-28" /> : <p className="text-kpi font-semibold text-foreground tabular">{value}</p>}
         {ringLabel ? <p className="text-xs text-muted-foreground">{ringLabel}</p> : null}
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </div>

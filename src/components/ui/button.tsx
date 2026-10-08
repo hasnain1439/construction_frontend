@@ -21,7 +21,7 @@ const buttonVariants = cva(
         "destructive-soft":
           "bg-danger-soft text-danger hover:bg-danger/15 focus-visible:ring-destructive/20",
         success: "bg-success text-white hover:bg-success/90",
-        amber: "bg-amber text-slate-950 hover:bg-amber/90",
+        amber: "bg-amber text-charcoal hover:bg-amber/90",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Cabin } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreProvider } from "@/store/StoreProvider";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const cabin = Cabin({
+  variable: "--font-cabin",
   subsets: ["latin"],
   display: "swap",
 });
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+    <html lang="en" className={`${cabin.variable} h-full`} suppressHydrationWarning>
       {/* Browser extensions (Grammarly, ColorZilla …) add attributes to <body> before React loads. */}
       <body className="min-h-full bg-background text-sm text-foreground antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

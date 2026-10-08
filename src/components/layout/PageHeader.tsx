@@ -20,7 +20,7 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
+    <div className={cn("flex flex-wrap items-center justify-between gap-4", className)}>
       <div className="min-w-0 space-y-1.5">
         {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
         <div className="flex flex-wrap items-center gap-3">

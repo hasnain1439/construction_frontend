@@ -28,7 +28,7 @@ export function FilterBar({
     <div
       role="search"
       className={cn(
-        "flex flex-wrap items-center gap-2 rounded-xl border bg-card p-2 shadow-card",
+        "flex flex-wrap items-center gap-2 rounded-2xl border glass p-2 shadow-card",
         className,
       )}
     >

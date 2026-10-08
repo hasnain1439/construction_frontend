@@ -70,7 +70,7 @@ function RailHealth({ collapsed }: { collapsed?: boolean }) {
       title={label}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        "flex w-full flex-col items-center gap-1 px-2 py-2.5 text-center transition-colors hover:bg-muted",
+        "flex w-full flex-col items-center gap-1 rounded-2xl px-2 py-2.5 text-center transition-colors hover:bg-sidebar-accent/50",
         ok ? "text-success" : "text-warning",
       )}
     >

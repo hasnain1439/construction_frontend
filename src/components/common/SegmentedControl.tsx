@@ -52,7 +52,7 @@ export function SegmentedControl<V extends string>({
       aria-label={ariaLabel}
       aria-invalid={invalid || undefined}
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-full border bg-muted/60 p-0.5",
+        "inline-flex items-center gap-0.5 rounded-full border border-transparent bg-muted p-1",
         invalid && "border-destructive",
         disabled && "opacity-60",
         className,
@@ -79,7 +79,7 @@ export function SegmentedControl<V extends string>({
             className={cn(
               "inline-flex items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-colors",
               size === "sm" ? "h-7 px-3 text-xs" : "h-8 px-3.5 text-sm",
-              selected ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              selected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
             )}
           >
             {Icon ? <Icon className="size-4" aria-hidden /> : null}

@@ -98,8 +98,8 @@ function SpendChart({ rows }: { rows: Array<{ category: string | null; amountPai
       {rows.map((r) => (
         <li key={r.category ?? "none"} className="grid grid-cols-[7.5rem_1fr_auto] items-center gap-3 text-sm" title={`${categoryLabel(r.category)}: ${formatPKR(r.amountPaisa)}`}>
           <span className="truncate text-muted-foreground">{categoryLabel(r.category)}</span>
-          <span className="h-3 rounded-r bg-muted">
-            <span className="block h-3 rounded-r bg-primary" style={{ width: `${max ? Math.max(2, (Number(r.amountPaisa) / max) * 100) : 0}%` }} />
+          <span className="h-3 rounded-full bg-muted">
+            <span className="block h-3 rounded-full bg-chart-brand" style={{ width: `${max ? Math.max(2, (Number(r.amountPaisa) / max) * 100) : 0}%` }} />
           </span>
           <MoneyText paisa={r.amountPaisa} short className="text-right font-medium" />
         </li>

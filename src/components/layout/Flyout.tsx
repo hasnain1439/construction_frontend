@@ -64,7 +64,7 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
       role="menu"
       aria-label={title}
       className={cn(
-        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-r-2xl border-r bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-left-4",
+        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-r-3xl border-r border-transparent bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-left-4",
         className,
       )}
     >
@@ -88,14 +88,14 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
                 onClick={onClose}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  current ? "bg-accent text-primary" : "hover:bg-muted",
+                  current ? "bg-secondary font-semibold text-foreground shadow-sm" : "hover:bg-muted",
                 )}
               >
                 <EllipsisVertical className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="flex-1">{pickLabel(item.label, language)}</span>
                 {!item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
                 {count ? (
-                  <span className="rounded-full bg-amber px-1.5 text-[11px] font-semibold text-slate-950" aria-label={`${count} waiting`}>
+                  <span className="rounded-full bg-sun px-1.5 text-[11px] font-semibold text-charcoal" aria-label={`${count} waiting`}>
                     {count}
                   </span>
                 ) : null}
