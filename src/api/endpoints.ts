@@ -49,6 +49,9 @@ export const ENDPOINTS = {
     byId: (userId: string) => `/users/${id(userId)}`,
     reactivate: (userId: string) => `/users/${id(userId)}/reactivate`,
     projects: (userId: string) => `/users/${id(userId)}/projects`,
+    /** A munshi's one-time sign-in code (when SMS doesn't arrive). */
+    loginCode: (userId: string) => `/users/${id(userId)}/login-code`,
+    password: (userId: string) => `/users/${id(userId)}/password`,
   },
 
   invitations: {
@@ -285,6 +288,10 @@ export const ENDPOINTS = {
     tenantById: (tenantId: string) => `/admin/tenants/${id(tenantId)}`,
     tenantStatus: (tenantId: string) => `/admin/tenants/${id(tenantId)}/status`,
     tenantPlan: (tenantId: string) => `/admin/tenants/${id(tenantId)}/plan`,
+    /** Read-only look into a company (each look is audited). */
+    tenantProjects: (tenantId: string) => `/admin/tenants/${id(tenantId)}/projects`,
+    tenantTeam: (tenantId: string) => `/admin/tenants/${id(tenantId)}/team`,
+    tenantActivity: (tenantId: string) => `/admin/tenants/${id(tenantId)}/activity`,
     payments: "/admin/payments",
     paymentById: (paymentId: string) => `/admin/payments/${id(paymentId)}`,
     paymentApprove: (paymentId: string) => `/admin/payments/${id(paymentId)}/approve`,

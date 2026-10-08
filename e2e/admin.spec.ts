@@ -11,7 +11,10 @@ test("platform admin signs in and sees the console", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Companies" })).toBeVisible();
   await expect(page.getByRole("cell", { name: /Malik & Sons Builders/ })).toBeVisible();
 
-  await page.getByRole("navigation", { name: "Platform" }).getByRole("link", { name: /Overview/ }).click();
+  await page
+    .getByRole("navigation", { name: "Platform" })
+    .getByRole("button", { name: /Overview/ })
+    .click();
   await expect(page.getByText("Monthly recurring revenue")).toBeVisible();
   await expect(page.getByText("Service health")).toBeVisible();
 });

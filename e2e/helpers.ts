@@ -35,9 +35,12 @@ export async function cleanUpProject(page: Page, projectId: string) {
     await page.request.delete(`/api/v1/projects/${projectId}`);
     return;
   }
-  const path = status === "ACTIVE" ? ["CLOSEOUT", "HANDED_OVER"] : status === "CLOSEOUT" ? ["HANDED_OVER"] : [];
+  const path =
+    status === "ACTIVE" ? ["CLOSEOUT", "HANDED_OVER"] : status === "CLOSEOUT" ? ["HANDED_OVER"] : [];
   for (const next of path) {
-    await page.request.patch(`/api/v1/projects/${projectId}/status`, { data: { status: next, note: "E2E clean-up" } });
+    await page.request.patch(`/api/v1/projects/${projectId}/status`, {
+      data: { status: next, note: "E2E clean-up" },
+    });
   }
 }
 
@@ -46,7 +49,10 @@ export async function cleanUpProject(page: Page, projectId: string) {
  * munshi can sign in without reading the API console. Needs ../construction-platform.
  */
 export function devOtp(phone: string): string {
-  const out = execSync(`npm run -s dev:otp -- ${phone}`, { cwd: path.resolve(__dirname, "../../construction-platform"), encoding: "utf8" });
+  const out = execSync(`npm run -s dev:otp -- ${phone}`, {
+    cwd: path.resolve(__dirname, "../../construction-platform"),
+    encoding: "utf8",
+  });
   const code = /OTP=(\d{6})/.exec(out)?.[1];
   if (!code) throw new Error(`dev:otp gave no code: ${out}`);
   return code;

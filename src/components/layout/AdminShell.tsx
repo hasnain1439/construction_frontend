@@ -1,14 +1,12 @@
 "use client";
 
-import { Building, ChevronDown, CircleCheck, LogOut, Menu, TriangleAlert } from "lucide-react";
+import { Building, ChevronDown, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { useGetAdminMeQuery } from "@/api/services/admin/auth.api";
-import { useGetAdminHealthQuery, useGetAdminOverviewQuery } from "@/api/services/admin/overview.api";
 import { AvatarName } from "@/components/common/AvatarName";
 import { CommandSearch } from "@/components/common/CommandSearch";
-import { StatusBadge } from "@/components/common/StatusBadge";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,48 +19,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminLogout } from "@/features/auth/hooks/useLogout";
-import { pickLabel, useLanguage, useT } from "@/i18n/useT";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
-import { ADMIN_NAV } from "@/lib/navigation";
 import { loginUrl } from "@/lib/session";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleRail } from "@/store/slices/uiSlice";
+import { AdminRail } from "./AdminRail";
 import { SearchTrigger } from "./TopBar";
 
-function formatUptime(seconds: number) {
-  const days = Math.floor(seconds / 86_400);
-  const hours = Math.floor((seconds % 86_400) / 3600);
-  return days ? `${days}d ${hours}h` : `${hours}h ${Math.floor((seconds % 3600) / 60)}m`;
-}
-
-function HealthCard() {
-  const { data, isError } = useGetAdminHealthQuery(undefined, { pollingInterval: 60_000 });
-  const ok = !isError && data?.api.ok && data.database.ok;
-  return (
-    <div className={cn("m-3 rounded-xl border p-3 text-xs", ok ? "bg-success-soft" : "bg-warning-soft")}>
-      <p className="flex items-center gap-1.5 font-semibold">
-        {ok ? <CircleCheck className="size-4 text-success" aria-hidden /> : <TriangleAlert className="size-4 text-warning" aria-hidden />}
-        {data ? (ok ? "All systems normal" : "Attention needed") : "Checking systems…"}
-      </p>
-      {data ? (
-        <p className="mt-1 text-muted-foreground">
-          Uptime {formatUptime(data.uptimeSeconds)} · DB {data.database.latencyMs ?? "–"} ms
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-/** Platform console shell: neutral branding, sidebar, its own auth (admin cookies). */
+/** Platform console shell: neutral branding, the same rail + flyout as the company app, its own auth (admin cookies). */
 export function AdminShell({ children }: { children: ReactNode }) {
   const t = useT();
-  const language = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const collapsed = useAppSelector((state) => state.ui.railCollapsed);
   const { data: admin, error, isLoading } = useGetAdminMeQuery();
-  const { data: overview } = useGetAdminOverviewQuery(undefined, { skip: !admin, pollingInterval: 120_000 });
   const { signOut } = useAdminLogout();
 
   const status = error && "status" in error ? error.status : undefined;
@@ -89,10 +61,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="fixed inset-0 flex flex-col overflow-hidden">
       <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => dispatch(toggleRail())} aria-label={t("shell.toggleMenu")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => dispatch(toggleRail())}
+            aria-label={t("shell.toggleMenu")}
+          >
             <Menu />
           </Button>
-          <Link href="/admin/overview" className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-muted">
+          <Link
+            href="/admin/overview"
+            className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-muted"
+          >
             <span className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background">
               <Building className="size-5" aria-hidden />
             </span>
@@ -127,62 +107,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </div>
       </header>
-      <div className="flex min-h-0 flex-1">
-        {/* The menu button slides the sidebar out to the left (and back). */}
-        <nav
-          aria-label="Platform"
+      <div className="relative flex min-h-0 flex-1">
+        {/* Same rail + flyout as the company dashboard; the menu button slides it out. */}
+        <div
+          className={cn(
+            "h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out",
+            collapsed ? "w-0" : "w-28",
+          )}
           aria-hidden={collapsed || undefined}
           inert={collapsed}
-          className={cn(
-            "flex shrink-0 flex-col overflow-hidden bg-sidebar transition-[width] duration-200 ease-out",
-            collapsed ? "w-0" : "w-60 border-r",
-          )}
         >
-          <ul className="scrollbar-slim w-60 flex-1 space-y-0.5 overflow-y-auto p-2">
-            {ADMIN_NAV.map((item) => {
-              const Icon = item.icon;
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const label = pickLabel(item.label, language);
-              const badge = item.badge === "pendingPayments" ? overview?.paymentsAwaitingReview : undefined;
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-sidebar-accent text-sidebar-primary before:absolute before:inset-y-1.5 before:left-0 before:w-1 before:rounded-r-full before:bg-sidebar-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="size-5 shrink-0" aria-hidden />
-                    <span className="flex-1 whitespace-nowrap">{label}</span>
-                    {!item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
-                    {badge ? (
-                      <span className="ml-auto rounded-full bg-amber px-1.5 text-[11px] font-semibold text-slate-950" aria-label={`${badge} pending`}>
-                        {badge}
-                      </span>
-                    ) : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="w-60">
-            <HealthCard />
-          </div>
-          <div className="w-60 border-t p-2">
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
-            >
-              <LogOut className="size-5 shrink-0" aria-hidden />
-              {t("shell.logout")}
-            </button>
-          </div>
-        </nav>
+          <AdminRail collapsed={collapsed} onLogout={() => void signOut()} />
+        </div>
         <main className="min-w-0 flex-1 overflow-y-auto">
           <div className="w-full space-y-6 px-6 py-6">{children}</div>
         </main>

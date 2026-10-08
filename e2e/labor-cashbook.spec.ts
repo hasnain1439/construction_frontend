@@ -10,7 +10,9 @@ async function json<T>(res: Awaited<ReturnType<APIRequestContext["get"]>>): Prom
 
 /** A small ACTIVE project for this run (Bilal PM, Rafaqat munshi) so the test can run any number of times. */
 async function createSite(api: APIRequestContext, tag: string) {
-  const users = await json<Array<{ id: string; name: string }>>(await api.get("/api/v1/users?limit=100&status=ACTIVE"));
+  const users = await json<Array<{ id: string; name: string }>>(
+    await api.get("/api/v1/users?limit=100&status=ACTIVE"),
+  );
   const bilal = users.find((u) => u.name === SEED.pm.name)!;
   const rafaqat = users.find((u) => u.name === "Rafaqat Ali")!;
   const p = await json<{ id: string }>(
@@ -25,15 +27,37 @@ async function createSite(api: APIRequestContext, tag: string) {
       },
     }),
   );
-  await json(await api.patch(`/api/v1/projects/${p.id}/contract`, { data: { contractType: "FULL", billingModel: "STAGE_SCHEDULE", contractValuePaisa: "500000000" } }));
-  const plot = await json<{ floors: Array<{ id: string }> }>(
-    await api.patch(`/api/v1/projects/${p.id}/plot-structure`, {
-      data: { plotUnit: "MARLA", plotSize: 5, frontFt: 25, depthFt: 45, structureType: "FRAMED", hasBasement: false, floors: [{ level: "GROUND", ceilingHeightFt: 11 }] },
+  await json(
+    await api.patch(`/api/v1/projects/${p.id}/contract`, {
+      data: { contractType: "FULL", billingModel: "STAGE_SCHEDULE", contractValuePaisa: "500000000" },
     }),
   );
-  await json(await api.patch(`/api/v1/projects/${p.id}/coverage`, { data: { coveredAreaSqft: 1000, boundaryWall: false } }));
-  await json(await api.post(`/api/v1/floors/${plot.floors[0].id}/rooms`, { data: { type: "TV_LOUNGE", lengthFt: 30, widthFt: 28 } }));
-  await json(await api.put(`/api/v1/projects/${p.id}/team`, { data: { pmId: bilal.id, munshiIds: [rafaqat.id] } }));
+  const plot = await json<{ floors: Array<{ id: string }> }>(
+    await api.patch(`/api/v1/projects/${p.id}/plot-structure`, {
+      data: {
+        plotUnit: "MARLA",
+        plotSize: 5,
+        frontFt: 25,
+        depthFt: 45,
+        structureType: "FRAMED",
+        hasBasement: false,
+        floors: [{ level: "GROUND", ceilingHeightFt: 11 }],
+      },
+    }),
+  );
+  await json(
+    await api.patch(`/api/v1/projects/${p.id}/coverage`, {
+      data: { coveredAreaSqft: 1000, boundaryWall: false },
+    }),
+  );
+  await json(
+    await api.post(`/api/v1/floors/${plot.floors[0].id}/rooms`, {
+      data: { type: "TV_LOUNGE", lengthFt: 30, widthFt: 28 },
+    }),
+  );
+  await json(
+    await api.put(`/api/v1/projects/${p.id}/team`, { data: { pmId: bilal.id, munshiIds: [rafaqat.id] } }),
+  );
   await json(await api.post(`/api/v1/projects/${p.id}/activate`));
   return p.id;
 }
@@ -47,7 +71,8 @@ async function munshiSignIn(browser: Browser): Promise<Page> {
   await page.getByRole("button", { name: "Send code" }).click();
   await expect(page.getByText("Enter the code").first()).toBeVisible();
   const code = devOtp(MUNSHI_PHONE);
-  for (const [i, digit] of [...code].entries()) await page.getByRole("textbox", { name: `Digit ${i + 1}` }).fill(digit);
+  for (const [i, digit] of [...code].entries())
+    await page.getByRole("textbox", { name: `Digit ${i + 1}` }).fill(digit);
   await expect(page.getByText("Choose a company").first()).toBeVisible();
   await page.getByRole("button", { name: /Malik & Sons Builders/ }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
@@ -56,8 +81,14 @@ async function munshiSignIn(browser: Browser): Promise<Page> {
 
 async function pick(page: Page, name: string, option: string) {
   await page.getByRole("combobox", { name }).click();
-  await page.getByPlaceholder(/Search/).last().fill(option);
-  await page.getByRole("option", { name: new RegExp(option) }).first().click();
+  await page
+    .getByPlaceholder(/Search/)
+    .last()
+    .fill(option);
+  await page
+    .getByRole("option", { name: new RegExp(option) })
+    .first()
+    .click();
 }
 
 const rupees = (text: string | null) => Number((text ?? "").replace(/[^\d.]/g, ""));
@@ -67,7 +98,10 @@ const rupees = (text: string | null) => Number((text ?? "").replace(/[^\d.]/g, "
  * generates and submits the week · PM approves · munshi pays from site cash and the
  * balance drops by peshgi + wages.
  */
-test("hazri → site-cash peshgi → weekly settlement → PM approves → munshi pays; float acknowledged", async ({ page, browser }) => {
+test("hazri → site-cash peshgi → weekly settlement → PM approves → munshi pays; float acknowledged", async ({
+  page,
+  browser,
+}) => {
   test.setTimeout(240_000);
   const tag = Date.now().toString().slice(-6);
   await signIn(page, SEED.thekedar);
@@ -85,7 +119,10 @@ test("hazri → site-cash peshgi → weekly settlement → PM approves → munsh
     // 2. Rafaqat acknowledges it
     const munshi = await munshiSignIn(browser);
     await munshi.goto(`/projects/${projectId}/cash-book/floats`);
-    await munshi.getByRole("button", { name: /Mil gaye/ }).first().click();
+    await munshi
+      .getByRole("button", { name: /Mil gaye/ })
+      .first()
+      .click();
     await expect(munshi.getByText("Rs 5,000 received")).toBeVisible();
     await munshi.goto(`/projects/${projectId}/cash-book/kharcha`);
     const balance = munshi.getByTestId("cash-balance");
@@ -133,7 +170,10 @@ test("hazri → site-cash peshgi → weekly settlement → PM approves → munsh
     // 7. Rafaqat pays everyone from site cash; the balance drops by peshgi + wages
     await munshi.goto(new URL(settlementUrl).pathname);
     await munshi.getByRole("button", { name: "Pay all" }).click();
-    await munshi.getByRole("dialog").getByRole("button", { name: /^Pay Rs/ }).click();
+    await munshi
+      .getByRole("dialog")
+      .getByRole("button", { name: /^Pay Rs/ })
+      .click();
     await expect(munshi.getByText(/^Paid Rs/)).toBeVisible();
     await munshi.goto(`/projects/${projectId}/cash-book/kharcha`);
     await expect(balance).toBeVisible();

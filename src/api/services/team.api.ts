@@ -54,6 +54,14 @@ export const teamApi = baseApi.injectEndpoints({
       invalidatesTags: (_r, _e, id) => [{ type: "Users", id }, { type: "Users", id: LIST }, "Subscription"],
     }),
 
+    // Munshi sign-in without SMS: a code to pass on, or a password set by the owner.
+    issueLoginCode: build.mutation<{ phone: string; code: string; expiresIn: number }, string>({
+      query: (id) => ({ url: ENDPOINTS.users.loginCode(id), method: "POST" }),
+    }),
+    setUserPassword: build.mutation<{ passwordSet: true }, { id: string; password: string }>({
+      query: ({ id, password }) => ({ url: ENDPOINTS.users.password(id), method: "PUT", body: { password } }),
+    }),
+
     // ─── Invitations ───────────────────────────────────────────────────────
     getInvitations: build.query<Paginated<Invitation>, InvitationsQuery | void>({
       query: (params) => ({ url: ENDPOINTS.invitations.list, params: cleanParams(params ?? undefined) }),
@@ -98,6 +106,8 @@ export const {
   useSetUserProjectsMutation,
   useDeactivateUserMutation,
   useReactivateUserMutation,
+  useIssueLoginCodeMutation,
+  useSetUserPasswordMutation,
   useGetInvitationsQuery,
   useCreateInvitationMutation,
   useResendInvitationMutation,

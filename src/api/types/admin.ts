@@ -310,3 +310,80 @@ export interface CatalogMaterial {
 export type CatalogMaterialsQuery = QueryParams<"/api/v1/admin/materials", "get">;
 export type CreateCatalogMaterialBody = RequestBody<"/api/v1/admin/materials", "post">;
 export type UpdateCatalogMaterialBody = RequestBody<"/api/v1/admin/materials/{id}", "patch">;
+
+// ─── A company's data (read-only, every look audited) ───────────────────────
+
+export interface CompanyProjectRow {
+  id: Id;
+  code: string;
+  name: string;
+  status: string;
+  client: { id: Id; name: string; phone: string } | null;
+  city: string | null;
+  siteAddress: string | null;
+  startDate: IsoDate | null;
+  endDate: IsoDate | null;
+  contractValuePaisa: Paisa | null;
+  billedPaisa: Paisa;
+  receivedPaisa: Paisa;
+  outstandingPaisa: Paisa;
+  teamMembers: number;
+  activeWorkers: number;
+  dailyLogs: number;
+  lastDailyLog: IsoDate | null;
+  createdAt: IsoDateTime;
+}
+
+export interface CompanyTeam {
+  users: Array<{
+    id: Id;
+    name: string;
+    role: "THEKEDAR" | "PM" | "MUNSHI";
+    phone: string;
+    email: string | null;
+    status: string;
+    canSeeFinancials: boolean;
+    /** null for the owner (sees every project). */
+    projects: number | null;
+    lastLoginAt: IsoDateTime | null;
+    createdAt: IsoDateTime;
+  }>;
+  devices: Array<{
+    id: Id;
+    user: { id: Id; name: string; role: "THEKEDAR" | "PM" | "MUNSHI" };
+    platform: "ANDROID" | "IOS" | "WEB";
+    model: string | null;
+    appVersion: string | null;
+    lastActiveAt: IsoDateTime;
+    lastSyncAt: IsoDateTime | null;
+    pendingUploads: number;
+    revoked: boolean;
+  }>;
+  pendingInvites: number;
+}
+
+export interface CompanyActivity {
+  asOf: IsoDateTime;
+  lastActivityAt: IsoDateTime | null;
+  lastLoginAt: IsoDateTime | null;
+  projectsByStatus: Record<string, number>;
+  activeWorkers: number;
+  last30Days: {
+    from: IsoDate;
+    hazriMarks: number;
+    purchases: { count: number; totalPaisa: Paisa };
+    dispatches: number;
+    kharcha: { count: number; totalPaisa: Paisa };
+    materialUsageEntries: number;
+    dailyLogs: number;
+    invoicesIssued: { count: number; totalPaisa: Paisa };
+    paymentsReceived: { count: number; totalPaisa: Paisa };
+  };
+  money: {
+    billedPaisa: Paisa;
+    receivedPaisa: Paisa;
+    receivablesPaisa: Paisa;
+    supplierUdhaarPaisa: Paisa;
+    cashWithSiteStaffPaisa: Paisa;
+  };
+}

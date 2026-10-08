@@ -183,6 +183,17 @@ Site entries now also come from the **Munshi phone app** (`../construction-mobil
 
 New: `components/common/LateSyncBadge.tsx`, `features/site/DailyLogsView.tsx`, `api/services/dailyLogs.api.ts` (`getDailyLogs`, `getDailyLog`, `getSyncStatus`; tags `DailyLogs`, `SyncStatus`), `api/types/sync.ts`, endpoints `ENDPOINTS.dailyLogs.*` and `ENDPOINTS.sync.status`. `lateSync?: boolean` was added to `AttendanceMark`, today's hazri rows, `CashEntry`, `Purchase`, `PurchaseListRow` and `Dispatch`. Navigation: _Daily Logs & Photos_ is now available. API types regenerated (`npm run api:types`).
 
+## Super admin: Company data
+
+Platform console → **Company Data** (`/admin/data`): pick a company in the bar at the top and work in **that company's own screens** — Dashboard, Projects (and inside a project: Planning, Site, Labor, Cash Book, Billing), Sales, Suppliers & Stock, Workforce, Finance, Reports, Team, Settings — to view, add, edit and delete. **Exit** leaves the company. Company detail (`/admin/companies/:id`) also has read-only tabs: Projects, Team & devices, Activity & money.
+
+How it works:
+
+- `/admin/data/<company path>` renders the company app's page for `<company path>` (`app/admin/(console)/data/[[...path]]`). The list of pages is generated: run `npm run routes:company` after adding or moving a page under `(company)` or `(project)` (a unit test fails when it is out of date).
+- The chosen company is the `act_as_tenant` cookie (`lib/actingCompany.ts`). While it is set (and the admin is signed in), the company API sends `X-Act-As-Tenant` with the admin's session and refreshes through the admin refresh endpoint; the proxy sends company links (`/projects/…`) to `/admin/data/…`, so every page's own links stay in the console.
+- Switching company or exiting clears the company cache, so one company's data never shows in another. Admin logout clears the choice too.
+- Changes are made as the company's hidden "Super Admin (Platform)" user and logged with the admin's name (see the backend README).
+
 ## Rules of the codebase
 
 1. **Reusable components.** Any UI pattern used twice or more lives in `src/components`
