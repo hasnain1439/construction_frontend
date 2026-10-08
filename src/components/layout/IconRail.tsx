@@ -18,10 +18,20 @@ export interface IconRailProps {
   header?: ReactNode;
   /** Pinned under the sections (e.g. Log out). */
   footer?: ReactNode;
+  /** Accessible name of the rail (default "Main"). */
+  label?: string;
 }
 
 /** Log out button styled like a rail item, for the rail footer. */
-export function RailLogoutButton({ label, collapsed, onClick }: { label: string; collapsed?: boolean; onClick: () => void }) {
+export function RailLogoutButton({
+  label,
+  collapsed,
+  onClick,
+}: {
+  label: string;
+  collapsed?: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -40,11 +50,20 @@ export function RailLogoutButton({ label, collapsed, onClick }: { label: string;
  * Left rail: large outline icon with the label under it. Active = blue text + 4px blue
  * left bar. Only the active item is highlighted.
  */
-export function IconRail({ sections, activeSectionId, openSectionId, onSelect, collapsed, header, footer }: IconRailProps) {
+export function IconRail({
+  sections,
+  activeSectionId,
+  openSectionId,
+  onSelect,
+  collapsed,
+  header,
+  footer,
+  label: railLabel = "Main",
+}: IconRailProps) {
   const language = useLanguage();
   return (
     <nav
-      aria-label="Main"
+      aria-label={railLabel}
       data-collapsed={collapsed || undefined}
       className={cn(
         "scrollbar-slim flex h-full flex-col overflow-y-auto border-r bg-sidebar pb-4",

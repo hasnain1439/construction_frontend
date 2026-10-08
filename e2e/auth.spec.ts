@@ -35,6 +35,8 @@ test.describe("auth smoke", () => {
     await page.getByRole("textbox", { name: "Email or phone", exact: true }).fill("03009999999");
     await passwordInput(page).fill("definitely-wrong-1");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("tabpanel").getByRole("alert")).toContainText(/wrong phone\/email or password/i);
+    await expect(page.getByRole("tabpanel").getByRole("alert")).toContainText(
+      /wrong phone\/email or password/i,
+    );
   });
 });

@@ -3,6 +3,9 @@ import { ENDPOINTS } from "@/api/endpoints";
 import { LIST, providesList } from "@/api/tags";
 import { cleanParams, toPage } from "@/api/transform";
 import type {
+  CompanyActivity,
+  CompanyProjectRow,
+  CompanyTeam,
   CreateTenantBody,
   CreateTenantResult,
   Paginated,
@@ -33,6 +36,19 @@ export const adminTenantsApi = adminBaseApi.injectEndpoints({
       query: (id) => ENDPOINTS.admin.tenantById(id),
       providesTags: (_r, _e, id) => [{ type: "Tenants", id }],
     }),
+    // A company's own data — read-only; the server audits each look.
+    getCompanyProjects: build.query<CompanyProjectRow[], string>({
+      query: (id) => ENDPOINTS.admin.tenantProjects(id),
+      providesTags: (_r, _e, id) => [{ type: "Tenants", id }],
+    }),
+    getCompanyTeam: build.query<CompanyTeam, string>({
+      query: (id) => ENDPOINTS.admin.tenantTeam(id),
+      providesTags: (_r, _e, id) => [{ type: "Tenants", id }],
+    }),
+    getCompanyActivity: build.query<CompanyActivity, string>({
+      query: (id) => ENDPOINTS.admin.tenantActivity(id),
+      providesTags: (_r, _e, id) => [{ type: "Tenants", id }],
+    }),
     createTenant: build.mutation<CreateTenantResult, CreateTenantBody>({
       query: (body) => ({ url: ENDPOINTS.admin.tenants, method: "POST", body }),
       invalidatesTags: [{ type: "Tenants", id: LIST }, { type: "AuditLogs", id: LIST }, "AdminOverview"],
@@ -51,6 +67,9 @@ export const adminTenantsApi = adminBaseApi.injectEndpoints({
 export const {
   useGetTenantsQuery,
   useGetTenantQuery,
+  useGetCompanyProjectsQuery,
+  useGetCompanyTeamQuery,
+  useGetCompanyActivityQuery,
   useCreateTenantMutation,
   useSetTenantStatusMutation,
   useSetTenantPlanMutation,

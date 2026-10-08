@@ -24,7 +24,14 @@ describe("proxy (route guard by cookie presence)", () => {
   });
 
   it("never guards public pages", () => {
-    for (const path of ["/login", "/otp?phone=1", "/signup", "/invite/abc", "/suspended", "/reset-password"]) {
+    for (const path of [
+      "/login",
+      "/otp?phone=1",
+      "/signup",
+      "/invite/abc",
+      "/suspended",
+      "/reset-password",
+    ]) {
       expect(location(proxy(req(path)))).toBeNull();
     }
   });
@@ -35,5 +42,28 @@ describe("proxy (route guard by cookie presence)", () => {
     );
     expect(location(proxy(req("/admin/companies", { admin_access_token: "jwt" })))).toBeNull();
     expect(location(proxy(req("/admin/login")))).toBeNull();
+  });
+});
+
+describe("proxy: super admin working inside a company (Company data)", () => {
+  const acting = { admin_access_token: "jwt", act_as_tenant: "01a10000-0000-7000-8000-000000000001" };
+
+  it("sends company links into the admin console", () => {
+    expect(location(proxy(req("/suppliers-stock/purchases/abc?tab=x", acting)))).toBe(
+      "http://localhost:3000/admin/data/suppliers-stock/purchases/abc?tab=x",
+    );
+    expect(location(proxy(req("/", acting)))).toBe("http://localhost:3000/admin/data/dashboard");
+  });
+
+  it("does nothing without the admin's own sign-in cookie, or without a chosen company", () => {
+    expect(
+      location(proxy(req("/dashboard", { access_token: "jwt", act_as_tenant: acting.act_as_tenant }))),
+    ).toBeNull();
+    expect(location(proxy(req("/dashboard", { admin_access_token: "jwt", access_token: "jwt" })))).toBeNull();
+  });
+
+  it("leaves admin and public pages alone", () => {
+    expect(location(proxy(req("/admin/data/projects", acting)))).toBeNull();
+    expect(location(proxy(req("/login", acting)))).toBeNull();
   });
 });

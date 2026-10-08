@@ -61,7 +61,19 @@ export interface LineItemsEditorProps {
   disabled?: boolean;
 }
 
-function PhotoCell({ value, onChange, kind, label, disabled }: { value: UploadedFile | null; onChange: (file: UploadedFile | null) => void; kind: AttachmentKind; label: string; disabled?: boolean }) {
+function PhotoCell({
+  value,
+  onChange,
+  kind,
+  label,
+  disabled,
+}: {
+  value: UploadedFile | null;
+  onChange: (file: UploadedFile | null) => void;
+  kind: AttachmentKind;
+  label: string;
+  disabled?: boolean;
+}) {
   const [upload, { isLoading }] = useUploadAttachmentMutation();
   const [error, setError] = useState<string | null>(null);
   const language = useLanguage();
@@ -73,7 +85,13 @@ function PhotoCell({ value, onChange, kind, label, disabled }: { value: Uploaded
           {value.fileName}
         </span>
         {!disabled ? (
-          <Button type="button" variant="ghost" size="icon-xs" aria-label={`Remove ${label}`} onClick={() => onChange(null)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            aria-label={`Remove ${label}`}
+            onClick={() => onChange(null)}
+          >
             <Trash2 />
           </Button>
         ) : null}
@@ -82,8 +100,17 @@ function PhotoCell({ value, onChange, kind, label, disabled }: { value: Uploaded
   }
   return (
     <span className="space-y-1">
-      <label className={cn("inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs hover:bg-muted", disabled && "pointer-events-none opacity-50")}>
-        {isLoading ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <Camera className="size-3.5" aria-hidden />}
+      <label
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs hover:bg-muted",
+          disabled && "pointer-events-none opacity-50",
+        )}
+      >
+        {isLoading ? (
+          <Loader2 className="size-3.5 animate-spin" aria-hidden />
+        ) : (
+          <Camera className="size-3.5" aria-hidden />
+        )}
         {isLoading ? "Uploading…" : "Photo"}
         <input
           type="file"
@@ -123,6 +150,9 @@ function CellError({ name }: { name: string }) {
  * The one editor for document lines — purchase, PO, dispatch, receive, usage, count,
  * owner delivery, return. Material + configurable quantity / money / text / photo columns,
  * add / remove rows, a computed amount and a totals footer.
+ *
+ * Responsive by its own width (container query): in a narrow place — a phone, a 560px
+ * slide-over — each line becomes a card with labelled fields; with room it is a table.
  */
 export function LineItemsEditor({
   name,
@@ -147,21 +177,33 @@ export function LineItemsEditor({
   const fixed = materialMode === "fixed";
   const chosen = rows.map((r) => r.materialId).filter((id): id is string => Boolean(id));
 
-  const unitOf = (row: LineRow | undefined) => row?.material?.unit ?? (row?.materialId ? units.get(row.materialId)?.unit : undefined);
-  const amountOf = (row: LineRow | undefined) => (amount && row ? qtyTimesRate(row[amount.qtyKey] as string | null, row[amount.rateKey] as string | null) : null);
+  const unitOf = (row: LineRow | undefined) =>
+    row?.material?.unit ?? (row?.materialId ? units.get(row.materialId)?.unit : undefined);
+  const amountOf = (row: LineRow | undefined) =>
+    amount && row
+      ? qtyTimesRate(row[amount.qtyKey] as string | null, row[amount.rateKey] as string | null)
+      : null;
   const total = amount ? rows.reduce((sum, row) => sum + BigInt(amountOf(row) ?? "0"), BigInt(0)) : null;
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-muted/40 text-left text-xs font-semibold text-muted-foreground uppercase">
+      <div className="@container rounded-xl border">
+        <table className="block w-full text-sm @2xl:table">
+          <thead className="hidden bg-muted/40 text-left text-xs font-semibold text-muted-foreground uppercase @2xl:table-header-group">
             <tr>
               <th scope="col" className="px-3 py-2">
                 Material
               </th>
               {columns.map((c) => (
-                <th key={c.key} scope="col" className={cn("px-3 py-2", c.width, c.kind !== "text" && c.kind !== "photo" && "text-right")}>
+                <th
+                  key={c.key}
+                  scope="col"
+                  className={cn(
+                    "px-3 py-2",
+                    c.width,
+                    c.kind !== "text" && c.kind !== "photo" && "text-right",
+                  )}
+                >
                   {c.label}
                   {c.required ? <span className="text-destructive"> *</span> : null}
                 </th>
@@ -171,13 +213,15 @@ export function LineItemsEditor({
                   {amount.label ?? "Amount"}
                 </th>
               ) : null}
-              {!fixed ? <th scope="col" className="w-10 px-2 py-2" aria-label="Remove" /> : null}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="block @2xl:table-row-group">
             {fields.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + 3} className="px-3 py-6 text-center text-sm text-muted-foreground">
+              <tr className="block @2xl:table-row">
+                <td
+                  colSpan={columns.length + 3}
+                  className="block px-3 py-6 text-center text-sm text-muted-foreground @2xl:table-cell"
+                >
                   No materials yet.
                 </td>
               </tr>
@@ -185,60 +229,126 @@ export function LineItemsEditor({
             {fields.map((field, index) => {
               const row = rows[index];
               const unit = unitOf(row);
-              const label = row?.material?.name ?? (row?.materialId ? units.get(row.materialId)?.name : undefined) ?? `Line ${index + 1}`;
+              const label =
+                row?.material?.name ??
+                (row?.materialId ? units.get(row.materialId)?.name : undefined) ??
+                `Line ${index + 1}`;
               const externalError = row ? rowError?.(row, index) : undefined;
               const lineAmount = amountOf(row);
               return (
-                <tr key={field.id} className="border-t align-top" data-testid="line-row">
-                  <td className="min-w-52 px-3 py-2">
-                    {fixed ? (
-                      <p className="pt-2 font-medium">{label}</p>
-                    ) : (
-                      <Controller
-                        control={control}
-                        name={`${name}.${index}.materialId`}
-                        render={({ field: f }) => (
-                          <MaterialPicker
-                            value={f.value as string | null}
-                            onChange={(id, material) => {
-                              f.onChange(id);
-                              onMaterialChange?.(index, material);
-                            }}
-                            onlyIds={materialIds}
-                            excludeIds={chosen}
-                            describe={describeMaterial}
-                            disabled={disabled}
-                            invalid={Boolean(externalError)}
-                            ariaLabel={`${label} material`}
+                <tr
+                  key={field.id}
+                  className="grid grid-cols-2 gap-x-3 gap-y-2 border-t p-3 align-top first:border-t-0 @2xl:table-row @2xl:p-0 @2xl:first:border-t"
+                  data-testid="line-row"
+                >
+                  <td className="col-span-2 @2xl:table-cell @2xl:min-w-52 @2xl:px-3 @2xl:py-2">
+                    <div className="flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        {fixed ? (
+                          <p className="pt-2 font-medium">{label}</p>
+                        ) : (
+                          <Controller
+                            control={control}
+                            name={`${name}.${index}.materialId`}
+                            render={({ field: f }) => (
+                              <MaterialPicker
+                                value={f.value as string | null}
+                                onChange={(id, material) => {
+                                  f.onChange(id);
+                                  onMaterialChange?.(index, material);
+                                }}
+                                onlyIds={materialIds}
+                                excludeIds={chosen}
+                                describe={describeMaterial}
+                                disabled={disabled}
+                                invalid={Boolean(externalError)}
+                                ariaLabel={`${label} material`}
+                              />
+                            )}
                           />
                         )}
-                      />
-                    )}
-                    {!fixed ? <CellError name={`${name}.${index}.materialId`} /> : null}
-                    {row && info ? <div className="mt-1 text-xs text-muted-foreground">{info(row, index)}</div> : null}
-                    {externalError ? (
-                      <p role="alert" className="mt-1 text-xs font-medium text-destructive">
-                        {externalError}
-                      </p>
-                    ) : null}
+                        {!fixed ? <CellError name={`${name}.${index}.materialId`} /> : null}
+                        {row && info ? (
+                          <div className="mt-1 text-xs text-muted-foreground">{info(row, index)}</div>
+                        ) : null}
+                        {externalError ? (
+                          <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                            {externalError}
+                          </p>
+                        ) : null}
+                      </div>
+                      {!fixed ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="shrink-0"
+                          disabled={disabled || fields.length <= 1}
+                          onClick={() => remove(index)}
+                          aria-label={`Remove ${label}`}
+                        >
+                          <Trash2 />
+                        </Button>
+                      ) : null}
+                    </div>
                   </td>
                   {columns.map((c) => {
                     const cellName = `${name}.${index}.${c.key}`;
                     const aria = `${label} ${c.label}`;
                     return (
-                      <td key={c.key} className={cn("px-3 py-2", c.width)}>
+                      <td
+                        key={c.key}
+                        className={cn(
+                          "block min-w-0 @2xl:table-cell @2xl:px-3 @2xl:py-2",
+                          c.kind === "text" && "col-span-2",
+                          c.width,
+                          "@max-2xl:w-auto",
+                        )}
+                      >
+                        <span className="mb-1 block text-xs font-semibold text-muted-foreground uppercase @2xl:hidden">
+                          {c.label}
+                          {c.required ? <span className="text-destructive"> *</span> : null}
+                        </span>
                         <Controller
                           control={control}
                           name={cellName}
                           render={({ field: f }) =>
                             c.kind === "quantity" ? (
-                              <QuantityInput value={f.value as string | null} onChange={f.onChange} onBlur={f.onBlur} unit={unit} aria-label={aria} placeholder={c.placeholder ?? "0"} disabled={disabled} />
+                              <QuantityInput
+                                value={f.value as string | null}
+                                onChange={f.onChange}
+                                onBlur={f.onBlur}
+                                unit={unit}
+                                aria-label={aria}
+                                placeholder={c.placeholder ?? "0"}
+                                disabled={disabled}
+                              />
                             ) : c.kind === "money" ? (
-                              <MoneyInput value={f.value as string | null} onChange={f.onChange} onBlur={f.onBlur} aria-label={aria} placeholder={c.placeholder} disabled={disabled} />
+                              <MoneyInput
+                                value={f.value as string | null}
+                                onChange={f.onChange}
+                                onBlur={f.onBlur}
+                                aria-label={aria}
+                                placeholder={c.placeholder}
+                                disabled={disabled}
+                              />
                             ) : c.kind === "photo" ? (
-                              <PhotoCell value={(f.value as UploadedFile | null) ?? null} onChange={f.onChange} kind={c.photoKind ?? "SITE_PHOTO"} label={aria} disabled={disabled} />
+                              <PhotoCell
+                                value={(f.value as UploadedFile | null) ?? null}
+                                onChange={f.onChange}
+                                kind={c.photoKind ?? "SITE_PHOTO"}
+                                label={aria}
+                                disabled={disabled}
+                              />
                             ) : (
-                              <Input value={(f.value as string | undefined) ?? ""} onChange={(e) => f.onChange(e.target.value)} onBlur={f.onBlur} aria-label={aria} placeholder={c.placeholder} disabled={disabled} />
+                              <Input
+                                value={(f.value as string | undefined) ?? ""}
+                                onChange={(e) => f.onChange(e.target.value)}
+                                onBlur={f.onBlur}
+                                aria-label={aria}
+                                placeholder={c.placeholder}
+                                disabled={disabled}
+                              />
                             )
                           }
                         />
@@ -247,38 +357,42 @@ export function LineItemsEditor({
                     );
                   })}
                   {amount ? (
-                    <td className="px-3 py-2 pt-4 text-right tabular" data-testid="line-amount">
-                      {lineAmount ? formatPKR(lineAmount) : "—"}
-                    </td>
-                  ) : null}
-                  {!fixed ? (
-                    <td className="px-2 py-2">
-                      <Button type="button" variant="ghost" size="icon-sm" disabled={disabled || fields.length <= 1} onClick={() => remove(index)} aria-label={`Remove ${label}`}>
-                        <Trash2 />
-                      </Button>
+                    <td className="tabular col-span-2 flex items-baseline justify-between @2xl:table-cell @2xl:px-3 @2xl:py-2 @2xl:pt-4 @2xl:text-right">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase @2xl:hidden">
+                        {amount?.label ?? "Amount"}
+                      </span>
+                      <span data-testid="line-amount">{lineAmount ? formatPKR(lineAmount) : "—"}</span>
                     </td>
                   ) : null}
                 </tr>
               );
             })}
           </tbody>
-          <tfoot className="border-t bg-muted/20 text-sm">
-            <tr>
-              <td className="px-3 py-2 font-medium" colSpan={columns.length + 1}>
+          <tfoot className="block border-t bg-muted/20 text-sm @2xl:table-footer-group">
+            <tr className="flex justify-between @2xl:table-row">
+              <td className="block px-3 py-2 font-medium @2xl:table-cell" colSpan={columns.length + 1}>
                 {fields.length} {fields.length === 1 ? "material" : "materials"}
               </td>
               {amount ? (
-                <td className="px-3 py-2 text-right font-semibold tabular" data-testid="lines-total">
+                <td
+                  className="tabular block px-3 py-2 text-right font-semibold @2xl:table-cell"
+                  data-testid="lines-total"
+                >
                   {formatPKR((total ?? BigInt(0)).toString())}
                 </td>
               ) : null}
-              {!fixed ? <td /> : null}
             </tr>
           </tfoot>
         </table>
       </div>
       {!fixed ? (
-        <Button type="button" variant="outline" size="sm" disabled={disabled || fields.length >= maxRows} onClick={() => append(emptyRow())}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled || fields.length >= maxRows}
+          onClick={() => append(emptyRow())}
+        >
           <Plus data-icon="inline-start" />
           {addLabel}
         </Button>

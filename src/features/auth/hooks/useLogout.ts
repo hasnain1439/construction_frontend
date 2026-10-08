@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { adminBaseApi } from "@/api/adminBaseApi";
 import { baseApi } from "@/api/baseApi";
+import { clearActingTenant } from "@/lib/actingCompany";
 import { useAdminLogoutMutation } from "@/api/services/admin/auth.api";
 import { useLogoutAllMutation, useLogoutMutation } from "@/api/services/auth.api";
 import { useAppDispatch } from "@/store/hooks";
@@ -49,6 +50,9 @@ export function useAdminLogout() {
     } finally {
       dispatch(loggedOut({ audience: "platform" }));
       dispatch(adminBaseApi.util.resetApiState());
+      // Leave any company the admin was working in (Company data) and drop its cached data.
+      clearActingTenant();
+      dispatch(baseApi.util.resetApiState());
       router.replace("/admin/login");
     }
   }, [logout, dispatch, router]);

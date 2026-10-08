@@ -10,8 +10,19 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 const COMPANY_ACCESS = "access_token";
 const ADMIN_ACCESS = "admin_access_token";
+/** Company the super admin is working in (see lib/actingCompany.ts). */
+const ACTING = "act_as_tenant";
 
-const PUBLIC = ["/login", "/otp", "/signup", "/forgot-password", "/reset-password", "/select-company", "/invite", "/suspended"];
+const PUBLIC = [
+  "/login",
+  "/otp",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/select-company",
+  "/invite",
+  "/suspended",
+];
 
 const isUnder = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
@@ -27,6 +38,15 @@ export function proxy(request: NextRequest) {
   }
 
   if (PUBLIC.some((base) => isUnder(pathname, base))) return NextResponse.next();
+
+  // Super admin working inside a company (Company data): the company screens' own links
+  // (/projects/…, /suppliers-stock/…) open inside the admin console instead.
+  if (request.cookies.has(ACTING) && request.cookies.has(ADMIN_ACCESS)) {
+    return NextResponse.redirect(
+      new URL(`/admin/data${pathname === "/" ? "/dashboard" : pathname}${search}`, request.url),
+    );
+  }
+
   if (request.cookies.has(COMPANY_ACCESS)) return NextResponse.next();
 
   const url = new URL("/login", request.url);

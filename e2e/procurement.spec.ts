@@ -2,12 +2,21 @@ import { expect, test, type Page } from "@playwright/test";
 import { devOtp, SEED, signIn } from "./helpers";
 
 // 1×1 PNG used as the challan photo
-const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 async function pickOption(page: Page, combobox: ReturnType<Page["getByRole"]>, search: string) {
   await combobox.click();
-  await page.getByPlaceholder(/Search/).last().fill(search);
-  await page.getByRole("option", { name: new RegExp(search) }).first().click();
+  await page
+    .getByPlaceholder(/Search/)
+    .last()
+    .fill(search);
+  await page
+    .getByRole("option", { name: new RegExp(search) })
+    .first()
+    .click();
 }
 
 /**
@@ -28,7 +37,10 @@ test("purchase → dispatch → munshi receives short → owner sends the remain
   await page.getByRole("textbox", { name: "Cement OPC Challan qty" }).fill("20");
   // The agreed rate fills in when the supplier has one; type it so the test does not depend on it.
   await page.getByRole("textbox", { name: "Cement OPC Rate" }).fill("1430");
-  await page.locator('input[type="file"]').first().setInputFiles({ name: "challan.png", mimeType: "image/png", buffer: PNG });
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({ name: "challan.png", mimeType: "image/png", buffer: PNG });
   await expect(page.getByText("challan.png")).toBeVisible();
   await page.getByRole("button", { name: "Save purchase" }).click();
   await expect(page).toHaveURL(/\/suppliers-stock\/purchases\/[0-9a-f-]{36}$/);
@@ -47,7 +59,9 @@ test("purchase → dispatch → munshi receives short → owner sends the remain
   const gp = (await sent.textContent())!.match(/GP-\d{4}/)![0];
 
   const projects = await page.request.get("/api/v1/projects?limit=100");
-  const dha = ((await projects.json()) as { data: Array<{ id: string; code: string }> }).data.find((p) => p.code === "MSB-2026-012")!;
+  const dha = ((await projects.json()) as { data: Array<{ id: string; code: string }> }).data.find(
+    (p) => p.code === "MSB-2026-012",
+  )!;
 
   // 3. Rafaqat (munshi) signs in with an SMS code and blind-counts the delivery
   const munshiContext = await browser.newContext();
@@ -58,7 +72,8 @@ test("purchase → dispatch → munshi receives short → owner sends the remain
   await munshi.getByRole("button", { name: "Send code" }).click();
   await expect(munshi.getByText("Enter the code").first()).toBeVisible();
   const code = devOtp("+923211234567");
-  for (const [i, digit] of [...code].entries()) await munshi.getByRole("textbox", { name: `Digit ${i + 1}` }).fill(digit);
+  for (const [i, digit] of [...code].entries())
+    await munshi.getByRole("textbox", { name: `Digit ${i + 1}` }).fill(digit);
   await expect(munshi.getByText("Choose a company").first()).toBeVisible();
   await munshi.getByRole("button", { name: /Malik & Sons Builders/ }).click();
   await expect(munshi).toHaveURL(/\/dashboard$/);
@@ -93,6 +108,8 @@ test("purchase → dispatch → munshi receives short → owner sends the remain
 
   // Clean-up: cancel the replacement gate pass (the 2 bags go back to the store)
   const list = await page.request.get(`/api/v1/dispatches?search=${newGp}`);
-  const replacement = ((await list.json()) as { data: Array<{ id: string; number: string }> }).data.find((d) => d.number === newGp);
+  const replacement = ((await list.json()) as { data: Array<{ id: string; number: string }> }).data.find(
+    (d) => d.number === newGp,
+  );
   if (replacement) await page.request.post(`/api/v1/dispatches/${replacement.id}/cancel`);
 });

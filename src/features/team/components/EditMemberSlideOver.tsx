@@ -34,6 +34,7 @@ import { isApiError } from "@/lib/apiErrors";
 import { formatPKR } from "@/lib/money";
 import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { MunshiSignIn } from "./MunshiSignIn";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { formatDateTime, formatRelative } from "@/lib/dates";
 import { LANGUAGE_LABEL } from "@/lib/options";
@@ -184,6 +185,7 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
           <FormActions formId={FORM_ID} submitLabel="Save changes" loading={saving || savingProjects} disabled={!form.formState.isDirty} />
         ) : null}
       </Form>
+      {user.role === "MUNSHI" && !inactive && !readOnly ? <MunshiSignIn userId={user.id} name={user.name} /> : null}
       {!isSelf && !isOwner && !readOnly ? (
         <section className="space-y-3 rounded-xl border border-danger/30 p-4">
           <p className="text-sm font-semibold text-danger">Danger zone</p>

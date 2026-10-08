@@ -16,6 +16,7 @@ import {
   ChartColumn,
   ClipboardList,
   CreditCard,
+  Database,
   FilePen,
   FolderArchive,
   FolderKanban,
@@ -92,9 +93,26 @@ export const COMPANY_NAV: NavSection[] = [
     icon: LayoutDashboard,
     mode: "company",
     items: [
-      { id: "dashboard.overview", label: L("Company Overview", "Company ka jaiza"), href: "/dashboard", available: true },
-      { id: "dashboard.approvals", label: L("My Approvals", "Meri approvals"), href: "/dashboard/approvals", available: true, access: OFFICE },
-      { id: "dashboard.alerts", label: L("Alerts & Notifications", "Alerts aur itla'at"), href: "/dashboard/alerts", available: true, keywords: ["notifications", "bell", "bounced", "overdue"] },
+      {
+        id: "dashboard.overview",
+        label: L("Company Overview", "Company ka jaiza"),
+        href: "/dashboard",
+        available: true,
+      },
+      {
+        id: "dashboard.approvals",
+        label: L("My Approvals", "Meri approvals"),
+        href: "/dashboard/approvals",
+        available: true,
+        access: OFFICE,
+      },
+      {
+        id: "dashboard.alerts",
+        label: L("Alerts & Notifications", "Alerts aur itla'at"),
+        href: "/dashboard/alerts",
+        available: true,
+        keywords: ["notifications", "bell", "bounced", "overdue"],
+      },
     ],
   },
   {
@@ -112,7 +130,12 @@ export const COMPANY_NAV: NavSection[] = [
         access: { permission: "projects.manage" },
         keywords: ["create", "wizard"],
       },
-      { id: "projects.closed", label: L("Closed & Archived", "Band aur archive"), href: "/projects/closed", available: true },
+      {
+        id: "projects.closed",
+        label: L("Closed & Archived", "Band aur archive"),
+        href: "/projects/closed",
+        available: true,
+      },
     ],
   },
   {
@@ -150,14 +173,69 @@ export const COMPANY_NAV: NavSection[] = [
         access: OFFICE,
         keywords: ["dealer", "vendor"],
       },
-      { id: "stock.purchases", label: L("Purchases (Maal Kharida)", "Maal kharida"), href: "/suppliers-stock/purchases", available: true, access: OFFICE, keywords: ["challan", "purchase", "buy"] },
-      { id: "stock.returns", label: L("Purchase Returns", "Maal wapsi"), href: "/suppliers-stock/purchase-returns", available: true, access: OFFICE },
-      { id: "stock.store", label: L("Store Stock", "Godown stock"), href: "/suppliers-stock/store-stock", available: true, access: THEKEDAR, keywords: ["godown", "inventory", "low stock"] },
-      { id: "stock.dispatches", label: L("Dispatches (Sent to Sites)", "Site bheja gaya maal"), href: "/suppliers-stock/dispatches", available: true, access: THEKEDAR, keywords: ["gate pass", "gp", "truck"] },
-      { id: "stock.shortages", label: L("Shortages", "Kami"), href: "/suppliers-stock/shortages", available: true, access: THEKEDAR, keywords: ["short", "damaged"] },
-      { id: "stock.ledger", label: L("Supplier Ledger (Khata)", "Supplier khata"), href: "/suppliers-stock/ledger", available: true, access: THEKEDAR, keywords: ["udhaar", "khata", "balance"] },
-      { id: "stock.orders", label: L("Purchase Orders", "Purchase orders"), href: "/suppliers-stock/purchase-orders", available: true, access: OFFICE, keywords: ["po", "order"] },
-      { id: "stock.payments", label: L("Supplier Payments", "Supplier adaigiyan"), href: "/suppliers-stock/payments", available: true, access: THEKEDAR, keywords: ["cheque", "pay"] },
+      {
+        id: "stock.purchases",
+        label: L("Purchases (Maal Kharida)", "Maal kharida"),
+        href: "/suppliers-stock/purchases",
+        available: true,
+        access: OFFICE,
+        keywords: ["challan", "purchase", "buy"],
+      },
+      {
+        id: "stock.returns",
+        label: L("Purchase Returns", "Maal wapsi"),
+        href: "/suppliers-stock/purchase-returns",
+        available: true,
+        access: OFFICE,
+      },
+      {
+        id: "stock.store",
+        label: L("Store Stock", "Godown stock"),
+        href: "/suppliers-stock/store-stock",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["godown", "inventory", "low stock"],
+      },
+      {
+        id: "stock.dispatches",
+        label: L("Dispatches (Sent to Sites)", "Site bheja gaya maal"),
+        href: "/suppliers-stock/dispatches",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["gate pass", "gp", "truck"],
+      },
+      {
+        id: "stock.shortages",
+        label: L("Shortages", "Kami"),
+        href: "/suppliers-stock/shortages",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["short", "damaged"],
+      },
+      {
+        id: "stock.ledger",
+        label: L("Supplier Ledger (Khata)", "Supplier khata"),
+        href: "/suppliers-stock/ledger",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["udhaar", "khata", "balance"],
+      },
+      {
+        id: "stock.orders",
+        label: L("Purchase Orders", "Purchase orders"),
+        href: "/suppliers-stock/purchase-orders",
+        available: true,
+        access: OFFICE,
+        keywords: ["po", "order"],
+      },
+      {
+        id: "stock.payments",
+        label: L("Supplier Payments", "Supplier adaigiyan"),
+        href: "/suppliers-stock/payments",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["cheque", "pay"],
+      },
     ],
   },
   {
@@ -204,10 +282,38 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     access: FINANCE,
     items: [
-      { id: "finance.receivables", label: L("Receivables", "Wasooliyan"), href: "/finance/receivables", available: true, access: THEKEDAR, keywords: ["outstanding", "overdue", "wasooli"] },
-      { id: "finance.cashflow", label: L("Cash Flow Outlook", "Cash flow"), href: "/finance/cash-flow", available: true, access: THEKEDAR, keywords: ["forecast", "outlook", "udhaar"] },
-      { id: "finance.pl", label: L("Profit & Loss", "Nafa aur nuqsan"), href: "/finance/profit-loss", available: true, access: PROFIT_OFFICE, keywords: ["profit", "margin", "p&l"] },
-      { id: "finance.floats", label: L("Cash Floats Overview", "Cash floats"), href: "/finance/cash-floats", available: true, access: THEKEDAR, keywords: ["site cash", "kharcha", "munshi"] },
+      {
+        id: "finance.receivables",
+        label: L("Receivables", "Wasooliyan"),
+        href: "/finance/receivables",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["outstanding", "overdue", "wasooli"],
+      },
+      {
+        id: "finance.cashflow",
+        label: L("Cash Flow Outlook", "Cash flow"),
+        href: "/finance/cash-flow",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["forecast", "outlook", "udhaar"],
+      },
+      {
+        id: "finance.pl",
+        label: L("Profit & Loss", "Nafa aur nuqsan"),
+        href: "/finance/profit-loss",
+        available: true,
+        access: PROFIT_OFFICE,
+        keywords: ["profit", "margin", "p&l"],
+      },
+      {
+        id: "finance.floats",
+        label: L("Cash Floats Overview", "Cash floats"),
+        href: "/finance/cash-floats",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["site cash", "kharcha", "munshi"],
+      },
     ],
   },
   {
@@ -217,13 +323,52 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     access: OFFICE,
     items: [
-      { id: "reports.summary", label: L("Project Summary", "Project khulasa"), href: "/reports/project-summary", available: true, access: FINANCIALS },
-      { id: "reports.material", label: L("Material Audit", "Maal ka audit"), href: "/reports/material-audit", available: true },
-      { id: "reports.labor", label: L("Labor & Peshgi", "Mazdoori aur peshgi"), href: "/reports/labor-peshgi", available: true },
-      { id: "reports.cashbook", label: L("Cash Book", "Cash book"), href: "/reports/cash-book", available: true },
-      { id: "reports.ageing", label: L("Supplier Ageing", "Supplier udhaar ki umar"), href: "/reports/supplier-ageing", available: true, access: THEKEDAR },
-      { id: "reports.receivables", label: L("Receivables Ageing", "Wasooli ki umar"), href: "/reports/receivables-ageing", available: true, access: THEKEDAR },
-      { id: "reports.stock", label: L("Stock Valuation", "Stock ki qeemat"), href: "/reports/stock-valuation", available: true, access: THEKEDAR },
+      {
+        id: "reports.summary",
+        label: L("Project Summary", "Project khulasa"),
+        href: "/reports/project-summary",
+        available: true,
+        access: FINANCIALS,
+      },
+      {
+        id: "reports.material",
+        label: L("Material Audit", "Maal ka audit"),
+        href: "/reports/material-audit",
+        available: true,
+      },
+      {
+        id: "reports.labor",
+        label: L("Labor & Peshgi", "Mazdoori aur peshgi"),
+        href: "/reports/labor-peshgi",
+        available: true,
+      },
+      {
+        id: "reports.cashbook",
+        label: L("Cash Book", "Cash book"),
+        href: "/reports/cash-book",
+        available: true,
+      },
+      {
+        id: "reports.ageing",
+        label: L("Supplier Ageing", "Supplier udhaar ki umar"),
+        href: "/reports/supplier-ageing",
+        available: true,
+        access: THEKEDAR,
+      },
+      {
+        id: "reports.receivables",
+        label: L("Receivables Ageing", "Wasooli ki umar"),
+        href: "/reports/receivables-ageing",
+        available: true,
+        access: THEKEDAR,
+      },
+      {
+        id: "reports.stock",
+        label: L("Stock Valuation", "Stock ki qeemat"),
+        href: "/reports/stock-valuation",
+        available: true,
+        access: THEKEDAR,
+      },
       soon("reports.delay", L("Delay Analysis", "Takheer ka jaiza"), "/reports/delay-analysis"),
     ],
   },
@@ -268,7 +413,14 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     access: THEKEDAR,
     items: [
-      { id: "settings.company", label: L("Company Profile", "Company profile"), href: "/settings/company", available: true, access: THEKEDAR, keywords: ["logo", "ntn"] },
+      {
+        id: "settings.company",
+        label: L("Company Profile", "Company profile"),
+        href: "/settings/company",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["logo", "ntn"],
+      },
       {
         id: "settings.materials",
         label: L("Materials", "Materials"),
@@ -285,13 +437,46 @@ export const COMPANY_NAV: NavSection[] = [
         access: { roles: ["THEKEDAR", "PM"], permission: "rates.view" },
         keywords: ["rates", "quality"],
       },
-      { id: "settings.laborRates", label: L("Labor Rates", "Mazdoori rates"), href: "/settings/labor-rates", available: true, access: THEKEDAR, keywords: ["wages"] },
+      {
+        id: "settings.laborRates",
+        label: L("Labor Rates", "Mazdoori rates"),
+        href: "/settings/labor-rates",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["wages"],
+      },
       soon("settings.rulebook", L("Rulebook", "Qawaid"), "/settings/rulebook", THEKEDAR),
-      { id: "settings.paymentTemplates", label: L("Payment Templates", "Adaigi templates"), href: "/settings/payment-templates", available: true, access: THEKEDAR, keywords: ["stages", "billing"] },
-      { id: "settings.holidays", label: L("Holidays", "Chhuttiyan"), href: "/settings/holidays", available: true, access: THEKEDAR },
-      { id: "settings.alerts", label: L("Alerts & Limits", "Alerts aur hadein"), href: "/settings/alerts", available: true, access: THEKEDAR },
+      {
+        id: "settings.paymentTemplates",
+        label: L("Payment Templates", "Adaigi templates"),
+        href: "/settings/payment-templates",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["stages", "billing"],
+      },
+      {
+        id: "settings.holidays",
+        label: L("Holidays", "Chhuttiyan"),
+        href: "/settings/holidays",
+        available: true,
+        access: THEKEDAR,
+      },
+      {
+        id: "settings.alerts",
+        label: L("Alerts & Limits", "Alerts aur hadein"),
+        href: "/settings/alerts",
+        available: true,
+        access: THEKEDAR,
+      },
       soon("settings.tax", L("Tax", "Tax"), "/settings/tax", THEKEDAR),
-      { id: "settings.subscription", label: L("Subscription", "Subscription"), href: "/settings/subscription", available: true, access: THEKEDAR, keywords: ["plan", "payment", "renew"] },
+      {
+        id: "settings.subscription",
+        label: L("Subscription", "Subscription"),
+        href: "/settings/subscription",
+        available: true,
+        access: THEKEDAR,
+        keywords: ["plan", "payment", "renew"],
+      },
     ],
   },
 ];
@@ -300,7 +485,10 @@ export const COMPANY_NAV: NavSection[] = [
 
 const BILLING = { permission: "billing.view" } as const satisfies AccessRule;
 /** Money screens and cards: THEKEDAR, or a PM who may see financials (never a MUNSHI). */
-export const BILLING_ACCESS = { roles: ["THEKEDAR", "PM"], permission: "billing.view" } as const satisfies AccessRule;
+export const BILLING_ACCESS = {
+  roles: ["THEKEDAR", "PM"],
+  permission: "billing.view",
+} as const satisfies AccessRule;
 const PROFIT = { permission: "profit.view" } as const satisfies AccessRule;
 
 export const PROJECT_NAV: NavSection[] = [
@@ -309,7 +497,14 @@ export const PROJECT_NAV: NavSection[] = [
     label: L("Overview", "Jaiza"),
     icon: LayoutGrid,
     mode: "project",
-    items: [{ id: "p.overview.summary", label: L("Project Summary", "Project khulasa"), href: "/overview", available: true }],
+    items: [
+      {
+        id: "p.overview.summary",
+        label: L("Project Summary", "Project khulasa"),
+        href: "/overview",
+        available: true,
+      },
+    ],
   },
   {
     id: "p.planning",
@@ -317,12 +512,41 @@ export const PROJECT_NAV: NavSection[] = [
     icon: ClipboardList,
     mode: "project",
     items: [
-      { id: "p.planning.site", label: L("Site Setup", "Site setup"), href: "/planning/site-setup", available: true },
-      { id: "p.planning.rooms", label: L("Floors & Rooms", "Manzilein aur kamre"), href: "/planning/floors-rooms", available: true },
-      { id: "p.planning.supply", label: L("Supply Split", "Supply ki taqseem"), href: "/planning/supply-split", available: true },
-      { ...soon("p.planning.estimate", L("Estimate (BoQ)", "Estimate (BoQ)"), "/planning/estimate"), comingSoonNote: "Estimate comes in Phase 2." },
-      { ...soon("p.planning.revisions", L("Estimate Revisions", "Estimate revisions"), "/planning/estimate-revisions"), comingSoonNote: "Estimate comes in Phase 2." },
-      soon("p.planning.shopping", L("Owner Shopping List", "Maalik ki shopping list"), "/planning/shopping-list"),
+      {
+        id: "p.planning.site",
+        label: L("Site Setup", "Site setup"),
+        href: "/planning/site-setup",
+        available: true,
+      },
+      {
+        id: "p.planning.rooms",
+        label: L("Floors & Rooms", "Manzilein aur kamre"),
+        href: "/planning/floors-rooms",
+        available: true,
+      },
+      {
+        id: "p.planning.supply",
+        label: L("Supply Split", "Supply ki taqseem"),
+        href: "/planning/supply-split",
+        available: true,
+      },
+      {
+        ...soon("p.planning.estimate", L("Estimate (BoQ)", "Estimate (BoQ)"), "/planning/estimate"),
+        comingSoonNote: "Estimate comes in Phase 2.",
+      },
+      {
+        ...soon(
+          "p.planning.revisions",
+          L("Estimate Revisions", "Estimate revisions"),
+          "/planning/estimate-revisions",
+        ),
+        comingSoonNote: "Estimate comes in Phase 2.",
+      },
+      soon(
+        "p.planning.shopping",
+        L("Owner Shopping List", "Maalik ki shopping list"),
+        "/planning/shopping-list",
+      ),
     ],
   },
   {
@@ -342,12 +566,41 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Building2,
     mode: "project",
     items: [
-      { id: "p.site.logs", label: L("Daily Logs & Photos", "Rozana log"), href: "/site/daily-logs", available: true, keywords: ["diary", "photos", "voice note", "site log"] },
-      { id: "p.site.incoming", label: L("Incoming Material", "Aane wala maal"), href: "/site/incoming", available: true, badge: "incoming", keywords: ["receive", "gate pass"] },
-      { id: "p.site.deliveries", label: L("Deliveries (Maal Aaya)", "Maal aaya"), href: "/site/deliveries", available: true, keywords: ["owner delivery"] },
-      { id: "p.site.usage", label: L("Material Usage (Maal Lag Gaya)", "Maal lag gaya"), href: "/site/usage", available: true },
+      {
+        id: "p.site.logs",
+        label: L("Daily Logs & Photos", "Rozana log"),
+        href: "/site/daily-logs",
+        available: true,
+        keywords: ["diary", "photos", "voice note", "site log"],
+      },
+      {
+        id: "p.site.incoming",
+        label: L("Incoming Material", "Aane wala maal"),
+        href: "/site/incoming",
+        available: true,
+        badge: "incoming",
+        keywords: ["receive", "gate pass"],
+      },
+      {
+        id: "p.site.deliveries",
+        label: L("Deliveries (Maal Aaya)", "Maal aaya"),
+        href: "/site/deliveries",
+        available: true,
+        keywords: ["owner delivery"],
+      },
+      {
+        id: "p.site.usage",
+        label: L("Material Usage (Maal Lag Gaya)", "Maal lag gaya"),
+        href: "/site/usage",
+        available: true,
+      },
       { id: "p.site.stock", label: L("Site Stock", "Site stock"), href: "/site/stock", available: true },
-      { id: "p.site.counts", label: L("Stock Counts & Transfers", "Ginti aur transfer"), href: "/site/counts", available: true },
+      {
+        id: "p.site.counts",
+        label: L("Stock Counts & Transfers", "Ginti aur transfer"),
+        href: "/site/counts",
+        available: true,
+      },
       soon("p.site.equipment", L("Equipment on Site", "Site par saman"), "/site/equipment"),
     ],
   },
@@ -357,12 +610,49 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Users,
     mode: "project",
     items: [
-      { id: "p.labor.team", label: L("Team on Site", "Site par team"), href: "/labor/team", available: true, keywords: ["assign", "workers", "sub-contract"] },
-      { id: "p.labor.hazri", label: L("Hazri Register", "Hazri register"), href: "/labor/hazri", available: true, keywords: ["attendance", "present"] },
-      { id: "p.labor.accounts", label: L("Sub-contractor Accounts", "Theke daar hisaab"), href: "/labor/subcontractor-accounts", available: true, access: OFFICE, keywords: ["retention", "theka"] },
-      { id: "p.labor.measurements", label: L("Work Measurements", "Kaam ki paimaish"), href: "/labor/measurements", available: true, keywords: ["sqft", "measurement"] },
-      { id: "p.labor.peshgi", label: L("Peshgi", "Peshgi"), href: "/labor/peshgi", available: true, keywords: ["advance"] },
-      { id: "p.labor.settlements", label: L("Weekly Settlements", "Hafta war hisaab"), href: "/labor/settlements", available: true, keywords: ["wages", "payroll"] },
+      {
+        id: "p.labor.team",
+        label: L("Team on Site", "Site par team"),
+        href: "/labor/team",
+        available: true,
+        keywords: ["assign", "workers", "sub-contract"],
+      },
+      {
+        id: "p.labor.hazri",
+        label: L("Hazri Register", "Hazri register"),
+        href: "/labor/hazri",
+        available: true,
+        keywords: ["attendance", "present"],
+      },
+      {
+        id: "p.labor.accounts",
+        label: L("Sub-contractor Accounts", "Theke daar hisaab"),
+        href: "/labor/subcontractor-accounts",
+        available: true,
+        access: OFFICE,
+        keywords: ["retention", "theka"],
+      },
+      {
+        id: "p.labor.measurements",
+        label: L("Work Measurements", "Kaam ki paimaish"),
+        href: "/labor/measurements",
+        available: true,
+        keywords: ["sqft", "measurement"],
+      },
+      {
+        id: "p.labor.peshgi",
+        label: L("Peshgi", "Peshgi"),
+        href: "/labor/peshgi",
+        available: true,
+        keywords: ["advance"],
+      },
+      {
+        id: "p.labor.settlements",
+        label: L("Weekly Settlements", "Hafta war hisaab"),
+        href: "/labor/settlements",
+        available: true,
+        keywords: ["wages", "payroll"],
+      },
     ],
   },
   {
@@ -371,10 +661,32 @@ export const PROJECT_NAV: NavSection[] = [
     icon: BookOpen,
     mode: "project",
     items: [
-      { id: "p.cash.kharcha", label: L("Site Kharcha", "Site kharcha"), href: "/cash-book/kharcha", available: true, keywords: ["expense", "petty cash"] },
-      { id: "p.cash.floats", label: L("Cash Floats", "Cash floats"), href: "/cash-book/floats", available: true, keywords: ["acknowledge", "easypaisa"] },
-      { id: "p.cash.topups", label: L("Top-up Requests", "Top-up darkhwastein"), href: "/cash-book/top-ups", available: true },
-      { id: "p.cash.counts", label: L("Cash Counts & Handover", "Cash ginti aur hawalgi"), href: "/cash-book/counts", available: true },
+      {
+        id: "p.cash.kharcha",
+        label: L("Site Kharcha", "Site kharcha"),
+        href: "/cash-book/kharcha",
+        available: true,
+        keywords: ["expense", "petty cash"],
+      },
+      {
+        id: "p.cash.floats",
+        label: L("Cash Floats", "Cash floats"),
+        href: "/cash-book/floats",
+        available: true,
+        keywords: ["acknowledge", "easypaisa"],
+      },
+      {
+        id: "p.cash.topups",
+        label: L("Top-up Requests", "Top-up darkhwastein"),
+        href: "/cash-book/top-ups",
+        available: true,
+      },
+      {
+        id: "p.cash.counts",
+        label: L("Cash Counts & Handover", "Cash ginti aur hawalgi"),
+        href: "/cash-book/counts",
+        available: true,
+      },
     ],
   },
   {
@@ -395,10 +707,38 @@ export const PROJECT_NAV: NavSection[] = [
     mode: "project",
     access: BILLING,
     items: [
-      { id: "p.billing.schedule", label: L("Payment Schedule", "Adaigi schedule"), href: "/billing/schedule", available: true, access: BILLING, keywords: ["stages", "mark ready", "running bill"] },
-      { id: "p.billing.invoices", label: L("Invoices & Running Bills", "Invoices aur bills"), href: "/billing/invoices", available: true, access: BILLING, keywords: ["invoice", "bill"] },
-      { id: "p.billing.received", label: L("Payments Received", "Wasool adaigiyan"), href: "/billing/payments", available: true, access: BILLING, keywords: ["cheque", "receipt"] },
-      { id: "p.billing.statement", label: L("Owner Statement", "Maalik ka statement"), href: "/billing/statement", available: true, access: BILLING, keywords: ["statement", "hisaab"] },
+      {
+        id: "p.billing.schedule",
+        label: L("Payment Schedule", "Adaigi schedule"),
+        href: "/billing/schedule",
+        available: true,
+        access: BILLING,
+        keywords: ["stages", "mark ready", "running bill"],
+      },
+      {
+        id: "p.billing.invoices",
+        label: L("Invoices & Running Bills", "Invoices aur bills"),
+        href: "/billing/invoices",
+        available: true,
+        access: BILLING,
+        keywords: ["invoice", "bill"],
+      },
+      {
+        id: "p.billing.received",
+        label: L("Payments Received", "Wasool adaigiyan"),
+        href: "/billing/payments",
+        available: true,
+        access: BILLING,
+        keywords: ["cheque", "receipt"],
+      },
+      {
+        id: "p.billing.statement",
+        label: L("Owner Statement", "Maalik ka statement"),
+        href: "/billing/statement",
+        available: true,
+        access: BILLING,
+        keywords: ["statement", "hisaab"],
+      },
     ],
   },
   {
@@ -408,7 +748,12 @@ export const PROJECT_NAV: NavSection[] = [
     mode: "project",
     access: PROFIT,
     items: [
-      soon("p.control.material", L("Material Variance", "Maal ka farq"), "/control/material-variance", PROFIT),
+      soon(
+        "p.control.material",
+        L("Material Variance", "Maal ka farq"),
+        "/control/material-variance",
+        PROFIT,
+      ),
       soon("p.control.cost", L("Cost Variance", "Lagat ka farq"), "/control/cost-variance", PROFIT),
       soon("p.control.burn", L("Burn Rate vs Progress", "Kharch vs taraqqi"), "/control/burn-rate", PROFIT),
       soon("p.control.delay", L("Delay Analysis", "Takheer ka jaiza"), "/control/delay", PROFIT),
@@ -437,16 +782,80 @@ export interface AdminNavItem extends NavItem {
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
-  { id: "admin.overview", label: L("Overview", "Jaiza"), href: "/admin/overview", available: true, icon: LayoutDashboard },
-  { id: "admin.companies", label: L("Companies", "Companies"), href: "/admin/companies", available: true, icon: Building2 },
-  { id: "admin.payments", label: L("Payments", "Adaigiyan"), href: "/admin/payments", available: true, icon: CreditCard, badge: "pendingPayments" },
+  {
+    id: "admin.overview",
+    label: L("Overview", "Jaiza"),
+    href: "/admin/overview",
+    available: true,
+    icon: LayoutDashboard,
+  },
+  {
+    id: "admin.companies",
+    label: L("Companies", "Companies"),
+    href: "/admin/companies",
+    available: true,
+    icon: Building2,
+  },
+  // Pick a company and work in its own screens (projects, team, stock, purchases …) — read and edit.
+  {
+    id: "admin.data",
+    label: L("Company Data", "Company ka data"),
+    href: "/admin/data",
+    available: true,
+    icon: Database,
+    keywords: ["tenant", "impersonate", "projects", "employees", "stock", "purchases"],
+  },
+  {
+    id: "admin.payments",
+    label: L("Payments", "Adaigiyan"),
+    href: "/admin/payments",
+    available: true,
+    icon: CreditCard,
+    badge: "pendingPayments",
+  },
   { id: "admin.plans", label: L("Plans", "Plans"), href: "/admin/plans", available: true, icon: Layers },
-  { id: "admin.materials", label: L("Material Catalog", "Material catalog"), href: "/admin/materials", available: true, icon: Boxes },
-  { id: "admin.holidays", label: L("Holiday Calendar", "Chhuttiyon ka calendar"), href: "/admin/holidays", available: true, icon: CalendarDays },
-  { id: "admin.audit", label: L("Audit Logs", "Audit logs"), href: "/admin/audit-logs", available: true, icon: ScrollText },
-  { id: "admin.rulebook", label: L("Rulebook", "Qawaid"), href: "/admin/rulebook", available: false, icon: BookOpen },
-  { id: "admin.communication", label: L("Communication", "Rabta"), href: "/admin/communication", available: false, icon: Megaphone },
-  { id: "admin.security", label: L("Security", "Security"), href: "/admin/security", available: false, icon: ShieldCheck },
+  {
+    id: "admin.materials",
+    label: L("Material Catalog", "Material catalog"),
+    href: "/admin/materials",
+    available: true,
+    icon: Boxes,
+  },
+  {
+    id: "admin.holidays",
+    label: L("Holiday Calendar", "Chhuttiyon ka calendar"),
+    href: "/admin/holidays",
+    available: true,
+    icon: CalendarDays,
+  },
+  {
+    id: "admin.audit",
+    label: L("Audit Logs", "Audit logs"),
+    href: "/admin/audit-logs",
+    available: true,
+    icon: ScrollText,
+  },
+  {
+    id: "admin.rulebook",
+    label: L("Rulebook", "Qawaid"),
+    href: "/admin/rulebook",
+    available: false,
+    icon: BookOpen,
+  },
+  {
+    id: "admin.communication",
+    label: L("Communication", "Rabta"),
+    href: "/admin/communication",
+    available: false,
+    icon: Megaphone,
+  },
+  {
+    id: "admin.security",
+    label: L("Security", "Security"),
+    href: "/admin/security",
+    available: false,
+    icon: ShieldCheck,
+  },
 ];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -455,7 +864,11 @@ export const projectBase = (projectId: string) => `/projects/${encodeURIComponen
 export const projectHref = (projectId: string, href: string) => `${projectBase(projectId)}${href}`;
 
 /** Section whose items contain `pathname` (longest match wins). */
-export function activeSection(sections: NavSection[], pathname: string, projectId?: string): NavSection | undefined {
+export function activeSection(
+  sections: NavSection[],
+  pathname: string,
+  projectId?: string,
+): NavSection | undefined {
   let best: { section: NavSection; length: number } | undefined;
   for (const section of sections) {
     for (const item of section.items) {
@@ -481,12 +894,12 @@ export function findNavItem(
   };
   for (const section of COMPANY_NAV) for (const item of section.items) consider(section, item, item.href);
   if (projectId) {
-    for (const section of PROJECT_NAV) for (const item of section.items) consider(section, item, projectHref(projectId, item.href));
+    for (const section of PROJECT_NAV)
+      for (const item of section.items) consider(section, item, projectHref(projectId, item.href));
   }
   for (const item of ADMIN_NAV) consider(item, item, item.href);
   return best ? { section: best.section, item: best.item } : undefined;
 }
-
 
 // ─── "+ Create" menu and footer quick actions ───────────────────────────────
 
@@ -500,15 +913,65 @@ export interface QuickAction {
 
 /** `?new=1` opens the page's create slide-over. */
 export const CREATE_ACTIONS: QuickAction[] = [
-  { id: "create.project", label: L("New project", "Naya project"), href: "/projects/new", access: { permission: "projects.manage" }, available: true },
-  { id: "create.client", label: L("New client", "Naya client"), href: "/sales/clients?new=1", access: OFFICE, available: true },
-  { id: "create.invite", label: L("Invite member", "Member bulayein"), href: "/team/invitations?new=1", access: THEKEDAR, available: true },
-  { id: "create.supplier", label: L("New supplier", "Naya supplier"), href: "/suppliers-stock/suppliers?new=1", access: OFFICE, available: true },
-  { id: "create.worker", label: L("New worker", "Naya mazdoor"), href: "/workforce/workers?new=1", access: OFFICE, available: true },
-  { id: "create.quote", label: L("New quote", "Naya quote"), href: "/sales/quotes/new", access: OFFICE, available: false },
-  { id: "create.purchase", label: L("New purchase", "Nayi kharidari"), href: "/suppliers-stock/purchases/new", access: OFFICE, available: true },
-  { id: "create.dispatch", label: L("Dispatch to site", "Site bhejein"), href: "/suppliers-stock/dispatches", access: THEKEDAR, available: true },
+  {
+    id: "create.project",
+    label: L("New project", "Naya project"),
+    href: "/projects/new",
+    access: { permission: "projects.manage" },
+    available: true,
+  },
+  {
+    id: "create.client",
+    label: L("New client", "Naya client"),
+    href: "/sales/clients?new=1",
+    access: OFFICE,
+    available: true,
+  },
+  {
+    id: "create.invite",
+    label: L("Invite member", "Member bulayein"),
+    href: "/team/invitations?new=1",
+    access: THEKEDAR,
+    available: true,
+  },
+  {
+    id: "create.supplier",
+    label: L("New supplier", "Naya supplier"),
+    href: "/suppliers-stock/suppliers?new=1",
+    access: OFFICE,
+    available: true,
+  },
+  {
+    id: "create.worker",
+    label: L("New worker", "Naya mazdoor"),
+    href: "/workforce/workers?new=1",
+    access: OFFICE,
+    available: true,
+  },
+  {
+    id: "create.quote",
+    label: L("New quote", "Naya quote"),
+    href: "/sales/quotes/new",
+    access: OFFICE,
+    available: false,
+  },
+  {
+    id: "create.purchase",
+    label: L("New purchase", "Nayi kharidari"),
+    href: "/suppliers-stock/purchases/new",
+    access: OFFICE,
+    available: true,
+  },
+  {
+    id: "create.dispatch",
+    label: L("Dispatch to site", "Site bhejein"),
+    href: "/suppliers-stock/dispatches",
+    access: THEKEDAR,
+    available: true,
+  },
 ];
 
 /** Sticky footer: only quick actions that work today. */
-export const FOOTER_ACTIONS = CREATE_ACTIONS.filter((a) => a.id === "create.project" || a.id === "create.invite");
+export const FOOTER_ACTIONS = CREATE_ACTIONS.filter(
+  (a) => a.id === "create.project" || a.id === "create.invite",
+);
