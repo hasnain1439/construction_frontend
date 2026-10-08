@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   devIndicators: false,
+  // Smallest modern formats first (the login photo is served as AVIF/WebP at the screen size).
+  images: { formats: ["image/avif", "image/webp"] },
   async rewrites() {
     return [
       {

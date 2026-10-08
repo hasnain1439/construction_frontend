@@ -45,12 +45,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (isLoading || !admin) {
     return (
       <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
-        <div className="h-16 border-b bg-card" />
+        <div className="h-16" />
         <div className="flex flex-1">
-          <div className="w-60 border-r bg-card" />
+          <div className="w-28" />
           <div className="flex-1 space-y-4 p-6">
             <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-40 w-full rounded-xl" />
+            <Skeleton className="h-40 w-full rounded-3xl" />
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden">
-      <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-4">
+      <header className="relative z-10 flex h-16 items-center justify-between gap-4 bg-transparent px-4 shadow-(--shadow-topbar)">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -71,9 +71,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </Button>
           <Link
             href="/admin/overview"
-            className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-muted"
+            className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1 hover:bg-muted"
           >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-foreground text-background">
+            <span className="flex size-9 items-center justify-center rounded-full bg-charcoal text-white dark:bg-primary dark:text-primary-foreground">
               <Building className="size-5" aria-hidden />
             </span>
             <span className="text-base font-semibold">{t("shell.platformConsole")}</span>
@@ -86,7 +86,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-full py-1 pr-2 pl-1 hover:bg-muted"
+                className="flex items-center gap-1 rounded-full border glass py-1 pr-2 pl-1 shadow-card hover:bg-card"
                 aria-label="Account menu"
               >
                 <AvatarName name={admin.name} subtitle={admin.email} />
@@ -112,7 +112,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div
           className={cn(
             "h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out",
-            collapsed ? "w-0" : "w-28",
+            collapsed ? "w-0" : "w-28 shadow-(--shadow-rail)",
           )}
           aria-hidden={collapsed || undefined}
           inert={collapsed}

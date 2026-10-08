@@ -48,7 +48,7 @@ export function SearchInput({ value, onChange, placeholder, debounceMs = 300, cl
         onChange={(e) => setDraft(e.target.value)}
         placeholder={placeholder ?? t("common.searchPlaceholder")}
         aria-label={rest["aria-label"] ?? placeholder ?? t("common.search")}
-        className="rounded-full pr-9 pl-9 [&::-webkit-search-cancel-button]:hidden"
+        className="rounded-full border-transparent bg-muted pr-9 pl-9 [&::-webkit-search-cancel-button]:hidden"
       />
       {draft ? (
         <button

@@ -13,7 +13,7 @@ export function ProjectCard({ project, showMoney }: { project: ProjectListItem; 
   return (
     <Link
       href={projectLanding(project)}
-      className="group flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-card transition-colors hover:border-primary/50"
+      className="group flex flex-col gap-4 rounded-3xl border glass p-5 shadow-card transition-[border-color,box-shadow] hover:border-sand/60 hover:shadow-flyout"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

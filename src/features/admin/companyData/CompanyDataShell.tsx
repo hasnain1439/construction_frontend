@@ -19,7 +19,7 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
   const d = useCompanyData();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           <ShieldAlert className="size-4 shrink-0 text-warning" aria-hidden />
@@ -76,7 +76,9 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
       ) : !d.meMatches ? (
         <Skeleton className="h-40 w-full" />
       ) : (
-        <div key={d.tenantId}>{children}</div>
+        <div key={d.tenantId} className="space-y-6">
+          {children}
+        </div>
       )}
     </div>
   );

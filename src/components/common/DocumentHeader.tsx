@@ -33,7 +33,7 @@ export function DocumentHeader({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-xl border bg-card p-5 shadow-card", className)}>
+    <section className={cn("rounded-3xl border border-transparent bg-card p-6 shadow-card", className)}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</p>

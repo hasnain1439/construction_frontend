@@ -27,7 +27,7 @@ export function AvatarName({
     <div className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <Avatar className={size === "sm" ? "size-7" : "size-9"}>
         {photoUrl ? <AvatarImage src={photoUrl} alt="" /> : null}
-        <AvatarFallback className="bg-accent text-xs font-semibold text-primary">{initials(name)}</AvatarFallback>
+        <AvatarFallback className="bg-sun-soft text-xs font-semibold text-foreground">{initials(name)}</AvatarFallback>
       </Avatar>
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{name}</p>

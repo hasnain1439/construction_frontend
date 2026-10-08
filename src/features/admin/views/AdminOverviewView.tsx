@@ -5,7 +5,7 @@ import { useGetAuditLogsQuery } from "@/api/services/admin/auditLogs.api";
 import { useGetAdminHealthQuery, useGetAdminOverviewQuery } from "@/api/services/admin/overview.api";
 import { DataTable } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
-import { KpiCard } from "@/components/common/KpiCard";
+import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -56,6 +56,7 @@ function RecentActivity() {
       getRowId={(a) => a.id}
       clientPageSize={0}
       empty={{ title: "No activity yet" }}
+      maxHeight="sm"
       columns={[
         { id: "when", header: "When", cell: (a) => <span title={formatDateTime(a.createdAt)}>{formatRelative(a.createdAt)}</span> },
         { id: "action", header: "Action", cell: (a) => <span className="font-mono text-xs">{a.action}</span> },
@@ -74,13 +75,14 @@ export function AdminOverviewView() {
       <QueryState query={query}>
         {(o) => (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              <KpiCard label="Active companies" icon={Building2} value={o.activeCompanies} hint={`${o.graceCompanies} in grace · ${o.suspendedCompanies} suspended`} />
-              <KpiCard label="Monthly recurring revenue" icon={Wallet} tone="success" value={formatPKRShort(o.mrrPaisa)} hint="Active + grace subscriptions" />
-              <KpiCard label="Payments awaiting approval" icon={CreditCard} tone="warning" value={o.paymentsAwaitingReview} />
-              <KpiCard label="Trials ending this week" icon={Hourglass} tone="warning" value={o.trialsEndingThisWeek} hint={`${o.trialCompanies} on trial`} />
-              <KpiCard label="Read-only" icon={Lock} tone="danger" value={o.readOnlyCompanies} hint="Lapsed — waiting for payment" />
-            </div>
+            {/* Five KPIs as two rows of tiles in one card: the two headline numbers, then the three to act on. */}
+            <KpiGroup ariaLabel="Platform KPIs" columns="sm:grid-cols-2 lg:grid-cols-6">
+              <KpiCard variant="tile" highlight className="lg:col-span-3" label="Active companies" icon={Building2} value={o.activeCompanies} hint={`${o.graceCompanies} in grace · ${o.suspendedCompanies} suspended`} />
+              <KpiCard variant="tile" className="lg:col-span-3" label="Monthly recurring revenue" icon={Wallet} tone="success" value={formatPKRShort(o.mrrPaisa)} hint="Active + grace subscriptions" />
+              <KpiCard variant="tile" className="lg:col-span-2" label="Payments awaiting approval" icon={CreditCard} tone="warning" value={o.paymentsAwaitingReview} />
+              <KpiCard variant="tile" className="lg:col-span-2" label="Trials ending this week" icon={Hourglass} tone="warning" value={o.trialsEndingThisWeek} hint={`${o.trialCompanies} on trial`} />
+              <KpiCard variant="tile" className="sm:col-span-2 lg:col-span-2" label="Read-only" icon={Lock} tone="danger" value={o.readOnlyCompanies} hint="Lapsed — waiting for payment" />
+            </KpiGroup>
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
               <SectionCard title="Approved revenue by month" description="Last 12 months, Pakistan time.">
                 {o.revenueByMonth.length ? <RevenueChart data={o.revenueByMonth} /> : <EmptyState compact icon={Clock} title="No approved payments yet" />}

@@ -32,9 +32,9 @@ export function BalanceCard({
   const positive = (v?: string) => (toPaisaBigInt(v) ?? BigInt(0)) > BigInt(0);
   const low = account ? (toPaisaBigInt(account.balancePaisa) ?? BigInt(0)) < BigInt(0) : false;
   return (
-    <section className={cn("flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between", className)} aria-label={title}>
+    <section className={cn("flex flex-col gap-4 rounded-3xl border border-transparent bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between", className)} aria-label={title}>
       <div className="flex items-start gap-4">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sun text-charcoal">
           <Wallet className="size-6" aria-hidden />
         </span>
         <div className="min-w-0 space-y-1">
@@ -46,7 +46,7 @@ export function BalanceCard({
             <Skeleton className="h-9 w-40" />
           ) : (
             // Not cn(): tailwind-merge would treat text-kpi (a size) and the colour as one group.
-            <p className={`text-kpi font-semibold tabular ${low ? "text-danger" : "text-primary"}`} data-testid="cash-balance">
+            <p className={`text-kpi font-semibold tabular ${low ? "text-danger" : "text-foreground"}`} data-testid="cash-balance">
               <MoneyText paisa={account.balancePaisa} />
             </p>
           )}

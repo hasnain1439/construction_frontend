@@ -8,12 +8,13 @@ export function MoneySummaryCards({ data, loading }: { data: ProjectReceivables 
   const own = toPaisaBigInt(data?.ownMoneyInvestedPaisa) ?? BigInt(0);
   const surplus = own < BigInt(0);
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Money summary">
-      <KpiCard label="Contract (revised)" icon={Landmark} loading={loading} value={formatPKRShort(data?.revisedContractPaisa ?? "0")} hint={data && data.approvedChangesPaisa !== "0" ? `Changes ${formatPKRShort(data.approvedChangesPaisa)}` : "No change orders yet"} />
-      <KpiCard label="Invoiced" icon={FileText} loading={loading} value={formatPKRShort(data?.invoicedPaisa ?? "0")} hint={data ? `${data.readyStagesCount} stage${data.readyStagesCount === 1 ? "" : "s"} ready to bill` : undefined} />
-      <KpiCard label="Received" icon={Banknote} tone="success" loading={loading} value={formatPKRShort(data?.receivedPaisa ?? "0")} hint={data ? `${data.collectedPercent}% of invoiced` : undefined} />
-      <KpiCard label="Pending cheques" icon={Clock} tone="warning" loading={loading} value={formatPKRShort(data?.pendingChequesPaisa ?? "0")} />
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Money summary">
+      <KpiCard variant="tile" highlight label="Contract (revised)" icon={Landmark} loading={loading} value={formatPKRShort(data?.revisedContractPaisa ?? "0")} hint={data && data.approvedChangesPaisa !== "0" ? `Changes ${formatPKRShort(data.approvedChangesPaisa)}` : "No change orders yet"} />
+      <KpiCard variant="tile" label="Invoiced" icon={FileText} loading={loading} value={formatPKRShort(data?.invoicedPaisa ?? "0")} hint={data ? `${data.readyStagesCount} stage${data.readyStagesCount === 1 ? "" : "s"} ready to bill` : undefined} />
+      <KpiCard variant="tile" label="Received" icon={Banknote} tone="success" loading={loading} value={formatPKRShort(data?.receivedPaisa ?? "0")} hint={data ? `${data.collectedPercent}% of invoiced` : undefined} />
+      <KpiCard variant="tile" label="Pending cheques" icon={Clock} tone="warning" loading={loading} value={formatPKRShort(data?.pendingChequesPaisa ?? "0")} />
       <KpiCard
+        variant="tile"
         label="Outstanding"
         icon={data && data.overduePaisa !== "0" ? TriangleAlert : HandCoins}
         tone={data && data.overduePaisa !== "0" ? "danger" : "primary"}
@@ -22,6 +23,7 @@ export function MoneySummaryCards({ data, loading }: { data: ProjectReceivables 
         hint={data && data.overduePaisa !== "0" ? `${formatPKRShort(data.overduePaisa)} overdue · ${data.oldestOverdueDays} days` : "Nothing overdue"}
       />
       <KpiCard
+        variant="tile"
         label={surplus ? "Owner money ahead" : "Own money invested"}
         icon={surplus ? TrendingUp : TrendingDown}
         tone={surplus ? "success" : "warning"}

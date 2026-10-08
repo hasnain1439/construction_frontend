@@ -13,10 +13,10 @@ export function ProjectRailHeader({ projectId, collapsed }: { projectId: string;
   const t = useT();
   const { data: project, isLoading } = useGetProjectQuery(projectId);
   return (
-    <div className={cn("space-y-2 border-b px-2 py-3", collapsed && "px-1")}>
+    <div className={cn("space-y-2 border-b border-sidebar-border px-2 py-3", collapsed && "px-1")}>
       <Link
         href="/projects"
-        className="flex items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-xs font-medium text-primary hover:bg-accent"
+        className="flex items-center justify-center gap-1 rounded-full px-1 py-1.5 text-xs font-medium text-sidebar-foreground hover:bg-sidebar-accent"
         aria-label={t("shell.allProjects")}
       >
         <ArrowLeft className="size-4 shrink-0" aria-hidden />

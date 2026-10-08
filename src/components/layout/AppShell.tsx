@@ -27,13 +27,13 @@ import { TopBar } from "./TopBar";
 function ShellSkeleton() {
   return (
     <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
-      <div className="h-20 border-b bg-card" />
+      <div className="h-20" />
       <div className="flex flex-1">
-        <div className="w-28 border-r bg-card" />
+        <div className="w-28" />
         <div className="flex-1 space-y-4 p-6">
           <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-40 w-full rounded-xl" />
-          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-40 w-full rounded-3xl" />
+          <Skeleton className="h-64 w-full rounded-3xl" />
         </div>
       </div>
     </div>
@@ -112,7 +112,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
       <div className="relative flex min-h-0 flex-1">
         {/* The menu button slides the rail out to the left (and back); the content takes the room. */}
         <div
-          className={cn("h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out", collapsed ? "w-0" : "w-28")}
+          className={cn("h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out", collapsed ? "w-0" : "w-28 shadow-(--shadow-rail)")}
           aria-hidden={collapsed || undefined}
           inert={collapsed}
         >

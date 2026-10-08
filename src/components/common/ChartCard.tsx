@@ -22,7 +22,7 @@ export function ChartLegend({ items, rows, className }: { items: LegendItem[]; r
     <ul className={cn(rows ? "grid w-full gap-2 text-sm text-muted-foreground" : "flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground", className)} aria-label="Legend">
       {items.map((item) => (
         <li key={item.label} className={cn("flex items-center gap-1.5", rows && "gap-2")}>
-          <span className="size-2.5 shrink-0 rounded-sm" style={{ background: item.color }} aria-hidden />
+          <span className="size-2.5 shrink-0 rounded-full" style={{ background: item.color }} aria-hidden />
           <span className={cn(rows && "flex-1")}>{item.label}</span>
           {item.value !== undefined ? <span className="font-medium whitespace-nowrap text-foreground tabular">{item.value}</span> : null}
         </li>
