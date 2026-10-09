@@ -349,3 +349,24 @@
     }
   }
 }
+
+/* Urdu: Nastaliq font with room for its tall letters; the page runs right-to-left (dir="rtl"). */
+html:lang(ur) body {
+  /* Cabin has no Urdu letters, so Latin text (names, codes) stays in Cabin and Urdu falls through to Nastaliq. */
+  font-family: var(--font-cabin), var(--font-urdu), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.9;
+}
+/* Right-to-left: the sidebar sits on the right, so its shadow falls to the left. */
+[dir="rtl"] {
+  --shadow-rail: -4px 0 16px rgb(32 31 30 / 0.08);
+}
+[dir="rtl"].dark,
+.dark[dir="rtl"] {
+  --shadow-rail: -1px 0 0 rgb(255 255 255 / 0.05), -8px 0 24px rgb(0 0 0 / 0.5);
+}
+/* Numbers, codes and amounts stay in the Latin font so digits line up. */
+html:lang(ur) .tabular,
+html:lang(ur) code,
+html:lang(ur) kbd {
+  font-family: var(--font-cabin), ui-sans-serif, system-ui, sans-serif;
+}

@@ -49,13 +49,13 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={unread ? `${t("shell.notifications")}: ${unread} unread` : t("shell.notifications")}>
+        <Button variant="ghost" size="icon" className="relative" aria-label={unread ? `${t("shell.notifications")}: ${t("shell.unreadCount", { n: unread })}` : t("shell.notifications")}>
           <Bell />
           {unread ? (
             <span
               data-testid="notification-badge"
               className={cn(
-                "absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold text-white tabular",
+                "absolute -top-0.5 -end-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold text-white tabular",
                 critical ? "bg-danger" : "bg-primary",
               )}
             >
@@ -70,7 +70,7 @@ export function NotificationBell() {
           {unread ? (
             <Button variant="ghost" size="xs" onClick={() => void markAll()} disabled={markAllState.isLoading}>
               <CheckCheck data-icon="inline-start" />
-              Mark all read
+              {t("common.markAllRead")}
             </Button>
           ) : null}
         </div>
@@ -88,7 +88,7 @@ export function NotificationBell() {
         </div>
         <div className="border-t p-2">
           <Button asChild variant="ghost" className="w-full" onClick={() => setOpen(false)}>
-            <Link href={ALERTS_PAGE}>View all</Link>
+            <Link href={ALERTS_PAGE}>{t("common.viewAll")}</Link>
           </Button>
         </div>
       </PopoverContent>

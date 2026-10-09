@@ -55,13 +55,13 @@ describe("DashboardView", () => {
     renderWithStore(<DashboardView />, { me: meFixture("PM") });
     expect(screen.getByText("Active projects")).toBeInTheDocument();
     expect(screen.getByText("Pending approvals")).toBeInTheDocument();
-    for (const money of ["Receivables", "Supplier udhaar", "Store stock value", "Own money invested", "Payment analysis", "Contract"]) {
+    for (const money of ["Receivables", "Supplier credit", "Store stock value", "Own money invested", "Payment analysis", "Contract"]) {
       expect(screen.queryByText(money)).not.toBeInTheDocument();
     }
     expect(screen.getByText("Site stats")).toBeInTheDocument();
   });
 
-  it("owner: receivables ring, udhaar, stock value, payment analysis", () => {
+  it("owner: receivables ring, supplier credit, stock value, payment analysis", () => {
     overview = MONEY;
     renderWithStore(<DashboardView />, { me: meFixture("THEKEDAR") });
     expect(screen.getByText("Receivables")).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe("DashboardView", () => {
     renderWithStore(<DashboardView />, { me: meFixture("MUNSHI") });
     expect(screen.getByRole("heading", { level: 1, name: "Site dashboard" })).toBeInTheDocument();
     expect(siteCall).toHaveBeenCalledWith("p1");
-    expect(screen.getByRole("link", { name: "Mark hazri" })).toHaveAttribute("href", "/projects/p1/labor/hazri");
+    expect(screen.getByRole("link", { name: "Mark attendance" })).toHaveAttribute("href", "/projects/p1/labor/hazri");
     expect(screen.getAllByRole("link", { name: "Receive" })[0]).toHaveAttribute("href", "/projects/p1/site/incoming/dispatch/d1");
     expect(screen.getByText("Rs 9,300")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Request top-up" })).toBeInTheDocument();

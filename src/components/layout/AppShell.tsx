@@ -25,8 +25,9 @@ import { StickyFooter } from "./StickyFooter";
 import { TopBar } from "./TopBar";
 
 function ShellSkeleton() {
+  const t = useT();
   return (
-    <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
+    <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label={t("common.loading")}>
       <div className="h-20" />
       <div className="flex flex-1">
         <div className="w-28" />
@@ -99,7 +100,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   if (isLoading || !me) {
     return error && status !== 401 ? (
       <div className="fixed inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground">
-        Could not load your account. Check that the API is running and refresh the page.
+        {t("shell.loadAccountFailed")}
       </div>
     ) : (
       <ShellSkeleton />
@@ -110,7 +111,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
     <div className="fixed inset-0 flex flex-col overflow-hidden">
       <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
       <div className="relative flex min-h-0 flex-1">
-        {/* The menu button slides the rail out to the left (and back); the content takes the room. */}
+        {/* The menu button slides the rail out to the start side (and back); the content takes the room. */}
         <div
           className={cn("h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out", collapsed ? "w-0" : "w-28 shadow-(--shadow-rail)")}
           aria-hidden={collapsed || undefined}
@@ -131,7 +132,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
           hrefFor={hrefFor}
           onClose={onCloseFlyout}
           badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
-          className="left-28"
+          className="start-28"
         />
         <main id="main" className={cn("min-w-0 flex-1 overflow-y-auto")}>
           <div className="w-full space-y-6 px-6 py-6">

@@ -181,7 +181,7 @@ export function getErrorMessage(error: unknown, language: UiLanguage = "en"): st
     if (error.code === "ACCOUNT_LOCKED") {
       const minutes = lockedMinutes(error);
       if (minutes) {
-        return language === "roman-ur"
+        return language !== "en"
           ? `Bohat dafa ghalat password. ${minutes} minute baad koshish karein.`
           : `Too many wrong passwords. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
       }
@@ -189,15 +189,16 @@ export function getErrorMessage(error: unknown, language: UiLanguage = "en"): st
     if (error.code === "PERCENT_TOTAL_INVALID") {
       const total = (error.details as { total?: number } | undefined)?.total;
       if (typeof total === "number") {
-        return language === "roman-ur" ? `Jor ${total}% hai — 100% hona chahiye.` : `${total}% — must be 100%.`;
+        return language !== "en" ? `Jor ${total}% hai — 100% hona chahiye.` : `${total}% — must be 100%.`;
       }
     }
     const known = MESSAGES[error.code];
-    if (known) return language === "roman-ur" ? known.ur : known.en;
+    // Urdu-script mode shows the Roman Urdu messages until they are translated.
+    if (known) return language !== "en" ? known.ur : known.en;
     return error.message || MESSAGES.INTERNAL_ERROR.en;
   }
   if (error instanceof Error && error.message) return error.message;
-  return language === "roman-ur" ? MESSAGES.INTERNAL_ERROR.ur : MESSAGES.INTERNAL_ERROR.en;
+  return language !== "en" ? MESSAGES.INTERNAL_ERROR.ur : MESSAGES.INTERNAL_ERROR.en;
 }
 
 export function errorCode(error: unknown): string | null {

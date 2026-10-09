@@ -2,7 +2,7 @@
 
 import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
-import { pickLabel, useLanguage } from "@/i18n/useT";
+import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import type { NavSection } from "@/lib/navigation";
 
@@ -48,7 +48,7 @@ export function RailLogoutButton({
 
 /**
  * Left rail: outline icon with the label under it, in charcoal on the warm sidebar. Active =
- * a charcoal bar on the left edge (no box). Only the active item is highlighted.
+ * a charcoal bar on the start edge (no box). Only the active item is highlighted.
  */
 export function IconRail({
   sections,
@@ -58,12 +58,13 @@ export function IconRail({
   collapsed,
   header,
   footer,
-  label: railLabel = "Main",
+  label: railLabel,
 }: IconRailProps) {
+  const t = useT();
   const language = useLanguage();
   return (
     <nav
-      aria-label={railLabel}
+      aria-label={railLabel ?? t("shell.mainNav")}
       data-collapsed={collapsed || undefined}
       className={cn(
         "scrollbar-slim flex h-full flex-col overflow-y-auto bg-transparent pb-4",
@@ -91,7 +92,7 @@ export function IconRail({
                 className={cn(
                   "relative flex w-full flex-col items-center gap-1 rounded-2xl px-1.5 py-2.5 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                   active
-                    ? "text-sidebar-primary before:absolute before:inset-y-3 before:-left-2 before:w-1 before:rounded-r-full before:bg-sidebar-primary"
+                    ? "text-sidebar-primary before:absolute before:inset-y-3 before:-start-2 before:w-1 before:rounded-e-full before:bg-sidebar-primary"
                     : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                 )}
               >

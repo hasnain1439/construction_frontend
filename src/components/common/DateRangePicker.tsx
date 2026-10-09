@@ -40,12 +40,12 @@ export function DateRangePicker({
     { key: "month", label: t("common.thisMonth"), range: { from: `${today.slice(0, 8)}01`, to: today } },
   ];
   const summary =
-    value.from || value.to ? `${formatDate(value.from, "…")} – ${formatDate(value.to, "…")}` : (label ?? "Any date");
+    value.from || value.to ? `${formatDate(value.from, "…")} – ${formatDate(value.to, "…")}` : (label ?? t("common.anyDate"));
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={cn("font-normal", className)} aria-label={label ?? "Date range"}>
+        <Button variant="outline" className={cn("font-normal", className)} aria-label={label ?? t("common.dateRange")}>
           <CalendarRange data-icon="inline-start" />
           <span className={cn(!(value.from || value.to) && "text-muted-foreground")}>{summary}</span>
         </Button>

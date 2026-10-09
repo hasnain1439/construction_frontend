@@ -35,7 +35,7 @@ export function SearchTrigger() {
       aria-keyshortcuts="Control+K"
     >
       <Search className="size-4 shrink-0" aria-hidden />
-      <span className="hidden flex-1 text-left md:inline">{t("shell.searchMenu")}</span>
+      <span className="hidden flex-1 text-start md:inline">{t("shell.searchMenu")}</span>
       <kbd className="hidden rounded-full bg-muted px-2 text-[11px] font-medium lg:inline">Ctrl K</kbd>
     </button>
   );
@@ -61,7 +61,7 @@ function CreateMenu() {
           <DropdownMenuItem key={action.id} asChild>
             <Link href={action.href} className="flex items-center justify-between gap-2">
               {pickLabel(action.label, language)}
-              {!action.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
+              {!action.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" /> : null}
             </Link>
           </DropdownMenuItem>
         ))}
@@ -79,8 +79,8 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1 rounded-full border glass py-1 pr-2 pl-1 text-left shadow-card transition-colors hover:bg-card"
-          aria-label="Account menu"
+          className="flex items-center gap-1 rounded-full border glass py-1 pe-2 ps-1 text-start shadow-card transition-colors hover:bg-card"
+          aria-label={t("shell.accountMenu")}
         >
           <AvatarName name={me.user.name} subtitle={me.tenant.name} photoUrl={me.user.photoUrl} className="max-w-52" />
           <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -90,7 +90,7 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
         <DropdownMenuLabel className="space-y-0.5">
           <p className="text-sm font-semibold">{me.user.name}</p>
           <p className="text-xs font-normal text-muted-foreground">
-            {me.user.role === "THEKEDAR" ? "Thekedar" : me.user.role === "PM" ? "Project Manager" : "Munshi"} ·{" "}
+            {t(me.user.role === "THEKEDAR" ? "role.THEKEDAR" : me.user.role === "PM" ? "role.PM" : "role.MUNSHI")} ·{" "}
             {me.tenant.name}
           </p>
         </DropdownMenuLabel>
@@ -113,7 +113,7 @@ function CompanyBrand() {
   const me = useMe();
   if (!me) return null;
   return (
-    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-3 pl-1 hover:bg-muted">
+    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pe-3 ps-1 hover:bg-muted">
       {me.tenant.logoUrl ? (
         // Signed, short-lived logo URL from the API.
         // eslint-disable-next-line @next/next/no-img-element

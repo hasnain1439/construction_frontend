@@ -17,7 +17,7 @@ export interface FlyoutProps {
   onClose: () => void;
   /** Live count per item (e.g. incoming deliveries). */
   badgeFor?: (item: NavItem) => number | undefined;
-  /** Left offset = rail width. */
+  /** Start offset = rail width. */
   className?: string;
 }
 
@@ -64,7 +64,7 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
       role="menu"
       aria-label={title}
       className={cn(
-        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-r-3xl border-r border-transparent bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-left-4",
+        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-e-3xl border-e border-transparent bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-start-4",
         className,
       )}
     >
@@ -93,9 +93,9 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
               >
                 <EllipsisVertical className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="flex-1">{pickLabel(item.label, language)}</span>
-                {!item.available ? <StatusBadge tone="neutral" label="Soon" className="h-5 px-2 text-[11px]" /> : null}
+                {!item.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" /> : null}
                 {count ? (
-                  <span className="rounded-full bg-sun px-1.5 text-[11px] font-semibold text-charcoal" aria-label={`${count} waiting`}>
+                  <span className="rounded-full bg-sun px-1.5 text-[11px] font-semibold text-charcoal" aria-label={t("common.waiting", { n: count })}>
                     {count}
                   </span>
                 ) : null}

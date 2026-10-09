@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { humanize } from "@/lib/status";
 
 const TYPES: NotificationType[] = [
@@ -42,6 +43,8 @@ const TYPES: NotificationType[] = [
 
 /** Dashboard → Alerts & Notifications: every notification of the signed-in user, with filters and "mark all read". */
 export function AlertsView() {
+  const t = useT();
+  const te = useEnumT();
   const router = useRouter();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [type, setType] = useState("");
@@ -71,13 +74,13 @@ export function AlertsView() {
   return (
     <>
       <PageHeader
-        title="Alerts & Notifications"
-        description="Everything the app told you about, newest first."
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Alerts & Notifications" }]}
+        title={t("dashboard.alertsTitle")}
+        description={t("dashboard.alertsDesc")}
+        breadcrumbs={[{ label: t("dashboard.title"), href: "/dashboard" }, { label: t("dashboard.alertsTitle") }]}
         actions={
-          <Button variant="outline" onClick={() => void run(() => markAll().unwrap(), { success: (r) => `${r.updated} marked as read` })} disabled={markAllState.isLoading}>
+          <Button variant="outline" onClick={() => void run(() => markAll().unwrap(), { success: (r) => t("dashboard.markedRead", { n: r.updated }) })} disabled={markAllState.isLoading}>
             <CheckCheck data-icon="inline-start" />
-            Mark all read
+            {t("common.markAllRead")}
           </Button>
         }
       />
@@ -91,11 +94,11 @@ export function AlertsView() {
         }}
       >
         <label className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm">
-          <Switch checked={unreadOnly} onCheckedChange={(v) => (setUnreadOnly(v), setPage(1))} aria-label="Unread only" />
-          Unread only
+          <Switch checked={unreadOnly} onCheckedChange={(v) => (setUnreadOnly(v), setPage(1))} aria-label={t("dashboard.unreadOnly")} />
+          {t("dashboard.unreadOnly")}
         </label>
-        <FilterSelect label="Severity" value={severity} onChange={(v) => (setSeverity(v), setPage(1))} options={["CRITICAL", "WARNING", "INFO"].map((s) => ({ value: s, label: humanize(s) }))} />
-        <FilterSelect label="Type" value={type} onChange={(v) => (setType(v), setPage(1))} options={TYPES.map((t) => ({ value: t, label: humanize(t) }))} />
+        <FilterSelect label={t("common.severity")} value={severity} onChange={(v) => (setSeverity(v), setPage(1))} options={["CRITICAL", "WARNING", "INFO"].map((s) => ({ value: s, label: te("severity", s, humanize(s)) }))} />
+        <FilterSelect label={t("common.type")} value={type} onChange={(v) => (setType(v), setPage(1))} options={TYPES.map((value) => ({ value, label: te("notificationType", value, humanize(value)) }))} />
       </FilterBar>
       <SectionCard>
         {query.isLoading ? (
@@ -108,7 +111,7 @@ export function AlertsView() {
             <Pagination page={page} pageSize={pageSize} total={query.data.meta.total} onPageChange={setPage} onPageSizeChange={(s) => (setPageSize(s), setPage(1))} />
           </div>
         ) : (
-          <EmptyState icon={BellOff} title={filtered ? "No notifications match" : "No notifications yet"} description={filtered ? "Try clearing the filters." : "Bounced cheques, shortages, wages to approve and more will show up here."} />
+          <EmptyState icon={BellOff} title={filtered ? t("dashboard.noMatch") : t("shell.noNotifications")} description={filtered ? t("dashboard.tryClearing") : t("dashboard.alertsEmptyDesc")} />
         )}
       </SectionCard>
     </>

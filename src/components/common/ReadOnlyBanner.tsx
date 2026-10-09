@@ -71,8 +71,8 @@ export function ReadOnlyBanner({ message, action }: { message?: ReactNode; actio
     const left = daysUntil(me.subscription.renewsOn);
     return (
       <Banner tone="warning" icon={TriangleAlert} action={renew}>
-        Your subscription period has ended. Renew
-        {left !== null && left >= 0 ? ` within ${left} day${left === 1 ? "" : "s"}` : " now"} to keep editing.
+        {t("shell.graceEnded")}{" "}
+        {left !== null && left >= 0 ? (left === 1 ? t("shell.graceRenewDay") : t("shell.graceRenewDays", { n: left })) : t("shell.graceRenewNow")}
       </Banner>
     );
   }

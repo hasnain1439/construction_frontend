@@ -25,13 +25,13 @@ const CATALOG_IDS = ["admin.materials", "admin.holidays"];
 
 const ALL_PROJECTS: NavSection = {
   id: "data.allProjects",
-  label: { en: "All projects", ur: "Tamam projects" },
+  label: { en: "All projects", ur: "Tamam projects", urdu: "تمام پراجیکٹس" },
   icon: ArrowLeft,
   mode: "company",
   items: [
     {
       id: "data.allProjects.item",
-      label: { en: "All projects", ur: "Tamam projects" },
+      label: { en: "All projects", ur: "Tamam projects", urdu: "تمام پراجیکٹس" },
       href: "/projects",
       available: true,
     },
@@ -47,23 +47,24 @@ const PLATFORM_GROUPS: Array<{ id: string; itemIds: string[]; label?: Label; ico
   {
     id: "admin.g.companies",
     itemIds: ["admin.companies", "admin.payments", "admin.plans"],
-    label: { en: "Companies", ur: "Companies" },
+    label: { en: "Companies", ur: "Companies", urdu: "کمپنیاں" },
     icon: Building2,
   },
   { id: "admin.g.audit", itemIds: ["admin.audit"] },
   {
     id: "admin.g.more",
     itemIds: ["admin.rulebook", "admin.communication", "admin.security"],
-    label: { en: "More", ur: "Mazeed" },
+    label: { en: "More", ur: "Mazeed", urdu: "مزید" },
     icon: Ellipsis,
   },
 ];
 
 /** Health in one rail item (full card on Overview). */
 function RailHealth({ collapsed }: { collapsed?: boolean }) {
+  const t = useT();
   const { data, isError } = useGetAdminHealthQuery(undefined, { pollingInterval: 60_000 });
   const ok = !isError && data?.api.ok && data.database.ok;
-  const label = data ? (ok ? "Systems OK" : "Check systems") : "Checking…";
+  const label = data ? (ok ? t("shell.systemsOk") : t("shell.checkSystems")) : t("shell.checking");
   return (
     <Link
       href="/admin/overview"
@@ -110,21 +111,21 @@ export function AdminRail({ collapsed, onLogout }: { collapsed?: boolean; onLogo
     const label = group.label ?? first.label;
     const withCount =
       group.itemIds.includes("admin.payments") && pending
-        ? { en: `${label.en} (${pending})`, ur: `${label.ur} (${pending})` }
+        ? { en: `${label.en} (${pending})`, ur: `${label.ur} (${pending})`, ...(label.urdu ? { urdu: `${label.urdu} (${pending})` } : {}) }
         : label;
     return { id: group.id, label: withCount, icon: group.icon ?? first.icon, mode: "admin", items };
   });
   // The platform catalog (materials and holidays for every company) joins the company Settings.
   const catalog: NavItem[] = CATALOG_IDS.map((id) => ADMIN_NAV.find((i) => i.id === id))
     .filter((i): i is AdminNavItem => Boolean(i))
-    .map((i) => ({ ...i, label: { en: `${i.label.en} (Platform)`, ur: `${i.label.ur} (Platform)` } }));
+    .map((i) => ({ ...i, label: { en: `${i.label.en} (Platform)`, ur: `${i.label.ur} (Platform)`, ...(i.label.urdu ? { urdu: `${i.label.urdu} (پلیٹ فارم)` } : {}) } }));
   const company: NavSection[] = d.projectId
     ? [
         ALL_PROJECTS,
         ...d.sections,
         {
           id: "admin.g.catalog",
-          label: { en: "Catalog", ur: "Catalog" },
+          label: { en: "Catalog", ur: "Catalog", urdu: "کیٹلاگ" },
           icon: Boxes,
           mode: "admin",
           items: catalog,
@@ -164,7 +165,7 @@ export function AdminRail({ collapsed, onLogout }: { collapsed?: boolean; onLogo
   return (
     <>
       <IconRail
-        label="Platform"
+        label={t("shell.platformNav")}
         sections={sections}
         activeSectionId={activeSectionId}
         openSectionId={openId}
@@ -182,7 +183,7 @@ export function AdminRail({ collapsed, onLogout }: { collapsed?: boolean; onLogo
         hrefFor={(item) => (open ? hrefFor(open, item) : item.href)}
         onClose={() => setFlyout(null)}
         badgeFor={(item) => (item.id === "admin.payments" && pending ? pending : undefined)}
-        className="left-28"
+        className="start-28"
       />
     </>
   );
