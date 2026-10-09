@@ -16,6 +16,7 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
@@ -24,24 +25,25 @@ import { AlertsList, LaborAnalysis, PaymentAnalysis, ProjectsSummary, SiteStats 
 import { SiteDashboardView } from "./SiteDashboardView";
 
 function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: boolean }) {
+  const t = useT();
   const isOwner = useCan({ roles: ["THEKEDAR"] });
   const steps = [
-    { done: hasLogo, label: "Add your company logo", href: "/settings/company", icon: ImageUp, owner: true },
-    { done: hasTeam, label: "Invite your PMs and Munshis", href: "/team/invitations?new=1", icon: UserPlus, owner: true },
-    { done: false, label: "Check materials and set your rates", href: "/settings/price-list", icon: PackageSearch, owner: true },
-    { done: false, label: "Create your first project", href: "/projects/new", icon: FolderKanban, owner: false },
+    { done: hasLogo, label: t("dashboard.stepLogo"), href: "/settings/company", icon: ImageUp, owner: true },
+    { done: hasTeam, label: t("dashboard.stepInvite"), href: "/team/invitations?new=1", icon: UserPlus, owner: true },
+    { done: false, label: t("dashboard.stepRates"), href: "/settings/price-list", icon: PackageSearch, owner: true },
+    { done: false, label: t("dashboard.stepFirstProject"), href: "/projects/new", icon: FolderKanban, owner: false },
   ].filter((s) => isOwner || !s.owner);
   return (
-    <SectionCard title="Get started" description="A few steps to set up your company.">
+    <SectionCard title={t("dashboard.getStarted")} description={t("dashboard.getStartedDesc")}>
       <ul className="grid gap-3 md:grid-cols-2">
         {steps.map(({ done, label, href, icon: Icon }) => (
           <li key={label}>
-            <Link href={href} className={cn("flex items-center gap-3 rounded-2xl bg-muted p-3 pr-4 transition-colors hover:bg-accent", done && "bg-success-soft")}>
+            <Link href={href} className={cn("flex items-center gap-3 rounded-2xl bg-muted p-3 pe-4 transition-colors hover:bg-accent", done && "bg-success-soft")}>
               <span className={cn("flex size-10 items-center justify-center rounded-full", done ? "bg-success text-white" : "bg-card text-foreground shadow-card")}>
                 {done ? <CircleCheck className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
               </span>
               <span className={cn("text-sm font-medium", done && "text-muted-foreground line-through")}>{label}</span>
-              <span className="sr-only">{done ? "(done)" : "(to do)"}</span>
+              <span className="sr-only">{done ? t("dashboard.stepDone") : t("dashboard.stepToDo")}</span>
             </Link>
           </li>
         ))}
@@ -75,6 +77,7 @@ export function DashboardView() {
 }
 
 function CompanyOverview() {
+  const t = useT();
   const me = useMe();
   const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
   const canCreate = useCan({ permission: "projects.manage" });
@@ -87,15 +90,15 @@ function CompanyOverview() {
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        description={me ? `Assalam-o-Alaikum, ${me.user.name.split(" ")[0]}.` : undefined}
-        breadcrumbs={[{ label: "Dashboard" }]}
+        title={t("dashboard.title")}
+        description={me ? t("dashboard.greeting", { name: me.user.name.split(" ")[0] }) : undefined}
+        breadcrumbs={[{ label: t("dashboard.title") }]}
         actions={
           canCreate ? (
             <Button asChild>
               <Link href="/projects/new">
                 <Plus data-icon="inline-start" />
-                New project
+                {t("dashboard.newProject")}
               </Link>
             </Button>
           ) : null
@@ -104,56 +107,57 @@ function CompanyOverview() {
 
       {projects.data && projects.data.meta.total === 0 ? <OnboardingChecklist hasLogo={Boolean(me?.tenant.logoUrl)} hasTeam={(users.data?.meta.usage?.officeUsers ?? 1) > 1} /> : null}
 
-      <ReportFilterBar value={filters} onChange={setFilters} dateLabel="Last 30 days" trailing={d ? <span className="px-2 text-xs text-muted-foreground">{formatDate(d.period.from)} – {formatDate(d.period.to)}</span> : null} />
+      <ReportFilterBar value={filters} onChange={setFilters} dateLabel={t("dashboard.last30Days")} trailing={d ? <span dir="ltr" className="px-2 text-xs text-muted-foreground">{formatDate(d.period.from)} – {formatDate(d.period.to)}</span> : null} />
 
       <QueryState query={overview} skeleton={<OverviewSkeleton />}>
         {(data) => {
           const k = data.kpis;
           const money = data.seesFinancials;
+          const onTheWay = t(k.dispatchesOnTheWay === 1 ? "dashboard.dispatchOnWay" : "dashboard.dispatchesOnWay", { n: k.dispatchesOnTheWay });
           return (
             <div className="space-y-4">
               <KpiGroup>
                 <KpiCard
                   variant="tile"
                   highlight
-                  label="Active projects"
+                  label={t("dashboard.activeProjects")}
                   icon={FolderKanban}
                   value={k.activeProjects.count}
                   tone={k.activeProjects.atRisk ? "warning" : "primary"}
-                  hint={money ? `${k.activeProjects.atRisk} at risk` : `${k.dispatchesOnTheWay} dispatch${k.dispatchesOnTheWay === 1 ? "" : "es"} on the way`}
+                  hint={money ? t("dashboard.atRisk", { n: k.activeProjects.atRisk }) : onTheWay}
                 />
                 <Link href="/dashboard/approvals" className="rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
-                  <KpiCard variant="tile" label="Pending approvals" icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint="Open My Approvals" className="h-full transition-colors hover:bg-accent" />
+                  <KpiCard variant="tile" label={t("dashboard.pendingApprovals")} icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint={t("dashboard.openMyApprovals")} className="h-full transition-colors hover:bg-accent" />
                 </Link>
-                <KpiCard variant="tile" label="Open shortages" icon={PackageX} value={k.openShortages} tone={k.openShortages ? "danger" : "success"} hint={k.openShortages ? "Waiting for your decision" : "Nothing short"} />
+                <KpiCard variant="tile" label={t("dashboard.openShortages")} icon={PackageX} value={k.openShortages} tone={k.openShortages ? "danger" : "success"} hint={k.openShortages ? t("dashboard.waitingDecision") : t("dashboard.nothingShort")} />
               </KpiGroup>
 
               {money ? (
                 <div className="grid gap-4 md:grid-cols-3">
                   <RingKpiCard
-                    label="Receivables"
+                    label={t("dashboard.receivables")}
                     value={<MoneyText paisa={k.receivablesOutstandingPaisa} short />}
                     percent={k.collectedPercent ?? 0}
-                    ringLabel="collected"
+                    ringLabel={t("dashboard.collected")}
                     tone={k.overduePaisa && k.overduePaisa !== "0" ? "warning" : "success"}
-                    hint={k.overduePaisa && k.overduePaisa !== "0" ? `${formatPKRShort(k.overduePaisa)} overdue` : "Nothing overdue"}
+                    hint={k.overduePaisa && k.overduePaisa !== "0" ? t("dashboard.overdue", { amount: formatPKRShort(k.overduePaisa) }) : t("dashboard.nothingOverdue")}
                   />
                   <RingKpiCard
-                    label="Supplier udhaar"
+                    label={t("dashboard.supplierCredit")}
                     value={<MoneyText paisa={k.supplierUdhaarPaisa} short />}
                     percent={k.supplierPaidPercent ?? 0}
-                    ringLabel="paid"
+                    ringLabel={t("dashboard.paid")}
                     tone="warning"
-                    hint={k.supplierOldestDays ? `Oldest ${k.supplierOldestDays} days` : "Nothing owed"}
+                    hint={k.supplierOldestDays ? t("dashboard.oldestDays", { n: k.supplierOldestDays }) : t("dashboard.nothingOwed")}
                   />
                   <KpiCard
-                    label="Store stock value"
+                    label={t("dashboard.storeStockValue")}
                     icon={Store}
                     value={<MoneyText paisa={k.storeStockValuePaisa} short />}
                     hint={
                       <span className="inline-flex items-center gap-1">
                         <Truck className="size-3.5" aria-hidden />
-                        {k.dispatchesOnTheWay} dispatch{k.dispatchesOnTheWay === 1 ? "" : "es"} on the way
+                        {onTheWay}
                       </span>
                     }
                   />
@@ -162,13 +166,13 @@ function CompanyOverview() {
 
               {money ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  <KpiCard label="Cash with site staff" icon={Wallet} value={<MoneyText paisa={k.cashWithSiteStaffPaisa} short />} hint={<Link className="underline-offset-2 hover:underline" href="/finance/cash-floats">Cash floats overview</Link>} />
+                  <KpiCard label={t("dashboard.cashWithSiteStaff")} icon={Wallet} value={<MoneyText paisa={k.cashWithSiteStaffPaisa} short />} hint={<Link className="underline-offset-2 hover:underline" href="/finance/cash-floats">{t("dashboard.cashFloatsOverview")}</Link>} />
                   <KpiCard
-                    label="Own money invested"
+                    label={t("dashboard.ownMoneyInvested")}
                     icon={Wallet}
                     tone={k.ownMoneyInvestedPaisa && !k.ownMoneyInvestedPaisa.startsWith("-") && k.ownMoneyInvestedPaisa !== "0" ? "warning" : "success"}
                     value={<MoneyText paisa={k.ownMoneyInvestedPaisa} short />}
-                    hint="Spent to date − received (negative: owners have paid ahead)"
+                    hint={t("dashboard.ownMoneyHint")}
                   />
                 </div>
               ) : null}

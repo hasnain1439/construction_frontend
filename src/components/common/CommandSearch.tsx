@@ -136,12 +136,12 @@ export function CommandSearch({ mode }: { mode: NavMode }) {
         <CommandEmpty>{t("common.noResults")}</CommandEmpty>
         {recentEntries.length ? (
           <>
-            <CommandGroup heading="Recent">
+            <CommandGroup heading={t("common.recent")}>
               {recentEntries.map((entry) => (
                 <CommandItem key={`recent-${entry.href}`} value={`recent ${entry.label} ${entry.group}`} onSelect={() => go(entry.href)}>
                   <History className="text-muted-foreground" aria-hidden />
                   <span>{entry.label}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">{entry.group}</span>
+                  <span className="ms-auto text-xs text-muted-foreground">{entry.group}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -158,7 +158,7 @@ export function CommandSearch({ mode }: { mode: NavMode }) {
               >
                 <CornerDownLeft className="text-muted-foreground" aria-hidden />
                 <span>{entry.label}</span>
-                {!entry.available ? <StatusBadge tone="neutral" label="Soon" className="ml-auto h-5" /> : null}
+                {!entry.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="ms-auto h-5" /> : null}
               </CommandItem>
             ))}
           </CommandGroup>

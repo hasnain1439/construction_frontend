@@ -3,7 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Provider } from "react-redux";
 import { makeStore, type AppStore } from "@/store";
-import { hydrateUi, type UiState } from "@/store/slices/uiSlice";
+import { isRtl } from "@/i18n/useT";
+import { hydrateUi, type UiLanguage, type UiState } from "@/store/slices/uiSlice";
 
 const UI_STORAGE_KEY = "cw.ui";
 
@@ -18,13 +19,22 @@ function readPersistedUi(): PersistedUi {
   }
 }
 
+/** <html lang dir>: Urdu flips the page right-to-left and switches to the Urdu font (globals.css). */
+function applyDocumentLanguage(language: UiLanguage) {
+  const el = document.documentElement;
+  el.lang = language === "en" ? "en" : language === "ur" ? "ur" : "ur-Latn";
+  el.dir = isRtl(language) ? "rtl" : "ltr";
+}
+
 /** Remembers a couple of per-browser UI preferences (rail collapsed, language). */
 function UiPersistence({ store }: { store: AppStore }) {
   useEffect(() => {
     store.dispatch(hydrateUi(readPersistedUi()));
+    applyDocumentLanguage(store.getState().ui.language);
     let previous = "";
     return store.subscribe(() => {
       const { railCollapsed, language } = store.getState().ui;
+      applyDocumentLanguage(language);
       const next = JSON.stringify({ railCollapsed, language });
       if (next === previous) return;
       previous = next;

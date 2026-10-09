@@ -26,7 +26,7 @@ export function StickyFooter() {
         ))}
       </div>
       <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
-        <span className="hidden sm:inline">Construction Platform v{VERSION}</span>
+        <span className="hidden sm:inline">{t("shell.version", { version: VERSION })}</span>
         <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 font-medium text-success">
           <CircleCheck className="size-3.5" aria-hidden />
           {t("shell.allSynced")}

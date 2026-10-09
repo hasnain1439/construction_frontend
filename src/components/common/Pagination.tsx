@@ -34,7 +34,7 @@ export function Pagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t("common.pagination")}
       className={cn("flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 text-sm", className)}
     >
       <p className="text-muted-foreground tabular" aria-live="polite">
@@ -84,7 +84,7 @@ export function Pagination({
             disabled={current <= 1}
             aria-label={t("common.previous")}
           >
-            <ChevronLeft />
+            <ChevronLeft className="rtl:-scale-x-100" />
           </Button>
           <Button
             variant="outline"
@@ -93,7 +93,7 @@ export function Pagination({
             disabled={current >= totalPages}
             aria-label={t("common.next")}
           >
-            <ChevronRight />
+            <ChevronRight className="rtl:-scale-x-100" />
           </Button>
         </div>
       </div>

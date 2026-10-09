@@ -44,7 +44,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (isLoading || !admin) {
     return (
-      <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading">
+      <div className="fixed inset-0 flex flex-col" aria-busy="true" aria-label={t("common.loading")}>
         <div className="h-16" />
         <div className="flex flex-1">
           <div className="w-28" />
@@ -71,7 +71,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </Button>
           <Link
             href="/admin/overview"
-            className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1 hover:bg-muted"
+            className="flex items-center gap-2 rounded-full py-1 pe-3 ps-1 hover:bg-muted"
           >
             <span className="flex size-9 items-center justify-center rounded-full bg-charcoal text-white dark:bg-primary dark:text-primary-foreground">
               <Building className="size-5" aria-hidden />
@@ -86,8 +86,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-full border glass py-1 pr-2 pl-1 shadow-card hover:bg-card"
-                aria-label="Account menu"
+                className="flex items-center gap-1 rounded-full border glass py-1 pe-2 ps-1 shadow-card hover:bg-card"
+                aria-label={t("shell.accountMenu")}
               >
                 <AvatarName name={admin.name} subtitle={admin.email} />
                 <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
@@ -96,7 +96,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <p className="text-sm font-semibold">{admin.name}</p>
-                <p className="text-xs font-normal text-muted-foreground">Platform admin</p>
+                <p className="text-xs font-normal text-muted-foreground">{t("shell.platformAdmin")}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={() => void signOut()}>

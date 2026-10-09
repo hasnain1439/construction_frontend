@@ -31,7 +31,7 @@ test("super admin: open a tab → pick the company on that screen → its data; 
   await sidebar.getByRole("button", { name: "Suppliers & Stock" }).click();
   await page
     .getByRole("menu", { name: "Suppliers & Stock" })
-    .getByRole("menuitem", { name: "Purchases (Maal Kharida)" })
+    .getByRole("menuitem", { name: "Purchases", exact: true })
     .click();
   await expect(page).toHaveURL(/\/admin\/data\/suppliers-stock\/purchases$/);
   await expect(page.getByRole("status").getByText("Choose a company")).toBeVisible();

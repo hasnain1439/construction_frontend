@@ -159,7 +159,7 @@ test("dashboard KPIs → My Approvals bulk approve (kharcha + measurement) → S
     // ─── 1. Dashboard KPIs ───
     await page.goto("/dashboard");
     await expect(page.getByText("Receivables", { exact: true })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText("Supplier udhaar")).toBeVisible();
+    await expect(page.getByText("Supplier credit")).toBeVisible();
     await expect(page.getByText("Projects summary")).toBeVisible();
     const before = await pendingApprovals(page);
     expect(before).toBeGreaterThanOrEqual(2);

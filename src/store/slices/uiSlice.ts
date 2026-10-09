@@ -1,7 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export type ThemePreference = "light" | "dark" | "system";
-export type UiLanguage = "en" | "roman-ur";
+/** English, Roman Urdu (Latin script) and Urdu (Nastaliq script, right-to-left). */
+export type UiLanguage = "en" | "roman-ur" | "ur";
 
 export interface PlanLimitInfo {
   resource?: string;

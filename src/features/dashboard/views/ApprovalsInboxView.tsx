@@ -15,13 +15,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useEnumT, useT } from "@/i18n/useT";
 
 const keyOf = (i: Pick<Item, "type" | "id">) => `${i.type}:${i.id}`;
 
-/** "2 done, 1 failed: Only the owner decides top-ups" */
-export function bulkSummary(r: { succeeded: number; failed: number; results: Array<{ ok: boolean; error: { message: string } | null }> }) {
+/** "2 done, 1 failed: Only the owner decides top-ups" (English unless `words` are given). */
+export function bulkSummary(
+  r: { succeeded: number; failed: number; results: Array<{ ok: boolean; error: { message: string } | null }> },
+  words: { done: (n: number) => string; failed: (n: number) => string } = { done: (n) => `${n} done`, failed: (n) => `${n} failed` },
+) {
   const failures = [...new Set(r.results.filter((x) => !x.ok).map((x) => x.error?.message).filter(Boolean))];
-  return `${r.succeeded} done${r.failed ? `, ${r.failed} failed${failures.length ? `: ${failures.join(" · ")}` : ""}` : ""}`;
+  return `${words.done(r.succeeded)}${r.failed ? `, ${words.failed(r.failed)}${failures.length ? `: ${failures.join(" · ")}` : ""}` : ""}`;
 }
 
 /**
@@ -29,6 +33,8 @@ export function bulkSummary(r: { succeeded: number; failed: number; results: Arr
  * Items with quick actions can be selected and run together (each through its own module).
  */
 export function ApprovalsInboxView() {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const query = useGetApprovalsQuery(undefined, { refetchOnMountOrArgChange: true });
   const [bulkApprove, bulkState] = useBulkApproveMutation();
@@ -49,28 +55,30 @@ export function ApprovalsInboxView() {
     const body: BulkApprovalItem[] = list.map((i) => ({ type: i.type, id: i.id, action, ...input }));
     const result = await run(() => bulkApprove({ items: body }).unwrap());
     if (!result) return;
-    if (result.failed) toast.warning(bulkSummary(result));
-    else toast.success(bulkSummary(result));
+    const words = { done: (n: number) => t("dashboard.bulkDone", { n }), failed: (n: number) => t("dashboard.bulkFailed", { n }) };
+    if (result.failed) toast.warning(bulkSummary(result, words));
+    else toast.success(bulkSummary(result, words));
     setSelected(new Set());
   };
 
   return (
     <>
       <PageHeader
-        title="My Approvals"
-        description="Everything waiting for your decision, in one place."
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "My Approvals" }]}
+        title={t("dashboard.approvalsTitle")}
+        description={t("dashboard.approvalsDesc")}
+        breadcrumbs={[{ label: t("dashboard.title"), href: "/dashboard" }, { label: t("dashboard.approvalsTitle") }]}
       />
       <QueryState query={query}>
         {(data) =>
           data.total === 0 ? (
             <SectionCard>
-              <EmptyState icon={CircleCheckBig} title="Nothing waiting for you" description="New wages, kharcha, top-ups, measurements, shortages and billing items will show up here." />
+              <EmptyState icon={CircleCheckBig} title={t("dashboard.nothingWaiting")} description={t("dashboard.nothingWaitingDesc")} />
             </SectionCard>
           ) : (
             <div className="space-y-4">
               {data.groups.map((group) => {
                 const Icon = APPROVAL_ICON[group.type];
+                const groupLabel = te("approvalType", group.type, group.label);
                 const selectable = group.items.filter((i) => i.quickActions.length);
                 const allOn = selectable.length > 0 && selectable.every((i) => selected.has(keyOf(i)));
                 return (
@@ -79,21 +87,21 @@ export function ApprovalsInboxView() {
                     title={
                       <span className="flex items-center gap-2">
                         <Icon className="size-4 text-primary" aria-hidden />
-                        {group.label}
+                        {groupLabel}
                         <span className="rounded-full bg-muted px-2 text-xs font-semibold text-muted-foreground tabular">{group.count}</span>
                       </span>
                     }
-                    description={group.totalPaisa !== null ? <>Total <MoneyText paisa={group.totalPaisa} /></> : undefined}
+                    description={group.totalPaisa !== null ? <>{t("common.total")} <MoneyText paisa={group.totalPaisa} /></> : undefined}
                     actions={
                       selectable.length && !readOnly ? (
                         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Checkbox checked={allOn} onCheckedChange={(v) => selectable.forEach((i) => toggle(i, v === true))} aria-label={`Select all ${group.label}`} />
-                          Select all
+                          <Checkbox checked={allOn} onCheckedChange={(v) => selectable.forEach((i) => toggle(i, v === true))} aria-label={t("dashboard.selectAllOf", { label: groupLabel })} />
+                          {t("common.selectAll")}
                         </label>
                       ) : undefined
                     }
                   >
-                    <ul className="space-y-2" aria-label={group.label}>
+                    <ul className="space-y-2" aria-label={groupLabel}>
                       {group.items.map((item) => (
                         <ApprovalItem
                           key={keyOf(item)}

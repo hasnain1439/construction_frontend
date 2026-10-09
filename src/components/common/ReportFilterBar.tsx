@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useGetProjectsQuery } from "@/api/services/projects.api";
+import { useT } from "@/i18n/useT";
 import { DateRangePicker, type DateRange } from "./DateRangePicker";
 import { FilterBar, FilterSelect } from "./FilterBar";
 
@@ -27,7 +28,7 @@ export function ReportFilterBar({
   onChange,
   showProject = true,
   showDates = true,
-  dateLabel = "Any date",
+  dateLabel,
   children,
   trailing,
 }: {
@@ -39,13 +40,14 @@ export function ReportFilterBar({
   children?: ReactNode;
   trailing?: ReactNode;
 }) {
+  const t = useT();
   const projects = useGetProjectsQuery({ limit: 100 }, { skip: !showProject });
   const options = (projects.data?.items ?? []).filter((p) => p.status !== "DRAFT").map((p) => ({ value: p.id, label: `${p.code} · ${p.name}` }));
   const range: DateRange = { from: value.from, to: value.to };
   return (
     <FilterBar onClear={() => onChange(EMPTY_REPORT_FILTERS)} canClear={Boolean(value.projectId || value.from || value.to)} trailing={trailing}>
-      {showProject ? <FilterSelect label="Project" value={value.projectId} onChange={(projectId) => onChange({ ...value, projectId })} options={options} allLabel="All projects" /> : null}
-      {showDates ? <DateRangePicker value={range} onChange={(r) => onChange({ ...value, from: r.from, to: r.to })} label={dateLabel} /> : null}
+      {showProject ? <FilterSelect label={t("common.project")} value={value.projectId} onChange={(projectId) => onChange({ ...value, projectId })} options={options} allLabel={t("shell.allProjects")} /> : null}
+      {showDates ? <DateRangePicker value={range} onChange={(r) => onChange({ ...value, from: r.from, to: r.to })} label={dateLabel ?? t("common.anyDate")} /> : null}
       {children}
     </FilterBar>
   );

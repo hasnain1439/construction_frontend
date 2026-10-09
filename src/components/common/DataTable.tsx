@@ -60,7 +60,7 @@ const scrollClass =
 
 type SortDirection = "asc" | "desc";
 
-const alignClass = { left: "text-left", right: "text-right", center: "text-center" } as const;
+const alignClass = { left: "text-start", right: "text-end", center: "text-center" } as const;
 
 function compare(a: string | number | null | undefined, b: string | number | null | undefined) {
   if (a === b) return 0;

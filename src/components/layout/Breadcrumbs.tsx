@@ -18,7 +18,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
   const home = pathname.startsWith("/admin") ? "/admin/overview" : "/dashboard";
   const all: Crumb[] = [{ label: t("shell.home"), href: home }, ...items];
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label={t("common.breadcrumb")}>
       <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
         {all.map((crumb, index) => {
           const last = index === all.length - 1;
@@ -37,7 +37,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
               </li>
               {!last ? (
                 <li aria-hidden>
-                  <ChevronRight className="size-3" />
+                  <ChevronRight className="size-3 rtl:-scale-x-100" />
                 </li>
               ) : null}
             </Fragment>

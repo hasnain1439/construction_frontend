@@ -70,7 +70,7 @@ function Watermark({ icon: Icon, highlight }: { icon: LucideIcon; highlight?: bo
       aria-hidden
       strokeWidth={1.4}
       className={cn(
-        "pointer-events-none absolute -right-5 -bottom-6 -z-10 size-32 transition-transform duration-500 ease-out group-hover:scale-125 group-hover:-rotate-6 motion-reduce:transition-none",
+        "pointer-events-none absolute -end-5 -bottom-6 -z-10 size-32 transition-transform duration-500 ease-out group-hover:scale-125 group-hover:-rotate-6 motion-reduce:transition-none",
         highlight ? "text-charcoal/12" : "text-foreground/[0.045]",
       )}
     />
