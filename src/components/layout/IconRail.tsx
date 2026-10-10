@@ -68,7 +68,7 @@ export function IconRail({
       data-collapsed={collapsed || undefined}
       className={cn(
         "scrollbar-slim flex h-full flex-col overflow-y-auto bg-transparent pb-4",
-        collapsed ? "w-[72px]" : "w-28",
+        collapsed ? "w-[72px]" : "w-28 max-lg:w-20",
       )}
     >
       {header}

@@ -17,7 +17,8 @@ import { canAccess } from "@/lib/permissions";
 import { loginUrl } from "@/lib/session";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
-import { closeFlyout, toggleFlyout } from "@/store/slices/uiSlice";
+import { closeFlyout, setMobileNav, toggleFlyout } from "@/store/slices/uiSlice";
+import { flyoutClass, NavBackdrop, railWrapperClass } from "./navDrawer";
 import { Flyout } from "./Flyout";
 import { IconRail, RailLogoutButton } from "./IconRail";
 import { ProjectRailHeader } from "./ProjectRailHeader";
@@ -54,6 +55,7 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   const dispatch = useAppDispatch();
   const { data: me, error, isLoading } = useGetMeQuery();
   const collapsed = useAppSelector((state) => state.ui.railCollapsed);
+  const mobileOpen = useAppSelector((state) => state.ui.mobileNavOpen);
   const flyoutFor = useAppSelector((state) => state.ui.flyoutFor);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const { signOut } = useLogout();
@@ -64,9 +66,10 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
     if (status === 401) router.replace(loginUrl("company", pathname));
   }, [status, router, pathname]);
 
-  // Close the flyout whenever the page changes.
+  // Close the flyout (and the phone drawer) whenever the page changes.
   useEffect(() => {
     dispatch(closeFlyout());
+    dispatch(setMobileNav(false));
   }, [pathname, dispatch]);
 
   useEffect(() => {
@@ -112,11 +115,8 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
       <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
       <div className="relative flex min-h-0 flex-1">
         {/* The menu button slides the rail out to the start side (and back); the content takes the room. */}
-        <div
-          className={cn("h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out", collapsed ? "w-0" : "w-28 shadow-(--shadow-rail)")}
-          aria-hidden={collapsed || undefined}
-          inert={collapsed}
-        >
+        <NavBackdrop />
+        <div className={railWrapperClass(collapsed, mobileOpen)} aria-hidden={(collapsed && !mobileOpen) || undefined} inert={collapsed && !mobileOpen}>
           <IconRail
             sections={sections}
             activeSectionId={current?.id}
@@ -127,15 +127,16 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
           />
         </div>
         <Flyout
-          section={collapsed ? null : openSection}
+          section={collapsed && !mobileOpen ? null : openSection}
           items={openSection?.items ?? []}
           hrefFor={hrefFor}
           onClose={onCloseFlyout}
           badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
-          className="start-28"
+          // Full height down to the bottom of the screen, over the sticky footer (h-14).
+          className={cn(flyoutClass(mobileOpen), "lg:-bottom-14")}
         />
         <main id="main" className={cn("min-w-0 flex-1 overflow-y-auto")}>
-          <div className="w-full space-y-6 px-6 py-6">
+          <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">
             <ReadOnlyBanner />
             {children}
           </div>

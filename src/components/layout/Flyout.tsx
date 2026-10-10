@@ -64,7 +64,7 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
       role="menu"
       aria-label={title}
       className={cn(
-        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-e-3xl border-e border-transparent bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-start-4",
+        "absolute top-0 bottom-0 z-30 flex w-[300px] flex-col rounded-se-3xl border-e border-transparent bg-popover shadow-flyout animate-in fade-in-0 slide-in-from-start-4",
         className,
       )}
     >

@@ -20,10 +20,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminLogout } from "@/features/auth/hooks/useLogout";
 import { useT } from "@/i18n/useT";
-import { cn } from "@/lib/cn";
 import { loginUrl } from "@/lib/session";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleRail } from "@/store/slices/uiSlice";
+import { useAppSelector } from "@/store/hooks";
+import { NavBackdrop, railWrapperClass, useNavToggle } from "./navDrawer";
 import { AdminRail } from "./AdminRail";
 import { SearchTrigger } from "./TopBar";
 
@@ -32,8 +31,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
   const collapsed = useAppSelector((state) => state.ui.railCollapsed);
+  const mobileOpen = useAppSelector((state) => state.ui.mobileNavOpen);
+  const toggleNav = useNavToggle();
   const { data: admin, error, isLoading } = useGetAdminMeQuery();
   const { signOut } = useAdminLogout();
 
@@ -59,12 +59,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden">
-      <header className="relative z-10 flex h-16 items-center justify-between gap-4 bg-transparent px-4 shadow-(--shadow-topbar)">
+      <header className="relative z-10 flex h-16 items-center justify-between gap-2 bg-transparent px-3 sm:gap-4 sm:px-4 shadow-(--shadow-topbar)">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => dispatch(toggleRail())}
+            onClick={toggleNav}
             aria-label={t("shell.toggleMenu")}
           >
             <Menu />
@@ -76,7 +76,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <span className="flex size-9 items-center justify-center rounded-full bg-charcoal text-white dark:bg-primary dark:text-primary-foreground">
               <Building className="size-5" aria-hidden />
             </span>
-            <span className="text-base font-semibold">{t("shell.platformConsole")}</span>
+            <span className="text-base font-semibold max-sm:hidden">{t("shell.platformConsole")}</span>
           </Link>
           <SearchTrigger />
         </div>
@@ -89,8 +89,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 className="flex items-center gap-1 rounded-full border glass py-1 pe-2 ps-1 shadow-card hover:bg-card"
                 aria-label={t("shell.accountMenu")}
               >
-                <AvatarName name={admin.name} subtitle={admin.email} />
-                <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
+                <AvatarName name={admin.name} subtitle={admin.email} className="[&>div]:max-sm:hidden" />
+                <ChevronDown className="size-4 text-muted-foreground max-sm:hidden" aria-hidden />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -109,18 +109,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
       </header>
       <div className="relative flex min-h-0 flex-1">
         {/* Same rail + flyout as the company dashboard; the menu button slides it out. */}
-        <div
-          className={cn(
-            "h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out",
-            collapsed ? "w-0" : "w-28 shadow-(--shadow-rail)",
-          )}
-          aria-hidden={collapsed || undefined}
-          inert={collapsed}
-        >
-          <AdminRail collapsed={collapsed} onLogout={() => void signOut()} />
+        <NavBackdrop />
+        <div className={railWrapperClass(collapsed, mobileOpen)} aria-hidden={(collapsed && !mobileOpen) || undefined} inert={collapsed && !mobileOpen}>
+          <AdminRail collapsed={collapsed && !mobileOpen} mobileOpen={mobileOpen} onLogout={() => void signOut()} />
         </div>
         <main className="min-w-0 flex-1 overflow-y-auto">
-          <div className="w-full space-y-6 px-6 py-6">{children}</div>
+          <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">{children}</div>
         </main>
       </div>
       <CommandSearch mode="admin" />

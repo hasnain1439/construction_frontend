@@ -133,7 +133,7 @@ function CompanyOverview() {
               </KpiGroup>
 
               {money ? (
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <RingKpiCard
                     label={t("dashboard.receivables")}
                     value={<MoneyText paisa={k.receivablesOutstandingPaisa} short />}
@@ -151,6 +151,7 @@ function CompanyOverview() {
                     hint={k.supplierOldestDays ? t("dashboard.oldestDays", { n: k.supplierOldestDays }) : t("dashboard.nothingOwed")}
                   />
                   <KpiCard
+                    className="sm:col-span-2 lg:col-span-1"
                     label={t("dashboard.storeStockValue")}
                     icon={Store}
                     value={<MoneyText paisa={k.storeStockValuePaisa} short />}

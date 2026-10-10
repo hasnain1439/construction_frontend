@@ -21,7 +21,8 @@ import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { CREATE_ACTIONS } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
 import { useAppDispatch, useMe } from "@/store/hooks";
-import { setCommandOpen, toggleRail } from "@/store/slices/uiSlice";
+import { setCommandOpen } from "@/store/slices/uiSlice";
+import { useNavToggle } from "./navDrawer";
 
 /** Search pill styled like an input: "Search menu…" (opens CommandSearch, Ctrl+K). */
 export function SearchTrigger() {
@@ -50,10 +51,10 @@ function CreateMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button>
+        <Button aria-label={t("shell.create")} className="max-sm:size-9 max-sm:px-0">
           <Plus data-icon="inline-start" />
-          {t("shell.create")}
-          <ChevronDown data-icon="inline-end" />
+          <span className="max-sm:hidden">{t("shell.create")}</span>
+          <ChevronDown data-icon="inline-end" className="max-sm:hidden" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -82,8 +83,8 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
           className="flex items-center gap-1 rounded-full border glass py-1 pe-2 ps-1 text-start shadow-card transition-colors hover:bg-card"
           aria-label={t("shell.accountMenu")}
         >
-          <AvatarName name={me.user.name} subtitle={me.tenant.name} photoUrl={me.user.photoUrl} className="max-w-52" />
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <AvatarName name={me.user.name} subtitle={me.tenant.name} photoUrl={me.user.photoUrl} className="max-w-52 [&>div]:max-sm:hidden" />
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
@@ -95,6 +96,11 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {/* The top bar shows the language switch only on wide screens; phones pick it here. */}
+        <div className="px-2 py-1.5 xl:hidden">
+          <LanguageToggle className="w-full" />
+        </div>
+        <DropdownMenuSeparator className="xl:hidden" />
         <DropdownMenuItem onSelect={onSessions}>
           <KeyRound />
           {t("shell.sessions")}
@@ -113,7 +119,7 @@ function CompanyBrand() {
   const me = useMe();
   if (!me) return null;
   return (
-    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-full py-1 pe-3 ps-1 hover:bg-muted">
+    <Link href="/dashboard" className="hidden min-w-0 items-center gap-2.5 rounded-full py-1 pe-3 ps-1 hover:bg-muted md:flex">
       {me.tenant.logoUrl ? (
         // Signed, short-lived logo URL from the API.
         // eslint-disable-next-line @next/next/no-img-element
@@ -139,18 +145,19 @@ export function TopBar({
   rightExtra?: ReactNode;
 }) {
   const t = useT();
-  const dispatch = useAppDispatch();
+  const toggleNav = useNavToggle();
   return (
-    <header className="relative z-10 grid h-20 grid-cols-[1fr_auto_1fr] items-center gap-4 bg-transparent px-4 shadow-(--shadow-topbar)">
-      <div className="flex min-w-0 items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => dispatch(toggleRail())} aria-label={t("shell.toggleMenu")}>
+    // Phones: menu + search on one side, actions on the other; desktop: three columns with the company centred.
+    <header className="relative z-10 flex h-16 items-center justify-between gap-2 bg-transparent px-3 shadow-(--shadow-topbar) sm:h-20 sm:px-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-4">
+      <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+        <Button variant="ghost" size="icon" onClick={toggleNav} aria-label={t("shell.toggleMenu")}>
           <Menu />
         </Button>
         <SearchTrigger />
         <LanguageToggle className="hidden xl:inline-flex" />
       </div>
       <CompanyBrand />
-      <div className="flex min-w-0 items-center justify-end gap-1.5">
+      <div className="flex min-w-0 items-center justify-end gap-1 sm:gap-1.5">
         <CreateMenu />
         <ThemeToggle />
         <NotificationBell />

@@ -36,7 +36,11 @@ export function LoginView() {
     >
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-5 grid h-10! w-full grid-cols-2">
-          <TabsTrigger value="password">Email or phone + password</TabsTrigger>
+          <TabsTrigger value="password">
+            {/* Short label on phones, where the long one does not fit the pill. */}
+            <span className="sm:hidden">Password</span>
+            <span className="max-sm:hidden">Email or phone + password</span>
+          </TabsTrigger>
           <TabsTrigger value="otp">Phone OTP</TabsTrigger>
         </TabsList>
         <TabsContent value="password">
