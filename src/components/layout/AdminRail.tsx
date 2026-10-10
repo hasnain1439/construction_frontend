@@ -20,6 +20,7 @@ import { DATA_BASE } from "@/lib/companyRoutes";
 import { ADMIN_NAV, type AdminNavItem, type NavItem, type NavSection } from "@/lib/navigation";
 import { Flyout } from "./Flyout";
 import { IconRail, RailLogoutButton } from "./IconRail";
+import { flyoutClass } from "./navDrawer";
 
 const CATALOG_IDS = ["admin.materials", "admin.holidays"];
 
@@ -91,7 +92,7 @@ function RailHealth({ collapsed }: { collapsed?: boolean }) {
  * sections (inside a project: the project's sections) together. Each company screen asks
  * which company (tenant) to show.
  */
-export function AdminRail({ collapsed, onLogout }: { collapsed?: boolean; onLogout: () => void }) {
+export function AdminRail({ collapsed, mobileOpen = false, onLogout }: { collapsed?: boolean; mobileOpen?: boolean; onLogout: () => void }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -183,7 +184,7 @@ export function AdminRail({ collapsed, onLogout }: { collapsed?: boolean; onLogo
         hrefFor={(item) => (open ? hrefFor(open, item) : item.href)}
         onClose={() => setFlyout(null)}
         badgeFor={(item) => (item.id === "admin.payments" && pending ? pending : undefined)}
-        className="start-28"
+        className={flyoutClass(mobileOpen)}
       />
     </>
   );

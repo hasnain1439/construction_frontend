@@ -250,6 +250,10 @@
     font-size: 14px;
     line-height: 1.5;
   }
+  /* Grid cells may shrink below their content (wide tables scroll inside instead of pushing the page wider on phones). */
+  .grid > * {
+    min-width: 0;
+  }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

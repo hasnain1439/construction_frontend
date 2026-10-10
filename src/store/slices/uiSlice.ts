@@ -13,6 +13,8 @@ export interface PlanLimitInfo {
 /** Client-only UI state. Never holds server data. */
 export interface UiState {
   railCollapsed: boolean;
+  /** Phones/tablets: the rail opens as a drawer over the page (not persisted). */
+  mobileNavOpen: boolean;
   /** Rail item whose flyout is open, or null. */
   flyoutFor: string | null;
   commandOpen: boolean;
@@ -26,6 +28,7 @@ export interface UiState {
 
 export const initialUiState: UiState = {
   railCollapsed: false,
+  mobileNavOpen: false,
   flyoutFor: null,
   commandOpen: false,
   theme: "system",
@@ -43,6 +46,10 @@ export const uiSlice = createSlice({
     },
     toggleRail(state) {
       state.railCollapsed = !state.railCollapsed;
+    },
+    setMobileNav(state, action: PayloadAction<boolean>) {
+      state.mobileNavOpen = action.payload;
+      if (!action.payload) state.flyoutFor = null;
     },
     openFlyout(state, action: PayloadAction<string>) {
       state.flyoutFor = action.payload;
@@ -78,6 +85,7 @@ export const uiSlice = createSlice({
 export const {
   hydrateUi,
   toggleRail,
+  setMobileNav,
   openFlyout,
   toggleFlyout,
   closeFlyout,
