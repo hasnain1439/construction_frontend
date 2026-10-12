@@ -2,12 +2,12 @@
 
 Next.js web app for the multi-tenant Construction Management SaaS (Pakistani building contractors).
 It talks to the Express API in `../construction-platform` and only builds screens for what that
-backend already does (Phase 1, steps 1–5). Everything else in the menu opens a
-"Coming in the next phase" page.
+backend already does (Phase 1, steps 1–10). Everything else in the menu opens a
+"Coming in the next phase" page. What changed and when: [CHANGELOG.md](CHANGELOG.md).
 
 **Stack** — Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.9 (strict) · Tailwind CSS 4 ·
 shadcn/ui (Radix) · lucide-react · Redux Toolkit + RTK Query · React Hook Form + Zod · date-fns(-tz) ·
-sonner · recharts · Vitest + Testing Library · Playwright · ESLint + Prettier.
+sonner · recharts · next-themes · Vitest + Testing Library · Playwright · ESLint + Prettier.
 
 ## Setup
 
@@ -36,16 +36,17 @@ The browser never calls the API origin directly. `next.config.ts` rewrites `/api
 
 ## Scripts
 
-| Script                        | What it does                                                                                                                             |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`                 | Dev server on :3000                                                                                                                      |
-| `npm run build` / `npm start` | Production build / serve it                                                                                                              |
-| `npm run lint`                | ESLint (0 warnings allowed)                                                                                                              |
-| `npm run typecheck`           | `next typegen` + `tsc --noEmit`                                                                                                          |
-| `npm test`                    | Vitest unit + component tests (`tests/`)                                                                                                 |
-| `npm run e2e`                 | Playwright smoke tests (`e2e/`) — needs the backend running; starts `next start` (run `npm run build` first) or reuses a server on :3000 |
-| `npm run api:types`           | Regenerates `src/api/generated/schema.ts` from the running backend's `/api/docs.json`                                                    |
-| `npm run format`              | Prettier                                                                                                                                 |
+| Script                            | What it does                                                                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                     | Dev server on :3000                                                                                                                                   |
+| `npm run build` / `npm start`     | Production build / serve it                                                                                                                           |
+| `npm run lint`                    | ESLint (0 warnings allowed)                                                                                                                           |
+| `npm run typecheck`               | `next typegen` + `tsc --noEmit`                                                                                                                       |
+| `npm test` / `npm run test:watch` | Vitest unit + component tests (`tests/unit/`)                                                                                                         |
+| `npm run e2e`                     | Playwright smoke tests (`e2e/`) — needs the backend running; starts `next start` (run `npm run build` first) or reuses a server on :3000              |
+| `npm run api:types`               | Regenerates `src/api/generated/schema.ts` from the running backend's `/api/docs.json` (`API_ORIGIN`, default :4000)                                   |
+| `npm run routes:company`          | Regenerates `src/lib/companyRoutes.generated.ts` (pages the super admin's Company data can open); run after adding or moving a company / project page |
+| `npm run format` / `format:check` | Prettier write / check                                                                                                                                |
 
 ## Seed accounts (backend `npm run db:seed`)
 
@@ -62,7 +63,8 @@ The browser never calls the API origin directly. `next.config.ts` rewrites `/api
 ```
 src/
 ├── app/                          # routes only — pages compose feature views
-│   ├── layout.tsx                # Inter, ThemeProvider, StoreProvider, Toaster
+│   ├── layout.tsx                # Cabin + Noto Nastaliq Urdu fonts, ThemeProvider, StoreProvider, Toaster
+│   ├── globals.css               # design tokens (cabin palette, chart colours, glass), light + dark
 │   ├── (public)/                 # login, otp, signup, forgot/reset-password, invite/[token], select-company
 │   ├── (company)/                # company shell: dashboard, projects, sales, suppliers-stock, workforce,
 │   │                             #   equipment, finance, reports, team, settings  (+ [...rest] → ComingSoon)
@@ -80,18 +82,72 @@ src/
 ├── store/                        # store, typed hooks, StoreProvider, slices (auth, ui, project), error listener
 ├── components/
 │   ├── ui/                       # shadcn primitives (generated)
-│   ├── layout/                   # AppShell, TopBar, IconRail, Flyout, StickyFooter, ProjectRailHeader, AdminShell, PageHeader, Breadcrumbs
+│   ├── layout/                   # AppShell, TopBar, IconRail, Flyout, StickyFooter, ProjectRailHeader, AdminShell, AdminRail,
+│   │                             #   PageHeader, Breadcrumbs, navDrawer (rail ↔ drawer below lg)
 │   ├── common/                   # DataTable, Pagination, FilterBar, SearchInput, DateRangePicker, StatusBadge, KpiCard, RingKpiCard,
-│   │                             #   LineItemsEditor, DocumentHeader, LedgerTable, DifferenceBadge, StockStatusBadge, …
-│   └── forms/                    # Form, FormField, TextField, NumberField, MoneyInput, QuantityInput, MaterialPicker, AttachmentField, …
+│   │                             #   RowActions, ShareColumns, Charts, InviteShare, LanguageMenu, LineItemsEditor, LedgerTable, …
+│   └── forms/                    # Form, FormField, TextField, NumberField, MoneyInput, QuantityInput, CheckboxField, MaterialPicker, …
 ├── features/<module>/            # components/ views/ hooks/ schemas — auth, company, team, subscription,
 │                                 #   master-data, clients, projects (wizard/), dashboard, admin, procurement (purchases, POs, stock,
-│                                 #   dispatches, shortages, supplier ledger), site (project Site pages)
+│                                 #   dispatches, shortages, supplier ledger), site, labor, cashbook, billing, finance, reports
 ├── hooks/                        # useListState, useMutationToast, useReadOnly, useSearchFlag
 ├── lib/                          # money, phone, dates, permissions, apiErrors, navigation, status, options, validation, cn, session
-└── i18n/                         # en.ts, roman-ur.ts, useT.ts
+└── i18n/                         # en.ts, roman-ur.ts, ur.ts, useT.ts (see Languages)
 tests/unit/ · e2e/
 ```
+
+## Design system
+
+- **Warm "cabin" palette** — tokens in `src/app/globals.css`: `sand` `#B5A18B`, `sun` `#FFCF68` (+ `sun-soft`),
+  `stone` `#E4E0E0`, `charcoal` `#201F1E` (Tailwind: `bg-sand`, `text-charcoal`, …). Charcoal is the light-mode
+  primary; sand is the dark-mode primary; sun highlights the one thing that matters.
+- **Font** — Cabin (`next/font`) for everything; Noto Nastaliq Urdu only when Urdu is chosen (Latin text and numbers stay in Cabin).
+- **Glass cards** — the `glass` utility (translucent, blurred, light edge) on a warm gradient background.
+- **Light / dark** — `ThemeToggle` (next-themes `dark` class); every token is redefined for dark in `globals.css`.
+- **Charts** — validated categorical palette `--chart-1 … --chart-6`, **teal first** (rings and the first series),
+  `--chart-brand` (sand) for single-series charts, `--age-1 … --age-4` for ageing. Always with a legend or labels.
+
+## Languages (English · Roman Urdu · Urdu)
+
+- Picked with `LanguageMenu` (top bar; user menu on phones). Stored with the other UI prefs in localStorage;
+  Urdu sets `dir="rtl"` on `<html>`, so the shell uses logical spacing (`ms-` / `me-` / `start-` / `end-`).
+- **Dictionaries** — `src/i18n/en.ts` (source of keys), `roman-ur.ts`, `ur.ts`; both must have every key of `en` (typed).
+- **Adding a string** — add the key to all three files, then `const t = useT(); t("dashboard.atRisk", { n })`.
+  Enum values (project status, payment method, worker type, notifications) use `useEnumT()` with `enum.*` keys.
+  A missing key falls back to English, then to the key itself.
+- **Navigation labels** — in `src/lib/navigation.ts` with `L(en, romanUrdu, urdu)`.
+- **Translated so far:** the shell (rail, flyouts, top bar, footer, menus), the dashboard, Worker Types and the invite
+  share panel. **Not yet:** most other pages (lists, forms, project screens, reports) are still English.
+
+## Responsive layout
+
+- At `lg` (1024 px) and up the icon rail is a column the menu button slides away. Below `lg` it becomes a
+  **drawer** over the page with a backdrop that closes on navigation — logic in `src/components/layout/navDrawer.tsx`
+  (`useNavToggle`, `railWrapperClass`, `flyoutClass`).
+- Phones: icon-only top bars, narrower rail and flyout, tighter page padding; grid cells may shrink so the page never
+  scrolls sideways (wide tables scroll inside their card).
+
+## Shared components worth knowing
+
+| Component                                                    | Use it for                                                                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `RowActions` + `ACTIONS_COLUMN`                              | The one labelled **Actions** button per table row; items can be links, destructive, hidden, or ask to confirm |
+| `KpiCard` / `KpiGroup`                                       | KPI tiles (`variant="tile"`, `highlight` = sand) grouped in one glass card                                    |
+| `ShareColumns`                                               | Parts of a whole as columns with a legend (share + value)                                                     |
+| `Charts` (`BarChartCard`, `AreaChartCard`, `DonutChartCard`) | recharts on the palette above; exact rupees in tooltips                                                       |
+| `DataTable` `maxHeight="sm" \| "md"`                         | Caps the table height with a sticky header                                                                    |
+| `InviteShare`                                                | Share an invite link: copy, WhatsApp, SMS, email, native share                                                |
+| `CheckboxField`                                              | React Hook Form checkbox (e.g. Remember me)                                                                   |
+| `LanguageMenu`                                               | The three-language picker                                                                                     |
+
+## Recent features
+
+- **Workforce → Worker Types** (`/workforce/worker-types`): list, add / edit (names in three languages, rate, overtime),
+  activate / deactivate. Type names elsewhere come from the API in the current language.
+- **Remember me** on login (ticked by default). Unticked, the API sets session cookies that end when the browser closes.
+- **Invite link sharing** after inviting or re-sending (Team → Invitations) and for the owner invite on the super
+  admin's create-company screen.
+- **Super admin Company data** workspace — see [below](#super-admin-company-data).
 
 ## Procurement & Inventory (Phase 1 · Step 6)
 
