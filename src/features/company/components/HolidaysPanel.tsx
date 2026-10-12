@@ -9,6 +9,7 @@ import { useCreateHolidayMutation, useDeleteHolidayMutation, useGetHolidaysQuery
 import type { Holiday } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SlideOver } from "@/components/common/SlideOver";
@@ -105,15 +106,13 @@ export function HolidaysPanel() {
         h.source === "platform" ? <StatusBadge tone="neutral" label="National" /> : <StatusBadge tone="info" label="Company" />,
     },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
-      cell: (h) =>
-        h.editable && !readOnly ? (
-          <Button variant="ghost" size="icon-sm" aria-label={`Delete ${h.name}`} onClick={() => setToDelete(h)}>
-            <Trash2 />
-          </Button>
-        ) : null,
+      ...ACTIONS_COLUMN,
+      cell: (h) => (
+        <RowActions
+          name={h.name}
+          actions={[{ label: "Delete", icon: Trash2, destructive: true, hidden: !h.editable || readOnly, onSelect: () => setToDelete(h) }]}
+        />
+      ),
     },
   ];
 

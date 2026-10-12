@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { cleanUpProject, SEED, signIn } from "./helpers";
+import { cleanUpProject, rowAction, SEED, signIn } from "./helpers";
 
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
@@ -60,7 +60,7 @@ async function createSite(api: APIRequestContext, tag: string) {
 async function billStage(page: Page, projectId: string, stage: string) {
   await page.goto(`/projects/${projectId}/billing/schedule`);
   const row = page.getByRole("row").filter({ hasText: stage });
-  await row.getByRole("button", { name: "Mark ready" }).click();
+  await rowAction(page, row, "Mark ready");
   await page
     .locator('input[type="file"]')
     .first()
@@ -68,7 +68,7 @@ async function billStage(page: Page, projectId: string, stage: string) {
   await expect(page.getByText("stage.png").first()).toBeVisible();
   await page.getByRole("button", { name: "Mark ready" }).last().click();
   await expect(page.getByText(`${stage} is ready to bill`)).toBeVisible();
-  await row.getByRole("button", { name: "Create invoice" }).click();
+  await rowAction(page, row, "Create invoice");
   await page.getByRole("button", { name: "Create draft" }).click();
   await expect(page).toHaveURL(/\/billing\/invoices\/[0-9a-f-]{36}$/, { timeout: 30_000 });
   await page.getByRole("button", { name: "Issue", exact: true }).click();
@@ -109,7 +109,7 @@ test("stage ready → invoice issued → cheque cleared (PAID) → second cheque
     // 2. Cheque → pending; cleared → invoice PAID, receivables move
     const row = await recordCheque(page, projectId, "750000", `E${tag}1`);
     await expect(row.getByText("Cheque pending")).toBeVisible();
-    await row.getByRole("button", { name: "Mark cleared" }).click();
+    await rowAction(page, row, "Mark cleared");
     await page.getByRole("button", { name: "Mark cleared" }).last().click();
     await expect(page.getByText("Cheque cleared")).toBeVisible();
     await page.goto(first.url);
@@ -124,7 +124,7 @@ test("stage ready → invoice issued → cheque cleared (PAID) → second cheque
     const second = await billStage(page, projectId, "Foundation & plinth");
     bouncedInvoice = second.url.split("/").pop()!;
     const bounced = await recordCheque(page, projectId, "750000", `E${tag}2`);
-    await bounced.getByRole("button", { name: "Bounced" }).click();
+    await rowAction(page, bounced, "Bounced");
     await page.getByRole("textbox", { name: /Reason/ }).fill("insufficient funds");
     await page.getByRole("button", { name: "Mark bounced" }).click();
     await expect(page.getByText("Marked bounced — the balance is due again")).toBeVisible();

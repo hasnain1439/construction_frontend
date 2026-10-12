@@ -25,6 +25,7 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -512,15 +513,8 @@ export function CashFloatsOverviewView() {
     { id: "topup", header: "Top-up asked", align: "right", cell: (a) => (a.pendingTopup ? <MoneyText paisa={a.pendingTopup.amountPaisa} className="text-warning" /> : "—") },
     { id: "last", header: "Last entry", cell: (a) => formatDate(a.lastEntryAt) },
     {
-      id: "actions",
-      header: "",
-      align: "right",
-      cell: (a) => (
-        <Button size="sm" variant="outline" onClick={() => setSending(a.holder.id)}>
-          <Send data-icon="inline-start" />
-          Float
-        </Button>
-      ),
+      ...ACTIONS_COLUMN,
+      cell: (a) => <RowActions name={a.holder.name} actions={[{ label: "Send float", icon: Send, onSelect: () => setSending(a.holder.id) }]} />,
     },
   ];
   return (

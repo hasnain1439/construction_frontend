@@ -142,7 +142,6 @@
   --age-3: #d9a441;
   --age-4: #a87a2a;
 
-  --glow-sun: rgb(255 207 104 / 0.42);
   --glow-sand: rgb(181 161 139 / 0.22);
   --glass: rgb(255 255 255 / 0.58);
   /* Shell edges: under the top bar and to the right of the sidebar. */
@@ -215,7 +214,6 @@
   --age-3: #d9a441;
   --age-4: #ffcf68;
 
-  --glow-sun: rgb(255 207 104 / 0.10);
   --glow-sand: rgb(181 161 139 / 0.08);
   --glass: rgb(32 31 30 / 0.72);
   /* A soft brown shadow vanishes on charcoal: deeper black plus a faint light edge. */
@@ -243,9 +241,8 @@
   }
   body {
     @apply text-foreground antialiased;
-    /* Warm sunlight from the bottom-left and a sand haze top-right, over the base colour. */
+    /* A soft sand haze top-right over the base colour (no glow at the bottom). */
     background:
-      radial-gradient(60% 55% at 0% 100%, var(--glow-sun), transparent 70%),
       radial-gradient(45% 40% at 100% 0%, var(--glow-sand), transparent 70%),
       var(--background);
     background-attachment: fixed;

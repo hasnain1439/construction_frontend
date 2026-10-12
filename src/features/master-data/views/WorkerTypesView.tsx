@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Tags } from "lucide-react";
+import { Pencil, Plus, Tags } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useUpdateWorkerTypeMutation } from "@/api/services/masterData.api";
@@ -9,6 +9,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar } from "@/components/common/FilterBar";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -19,7 +20,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useLanguage, useT } from "@/i18n/useT";
 import { otherTypeNames, pickTypeName } from "@/lib/workerTypes";
-import { ActiveToggle } from "../components/ActiveToggle";
+import { activeToggleAction } from "../components/ActiveToggle";
 import { WorkerTypeSlideOver } from "../components/WorkerTypeSlideOver";
 import { useAllWorkerTypes } from "@/hooks/useWorkerTypes";
 
@@ -108,30 +109,29 @@ export function WorkerTypesView() {
       cell: (row) => <StatusBadge domain="active" value={row.isActive} label={row.isActive ? t("common.active") : t("common.inactive")} />,
     },
     {
-      id: "actions",
+      ...ACTIONS_COLUMN,
       header: <span className="sr-only">{t("common.actions")}</span>,
-      align: "right",
       hidden: !canEdit,
       cell: (row) => {
         const name = pickTypeName(row, language);
         return (
-          <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="sm" onClick={() => setEditing(row)}>
-              {t("common.edit")}
-            </Button>
-            <ActiveToggle
-              name={name}
-              isActive={row.isActive}
-              loading={toggling}
-              labels={{ activate: t("workerTypes.activate"), deactivate: t("workerTypes.deactivate"), title: t("workerTypes.deactivateTitle", { name }) }}
-              consequence={t("workerTypes.deactivateBody")}
-              onToggle={(active) =>
-                run(() => update({ id: row.id, body: { isActive: active } }).unwrap(), {
-                  success: t(active ? "workerTypes.activated" : "workerTypes.deactivated", { name }),
-                })
-              }
-            />
-          </div>
+          <RowActions
+            name={name}
+            actions={[
+              { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(row) },
+              activeToggleAction({
+                name,
+                isActive: row.isActive,
+                loading: toggling,
+                labels: { activate: t("workerTypes.activate"), deactivate: t("workerTypes.deactivate"), title: t("workerTypes.deactivateTitle", { name }) },
+                consequence: t("workerTypes.deactivateBody"),
+                onToggle: (active) =>
+                  run(() => update({ id: row.id, body: { isActive: active } }).unwrap(), {
+                    success: t(active ? "workerTypes.activated" : "workerTypes.deactivated", { name }),
+                  }),
+              }),
+            ]}
+          />
         );
       },
     },

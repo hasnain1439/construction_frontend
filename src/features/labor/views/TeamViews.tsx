@@ -35,6 +35,7 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { LateSyncBadge } from "@/components/common/LateSyncBadge";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -180,44 +181,24 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       },
     },
     {
-      id: "actions",
-      header: "",
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (w) =>
         w.isActive ? (
-          <div className="flex justify-end gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setPeshgiFor(w.worker.id);
-                setOpen("peshgi");
-              }}
-            >
-              <Wallet data-icon="inline-start" />
-              Peshgi
-            </Button>
-            {office ? (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  aria-label={`Change rate for ${w.worker.name}`}
-                  onClick={() => setRateFor(w)}
-                >
-                  <Pencil aria-hidden />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  aria-label={`Remove ${w.worker.name}`}
-                  onClick={() => setRemoveFor(w)}
-                >
-                  <Trash2 aria-hidden />
-                </Button>
-              </>
-            ) : null}
-          </div>
+          <RowActions
+            name={w.worker.name}
+            actions={[
+              {
+                label: "Peshgi",
+                icon: Wallet,
+                onSelect: () => {
+                  setPeshgiFor(w.worker.id);
+                  setOpen("peshgi");
+                },
+              },
+              { label: "Change rate", icon: Pencil, hidden: !office, onSelect: () => setRateFor(w) },
+              { label: "Remove", icon: Trash2, destructive: true, separatorBefore: true, hidden: !office, onSelect: () => setRemoveFor(w) },
+            ]}
+          />
         ) : null,
     },
   ];
@@ -256,22 +237,22 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
     },
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
-      id: "actions",
-      header: "",
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (s) =>
         s.isActive && s.rateType !== "LUMPSUM" ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setMeasureFor(s.id);
-              setOpen("measure");
-            }}
-          >
-            <Ruler data-icon="inline-start" />
-            Measure
-          </Button>
+          <RowActions
+            name={s.subcontractor.name}
+            actions={[
+              {
+                label: "Measure",
+                icon: Ruler,
+                onSelect: () => {
+                  setMeasureFor(s.id);
+                  setOpen("measure");
+                },
+              },
+            ]}
+          />
         ) : null,
     },
   ];

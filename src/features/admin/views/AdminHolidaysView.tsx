@@ -14,6 +14,7 @@ import {
 import type { PlatformHoliday } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SlideOver } from "@/components/common/SlideOver";
@@ -113,18 +114,15 @@ export function AdminHolidaysView() {
     { id: "type", header: "Type", cell: (h) => HOLIDAY_TYPE_LABEL[h.type] },
     { id: "region", header: "Region", cell: (h) => (h.region ? <StatusBadge tone="info" label={REGION_LABEL[h.region]} /> : <StatusBadge tone="neutral" label="Nationwide" />) },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (h) => (
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon-sm" aria-label={`Edit ${h.name}`} onClick={() => setEditing(h)}>
-            <Pencil />
-          </Button>
-          <Button variant="ghost" size="icon-sm" className="text-danger" aria-label={`Delete ${h.name}`} onClick={() => setToDelete(h)}>
-            <Trash2 />
-          </Button>
-        </div>
+        <RowActions
+          name={h.name}
+          actions={[
+            { label: "Edit", icon: Pencil, onSelect: () => setEditing(h) },
+            { label: "Delete", icon: Trash2, destructive: true, separatorBefore: true, onSelect: () => setToDelete(h) },
+          ]}
+        />
       ),
     },
   ];

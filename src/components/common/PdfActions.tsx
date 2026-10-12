@@ -18,18 +18,7 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
  * signed URL (and the ready message) each time, so links never go stale.
  */
 export function PdfActions({ load, title, phone, size = "sm" }: { load: () => Promise<SharedPdf>; title: string; phone?: string | null; size?: "sm" | "default" }) {
-  const run = useMutationToast();
-  const [busy, setBusy] = useState<"preview" | "download" | "share" | null>(null);
-  const [preview, setPreview] = useState<SharedPdf | null>(null);
-  const act = async (kind: "preview" | "download" | "share") => {
-    setBusy(kind);
-    const pdf = await run(load);
-    setBusy(null);
-    if (!pdf) return;
-    if (kind === "preview") setPreview(pdf);
-    if (kind === "download") window.open(pdf.url, "_blank", "noopener");
-    if (kind === "share") window.open(whatsappUrl(phone ?? pdf.clientPhone, pdf.whatsappText), "_blank", "noopener");
-  };
+  const { busy, act, preview } = usePdfActions({ load, title, phone });
   const icon = (kind: typeof busy, Icon: typeof Eye) => (busy === kind ? <Loader2 className="animate-spin" aria-hidden /> : <Icon aria-hidden />);
   return (
     <div className="flex flex-wrap gap-2">
@@ -45,7 +34,30 @@ export function PdfActions({ load, title, phone, size = "sm" }: { load: () => Pr
         {icon("share", MessageCircle)}
         WhatsApp
       </Button>
-      {preview ? <DocumentPreview url={preview.url} title={title} onClose={() => setPreview(null)} /> : null}
+      {preview}
     </div>
   );
+}
+
+export type PdfAction = "preview" | "download" | "share";
+
+/** The logic behind `PdfActions` (for menus): `act(kind)` runs one action, render `preview` somewhere. */
+export function usePdfActions({ load, title, phone }: { load: () => Promise<SharedPdf>; title: string; phone?: string | null }) {
+  const run = useMutationToast();
+  const [busy, setBusy] = useState<PdfAction | null>(null);
+  const [preview, setPreview] = useState<SharedPdf | null>(null);
+  const act = async (kind: PdfAction) => {
+    setBusy(kind);
+    const pdf = await run(load);
+    setBusy(null);
+    if (!pdf) return;
+    if (kind === "preview") setPreview(pdf);
+    if (kind === "download") window.open(pdf.url, "_blank", "noopener");
+    if (kind === "share") window.open(whatsappUrl(phone ?? pdf.clientPhone, pdf.whatsappText), "_blank", "noopener");
+  };
+  return {
+    busy,
+    act,
+    preview: preview ? <DocumentPreview url={preview.url} title={title} onClose={() => setPreview(null)} /> : null,
+  };
 }

@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -24,7 +25,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
@@ -78,45 +78,34 @@ export function MaterialsView() {
     },
     { id: "status", header: "Status", cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       hidden: !canEdit,
       cell: (m) => (
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon-sm" aria-label={`Edit ${m.name}`} onClick={() => setEditing(m)}>
-            <Pencil />
-          </Button>
-          {canHide ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={m.isHidden ? `Show ${m.name}` : `Hide ${m.name}`}
-              title={m.isHidden ? "Show" : "Hide"}
-              onClick={() =>
-                run(() => (m.isHidden ? show(m.id) : hide(m.id)).unwrap(), {
+        <RowActions
+          name={m.name}
+          actions={[
+            { label: "Edit", icon: Pencil, onSelect: () => setEditing(m) },
+            {
+              label: m.isHidden ? "Show" : "Hide",
+              icon: m.isHidden ? Eye : EyeOff,
+              hidden: !canHide,
+              onSelect: () =>
+                void run(() => (m.isHidden ? show(m.id) : hide(m.id)).unwrap(), {
                   success: m.isHidden ? `${m.name} is visible again` : `${m.name} hidden`,
-                })
-              }
-            >
-              {m.isHidden ? <Eye /> : <EyeOff />}
-            </Button>
-          ) : null}
-          {canHide && m.source === "COMPANY" ? (
-            <Button variant="ghost" size="icon-sm" className="text-danger" aria-label={`Delete ${m.name}`} onClick={() => setToDelete(m)}>
-              <Trash2 />
-            </Button>
-          ) : canHide ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex size-8 items-center justify-center text-muted-foreground/50" aria-label="Catalog materials can't be deleted">
-                  <Trash2 className="size-4" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Catalog materials can&apos;t be deleted. You can hide them instead.</TooltipContent>
-            </Tooltip>
-          ) : null}
-        </div>
+                }),
+            },
+            m.source === "COMPANY"
+              ? { label: "Delete", icon: Trash2, destructive: true, separatorBefore: true, hidden: !canHide, onSelect: () => setToDelete(m) }
+              : {
+                  label: "Delete",
+                  icon: Trash2,
+                  disabled: true,
+                  separatorBefore: true,
+                  hidden: !canHide,
+                  hint: "Catalog materials can't be deleted. You can hide them instead.",
+                },
+          ]}
+        />
       ),
     },
   ];

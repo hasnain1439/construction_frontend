@@ -3170,7 +3170,7 @@ export interface paths {
         put?: never;
         /**
          * Invite a PM or Munshi
-         * @description THEKEDAR only. Sends an SMS (Roman Urdu) with a one-time link valid 7 days. A PM invite reserves an office seat (active THEKEDAR + PM + pending PM invites ≤ plan limit). In development the response includes `devInviteUrl`.
+         * @description THEKEDAR only. Sends an SMS (Roman Urdu) with a one-time link valid 7 days. A PM invite reserves an office seat (active THEKEDAR + PM + pending PM invites ≤ plan limit). The response includes `inviteUrl` (the one-time link) so the inviter can share it on WhatsApp / SMS too.
          */
         post: {
             parameters: {
@@ -3220,7 +3220,7 @@ export interface paths {
                          *         "id": "0199…",
                          *         "status": "PENDING",
                          *         "expiresAt": "2026-10-10T12:00:00.000Z",
-                         *         "devInviteUrl": "http://localhost:3000/invite/…"
+                         *         "inviteUrl": "https://app.example.pk/invite/…"
                          *       }
                          *     }
                          */
@@ -31443,7 +31443,7 @@ export interface paths {
         put?: never;
         /**
          * Create a company from the console
-         * @description One transaction: company, settings, subscription (TRIAL, or PAID = ACTIVE 30 days + an approved payment with a receipt number) and a 7-day **THEKEDAR invitation** for the owner (sent by SMS). The owner sets a password by accepting it. `devInviteUrl` is returned outside production.
+         * @description One transaction: company, settings, subscription (TRIAL, or PAID = ACTIVE 30 days + an approved payment with a receipt number) and a 7-day **THEKEDAR invitation** for the owner (sent by SMS). The owner sets a password by accepting it. The response includes `inviteUrl` (the one-time owner link) so the admin can share it on WhatsApp / SMS too.
          */
         post: {
             parameters: {
@@ -31545,7 +31545,7 @@ export interface paths {
                          *             "id": "0199…",
                          *             "status": "PENDING",
                          *             "expiresAt": "2026-10-12T09:00:00.000Z",
-                         *             "devInviteUrl": "http://localhost:3000/invite/…"
+                         *             "inviteUrl": "https://app.example.pk/invite/…"
                          *           }
                          *         }
                          *       }
@@ -33857,7 +33857,9 @@ export interface components {
             status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
             /** Format: date-time */
             expiresAt: string;
-            /** @description Development only — never returned in production */
+            /** @description The one-time invite link, for the inviter to share (WhatsApp / SMS / copy). A resend makes a new link and the old one stops working. */
+            inviteUrl: string;
+            /** @description Deprecated: same as inviteUrl, development only */
             devInviteUrl?: string;
         };
         SubscriptionDetail: {

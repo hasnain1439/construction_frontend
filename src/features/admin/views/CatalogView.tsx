@@ -9,6 +9,7 @@ import { useCreateCatalogMaterialMutation, useGetCatalogGroupsQuery, useGetCatal
 import type { CatalogMaterial } from "@/api/types";
 import { CollapsibleSection } from "@/components/common/CollapsibleSection";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
@@ -157,14 +158,8 @@ export function CatalogView() {
     { id: "companies", header: "Companies", align: "right", cell: (m) => <span className="tabular">{m.companies ?? 0}</span> },
     { id: "status", header: "Status", cell: (m) => <StatusBadge domain="active" value={m.isActive} /> },
     {
-      id: "edit",
-      header: <span className="sr-only">Edit</span>,
-      align: "right",
-      cell: (m) => (
-        <Button variant="ghost" size="icon-sm" aria-label={`Edit ${m.name}`} onClick={() => setEditing(m)}>
-          <Pencil />
-        </Button>
-      ),
+      ...ACTIONS_COLUMN,
+      cell: (m) => <RowActions name={m.name} actions={[{ label: "Edit", icon: Pencil, onSelect: () => setEditing(m) }]} />,
     },
   ];
 

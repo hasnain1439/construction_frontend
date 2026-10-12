@@ -14,6 +14,7 @@ import { KpiCard } from "@/components/common/KpiCard";
 import { LedgerTable } from "@/components/common/LedgerTable";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -98,22 +99,17 @@ function usePaymentColumns(owner: boolean, onSettle: (p: SupplierPayment, status
     { id: "ref", header: "Reference", cell: (p) => (p.chequeNo ? `Cheque ${p.chequeNo}${p.chequeDate ? ` · ${formatDate(p.chequeDate)}` : ""}` : (p.reference ?? p.purchase?.number ?? "—")) },
     { id: "status", header: "Status", cell: (p) => <StatusBadge domain="supplierPayment" value={p.status} /> },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       hidden: !owner,
       cell: (p) =>
         p.method === "CHEQUE" && p.status === "PENDING" ? (
-          <div className="flex justify-end gap-1">
-            <Button size="sm" variant="outline" onClick={() => onSettle(p, "CLEARED")}>
-              <CircleCheck data-icon="inline-start" />
-              Cleared
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => onSettle(p, "BOUNCED")}>
-              <CircleX data-icon="inline-start" />
-              Bounced
-            </Button>
-          </div>
+          <RowActions
+            name={p.chequeNo ? `cheque ${p.chequeNo}` : undefined}
+            actions={[
+              { label: "Cleared", icon: CircleCheck, onSelect: () => onSettle(p, "CLEARED") },
+              { label: "Bounced", icon: CircleX, destructive: true, onSelect: () => onSettle(p, "BOUNCED") },
+            ]}
+          />
         ) : null,
     },
   ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Truck } from "lucide-react";
+import { Pencil, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useGetSuppliersQuery, useSetSupplierActiveMutation } from "@/api/services/masterData.api";
@@ -9,6 +9,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -20,7 +21,7 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatPhone } from "@/lib/phone";
 import { AgeingText } from "@/features/procurement/views/SupplierMoneyViews";
-import { ActiveToggle } from "../components/ActiveToggle";
+import { activeToggleAction } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
 
 export function SuppliersView() {
@@ -62,34 +63,26 @@ export function SuppliersView() {
     { id: "age", header: "Oldest unpaid", align: "right", hidden: !seesRates, sortValue: (s) => s.oldestUnpaidDays ?? -1, cell: (s) => <AgeingText days={s.oldestUnpaidDays} /> },
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       hidden: !canEdit,
       cell: (s) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditing(s);
-            }}
-          >
-            Edit
-          </Button>
-          {canToggle ? (
-            <ActiveToggle
-              name={s.name}
-              isActive={s.isActive}
-              loading={toggling}
-              consequence="They won't appear in new purchases. History and balances are kept."
-              onToggle={(active) =>
-                run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` })
-              }
-            />
-          ) : null}
-        </div>
+        <RowActions
+          name={s.name}
+          actions={[
+            { label: "Edit", icon: Pencil, onSelect: () => setEditing(s) },
+            {
+              ...activeToggleAction({
+                name: s.name,
+                isActive: s.isActive,
+                loading: toggling,
+                consequence: "They won't appear in new purchases. History and balances are kept.",
+                onToggle: (active) =>
+                  run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` }),
+              }),
+              hidden: !canToggle,
+            },
+          ]}
+        />
       ),
     },
   ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeAlert, Banknote, CalendarRange, CheckCheck, CircleDollarSign, FileSpreadsheet, HandCoins, Minus, Pencil, Percent, Plus, Ruler, Send, Wallet } from "lucide-react";
+import { BadgeAlert, Banknote, BookOpen, CalendarRange, CheckCheck, CircleDollarSign, FileSpreadsheet, HandCoins, Minus, Pencil, Percent, Plus, Ruler, Send, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,6 +27,7 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SlideOver } from "@/components/common/SlideOver";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -627,31 +628,17 @@ export function SubcontractAccountsView({ projectId }: { projectId: string }) {
     { id: "paid", header: "Paid", align: "right", cell: (r) => <MoneyText paisa={r.account.paidPaisa} /> },
     { id: "due", header: "Balance due", align: "right", sortValue: (r) => Number(r.account.balanceDuePaisa), cell: (r) => <MoneyText paisa={r.account.balanceDuePaisa} className={r.account.overpaid ? "font-semibold text-danger" : "font-semibold"} /> },
     {
-      id: "actions",
-      header: "",
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (r) => (
-        <div className="flex flex-wrap justify-end gap-1">
-          <Button size="sm" variant="ghost" onClick={() => setAction({ kind: "ledger", row: r })}>
-            Ledger
-          </Button>
-          {r.isActive && r.rateType === "LUMPSUM" ? (
-            <Button size="sm" variant="ghost" onClick={() => setAction({ kind: "progress", row: r })}>
-              <Percent data-icon="inline-start" />
-              Progress
-            </Button>
-          ) : null}
-          <Button size="sm" variant="outline" onClick={() => setAction({ kind: "pay", row: r })}>
-            <Banknote data-icon="inline-start" />
-            Pay
-          </Button>
-          {owner ? (
-            <Button size="sm" variant="ghost" onClick={() => setAction({ kind: "deduct", row: r })}>
-              <Minus data-icon="inline-start" />
-              Deduct
-            </Button>
-          ) : null}
-        </div>
+        <RowActions
+          name={r.subcontractor.name}
+          actions={[
+            { label: "Ledger", icon: BookOpen, onSelect: () => setAction({ kind: "ledger", row: r }) },
+            { label: "Progress", icon: Percent, hidden: !(r.isActive && r.rateType === "LUMPSUM"), onSelect: () => setAction({ kind: "progress", row: r }) },
+            { label: "Pay", icon: Banknote, onSelect: () => setAction({ kind: "pay", row: r }) },
+            { label: "Deduct", icon: Minus, hidden: !owner, onSelect: () => setAction({ kind: "deduct", row: r }) },
+          ]}
+        />
       ),
     },
   ];

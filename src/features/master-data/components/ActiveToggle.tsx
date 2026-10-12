@@ -3,6 +3,7 @@
 import { Power, PowerOff } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import type { RowAction } from "@/components/common/RowActions";
 import { Button } from "@/components/ui/button";
 
 /** Activate (instant) / Deactivate (with confirm) for suppliers, workers and sub-contractors. */
@@ -68,4 +69,39 @@ export function ActiveToggle({
       />
     </>
   );
+}
+
+/** The same Activate / Deactivate (with confirm) as a `RowActions` menu item. */
+export function activeToggleAction({
+  name,
+  isActive,
+  onToggle,
+  loading,
+  consequence,
+  labels,
+}: {
+  name: string;
+  isActive: boolean;
+  onToggle: (active: boolean) => Promise<unknown>;
+  loading?: boolean;
+  consequence: string;
+  labels?: { activate: string; deactivate: string; title: string };
+}): RowAction {
+  if (!isActive) {
+    return { label: labels?.activate ?? "Activate", icon: Power, disabled: loading, onSelect: () => void onToggle(true) };
+  }
+  return {
+    label: labels?.deactivate ?? "Deactivate",
+    icon: PowerOff,
+    destructive: true,
+    confirm: {
+      title: labels?.title ?? `Deactivate ${name}?`,
+      description: consequence,
+      confirmLabel: labels?.deactivate ?? "Deactivate",
+      loading,
+      onConfirm: async () => {
+        await onToggle(false);
+      },
+    },
+  };
 }

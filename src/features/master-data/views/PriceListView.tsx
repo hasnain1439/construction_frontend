@@ -21,6 +21,7 @@ import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { InlineEditCell } from "@/components/common/InlineEditCell";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -298,14 +299,8 @@ export function PriceListView() {
         ),
     },
     {
-      id: "history",
-      header: <span className="sr-only">History</span>,
-      align: "right",
-      cell: (i) => (
-        <Button variant="ghost" size="icon-sm" aria-label={`Rate history for ${i.material.name}`} onClick={() => setHistoryFor(i.material)}>
-          <History />
-        </Button>
-      ),
+      ...ACTIONS_COLUMN,
+      cell: (i) => <RowActions name={i.material.name} actions={[{ label: "Rate history", icon: History, onSelect: () => setHistoryFor(i.material) }]} />,
     },
   ];
 

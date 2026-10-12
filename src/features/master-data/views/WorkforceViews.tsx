@@ -1,6 +1,6 @@
 "use client";
 
-import { HardHat, Plus, UsersRound } from "lucide-react";
+import { HardHat, Pencil, Plus, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -15,6 +15,7 @@ import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { HiddenForRole } from "@/components/common/HiddenForRole";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -28,7 +29,7 @@ import { formatPhone } from "@/lib/phone";
 import { useT } from "@/i18n/useT";
 import { toOptions, TRADE_LABEL } from "@/lib/options";
 import { namesFromWorker } from "@/lib/workerTypes";
-import { ActiveToggle } from "../components/ActiveToggle";
+import { activeToggleAction } from "../components/ActiveToggle";
 import { SubcontractorSlideOver, WorkerSlideOver } from "../components/WorkforceSlideOvers";
 import { useWorkerTypeName, useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
 
@@ -83,23 +84,22 @@ export function WorkersView() {
     },
     { id: "status", header: "Status", cell: (w) => <StatusBadge domain="active" value={w.isActive} /> },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       hidden: !canEdit,
       cell: (w) => (
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(w)}>
-            Edit
-          </Button>
-          <ActiveToggle
-            name={w.name}
-            isActive={w.isActive}
-            loading={toggling}
-            consequence="They can't be marked present on new hazri. Past records are kept."
-            onToggle={(active) => run(() => setActive({ id: w.id, active }).unwrap(), { success: `${w.name} ${active ? "activated" : "deactivated"}` })}
-          />
-        </div>
+        <RowActions
+          name={w.name}
+          actions={[
+            { label: "Edit", icon: Pencil, onSelect: () => setEditing(w) },
+            activeToggleAction({
+              name: w.name,
+              isActive: w.isActive,
+              loading: toggling,
+              consequence: "They can't be marked present on new hazri. Past records are kept.",
+              onToggle: (active) => run(() => setActive({ id: w.id, active }).unwrap(), { success: `${w.name} ${active ? "activated" : "deactivated"}` }),
+            }),
+          ]}
+        />
       ),
     },
   ];
@@ -180,23 +180,22 @@ export function SubcontractorsView() {
     { id: "notes", header: "Notes", cell: (s) => <span className="line-clamp-1 text-muted-foreground">{s.notes ?? "—"}</span> },
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       hidden: !canEdit,
       cell: (s) => (
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(s)}>
-            Edit
-          </Button>
-          <ActiveToggle
-            name={s.name}
-            isActive={s.isActive}
-            loading={toggling}
-            consequence="They won't be offered for new work measurements. Past accounts are kept."
-            onToggle={(active) => run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` })}
-          />
-        </div>
+        <RowActions
+          name={s.name}
+          actions={[
+            { label: "Edit", icon: Pencil, onSelect: () => setEditing(s) },
+            activeToggleAction({
+              name: s.name,
+              isActive: s.isActive,
+              loading: toggling,
+              consequence: "They won't be offered for new work measurements. Past accounts are kept.",
+              onToggle: (active) => run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` }),
+            }),
+          ]}
+        />
       ),
     },
   ];

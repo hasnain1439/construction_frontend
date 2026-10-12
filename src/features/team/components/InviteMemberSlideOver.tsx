@@ -1,15 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ClipboardCopy, HardHat, UserCog } from "lucide-react";
+import { HardHat, UserCog } from "lucide-react";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import type { z } from "zod";
 import { useGetCompanySettingsQuery } from "@/api/services/company.api";
 import { useCreateInvitationMutation } from "@/api/services/team.api";
 import type { InvitationSent } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { InviteShare } from "@/components/common/InviteShare";
 import { SlideOver } from "@/components/common/SlideOver";
 import { ComboboxField } from "@/components/forms/ComboboxField";
 import { FieldGrid, Form } from "@/components/forms/Form";
@@ -21,6 +21,7 @@ import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useMe } from "@/store/hooks";
 import { formatDate } from "@/lib/dates";
 import { inviteSchema } from "../schemas";
 
@@ -47,7 +48,8 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
   const [create, { isLoading }] = useCreateInvitationMutation();
   const { data: settings } = useGetCompanySettingsQuery(undefined, { skip: !open });
   const { options, isLoading: loadingProjects } = useProjectOptions({ skip: !open });
-  const [sent, setSent] = useState<(InvitationSent & { name: string }) | null>(null);
+  const me = useMe();
+  const [sent, setSent] = useState<(InvitationSent & { name: string; phone: string; email?: string; role: string }) | null>(null);
   const run = useMutationToast();
   const form = useForm<z.input<typeof inviteSchema>, unknown, z.output<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
@@ -87,7 +89,7 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
         codeFields: { ALREADY_MEMBER: "phone", INVITE_PENDING: "phone", PHONE_TAKEN: "phone" },
       },
     );
-    if (result) setSent({ ...result, name: values.name });
+    if (result) setSent({ ...result, name: values.name, phone: values.phone, email: values.email || undefined, role: values.role });
   };
 
   return (
@@ -115,22 +117,15 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
           <InlineAlert tone="success" title={`Invite sent to ${sent.name}`}>
             Pending · expires {formatDate(sent.expiresAt)}
           </InlineAlert>
-          {sent.devInviteUrl ? (
-            <div className="space-y-2 rounded-xl border p-4">
-              <p className="text-sm font-medium">Development invite link</p>
-              <p className="text-xs break-all text-muted-foreground">{sent.devInviteUrl}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  void navigator.clipboard.writeText(sent.devInviteUrl!);
-                  toast.success("Link copied");
-                }}
-              >
-                <ClipboardCopy data-icon="inline-start" />
-                Copy link
-              </Button>
-            </div>
+          {sent.inviteUrl ? (
+            <InviteShare
+              url={sent.inviteUrl}
+              name={sent.name}
+              phone={sent.phone}
+              email={sent.email}
+              companyName={me?.tenant.name}
+              roleLabel={sent.role === "PM" ? "Project Manager" : sent.role === "MUNSHI" ? "Munshi" : undefined}
+            />
           ) : null}
         </div>
       ) : (
