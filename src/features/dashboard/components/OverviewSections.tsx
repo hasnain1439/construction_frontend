@@ -13,11 +13,12 @@ import { ProgressPair } from "@/components/common/ProgressPair";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate, formatRelative } from "@/lib/dates";
 import { formatPKRShort, toPaisaBigInt } from "@/lib/money";
 import { humanize, statusMeta, TONE_CLASSES } from "@/lib/status";
+import { workerTypeName } from "@/lib/workerTypes";
 
 const plot = (p: string | undefined) => Number(toPaisaBigInt(p ?? "0") ?? BigInt(0));
 
@@ -137,12 +138,11 @@ function Chip({ icon: Icon, label, value, hint }: { icon: typeof Users; label: s
 
 export function SiteStats({ site }: { site: DashboardOverview["site"] }) {
   const t = useT();
-  const te = useEnumT();
   const h = site.hazriToday;
   return (
     <SectionCard title={t("dashboard.siteStats")} description={t("dashboard.weekRange", { from: day(site.week.weekStart), to: day(site.week.weekEnd) })}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Chip icon={Users} label={t("dashboard.attendanceToday")} value={h.total} hint={`${te("workerType", "MISTRI")} ${h.mistri} · ${te("workerType", "MAZDOOR")} ${h.mazdoor} · ${t("common.other")} ${h.other} ${t("dashboard.ofTotal", { n: site.assignedWorkers })}`} />
+        <Chip icon={Users} label={t("dashboard.attendanceToday")} value={h.total} hint={`${t("dashboard.hazriMistri")} ${h.mistri} · ${t("dashboard.hazriMazdoor")} ${h.mazdoor} · ${t("common.other")} ${h.other} ${t("dashboard.ofTotal", { n: site.assignedWorkers })}`} />
         <Chip icon={Wallet} label={t("dashboard.advancesThisWeek")} value={<MoneyText paisa={site.peshgiThisWeekPaisa} />} />
         <Chip icon={HardHat} label={t("dashboard.siteExpensesThisWeek")} value={<MoneyText paisa={site.siteKharchaThisWeekPaisa} />} />
         <Chip icon={PackageCheck} label={t("dashboard.deliveriesToday")} value={site.deliveriesToday} hint={site.openShortages ? t(site.openShortages === 1 ? "dashboard.openShortage" : "dashboard.openShortagesN", { n: site.openShortages }) : t("dashboard.noOpenShortages")} />
@@ -153,12 +153,18 @@ export function SiteStats({ site }: { site: DashboardOverview["site"] }) {
 
 export function LaborAnalysis({ labor }: { labor: DashboardOverview["labor"] }) {
   const t = useT();
-  const te = useEnumT();
+  const language = useLanguage();
+  // The API sends each type's names; OTHER gets the translated "Other".
+  const typeName = (w: DashboardOverview["labor"]["byWorkerType"][number]) =>
+    workerTypeName(w.type, language, {
+      names: w.label ? { label: w.label, labelRoman: w.labelRoman, labelUrdu: w.labelUrdu } : null,
+      otherName: t("workerTypes.other"),
+    });
   return (
     <SectionCard title={t("dashboard.laborAnalysis")} description={t("dashboard.laborDesc", { from: day(labor.period.from), to: day(labor.period.to) })}>
       <ShareColumns
         ariaLabel={t("dashboard.wagesByWorkerType")}
-        items={labor.byWorkerType.map((w) => ({ key: w.type, label: te("workerType", w.type, humanize(w.type)), value: plot(w.wagesPaisa), display: <MoneyText paisa={w.wagesPaisa} short />, hint: t("dashboard.days", { n: w.days }) }))}
+        items={labor.byWorkerType.map((w) => ({ key: w.type, label: typeName(w), value: plot(w.wagesPaisa), display: <MoneyText paisa={w.wagesPaisa} short />, hint: t("dashboard.days", { n: w.days }) }))}
         empty={t("dashboard.noSettlements")}
       />
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm">

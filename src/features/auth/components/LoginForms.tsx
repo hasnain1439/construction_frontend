@@ -9,6 +9,7 @@ import type { z } from "zod";
 import { useLoginMutation, useRequestOtpMutation } from "@/api/services/auth.api";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { Form } from "@/components/forms/Form";
+import { CheckboxField } from "@/components/forms/CheckboxField";
 import { FormActions } from "@/components/forms/FormActions";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { PhoneField } from "@/components/forms/PhoneInput";
@@ -38,7 +39,7 @@ export function PasswordLoginForm({ onUseOtp }: { onUseOtp: (phone?: string) => 
   const [formError, setFormError] = useState<string | null>(null);
   const form = useForm<z.input<typeof loginSchema>, unknown, z.output<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { login: "", password: "" },
+    defaultValues: { login: "", password: "", rememberMe: true },
   });
 
   const onSubmit = async (values: z.output<typeof loginSchema>) => {
@@ -53,6 +54,7 @@ export function PasswordLoginForm({ onUseOtp }: { onUseOtp: (phone?: string) => 
           kind: "password",
           login: values.login,
           password: values.password,
+          rememberMe: values.rememberMe,
           companies: companyChoices(err),
           next: searchParams.get("next") ?? undefined,
         });
@@ -76,7 +78,8 @@ export function PasswordLoginForm({ onUseOtp }: { onUseOtp: (phone?: string) => 
       {formError ? <InlineAlert>{formError}</InlineAlert> : null}
       <TextField name="login" label="Email or phone" required autoComplete="username" placeholder="0300 1234567 or you@company.pk" autoFocus />
       <PasswordField name="password" label="Password" required />
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <CheckboxField name="rememberMe" label="Remember me" />
         <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
           Forgot password?
         </Link>

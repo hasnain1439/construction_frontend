@@ -4,7 +4,8 @@ import { ChevronDown, KeyRound, LogOut, Menu, Plus, Search } from "lucide-react"
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AvatarName } from "@/components/common/AvatarName";
-import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { LanguageMenu } from "@/components/common/LanguageMenu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/common/NotificationBell";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
@@ -24,21 +25,27 @@ import { useAppDispatch, useMe } from "@/store/hooks";
 import { setCommandOpen } from "@/store/slices/uiSlice";
 import { useNavToggle } from "./navDrawer";
 
-/** Search pill styled like an input: "Search menu…" (opens CommandSearch, Ctrl+K). */
+/** Search icon (opens CommandSearch; Ctrl+K works anywhere). */
 export function SearchTrigger() {
   const t = useT();
   const dispatch = useAppDispatch();
   return (
-    <button
-      type="button"
-      onClick={() => dispatch(setCommandOpen(true))}
-      className="group flex h-10 items-center gap-2.5 rounded-full border glass px-2.5 shadow-card text-sm text-muted-foreground transition-colors hover:text-foreground md:w-64 md:px-4"
-      aria-keyshortcuts="Control+K"
-    >
-      <Search className="size-4 shrink-0" aria-hidden />
-      <span className="hidden flex-1 text-start md:inline">{t("shell.searchMenu")}</span>
-      <kbd className="hidden rounded-full bg-muted px-2 text-[11px] font-medium lg:inline">Ctrl K</kbd>
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => dispatch(setCommandOpen(true))}
+          className="flex size-10 items-center justify-center rounded-full border glass text-muted-foreground shadow-card transition-colors hover:text-foreground"
+          aria-label={t("shell.searchMenu")}
+          aria-keyshortcuts="Control+K"
+        >
+          <Search className="size-[18px]" aria-hidden />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {t("shell.searchMenu")} <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">Ctrl K</kbd>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -96,11 +103,6 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* The top bar shows the language switch only on wide screens; phones pick it here. */}
-        <div className="px-2 py-1.5 xl:hidden">
-          <LanguageToggle className="w-full" />
-        </div>
-        <DropdownMenuSeparator className="xl:hidden" />
         <DropdownMenuItem onSelect={onSessions}>
           <KeyRound />
           {t("shell.sessions")}
@@ -154,11 +156,11 @@ export function TopBar({
           <Menu />
         </Button>
         <SearchTrigger />
-        <LanguageToggle className="hidden xl:inline-flex" />
       </div>
       <CompanyBrand />
       <div className="flex min-w-0 items-center justify-end gap-1 sm:gap-1.5">
         <CreateMenu />
+        <LanguageMenu />
         <ThemeToggle />
         <NotificationBell />
         {rightExtra}

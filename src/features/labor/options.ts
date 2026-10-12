@@ -1,5 +1,6 @@
 /** Labels shared by the labour and cash-book screens. */
 import type { LaborPaidFrom, RateType } from "@/api/types";
+import { TRADE_LABEL } from "@/lib/options";
 import { humanize } from "@/lib/status";
 
 export const PAID_FROM_OPTIONS: Array<{ value: LaborPaidFrom; label: string }> = [
@@ -41,4 +42,5 @@ export const CASH_ENTRY_LABELS: Record<string, string> = {
   REFUND_IN: "Refund",
 };
 
-export const workerTypeLabel = (type: string) => humanize(type);
+/** Sub-contract trade (SHUTTERING …). Worker types come from the API — see `useWorkerTypeName`. */
+export const tradeLabel = (trade: string) => TRADE_LABEL[trade] ?? humanize(trade);

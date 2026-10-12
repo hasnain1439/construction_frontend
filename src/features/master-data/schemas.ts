@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { percentTotal } from "@/components/common/PercentTotalChip";
+import { translate, type TranslationKey } from "@/i18n/useT";
 import { optionalAnyPhoneSchema, optionalPhoneSchema, optionalText, requiredText } from "@/lib/validation";
+import { OTHER_WORKER_TYPE } from "@/lib/workerTypes";
 
 export const materialSchema = z.object({
   name: requiredText("Name", 2, 80),
@@ -98,11 +100,41 @@ export const supplierSchema = z.object({
 
 export const workerSchema = z.object({
   name: requiredText("Name", 2, 80),
-  type: z.enum(["MISTRI", "MISTRI_TILES", "MAZDOOR", "STEEL_FIXER_HELPER", "CHOWKIDAR", "OTHER"]),
+  /** A worker type key of the company (GET /worker-types) or OTHER. */
+  type: z.string().trim().min(1, "Choose a type"),
   phone: optionalPhoneSchema,
   dailyRatePaisa: z.string().nullable(),
   notes: optionalText(500),
-});
+})
+  // OTHER has no standard rate (backend: DAILY_RATE_REQUIRED).
+  .refine((v) => v.type !== OTHER_WORKER_TYPE || Boolean(v.dailyRatePaisa && Number(v.dailyRatePaisa) > 0), {
+    message: "Enter the daily rate for “Other”",
+    path: ["dailyRatePaisa"],
+  });
+
+type Translate = (key: TranslationKey) => string;
+const english: Translate = (key) => translate("en", key);
+
+/** Add / edit a worker type. Pass the UI's `t` so messages follow the language (English by default). */
+export function createWorkerTypeSchema(t: Translate = english) {
+  const name = z.string().trim().max(60, t("workerTypes.nameLong"));
+  const optionalName = name.refine((v) => v === "" || v.length >= 2, t("workerTypes.nameShort"));
+  return z.object({
+    label: optionalName.refine((v) => v !== "", t("workerTypes.nameRequired")),
+    labelRoman: optionalName,
+    labelUrdu: optionalName,
+    ratePaisa: z
+      .string()
+      .nullable()
+      .refine((v): v is string => v !== null && v !== "" && Number(v) > 0, t("workerTypes.rateRequired")),
+    overtimeMultiplier: z
+      .number({ error: t("workerTypes.overtimeRange") })
+      .nullable()
+      .refine((v): v is number => v !== null && v >= 1 && v <= 3, t("workerTypes.overtimeRange")),
+    isActive: z.boolean(),
+  });
+}
+export type WorkerTypeFormSchema = ReturnType<typeof createWorkerTypeSchema>;
 
 export const subcontractorSchema = z.object({
   name: requiredText("Name", 2, 80),

@@ -16,8 +16,9 @@ export function StickyFooter() {
   const language = useLanguage();
   const me = useMe();
   const actions = FOOTER_ACTIONS.filter((action) => canAccess(me, action.access));
+  // Same look as the top bar: page background, no border, a soft shadow above.
   return (
-    <footer className="flex h-14 items-center justify-between gap-3 border-t bg-card px-4">
+    <footer className="relative z-10 flex h-14 items-center justify-between gap-3 bg-transparent px-4 shadow-(--shadow-footer)">
       <div className="flex items-center gap-2 overflow-x-auto">
         {actions.map((action, index) => (
           <Button key={action.id} asChild size="sm" variant={index === 0 ? "default" : "outline"}>

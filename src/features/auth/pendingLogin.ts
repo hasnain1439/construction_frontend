@@ -6,7 +6,7 @@ import type { CompanyChoice } from "@/api/types";
  * loses it, which simply sends the person back to the login form.
  */
 export type PendingLogin =
-  | { kind: "password"; login: string; password: string; companies: CompanyChoice[]; next?: string }
+  | { kind: "password"; login: string; password: string; rememberMe?: boolean; companies: CompanyChoice[]; next?: string }
   | { kind: "otp"; phone: string; code: string; companies: CompanyChoice[]; next?: string };
 
 let pending: PendingLogin | null = null;

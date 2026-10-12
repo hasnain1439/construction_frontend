@@ -18,6 +18,10 @@ export interface WorkerRef {
   id: Id;
   name: string;
   type: string;
+  /** Names of the worker's type — sent by the worker detail (labor summary) only. */
+  typeLabel?: string;
+  typeLabelRoman?: string | null;
+  typeLabelUrdu?: string | null;
 }
 
 // ─── Team on site ───────────────────────────────────────────────────────────

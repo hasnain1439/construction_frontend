@@ -2,7 +2,7 @@ import { Building2, CalendarCheck, CircleCheck, HardHat, Wallet } from "lucide-r
 import Image from "next/image";
 import type { ReactNode } from "react";
 import building from "@/assets/login-building.jpg";
-import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 const POINTS = [
@@ -58,7 +58,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
       <main className="flex flex-col">
         <div className="flex items-center justify-end gap-2 p-4">
-          <LanguageToggle />
+          <LanguageMenu />
           <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center px-4 pb-12">{children}</div>

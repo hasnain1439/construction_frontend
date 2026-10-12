@@ -22,6 +22,7 @@ export function TextField({
   trailing,
   autoFocus,
   uppercase,
+  dir,
 }: BaseFieldProps & {
   type?: HTMLInputTypeAttribute;
   placeholder?: string;
@@ -32,6 +33,8 @@ export function TextField({
   trailing?: ReactNode;
   autoFocus?: boolean;
   uppercase?: boolean;
+  /** Text direction of the input, e.g. "rtl" for an Urdu-script value. */
+  dir?: "ltr" | "rtl" | "auto";
 }) {
   const { register } = useFormContext();
   const error = useFieldError(name);
@@ -48,13 +51,14 @@ export function TextField({
             maxLength={maxLength}
             disabled={disabled}
             autoFocus={autoFocus}
+            dir={dir}
             aria-required={required || undefined}
             aria-invalid={invalid || undefined}
             aria-describedby={describedBy}
-            className={cn(trailing && "pr-10", uppercase && "uppercase")}
+            className={cn(trailing && "pe-10", uppercase && "uppercase")}
             {...register(name)}
           />
-          {trailing ? <div className="absolute top-1/2 right-1.5 -translate-y-1/2">{trailing}</div> : null}
+          {trailing ? <div className="absolute end-1.5 top-1/2 -translate-y-1/2">{trailing}</div> : null}
         </div>
       )}
     </FormField>

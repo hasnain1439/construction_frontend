@@ -100,6 +100,9 @@ export const ENDPOINTS = {
 
     laborRates: "/labor-rates",
 
+    workerTypes: "/worker-types",
+    workerTypeById: (workerTypeId: string) => `/worker-types/${id(workerTypeId)}`,
+
     paymentTemplates: "/payment-templates",
     paymentTemplateById: (templateId: string) => `/payment-templates/${id(templateId)}`,
 

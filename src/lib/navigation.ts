@@ -252,6 +252,13 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["mistri", "mazdoor", "labour"],
       },
       {
+        id: "workforce.workerTypes",
+        label: L("Worker Types", "Kaam ki qismein", "کام کی اقسام"),
+        href: "/workforce/worker-types",
+        available: true,
+        keywords: ["type", "trade", "electrician", "mason", "qisam", "wages"],
+      },
+      {
         id: "workforce.subcontractors",
         label: L("Sub-contractors", "Theke daar team", "ٹھیکیدار"),
         href: "/workforce/subcontractors",

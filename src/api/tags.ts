@@ -24,6 +24,7 @@ export const COMPANY_TAGS = [
   "PriceList",
   "RateHistory",
   "LaborRates",
+  "WorkerTypes",
   "PaymentTemplates",
   "Suppliers",
   "SupplierRates",

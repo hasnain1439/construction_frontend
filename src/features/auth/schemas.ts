@@ -16,6 +16,8 @@ export const loginIdentifierSchema = z
 export const loginSchema = z.object({
   login: loginIdentifierSchema,
   password: z.string().min(1, "Password is required"),
+  /** Unticked: the sign-in lasts until the browser closes. */
+  rememberMe: z.boolean(),
 });
 
 export const otpRequestSchema = z.object({ phone: phoneSchema });
@@ -63,4 +65,5 @@ export const acceptInviteSchema = z
 export const adminLoginSchema = z.object({
   email: z.email("Enter a valid email address").trim().toLowerCase(),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean(),
 });

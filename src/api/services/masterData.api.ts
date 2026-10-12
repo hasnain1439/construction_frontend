@@ -10,6 +10,7 @@ import type {
   CreateSubcontractorBody,
   CreateSupplierBody,
   CreateWorkerBody,
+  CreateWorkerTypeBody,
   DuplicateQualityCategoryBody,
   LaborRate,
   Material,
@@ -39,9 +40,20 @@ import type {
   UpdateSubcontractorBody,
   UpdateSupplierBody,
   UpdateWorkerBody,
+  UpdateWorkerTypeBody,
   Worker,
   WorkersQuery,
+  WorkerTypeRow,
+  WorkerTypesQuery,
 } from "@/api/types";
+
+/** A worker type is a DAILY labour rate; workers, the dashboard and team lists show its names. */
+const workerTypesChanged = [
+  { type: "WorkerTypes" as const, id: LIST },
+  { type: "LaborRates" as const, id: LIST },
+  "Workers" as const,
+  "Dashboard" as const,
+];
 
 const priceListChanged = [
   { type: "PriceList" as const, id: LIST },
@@ -140,7 +152,22 @@ export const masterDataApi = baseApi.injectEndpoints({
     }),
     updateLaborRates: build.mutation<LaborRate[], UpdateLaborRatesBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.laborRates, method: "PUT", body }),
-      invalidatesTags: [{ type: "LaborRates", id: LIST }],
+      invalidatesTags: [{ type: "LaborRates", id: LIST }, { type: "WorkerTypes", id: LIST }],
+    }),
+    getWorkerTypes: build.query<WorkerTypeRow[], WorkerTypesQuery | void>({
+      query: (params) => ({
+        url: ENDPOINTS.masterData.workerTypes,
+        params: params?.includeInactive ? { includeInactive: "true" } : undefined,
+      }),
+      providesTags: (rows) => providesList(rows, "WorkerTypes"),
+    }),
+    createWorkerType: build.mutation<WorkerTypeRow, CreateWorkerTypeBody>({
+      query: (body) => ({ url: ENDPOINTS.masterData.workerTypes, method: "POST", body }),
+      invalidatesTags: workerTypesChanged,
+    }),
+    updateWorkerType: build.mutation<WorkerTypeRow, { id: string; body: UpdateWorkerTypeBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.masterData.workerTypeById(id), method: "PATCH", body }),
+      invalidatesTags: (_r, _e, { id }) => [{ type: "WorkerTypes", id }, ...workerTypesChanged],
     }),
     getPaymentTemplates: build.query<PaymentTemplate[], void>({
       query: () => ENDPOINTS.masterData.paymentTemplates,
@@ -270,6 +297,9 @@ export const {
   useGetRateHistoryQuery,
   useGetLaborRatesQuery,
   useUpdateLaborRatesMutation,
+  useGetWorkerTypesQuery,
+  useCreateWorkerTypeMutation,
+  useUpdateWorkerTypeMutation,
   useGetPaymentTemplatesQuery,
   useCreatePaymentTemplateMutation,
   useUpdatePaymentTemplateMutation,

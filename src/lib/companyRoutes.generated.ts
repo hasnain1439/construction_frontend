@@ -52,6 +52,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"members"}], load: () => import("@/app/(company)/team/members/page") },
   { segments: [{"kind":"static","name":"workforce"},{"kind":"static","name":"subcontractors"},{"kind":"param","name":"subcontractorId"}], load: () => import("@/app/(company)/workforce/subcontractors/[subcontractorId]/page") },
   { segments: [{"kind":"static","name":"workforce"},{"kind":"static","name":"subcontractors"}], load: () => import("@/app/(company)/workforce/subcontractors/page") },
+  { segments: [{"kind":"static","name":"workforce"},{"kind":"static","name":"worker-types"}], load: () => import("@/app/(company)/workforce/worker-types/page") },
   { segments: [{"kind":"static","name":"workforce"},{"kind":"static","name":"workers"},{"kind":"param","name":"workerId"}], load: () => import("@/app/(company)/workforce/workers/[workerId]/page") },
   { segments: [{"kind":"static","name":"workforce"},{"kind":"static","name":"workers"}], load: () => import("@/app/(company)/workforce/workers/page") },
   { segments: [{"kind":"static","name":"projects"},{"kind":"param","name":"projectId"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(project)/projects/[projectId]/[...rest]/page") },

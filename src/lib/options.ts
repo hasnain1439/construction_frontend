@@ -33,15 +33,6 @@ export const HOLIDAY_TYPE_LABEL: Record<string, string> = { NON_WORKING: "Non-wo
 
 export const PLATFORM_LABEL: Record<string, string> = { ANDROID: "Android", IOS: "iPhone", WEB: "Web browser" };
 
-export const WORKER_TYPE_LABEL: Record<string, string> = {
-  MISTRI: "Mistri",
-  MISTRI_TILES: "Mistri (tiles)",
-  MAZDOOR: "Mazdoor",
-  STEEL_FIXER_HELPER: "Steel-fixer helper",
-  CHOWKIDAR: "Chowkidar",
-  OTHER: "Other",
-};
-
 export const TRADE_LABEL: Record<string, string> = {
   SHUTTERING: "Shuttering",
   STEEL_FIXING: "Steel fixing",

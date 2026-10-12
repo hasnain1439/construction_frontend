@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SessionsDialog } from "@/features/auth/components/SessionsDialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useT } from "@/i18n/useT";
-import { cn } from "@/lib/cn";
 import { activeSection, COMPANY_NAV, PROJECT_NAV, projectHref, type NavItem, type NavSection } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
 import { loginUrl } from "@/lib/session";
@@ -20,7 +19,7 @@ import { setCurrentProject } from "@/store/slices/projectSlice";
 import { closeFlyout, setMobileNav, toggleFlyout } from "@/store/slices/uiSlice";
 import { flyoutClass, NavBackdrop, railWrapperClass } from "./navDrawer";
 import { Flyout } from "./Flyout";
-import { IconRail, RailLogoutButton } from "./IconRail";
+import { IconRail } from "./IconRail";
 import { ProjectRailHeader } from "./ProjectRailHeader";
 import { StickyFooter } from "./StickyFooter";
 import { TopBar } from "./TopBar";
@@ -123,7 +122,6 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
             openSectionId={flyoutFor}
             onSelect={onSelect}
             header={projectId ? <ProjectRailHeader projectId={projectId} /> : undefined}
-            footer={<RailLogoutButton label={t("shell.logout")} onClick={() => void signOut()} />}
           />
         </div>
         <Flyout
@@ -132,17 +130,19 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
           hrefFor={hrefFor}
           onClose={onCloseFlyout}
           badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
-          // Full height down to the bottom of the screen, over the sticky footer (h-14).
-          className={cn(flyoutClass(mobileOpen), "lg:-bottom-14")}
+          className={flyoutClass(mobileOpen)}
         />
-        <main id="main" className={cn("min-w-0 flex-1 overflow-y-auto")}>
-          <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">
-            <ReadOnlyBanner />
-            {children}
-          </div>
-        </main>
+        {/* Page + footer share the column right of the rail, so the footer starts where the rail ends. */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main id="main" className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+            <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">
+              <ReadOnlyBanner />
+              {children}
+            </div>
+          </main>
+          <StickyFooter />
+        </div>
       </div>
-      <StickyFooter />
       <CommandSearch mode={mode} />
       <PlanLimitDialog />
       <SessionsDialog open={sessionsOpen} onOpenChange={setSessionsOpen} />

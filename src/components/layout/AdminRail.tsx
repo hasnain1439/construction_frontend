@@ -19,7 +19,7 @@ import { cn } from "@/lib/cn";
 import { DATA_BASE } from "@/lib/companyRoutes";
 import { ADMIN_NAV, type AdminNavItem, type NavItem, type NavSection } from "@/lib/navigation";
 import { Flyout } from "./Flyout";
-import { IconRail, RailLogoutButton } from "./IconRail";
+import { IconRail } from "./IconRail";
 import { flyoutClass } from "./navDrawer";
 
 const CATALOG_IDS = ["admin.materials", "admin.holidays"];
@@ -92,7 +92,7 @@ function RailHealth({ collapsed }: { collapsed?: boolean }) {
  * sections (inside a project: the project's sections) together. Each company screen asks
  * which company (tenant) to show.
  */
-export function AdminRail({ collapsed, mobileOpen = false, onLogout }: { collapsed?: boolean; mobileOpen?: boolean; onLogout: () => void }) {
+export function AdminRail({ collapsed, mobileOpen = false }: { collapsed?: boolean; mobileOpen?: boolean }) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -171,12 +171,7 @@ export function AdminRail({ collapsed, mobileOpen = false, onLogout }: { collaps
         activeSectionId={activeSectionId}
         openSectionId={openId}
         onSelect={onSelect}
-        footer={
-          <>
-            <RailHealth />
-            <RailLogoutButton label={t("shell.logout")} onClick={onLogout} />
-          </>
-        }
+        footer={<RailHealth />}
       />
       <Flyout
         section={collapsed ? null : open}

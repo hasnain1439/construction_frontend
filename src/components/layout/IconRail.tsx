@@ -1,6 +1,5 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
@@ -16,34 +15,10 @@ export interface IconRailProps {
   collapsed?: boolean;
   /** Project mode: "← All projects" + project name. */
   header?: ReactNode;
-  /** Pinned under the sections (e.g. Log out). */
+  /** Pinned under the sections (e.g. the platform health check). */
   footer?: ReactNode;
   /** Accessible name of the rail (default "Main"). */
   label?: string;
-}
-
-/** Log out button styled like a rail item, for the rail footer. */
-export function RailLogoutButton({
-  label,
-  collapsed,
-  onClick,
-}: {
-  label: string;
-  collapsed?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={collapsed ? label : undefined}
-      title={collapsed ? label : undefined}
-      className="flex w-full flex-col items-center gap-1 rounded-2xl px-2 py-2.5 text-center text-destructive transition-colors outline-none hover:bg-destructive/10 focus-visible:bg-destructive/10"
-    >
-      <LogOut className="size-7" strokeWidth={1.6} aria-hidden />
-      {collapsed ? null : <span className="text-xs leading-tight font-medium">{label}</span>}
-    </button>
-  );
 }
 
 /**

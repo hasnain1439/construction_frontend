@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TopupRequestSlideOver } from "@/features/cashbook/components/CashSlideOvers";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useT } from "@/i18n/useT";
 import { formatDate, formatRelative } from "@/lib/dates";
 import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
@@ -27,7 +27,6 @@ const lines = (items: SiteDashboard["incoming"][number]["items"]) => items.map((
  */
 export function SiteDashboardView() {
   const t = useT();
-  const te = useEnumT();
   const me = useMe();
   const dispatch = useAppDispatch();
   const current = useAppSelector((s) => s.project.currentProjectId);
@@ -82,7 +81,7 @@ export function SiteDashboardView() {
                           <span className="text-base font-normal text-muted-foreground"> / {d.hazriToday.assigned} {t("dashboard.present")}</span>
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {te("workerType", "MISTRI")} {d.hazriToday.present.mistri} · {te("workerType", "MAZDOOR")} {d.hazriToday.present.mazdoor} · {t("common.other")} {d.hazriToday.present.other}
+                          {t("dashboard.hazriMistri")} {d.hazriToday.present.mistri} · {t("dashboard.hazriMazdoor")} {d.hazriToday.present.mazdoor} · {t("common.other")} {d.hazriToday.present.other}
                           {d.hazriToday.unmarked ? ` · ${t("dashboard.notMarked", { n: d.hazriToday.unmarked })}` : ""}
                         </p>
                       </div>
