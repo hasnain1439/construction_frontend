@@ -147,7 +147,7 @@ export interface CreateTenantResult {
   owner: {
     name: string;
     phone: string;
-    invitation: { id: Id; status: string; expiresAt: IsoDateTime; devInviteUrl?: string };
+    invitation: { id: Id; status: string; expiresAt: IsoDateTime; inviteUrl?: string; devInviteUrl?: string };
   };
 }
 

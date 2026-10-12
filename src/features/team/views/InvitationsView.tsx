@@ -8,11 +8,16 @@ import { AvatarName } from "@/components/common/AvatarName";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar } from "@/components/common/FilterBar";
+import { InviteShare } from "@/components/common/InviteShare";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useT } from "@/i18n/useT";
+import { useMe } from "@/store/hooks";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
@@ -39,6 +44,10 @@ export function InvitationsView() {
   const [inviteOpen, setInviteOpen] = useSearchFlag();
   const [toCancel, setToCancel] = useState<Invitation | null>(null);
   const [resending, setResending] = useState<string | null>(null);
+  /** After a resend: the fresh link, ready to share (the old link stops working). */
+  const [shared, setShared] = useState<{ invitation: Invitation; url: string } | null>(null);
+  const t = useT();
+  const me = useMe();
   const run = useMutationToast();
 
   const columns: Column<Invitation>[] = [
@@ -54,34 +63,27 @@ export function InvitationsView() {
     },
     { id: "expires", header: "Expires", cell: (i) => formatDate(i.expiresAt), sortValue: (i) => i.expiresAt },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (i) =>
         readOnly ? null : (
-          <div className="flex justify-end gap-1">
-            {i.status === "PENDING" || i.status === "EXPIRED" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={resending === i.id}
-                onClick={async () => {
+          <RowActions
+            name={i.name}
+            actions={[
+              {
+                label: "Resend / Share link",
+                icon: RotateCw,
+                hidden: !(i.status === "PENDING" || i.status === "EXPIRED"),
+                disabled: resending === i.id,
+                onSelect: async () => {
                   setResending(i.id);
-                  await run(() => resend(i.id).unwrap(), { success: `New link sent to ${i.name}` });
+                  const result = await run(() => resend(i.id).unwrap(), { success: `New link sent to ${i.name}` });
                   setResending(null);
-                }}
-              >
-                <RotateCw data-icon="inline-start" />
-                Resend
-              </Button>
-            ) : null}
-            {i.status === "PENDING" ? (
-              <Button variant="ghost" size="sm" className="text-danger" onClick={() => setToCancel(i)}>
-                <X data-icon="inline-start" />
-                Cancel
-              </Button>
-            ) : null}
-          </div>
+                  if (result?.inviteUrl) setShared({ invitation: i, url: result.inviteUrl });
+                },
+              },
+              { label: "Cancel", icon: X, destructive: true, hidden: i.status !== "PENDING", onSelect: () => setToCancel(i) },
+            ]}
+          />
         ),
     },
   ];
@@ -132,6 +134,24 @@ export function InvitationsView() {
         />
       </SectionCard>
       <InviteMemberSlideOver open={inviteOpen} onOpenChange={setInviteOpen} />
+      <Dialog open={Boolean(shared)} onOpenChange={(o) => !o && setShared(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{shared ? `${t("invite.shareTitle")} — ${shared.invitation.name}` : ""}</DialogTitle>
+            <DialogDescription>{t("invite.newLinkMade")}</DialogDescription>
+          </DialogHeader>
+          {shared ? (
+            <InviteShare
+              url={shared.url}
+              name={shared.invitation.name}
+              phone={shared.invitation.phone}
+              email={shared.invitation.email}
+              companyName={me?.tenant.name}
+              roleLabel={shared.invitation.role === "PM" ? "Project Manager" : shared.invitation.role === "MUNSHI" ? "Munshi" : undefined}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
       <ConfirmDialog
         open={Boolean(toCancel)}
         onOpenChange={(o) => !o && setToCancel(null)}

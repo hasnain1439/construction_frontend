@@ -1,16 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleCheck, ClipboardCopy } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import type { z } from "zod";
 import { useGetAdminPlansQuery } from "@/api/services/admin/plans.api";
 import { useCreateTenantMutation } from "@/api/services/admin/tenants.api";
 import type { CreateTenantResult } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { InviteShare } from "@/components/common/InviteShare";
 import { SlideOver } from "@/components/common/SlideOver";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { DateField } from "@/components/forms/DateField";
@@ -114,23 +114,10 @@ function Success({ result, onClose }: { result: CreateTenantResult; onClose: () 
           <StatusBadge domain="invitation" value={invite.status} />
           <span className="text-xs text-muted-foreground">expires {formatDate(invite.expiresAt)} · sent by SMS</span>
         </div>
-        {invite.devInviteUrl ? (
-          <div className="space-y-1 pt-2">
-            <p className="text-xs break-all text-muted-foreground">{invite.devInviteUrl}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                void navigator.clipboard.writeText(invite.devInviteUrl!);
-                toast.success("Link copied");
-              }}
-            >
-              <ClipboardCopy data-icon="inline-start" />
-              Copy invite link (dev)
-            </Button>
-          </div>
-        ) : null}
       </div>
+      {invite.inviteUrl ? (
+        <InviteShare url={invite.inviteUrl} name={result.owner.name} phone={result.owner.phone} companyName={result.tenant.name} roleLabel="Thekedar (owner)" />
+      ) : null}
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>
           Close

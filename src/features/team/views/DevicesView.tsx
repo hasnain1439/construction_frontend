@@ -8,6 +8,7 @@ import type { DeviceRow, SyncRejection } from "@/api/types";
 import { AvatarName } from "@/components/common/AvatarName";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SlideOver } from "@/components/common/SlideOver";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -96,16 +97,13 @@ export function DevicesView() {
         ),
     },
     {
-      id: "actions",
-      header: <span className="sr-only">Actions</span>,
-      align: "right",
-      cell: (d) =>
-        !d.current && !d.revokedAt ? (
-          <Button variant="ghost" size="sm" className="text-danger" onClick={() => setToRevoke(d)}>
-            <LogOut data-icon="inline-start" />
-            Log out device
-          </Button>
-        ) : null,
+      ...ACTIONS_COLUMN,
+      cell: (d) => (
+        <RowActions
+          name={d.user.name}
+          actions={[{ label: "Log out device", icon: LogOut, destructive: true, hidden: d.current || Boolean(d.revokedAt), onSelect: () => setToRevoke(d) }]}
+        />
+      ),
     },
   ];
 

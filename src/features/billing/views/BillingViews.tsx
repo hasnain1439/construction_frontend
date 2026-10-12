@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, CalendarClock, CheckCircle2, FilePlus2, FileText, Flag, HandCoins, Landmark, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Download, Eye, FilePlus2, FileText, Flag, HandCoins, Landmark, MessageCircle, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,7 +23,7 @@ import {
   useUpdateStageMutation,
 } from "@/api/services/billing.api";
 import { useGetFinanceReceivablesQuery } from "@/api/services/finance.api";
-import type { ClientPayment, Invoice, InvoiceStatus, InvoiceType, ScheduleStage, UnpaidStageWarning } from "@/api/types";
+import type { ClientPayment, Invoice, InvoiceStatus, InvoiceType, ScheduleStage, SharedPdf, UnpaidStageWarning } from "@/api/types";
 import { AgeingBar } from "@/components/common/AgeingBar";
 import { ChequeStatusBadge, InvoiceStatusBadge, PaymentMethodIcon } from "@/components/common/BillingBadges";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -33,8 +33,9 @@ import { ExportMenu } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { PdfActions } from "@/components/common/PdfActions";
+import { PdfActions, usePdfActions } from "@/components/common/PdfActions";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StageTimeline } from "@/components/common/StageTimeline";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -123,29 +124,16 @@ export function ScheduleView({ projectId }: { projectId: string }) {
         ),
     },
     {
-      id: "actions",
-      header: "",
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (s) => (
-        <div className="flex flex-wrap justify-end gap-1">
-          {s.status === "UPCOMING" && !s.isRetention ? (
-            <Button size="sm" variant="outline" onClick={() => setReady(s)}>
-              <Flag data-icon="inline-start" />
-              Mark ready
-            </Button>
-          ) : null}
-          {s.status === "READY" && !s.invoice ? (
-            <Button size="sm" onClick={() => setInvoiceFor(s.id)}>
-              <FilePlus2 data-icon="inline-start" />
-              Create invoice
-            </Button>
-          ) : null}
-          {owner && !s.invoice ? (
-            <Button size="icon" variant="ghost" aria-label={`Expected date for ${s.label}`} onClick={() => setDateFor(s)}>
-              <CalendarClock aria-hidden />
-            </Button>
-          ) : null}
-        </div>
+        <RowActions
+          name={s.label}
+          actions={[
+            { label: "Mark ready", icon: Flag, hidden: !(s.status === "UPCOMING" && !s.isRetention), onSelect: () => setReady(s) },
+            { label: "Create invoice", icon: FilePlus2, hidden: !(s.status === "READY" && !s.invoice), onSelect: () => setInvoiceFor(s.id) },
+            { label: "Expected date", icon: CalendarClock, hidden: !(owner && !s.invoice), onSelect: () => setDateFor(s) },
+          ]}
+        />
       ),
     },
   ];
@@ -241,15 +229,20 @@ function ProgressTab({ projectId, onAdd, onBill }: { projectId: string; onAdd: (
             { id: "value", header: "Value", align: "right", cell: (p) => <MoneyText paisa={p.valuePaisa} /> },
             { id: "status", header: "Status", cell: (p) => (p.billed ? <StatusBadge tone="success" label="Billed" /> : p.draftInvoiceId ? <StatusBadge tone="info" label="On a draft" /> : <StatusBadge tone="warning" label="Not billed" />) },
             {
-              id: "actions",
-              header: "",
-              align: "right",
-              cell: (p) =>
-                !p.billed && !p.draftInvoiceId ? (
-                  <Button size="icon" variant="ghost" aria-label="Delete progress" onClick={() => run(() => remove(p.id).unwrap(), { success: "Deleted" })}>
-                    <Trash2 aria-hidden />
-                  </Button>
-                ) : null,
+              ...ACTIONS_COLUMN,
+              cell: (p) => (
+                <RowActions
+                  actions={[
+                    {
+                      label: "Delete progress",
+                      icon: Trash2,
+                      destructive: true,
+                      hidden: p.billed || Boolean(p.draftInvoiceId),
+                      onSelect: () => void run(() => remove(p.id).unwrap(), { success: "Deleted" }),
+                    },
+                  ]}
+                />
+              ),
             },
           ]}
         />
@@ -555,6 +548,36 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
 
 // ─── Payments received ──────────────────────────────────────────────────────
 
+/** Row menu of a received payment: cheque clearing (owner, pending) + receipt Preview / Download / WhatsApp. */
+function PaymentRowActions({
+  payment,
+  canSettle,
+  onSettle,
+  load,
+}: {
+  payment: ClientPayment;
+  canSettle: boolean;
+  onSettle: (to: "CLEARED" | "BOUNCED") => void;
+  load: () => Promise<SharedPdf>;
+}) {
+  const pdf = usePdfActions({ load, title: payment.number });
+  return (
+    <>
+      <RowActions
+        name={payment.number}
+        actions={[
+          { label: "Mark cleared", icon: CheckCircle2, hidden: !canSettle, onSelect: () => onSettle("CLEARED") },
+          { label: "Bounced", icon: XCircle, destructive: true, hidden: !canSettle, onSelect: () => onSettle("BOUNCED") },
+          { label: "Preview", icon: Eye, separatorBefore: true, disabled: pdf.busy !== null, onSelect: () => void pdf.act("preview") },
+          { label: "Download", icon: Download, disabled: pdf.busy !== null, onSelect: () => void pdf.act("download") },
+          { label: "WhatsApp", icon: MessageCircle, disabled: pdf.busy !== null, onSelect: () => void pdf.act("share") },
+        ]}
+      />
+      {pdf.preview}
+    </>
+  );
+}
+
 export function PaymentsView({ projectId }: { projectId: string }) {
   const owner = useCan(OWNER);
   const list = useGetClientPaymentsQuery({ projectId, limit: 100 });
@@ -571,25 +594,14 @@ export function PaymentsView({ projectId }: { projectId: string }) {
     { id: "invoices", header: "Against", cell: (p) => p.allocations.map((a) => a.invoice.number).join(", ") || (p.creditPaisa !== "0" ? "Credit" : "—") },
     { id: "status", header: "Status", cell: (p) => <ChequeStatusBadge status={p.status} method={p.method} /> },
     {
-      id: "actions",
-      header: "",
-      align: "right",
+      ...ACTIONS_COLUMN,
       cell: (p) => (
-        <div className="flex flex-wrap justify-end gap-1">
-          {owner && p.status === "PENDING" ? (
-            <>
-              <Button size="sm" variant="outline" onClick={() => setConfirm({ payment: p, to: "CLEARED" })}>
-                <CheckCircle2 data-icon="inline-start" />
-                Mark cleared
-              </Button>
-              <Button size="sm" variant="destructive-soft" onClick={() => setConfirm({ payment: p, to: "BOUNCED" })}>
-                <XCircle data-icon="inline-start" />
-                Bounced
-              </Button>
-            </>
-          ) : null}
-          <PdfActions load={() => receipt(p.id).unwrap()} title={p.number} />
-        </div>
+        <PaymentRowActions
+          payment={p}
+          canSettle={owner && p.status === "PENDING"}
+          onSettle={(to) => setConfirm({ payment: p, to })}
+          load={() => receipt(p.id).unwrap()}
+        />
       ),
     },
   ];

@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import path from "node:path";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /** Seed accounts (construction-platform `npm run db:seed`). */
 export const SEED = {
@@ -56,4 +56,10 @@ export function devOtp(phone: string): string {
   const code = /OTP=(\d{6})/.exec(out)?.[1];
   if (!code) throw new Error(`dev:otp gave no code: ${out}`);
   return code;
+}
+
+/** Opens a table row's "⋯" actions menu and picks `name`. */
+export async function rowAction(page: Page, row: Locator, name: string) {
+  await row.getByRole("button", { name: /Actions/ }).click();
+  await page.getByRole("menuitem", { name, exact: true }).click();
 }
