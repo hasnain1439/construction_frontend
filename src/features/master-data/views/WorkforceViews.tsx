@@ -25,9 +25,12 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatPhone } from "@/lib/phone";
-import { toOptions, TRADE_LABEL, WORKER_TYPE_LABEL } from "@/lib/options";
+import { useT } from "@/i18n/useT";
+import { toOptions, TRADE_LABEL } from "@/lib/options";
+import { namesFromWorker } from "@/lib/workerTypes";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SubcontractorSlideOver, WorkerSlideOver } from "../components/WorkforceSlideOvers";
+import { useWorkerTypeName, useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
 
 const STATUS_OPTIONS = [
   { value: "true", label: "Active" },
@@ -46,6 +49,9 @@ export function WorkersView() {
   const [addOpen, setAddOpen] = useSearchFlag();
   const [editing, setEditing] = useState<Worker | null>(null);
   const run = useMutationToast();
+  const t = useT();
+  const typeName = useWorkerTypeName();
+  const { options: typeOptions } = useWorkerTypeOptions({ all: true });
 
   const columns: Column<Worker>[] = [
     {
@@ -61,7 +67,12 @@ export function WorkersView() {
         ),
       sortValue: (w) => w.name,
     },
-    { id: "type", header: "Type", cell: (w) => WORKER_TYPE_LABEL[w.type] ?? w.type, sortValue: (w) => w.type },
+    {
+      id: "type",
+      header: t("common.type"),
+      cell: (w) => <bdi>{typeName(w.type, namesFromWorker(w))}</bdi>,
+      sortValue: (w) => typeName(w.type, namesFromWorker(w)),
+    },
     { id: "phone", header: "Phone", cell: (w) => <span className="tabular">{formatPhone(w.phone)}</span> },
     {
       id: "rate",
@@ -110,7 +121,7 @@ export function WorkersView() {
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name or phone…" />
-        <FilterSelect label="Type" value={list.filters.type} onChange={(v) => list.setFilter("type", v)} options={toOptions(WORKER_TYPE_LABEL)} />
+        <FilterSelect label={t("common.type")} value={list.filters.type} onChange={(v) => list.setFilter("type", v)} options={typeOptions} />
         <FilterSelect label="Status" value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={STATUS_OPTIONS} />
       </FilterBar>
       <SectionCard flush>

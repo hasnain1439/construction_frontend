@@ -48,6 +48,7 @@ import { Switch } from "@/components/ui/switch";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatDate, todayPK } from "@/lib/dates";
+import { useWorkerTypeName } from "@/hooks/useWorkerTypes";
 import { formatPKR, sumPaisa } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { addDays, formatWeekRange, weekDates, type WeekDayName } from "@/lib/weeks";
@@ -58,7 +59,7 @@ import {
   MeasurementSlideOver,
   useIsMunshi,
 } from "../components/LaborSlideOvers";
-import { rateTypeLabel, workerTypeLabel } from "../options";
+import { rateTypeLabel } from "../options";
 
 const OFFICE = { roles: ["THEKEDAR", "PM"] } as const;
 const STATUS_TEXT: Record<AttendanceStatus, string> = {
@@ -113,6 +114,7 @@ function RateDialog({ worker, onClose }: { worker: ProjectWorker | null; onClose
 }
 
 export function TeamOnSiteView({ projectId }: { projectId: string }) {
+  const typeName = useWorkerTypeName();
   const office = useCan(OFFICE);
   const munshi = useIsMunshi();
   const workers = useGetProjectWorkersQuery({ projectId });
@@ -138,7 +140,9 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       cell: (w) => (
         <div>
           <p className="font-medium">{w.worker.name}</p>
-          <p className="text-xs text-muted-foreground">{workerTypeLabel(w.worker.type)}</p>
+          <p className="text-xs text-muted-foreground">
+            <bdi>{typeName(w.worker.type)}</bdi>
+          </p>
         </div>
       ),
     },
@@ -418,6 +422,7 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
 const MUNSHI_DAYS_BACK = 7;
 
 export function HazriView({ projectId }: { projectId: string }) {
+  const typeName = useWorkerTypeName();
   const munshi = useIsMunshi();
   const [week, setWeek] = useState<string | null>(null);
   const grid = useGetAttendanceQuery({ projectId, ...(week ? { from: week, to: addDays(week, 6) } : {}) });
@@ -441,10 +446,10 @@ export function HazriView({ projectId }: { projectId: string }) {
       (grid.data?.workers ?? []).map((w) => ({
         id: w.worker.id,
         name: w.worker.name,
-        subtitle: `${workerTypeLabel(w.worker.type)} · ${formatPKR(w.dailyRatePaisa)}`,
+        subtitle: `${typeName(w.worker.type)} · ${formatPKR(w.dailyRatePaisa)}`,
         days: { ...w.days, ...(pending[w.worker.id] ?? {}) },
       })),
-    [grid.data, pending],
+    [grid.data, pending, typeName],
   );
 
   const onChange = (workerId: string, date: string, value: HazriMark) =>

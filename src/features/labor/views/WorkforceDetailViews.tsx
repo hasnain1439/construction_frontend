@@ -16,7 +16,9 @@ import { formatPKR, formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { formatPhone } from "@/lib/phone";
 import { formatWeekRange } from "@/lib/weeks";
-import { paidFromLabel, rateTypeLabel, workerTypeLabel } from "../options";
+import { useWorkerTypeName } from "@/hooks/useWorkerTypes";
+import { namesFromWorker } from "@/lib/workerTypes";
+import { paidFromLabel, rateTypeLabel, tradeLabel } from "../options";
 
 const ProjectLink = ({ project, path }: { project: { id: string; name: string; code: string }; path: string }) => (
   <Link href={projectHref(project.id, path)} className="font-medium text-primary underline-offset-4 hover:underline">
@@ -26,6 +28,7 @@ const ProjectLink = ({ project, path }: { project: { id: string; name: string; c
 
 export function WorkerDetailView({ workerId }: { workerId: string }) {
   const q = useGetWorkerSummaryQuery(workerId);
+  const typeName = useWorkerTypeName();
   return (
     <QueryState query={q} skeleton={<CardsSkeleton count={3} height="h-32" />}>
       {(d) => (
@@ -33,7 +36,7 @@ export function WorkerDetailView({ workerId }: { workerId: string }) {
           <PageHeader
             title={d.worker.name}
             meta={<StatusBadge domain="active" value={d.worker.isActive} />}
-            description={[workerTypeLabel(d.worker.type), d.worker.phone ? formatPhone(d.worker.phone) : null, `normal rate ${formatPKR(d.worker.dailyRatePaisa)} / day`].filter(Boolean).join(" · ")}
+            description={[typeName(d.worker.type, namesFromWorker(d.worker)), d.worker.phone ? formatPhone(d.worker.phone) : null, `normal rate ${formatPKR(d.worker.dailyRatePaisa)} / day`].filter(Boolean).join(" · ")}
             breadcrumbs={[{ label: "Workforce" }, { label: "Workers Directory", href: "/workforce/workers" }, { label: d.worker.name }]}
           />
           <div className="grid gap-4 sm:grid-cols-3">
@@ -100,7 +103,7 @@ export function SubcontractorDetailView({ subcontractorId }: { subcontractorId: 
           <PageHeader
             title={d.subcontractor.name}
             meta={<StatusBadge domain="active" value={d.subcontractor.isActive} />}
-            description={[workerTypeLabel(d.subcontractor.trade), d.subcontractor.phone ? formatPhone(d.subcontractor.phone) : null].filter(Boolean).join(" · ")}
+            description={[tradeLabel(d.subcontractor.trade), d.subcontractor.phone ? formatPhone(d.subcontractor.phone) : null].filter(Boolean).join(" · ")}
             breadcrumbs={[{ label: "Workforce" }, { label: "Sub-contractors", href: "/workforce/subcontractors" }, { label: d.subcontractor.name }]}
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

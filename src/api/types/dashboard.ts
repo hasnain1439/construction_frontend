@@ -187,7 +187,7 @@ export interface DashboardOverview {
   labor: {
     period: Period;
     wagesPaisa: Paisa;
-    byWorkerType: Array<{ type: string; days: number; wagesPaisa: Paisa }>;
+    byWorkerType: Array<{ type: string; label?: string; labelRoman?: string | null; labelUrdu?: string | null; days: number; wagesPaisa: Paisa }>;
     subcontractorsOverpaid: number;
   };
   alerts: DashboardAlert[];

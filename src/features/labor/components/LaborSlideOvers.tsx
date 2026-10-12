@@ -39,7 +39,9 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { todayPK } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
 import { useMe } from "@/store/hooks";
-import { PAID_FROM_OPTIONS, RATE_TYPE_OPTIONS, workerTypeLabel } from "../options";
+import { useWorkerTypeName } from "@/hooks/useWorkerTypes";
+import { namesFromWorker } from "@/lib/workerTypes";
+import { PAID_FROM_OPTIONS, RATE_TYPE_OPTIONS, tradeLabel } from "../options";
 import {
   advanceSchema,
   assignSubcontractSchema,
@@ -76,6 +78,7 @@ export const useIsMunshi = () => useMe()?.user.role === "MUNSHI";
 
 export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const munshi = useIsMunshi();
+  const typeName = useWorkerTypeName();
   const workers = useGetWorkersQuery({ isActive: "true", limit: 100 });
   const onSite = useGetProjectWorkersQuery({ projectId, active: true });
   const [assign, { isLoading }] = useAssignWorkerMutation();
@@ -83,7 +86,7 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
   const taken = new Set((onSite.data ?? []).map((w) => w.worker.id));
   const options = (workers.data?.items ?? [])
     .filter((w) => !taken.has(w.id))
-    .map((w) => ({ value: w.id, label: w.name, description: `${workerTypeLabel(w.type)} · ${formatPKR(w.dailyRatePaisa)}/day` }));
+    .map((w) => ({ value: w.id, label: w.name, description: `${typeName(w.type, namesFromWorker(w))} · ${formatPKR(w.dailyRatePaisa)}/day` }));
   const form = useForm<AssignWorkerValues, unknown, z.output<typeof assignWorkerSchema>>({
     resolver: zodResolver(assignWorkerSchema),
     values: { workerId: null, dailyRatePaisa: null, startDate: todayPK() },
@@ -170,7 +173,7 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
           name="subcontractorId"
           label="Sub-contractor"
           required
-          options={(subs.data?.items ?? []).map((s) => ({ value: s.id, label: s.name, description: workerTypeLabel(s.trade) }))}
+          options={(subs.data?.items ?? []).map((s) => ({ value: s.id, label: s.name, description: tradeLabel(s.trade) }))}
           loading={subs.isLoading}
         />
         <TextField name="scope" label="Work" required placeholder="Slab shuttering — ground + first floor" />

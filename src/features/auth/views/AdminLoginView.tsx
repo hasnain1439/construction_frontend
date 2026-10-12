@@ -10,6 +10,7 @@ import { adminAuthApi, useAdminLoginMutation, useGetAdminMeQuery } from "@/api/s
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
+import { CheckboxField } from "@/components/forms/CheckboxField";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { TextField } from "@/components/forms/TextField";
 import { useLanguage } from "@/i18n/useT";
@@ -30,7 +31,7 @@ export function AdminLoginView() {
   const next = safeNext(searchParams.get("next"), "/admin/overview");
   const form = useForm<z.input<typeof adminLoginSchema>, unknown, z.output<typeof adminLoginSchema>>({
     resolver: zodResolver(adminLoginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", password: "", rememberMe: true },
   });
 
   const { data: admin } = useGetAdminMeQuery();
@@ -63,6 +64,7 @@ export function AdminLoginView() {
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
         <TextField name="email" label="Email" type="email" required autoComplete="username" autoFocus />
         <PasswordField name="password" label="Password" required />
+        <CheckboxField name="rememberMe" label="Remember me" />
         <FormActions submitLabel="Sign in" loading={isLoading} fullWidth />
       </Form>
     </AuthCard>

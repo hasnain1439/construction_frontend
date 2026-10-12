@@ -139,7 +139,7 @@ function CompanyOverview() {
                     value={<MoneyText paisa={k.receivablesOutstandingPaisa} short />}
                     percent={k.collectedPercent ?? 0}
                     ringLabel={t("dashboard.collected")}
-                    tone={k.overduePaisa && k.overduePaisa !== "0" ? "warning" : "success"}
+                    tone="brand"
                     hint={k.overduePaisa && k.overduePaisa !== "0" ? t("dashboard.overdue", { amount: formatPKRShort(k.overduePaisa) }) : t("dashboard.nothingOverdue")}
                   />
                   <RingKpiCard
@@ -147,7 +147,7 @@ function CompanyOverview() {
                     value={<MoneyText paisa={k.supplierUdhaarPaisa} short />}
                     percent={k.supplierPaidPercent ?? 0}
                     ringLabel={t("dashboard.paid")}
-                    tone="warning"
+                    tone="brand"
                     hint={k.supplierOldestDays ? t("dashboard.oldestDays", { n: k.supplierOldestDays }) : t("dashboard.nothingOwed")}
                   />
                   <KpiCard

@@ -13,6 +13,7 @@ export function ActiveToggle({
   loading,
   consequence,
   size = "sm",
+  labels,
 }: {
   name: string;
   isActive: boolean;
@@ -20,6 +21,8 @@ export function ActiveToggle({
   loading?: boolean;
   consequence: string;
   size?: "sm" | "default";
+  /** Translated button / dialog texts (English by default). */
+  labels?: { activate: string; deactivate: string; title: string };
 }) {
   const [confirm, setConfirm] = useState(false);
   return (
@@ -35,7 +38,7 @@ export function ActiveToggle({
           }}
         >
           <PowerOff data-icon="inline-start" />
-          Deactivate
+          {labels?.deactivate ?? "Deactivate"}
         </Button>
       ) : (
         <Button
@@ -48,15 +51,15 @@ export function ActiveToggle({
           }}
         >
           <Power data-icon="inline-start" />
-          Activate
+          {labels?.activate ?? "Activate"}
         </Button>
       )}
       <ConfirmDialog
         open={confirm}
         onOpenChange={setConfirm}
-        title={`Deactivate ${name}?`}
+        title={labels?.title ?? `Deactivate ${name}?`}
         description={consequence}
-        confirmLabel="Deactivate"
+        confirmLabel={labels?.deactivate ?? "Deactivate"}
         loading={loading}
         onConfirm={async () => {
           await onToggle(false);

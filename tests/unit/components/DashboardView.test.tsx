@@ -12,7 +12,7 @@ const BASE: DashboardOverview = {
   seesFinancials: false,
   kpis: { activeProjects: { count: 3, atRisk: 0, delayed: 0 }, pendingApprovals: 2, openShortages: 2, dispatchesOnTheWay: 2 },
   site: { hazriToday: { mistri: 2, mazdoor: 4, other: 1, total: 7 }, assignedWorkers: 8, peshgiThisWeekPaisa: "0", siteKharchaThisWeekPaisa: "320000", week: { weekStart: "2026-10-05", weekEnd: "2026-10-11" }, deliveriesToday: 1, openShortages: 2 },
-  labor: { period: { from: "2026-09-07", to: "2026-10-06" }, wagesPaisa: "15200000", byWorkerType: [{ type: "MAZDOOR", days: 64, wagesPaisa: "6200000" }], subcontractorsOverpaid: 1 },
+  labor: { period: { from: "2026-09-07", to: "2026-10-06" }, wagesPaisa: "15200000", byWorkerType: [{ type: "MAZDOOR", label: "Labourer", labelRoman: "Mazdoor", labelUrdu: "مزدور", days: 64, wagesPaisa: "6200000" }], subcontractorsOverpaid: 1 },
   alerts: [],
   projects: [{ project: { id: "p1", code: "MSB-2026-012", name: "DHA Phase 6 · 10 Marla", status: "ACTIVE" }, client: { id: "c1", name: "Ahmed Raza" } }],
 };

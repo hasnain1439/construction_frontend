@@ -10,11 +10,13 @@ export interface RingKpiCardProps {
   ringLabel?: string;
   hint?: ReactNode;
   loading?: boolean;
-  tone?: "primary" | "success" | "warning" | "danger";
+  tone?: "brand" | "primary" | "success" | "warning" | "danger";
   className?: string;
 }
 
 const strokeClass = {
+  /** Data colour (teal): a share that is information, not a warning. */
+  brand: "stroke-chart-1",
   primary: "stroke-primary",
   success: "stroke-success",
   warning: "stroke-warning",

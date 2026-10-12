@@ -35,7 +35,7 @@ export function SelectCompanyView() {
     setError(null);
     try {
       if (pending.kind === "password") {
-        await login({ login: pending.login, password: pending.password, tenantId }).unwrap();
+        await login({ login: pending.login, password: pending.password, tenantId, rememberMe: pending.rememberMe ?? true }).unwrap();
       } else {
         await verify({ phone: pending.phone, code: pending.code, tenantId }).unwrap();
       }

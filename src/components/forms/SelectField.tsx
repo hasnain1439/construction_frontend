@@ -24,7 +24,14 @@ export function SelectField({
   placeholder = "Select…",
   /** Adds a "None" choice that sets the field to null. */
   noneLabel,
-}: BaseFieldProps & { options: SelectOption[]; placeholder?: string; noneLabel?: string }) {
+  onValueChange,
+}: BaseFieldProps & {
+  options: SelectOption[];
+  placeholder?: string;
+  noneLabel?: string;
+  /** Called after the user picks an option (not on form resets). */
+  onValueChange?: (value: string | null) => void;
+}) {
   const { control } = useFormContext();
   const error = useFieldError(name);
   return (
@@ -36,7 +43,11 @@ export function SelectField({
           render={({ field }) => (
             <Select
               value={field.value === null || field.value === undefined || field.value === "" ? (noneLabel && field.value === null ? NONE : "") : String(field.value)}
-              onValueChange={(v) => field.onChange(v === NONE ? null : v)}
+              onValueChange={(v) => {
+                const value = v === NONE ? null : v;
+                field.onChange(value);
+                onValueChange?.(value);
+              }}
               disabled={disabled}
             >
               <SelectTrigger

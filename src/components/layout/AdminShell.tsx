@@ -7,6 +7,7 @@ import { useEffect, type ReactNode } from "react";
 import { useGetAdminMeQuery } from "@/api/services/admin/auth.api";
 import { AvatarName } from "@/components/common/AvatarName";
 import { CommandSearch } from "@/components/common/CommandSearch";
+import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,6 +82,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <SearchTrigger />
         </div>
         <div className="flex items-center gap-1.5">
+          <LanguageMenu />
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -111,7 +113,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         {/* Same rail + flyout as the company dashboard; the menu button slides it out. */}
         <NavBackdrop />
         <div className={railWrapperClass(collapsed, mobileOpen)} aria-hidden={(collapsed && !mobileOpen) || undefined} inert={collapsed && !mobileOpen}>
-          <AdminRail collapsed={collapsed && !mobileOpen} mobileOpen={mobileOpen} onLogout={() => void signOut()} />
+          <AdminRail collapsed={collapsed && !mobileOpen} mobileOpen={mobileOpen} />
         </div>
         <main className="min-w-0 flex-1 overflow-y-auto">
           <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">{children}</div>

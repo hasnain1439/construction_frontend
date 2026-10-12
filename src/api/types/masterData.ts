@@ -110,6 +110,8 @@ export interface LaborRate {
   kind: LaborRateKind;
   key: string;
   label: string;
+  labelRoman?: string | null;
+  labelUrdu?: string | null;
   unit: LaborUnit;
   ratePaisa: Paisa;
   overtimeMultiplier: number | null;
@@ -184,12 +186,41 @@ export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post">;
 export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch">;
 export type SetSupplierRatesBody = RequestBody<"/api/v1/suppliers/{id}/rates", "put">;
 
-export type WorkerType = "MISTRI" | "MISTRI_TILES" | "MAZDOOR" | "STEEL_FIXER_HELPER" | "CHOWKIDAR" | "OTHER";
+/** Names of a worker type in the three UI languages (Roman Urdu / Urdu may be missing). */
+export interface WorkerTypeNames {
+  label: string;
+  labelRoman: string | null;
+  labelUrdu: string | null;
+}
+
+/** A company-defined worker type (= a DAILY labour rate). `Worker.type` holds its `key`. */
+export interface WorkerTypeRow extends WorkerTypeNames {
+  id: Id;
+  key: string;
+  ratePaisa: Paisa;
+  overtimeMultiplier: number | null;
+  isActive: boolean;
+  /** Workers (active or not) with this type. */
+  workerCount: number;
+}
+
+export interface WorkerTypesQuery {
+  includeInactive?: boolean;
+}
+export type CreateWorkerTypeBody = RequestBody<"/api/v1/worker-types", "post">;
+export type UpdateWorkerTypeBody = RequestBody<"/api/v1/worker-types/{id}", "patch">;
+
+/** A worker type `key` of the company (GET /worker-types), or "OTHER". */
+export type WorkerType = string;
 
 export interface Worker {
   id: Id;
   name: string;
   type: WorkerType;
+  /** Names of the worker's type (English / Roman Urdu / Urdu). */
+  typeLabel?: string;
+  typeLabelRoman?: string | null;
+  typeLabelUrdu?: string | null;
   phone: string | null;
   dailyRatePaisa: Paisa;
   isActive: boolean;
