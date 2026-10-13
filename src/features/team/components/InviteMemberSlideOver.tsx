@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HardHat, UserCog } from "lucide-react";
-import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useFormContext, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import { useGetCompanySettingsQuery } from "@/api/services/company.api";
+import { useGetRolesQuery } from "@/api/services/permissions.api";
 import { useCreateInvitationMutation } from "@/api/services/team.api";
 import type { InvitationSent } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -16,13 +17,16 @@ import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { PhoneField } from "@/components/forms/PhoneInput";
 import { RadioCards, type RadioCardOption } from "@/components/forms/RadioCards";
+import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useMe } from "@/store/hooks";
+import { useLanguage, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
+import { roleName, rolesForAccount } from "@/lib/permissionCatalog";
 import { inviteSchema } from "../schemas";
 
 const FORM_ID = "invite-form";
@@ -44,6 +48,32 @@ function FinancialsToggle() {
   );
 }
 
+/** Optional permission role for the invite; only roles that fit the chosen account type. */
+function RoleTemplateSelect({ open }: { open: boolean }) {
+  const t = useT();
+  const language = useLanguage();
+  const account = useWatch({ name: "role" }) as "PM" | "MUNSHI";
+  const roleId = useWatch({ name: "roleId" }) as string | null;
+  const { setValue } = useFormContext();
+  const roles = useGetRolesQuery(undefined, { skip: !open });
+  const options = rolesForAccount(roles.data ?? [], account);
+  const standard = (roles.data ?? []).find((r) => r.isSystem && r.key === (account === "PM" ? "PROJECT_MANAGER" : "MUNSHI"));
+  useEffect(() => {
+    // Switching PM ↔ Munshi drops a role that doesn't fit the new account type.
+    if (roleId && roles.data && !options.some((r) => r.id === roleId)) setValue("roleId", null);
+  }, [roleId, roles.data, options, setValue]);
+  return (
+    <SelectField
+      name="roleId"
+      label={t("roles.inviteRole")}
+      hint={t("roles.inviteRoleHint")}
+      noneLabel={t("roles.inviteRoleDefault", { name: standard ? roleName(standard, language) : t(account === "PM" ? "role.PM" : "role.MUNSHI") })}
+      placeholder={t("roles.inviteRoleDefault", { name: standard ? roleName(standard, language) : t(account === "PM" ? "role.PM" : "role.MUNSHI") })}
+      options={options.filter((r) => r.id !== standard?.id).map((r) => ({ value: r.id, label: roleName(r, language) }))}
+    />
+  );
+}
+
 export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [create, { isLoading }] = useCreateInvitationMutation();
   const { data: settings } = useGetCompanySettingsQuery(undefined, { skip: !open });
@@ -60,6 +90,7 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
       role: "PM",
       projectIds: [],
       canSeeFinancials: settings?.pmCanSeeFinancials ?? false,
+      roleId: null,
     },
     resetOptions: { keepDirtyValues: true },
   });
@@ -82,11 +113,12 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
           role: values.role,
           projectIds: values.projectIds,
           ...(values.role === "PM" ? { canSeeFinancials: values.canSeeFinancials } : {}),
+          ...(values.roleId ? { roleId: values.roleId } : {}),
         }).unwrap(),
       {
         success: `Invite sent to ${values.name}`,
         setError: form.setError,
-        codeFields: { ALREADY_MEMBER: "phone", INVITE_PENDING: "phone", PHONE_TAKEN: "phone" },
+        codeFields: { ALREADY_MEMBER: "phone", INVITE_PENDING: "phone", PHONE_TAKEN: "phone", ROLE_NOT_FOR_ACCOUNT: "roleId", GRANT_EXCEEDS_OWN: "roleId" },
       },
     );
     if (result) setSent({ ...result, name: values.name, phone: values.phone, email: values.email || undefined, role: values.role });
@@ -136,6 +168,7 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
           </FieldGrid>
           <TextField name="email" label="Email" type="email" hint="Optional" />
           <RadioCards name="role" label="Role" required options={ROLE_CARDS} />
+          <RoleTemplateSelect open={open} />
           <ComboboxField
             name="projectIds"
             label="Projects"

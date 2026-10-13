@@ -1,9 +1,12 @@
 import { baseApi } from "@/api/baseApi";
 import { ENDPOINTS } from "@/api/endpoints";
 import { LIST, providesList } from "@/api/tags";
-import { cleanParams } from "@/api/transform";
+import { cleanParams, toPage } from "@/api/transform";
 import type {
   Company,
+  CompanyAuditEntry,
+  CompanyAuditQuery,
+  Paginated,
   CompanySettings,
   CreateHolidayBody,
   Holiday,
@@ -43,6 +46,12 @@ export const companyApi = baseApi.injectEndpoints({
       query: (id) => ({ url: ENDPOINTS.company.holidayById(id), method: "DELETE" }),
       invalidatesTags: [{ type: "Holidays", id: LIST }],
     }),
+    // Who changed what — including platform support sessions (owner only).
+    getCompanyAuditLogs: build.query<Paginated<CompanyAuditEntry>, CompanyAuditQuery | void>({
+      query: (params) => ({ url: ENDPOINTS.company.auditLogs, params: cleanParams(params ?? undefined) }),
+      transformResponse: (data, meta) => toPage<CompanyAuditEntry>(data, meta),
+      providesTags: (page) => providesList(page?.items, "CompanyAudit"),
+    }),
   }),
 });
 
@@ -54,4 +63,5 @@ export const {
   useGetHolidaysQuery,
   useCreateHolidayMutation,
   useDeleteHolidayMutation,
+  useGetCompanyAuditLogsQuery,
 } = companyApi;

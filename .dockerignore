@@ -1,0 +1,19 @@
+# Keep secrets, build output and bulky folders out of the Docker build context.
+node_modules
+.next
+out
+coverage
+test-results
+playwright-report
+blob-report
+playwright
+e2e/.auth
+.git
+.github
+.env
+.env.*
+*.log
+*.tsbuildinfo
+next-env.d.ts
+.claude
+.vscode

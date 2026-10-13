@@ -3,7 +3,7 @@ import { PurchaseOrdersView } from "@/features/procurement/views/PurchaseOrderVi
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]}>
+    <RequireAccess permission="procurement.order.view">
       <PurchaseOrdersView />
     </RequireAccess>
   );

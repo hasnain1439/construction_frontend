@@ -14,7 +14,7 @@ import type { SupplierDetail } from "@/api/types";
 import { DataTable } from "@/components/common/DataTable";
 import { InfoList } from "@/components/common/InfoList";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { usePermissions } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { RequireAccess } from "@/components/common/RequireAccess";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -184,11 +184,14 @@ function RateHistory({ supplierId }: { supplierId: string }) {
 
 function SupplierDetailBody({ supplierId }: { supplierId: string }) {
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
-  const isOwner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const { can, canSee } = usePermissions();
+  const canEdit = can("masterdata.supplier.edit") && !readOnly;
+  const isOwner = can("masterdata.supplier.manage") && !readOnly;
+  const seesLedger = can("procurement.ledger.view");
+  const seesPayments = can("procurement.payment.view");
   const query = useGetSupplierQuery(supplierId);
   const [editOpen, setEditOpen] = useState(false);
-  const seesRates = useCan({ permission: "rates.view" });
+  const seesRates = canSee("rates");
   const params = useSearchParams();
   const [tab, setTab] = useState(params.get("tab") ?? "info");
   const [setActive, { isLoading: toggling }] = useSetSupplierActiveMutation();
@@ -227,8 +230,8 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
             <TabsList>
               <TabsTrigger value="info">Info</TabsTrigger>
               <TabsTrigger value="rates">Agreed Rates</TabsTrigger>
-              {seesRates ? <TabsTrigger value="ledger">Ledger</TabsTrigger> : null}
-              {seesRates ? <TabsTrigger value="payments">Payments</TabsTrigger> : null}
+              {seesRates && seesLedger ? <TabsTrigger value="ledger">Ledger</TabsTrigger> : null}
+              {seesRates && seesPayments ? <TabsTrigger value="payments">Payments</TabsTrigger> : null}
             </TabsList>
             <TabsContent value="info" className="space-y-5">
               <SectionCard title="Details">
@@ -271,7 +274,7 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
 
 export function SupplierDetailView({ supplierId }: { supplierId: string }) {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]}>
+    <RequireAccess permission="masterdata.supplier.view">
       <SupplierDetailBody supplierId={supplierId} />
     </RequireAccess>
   );

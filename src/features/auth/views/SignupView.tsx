@@ -37,7 +37,7 @@ export function SignupView() {
     try {
       await signup({ ...values, marlaStandard: Number(values.marlaStandard) as 225 | 272.25 }).unwrap();
       toast.success("Welcome! Your 14-day free trial has started.");
-      await afterLogin("/dashboard");
+      await afterLogin("/dashboard", "signup");
     } catch (err) {
       const applied = applyFieldErrors(err, form.setError, {
         language,

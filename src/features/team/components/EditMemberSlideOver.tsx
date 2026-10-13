@@ -28,12 +28,12 @@ import { FormActions } from "@/components/forms/FormActions";
 import { PhoneField } from "@/components/forms/PhoneInput";
 import { RadioCards } from "@/components/forms/RadioCards";
 import { TextField } from "@/components/forms/TextField";
-import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { isApiError } from "@/lib/apiErrors";
 import { formatPKR } from "@/lib/money";
 import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { MemberPermissions } from "./MemberPermissions";
 import { MunshiSignIn } from "./MunshiSignIn";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { formatDateTime, formatRelative } from "@/lib/dates";
@@ -60,9 +60,8 @@ function RoleWarnings({ user }: { user: TeamUserDetail }) {
   if (user.role === "MUNSHI" && role === "PM") {
     return <InlineAlert tone="warning">Making a Munshi a PM uses an office seat on your plan.</InlineAlert>;
   }
-  return role === "PM" ? (
-    <ToggleField name="canSeeFinancials" label="Can see contract value, billing & profit" description="Takes effect within 15 minutes." />
-  ) : null;
+  // Financial access is now a set of extra permissions (Role & permissions below).
+  return null;
 }
 
 function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void }) {
@@ -89,7 +88,6 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
       ...(dirty.name ? { name: values.name } : {}),
       ...(dirty.phone ? { phone: values.phone } : {}),
       ...(dirty.role && !isOwner && values.role !== "THEKEDAR" ? { role: values.role } : {}),
-      ...(dirty.canSeeFinancials && values.role === "PM" ? { canSeeFinancials: values.canSeeFinancials } : {}),
     };
     if (Object.keys(body).length) {
       const ok = await run(() => update({ id: user.id, body }).unwrap(), {
@@ -185,6 +183,7 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
           <FormActions formId={FORM_ID} submitLabel="Save changes" loading={saving || savingProjects} disabled={!form.formState.isDirty} />
         ) : null}
       </Form>
+      <MemberPermissions user={user} isSelf={isSelf} readOnly={readOnly || inactive} />
       {user.role === "MUNSHI" && !inactive && !readOnly ? <MunshiSignIn userId={user.id} name={user.name} /> : null}
       {!isSelf && !isOwner && !readOnly ? (
         <section className="space-y-3 rounded-xl border border-danger/30 p-4">
@@ -222,7 +221,7 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
   );
 }
 
-/** Edit member slide-over: projects, role, financial access, details, (de)activation. */
+/** Edit member slide-over: projects, account type, role & permissions, details, (de)activation. */
 export function EditMemberSlideOver({ userId, onClose }: { userId: string | null; onClose: () => void }) {
   const { data, isLoading, error, refetch } = useGetUserQuery(userId ?? "", { skip: !userId });
   return (

@@ -1,15 +1,14 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { COMPANY_NAV } from "@/lib/navigation";
-import { canAccess } from "@/lib/permissions";
+import { COMPANY_NAV, visibleSections } from "@/lib/navigation";
 import { meFixture } from "../fixtures";
 
 const section = (id: string) => COMPANY_NAV.find((s) => s.id === id)!;
-const visible = (me: ReturnType<typeof meFixture>, id: string) => {
-  const s = section(id);
-  return canAccess(me, s.access) ? s.items.filter((i) => canAccess(me, i.access)).map((i) => i.id) : [];
-};
+const visible = (me: ReturnType<typeof meFixture>, id: string) =>
+  visibleSections(me, COMPANY_NAV)
+    .find((s) => s.id === id)
+    ?.items.map((i) => i.id) ?? [];
 
 describe("Step 9 navigation", () => {
   it("dashboard, finance and report pages are built (not ComingSoon) — Delay Analysis still waits for the schedule", () => {
@@ -28,15 +27,15 @@ describe("Step 9 navigation", () => {
     expect(reports.find((i) => i.id === "reports.delay")?.available).toBe(false);
   });
 
-  it("PM without financials: no Finance menu, no money reports", () => {
+  it("PM without financials: Finance has only cash floats (cashbook.float.view), no money reports", () => {
     const pm = meFixture("PM");
-    expect(visible(pm, "finance")).toEqual([]);
+    expect(visible(pm, "finance")).toEqual(["finance.floats"]);
     expect(visible(pm, "reports")).toEqual(["reports.material", "reports.labor", "reports.cashbook", "reports.delay"]);
   });
 
-  it("PM with financials: Profit & Loss only in Finance, plus the project summary report", () => {
+  it("PM with financials: Profit & Loss and the project summary report, not the company reports", () => {
     const pm = meFixture("PM", { canSeeFinancials: true });
-    expect(visible(pm, "finance")).toEqual(["finance.pl"]);
+    expect(visible(pm, "finance")).toEqual(["finance.pl", "finance.floats"]);
     expect(visible(pm, "reports")).toContain("reports.summary");
     expect(visible(pm, "reports")).not.toContain("reports.ageing");
   });

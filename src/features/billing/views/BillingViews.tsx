@@ -34,7 +34,7 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { PdfActions, usePdfActions } from "@/components/common/PdfActions";
-import { useCan } from "@/components/common/PermissionGate";
+import { useApprovalLimitHint, useCan, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StageTimeline } from "@/components/common/StageTimeline";
@@ -55,7 +55,6 @@ import { formatPKR, formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { MarkReadySlideOver, NewInvoiceSlideOver, ProgressSlideOver, RecordPaymentSlideOver } from "../components/BillingSlideOvers";
 
-const OWNER = { roles: ["THEKEDAR"] } as const;
 const TYPE_LABEL: Record<InvoiceType, string> = { STAGE: "Stage", RUNNING_BILL: "Running bill", RECOVERABLE: "Recoverable", RETENTION: "Retention", OTHER: "Other" };
 
 function UnpaidBanner({ warning, projectId }: { warning: UnpaidStageWarning; projectId: string }) {
@@ -98,7 +97,8 @@ function ExpectedDateDialog({ stage, onClose }: { stage: ScheduleStage; onClose:
 }
 
 export function ScheduleView({ projectId }: { projectId: string }) {
-  const owner = useCan(OWNER);
+  const canSetDate = useCan("billing.stage.manage");
+  const canPrepare = useCan("billing.invoice.create");
   const stages = useGetBillingStagesQuery(projectId);
   const [warning, setWarning] = useState<UnpaidStageWarning | null>(null);
   const [ready, setReady] = useState<ScheduleStage | null>(null);
@@ -129,9 +129,9 @@ export function ScheduleView({ projectId }: { projectId: string }) {
         <RowActions
           name={s.label}
           actions={[
-            { label: "Mark ready", icon: Flag, hidden: !(s.status === "UPCOMING" && !s.isRetention), onSelect: () => setReady(s) },
-            { label: "Create invoice", icon: FilePlus2, hidden: !(s.status === "READY" && !s.invoice), onSelect: () => setInvoiceFor(s.id) },
-            { label: "Expected date", icon: CalendarClock, hidden: !(owner && !s.invoice), onSelect: () => setDateFor(s) },
+            { label: "Mark ready", icon: Flag, hidden: !(canPrepare && s.status === "UPCOMING" && !s.isRetention), onSelect: () => setReady(s) },
+            { label: "Create invoice", icon: FilePlus2, hidden: !(canPrepare && s.status === "READY" && !s.invoice), onSelect: () => setInvoiceFor(s.id) },
+            { label: "Expected date", icon: CalendarClock, hidden: !(canSetDate && !s.invoice), onSelect: () => setDateFor(s) },
           ]}
         />
       ),
@@ -198,12 +198,13 @@ function ProgressTab({ projectId, onAdd, onBill }: { projectId: string; onAdd: (
   const progress = useGetBillingProgressQuery({ projectId });
   const [remove] = useDeleteBillingProgressMutation();
   const run = useMutationToast();
+  const canPrepare = useCan("billing.invoice.create");
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard label="Rate per sq ft" icon={Landmark} value={<MoneyText paisa={progress.data?.ratePerSqftPaisa ?? null} />} loading={progress.isLoading} />
         <KpiCard label="Not billed yet" icon={HandCoins} value={`${progress.data?.unbilledQuantity ?? 0} sq ft`} hint={progress.data ? formatPKR(progress.data.unbilledValuePaisa) : undefined} loading={progress.isLoading} />
-        <div className="flex flex-col justify-center gap-2 rounded-xl border bg-card p-5">
+        <div className={canPrepare ? "flex flex-col justify-center gap-2 rounded-xl border bg-card p-5" : "hidden"}>
           <Button onClick={onAdd}>
             <Plus data-icon="inline-start" />
             Add progress
@@ -237,7 +238,7 @@ function ProgressTab({ projectId, onAdd, onBill }: { projectId: string; onAdd: (
                       label: "Delete progress",
                       icon: Trash2,
                       destructive: true,
-                      hidden: p.billed || Boolean(p.draftInvoiceId),
+                      hidden: !canPrepare || p.billed || Boolean(p.draftInvoiceId),
                       onSelect: () => void run(() => remove(p.id).unwrap(), { success: "Deleted" }),
                     },
                   ]}
@@ -255,6 +256,7 @@ function ProgressTab({ projectId, onAdd, onBill }: { projectId: string; onAdd: (
 
 export function InvoicesView({ projectId }: { projectId: string }) {
   const router = useRouter();
+  const canPrepare = useCan("billing.invoice.create");
   const [status, setStatus] = useState<InvoiceStatus | "ALL">("ALL");
   const [type, setType] = useState<InvoiceType | "ALL">("ALL");
   const [from, setFrom] = useState("");
@@ -275,7 +277,7 @@ export function InvoicesView({ projectId }: { projectId: string }) {
       projectId={projectId}
       crumb="Invoices & Running Bills"
       actions={(p) =>
-        p.status !== "DRAFT" ? (
+        p.status !== "DRAFT" && canPrepare ? (
           <Button onClick={() => setOpen(true)}>
             <FilePlus2 data-icon="inline-start" />
             New invoice
@@ -357,7 +359,10 @@ function ReasonDialog({ title, label, confirmLabel, loading, onConfirm, onClose 
 
 export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string; invoiceId: string }) {
   const router = useRouter();
-  const owner = useCan(OWNER);
+  const { can } = usePermissions();
+  const limitHint = useApprovalLimitHint();
+  const canPrepare = can("billing.invoice.create");
+  const canIssue = can("billing.invoice.approve");
   const q = useGetInvoiceQuery(invoiceId);
   const [issue, { isLoading: issuing }] = useIssueInvoiceMutation();
   const [cancel, { isLoading: cancelling }] = useCancelInvoiceMutation();
@@ -387,7 +392,7 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
               ]}
               actions={
                 <div className="flex flex-wrap gap-2">
-                  {inv.status === "DRAFT" ? (
+                  {inv.status === "DRAFT" && canPrepare ? (
                     <>
                       <Button variant="outline" onClick={() => { setNotes(inv.notes ?? ""); setDialog("notes"); }}>
                         <Pencil data-icon="inline-start" />
@@ -397,8 +402,12 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
                         <Trash2 data-icon="inline-start" />
                         Delete draft
                       </Button>
-                      {owner ? (
-                        <Button onClick={() => setDialog("issue")}>
+                      {canIssue ? (
+                        <Button
+                          onClick={() => setDialog("issue")}
+                          disabled={Boolean(limitHint("billing.invoice.approve", inv.totalPaisa))}
+                          title={limitHint("billing.invoice.approve", inv.totalPaisa)}
+                        >
                           <Send data-icon="inline-start" />
                           Issue
                         </Button>
@@ -408,7 +417,7 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
                   {inv.status !== "DRAFT" && inv.status !== "CANCELLED" ? (
                     <>
                       <PdfActions load={() => pdf(inv.id).unwrap()} title={inv.number ?? "Invoice"} phone={inv.client?.phone} />
-                      {owner && inv.status === "ISSUED" && inv.allocations.every((a) => !a.counts) ? (
+                      {canIssue && inv.status === "ISSUED" && inv.allocations.every((a) => !a.counts) ? (
                         <Button variant="destructive-soft" size="sm" onClick={() => setDialog("cancel")}>
                           <Ban data-icon="inline-start" />
                           Cancel
@@ -579,7 +588,9 @@ function PaymentRowActions({
 }
 
 export function PaymentsView({ projectId }: { projectId: string }) {
-  const owner = useCan(OWNER);
+  const { can } = usePermissions();
+  const owner = can("billing.payment.manage");
+  const canRecord = can("billing.payment.create");
   const list = useGetClientPaymentsQuery({ projectId, limit: 100 });
   const [setStatus, { isLoading }] = useSetClientChequeStatusMutation();
   const [receipt] = useGetReceiptPdfMutation();
@@ -609,12 +620,14 @@ export function PaymentsView({ projectId }: { projectId: string }) {
     <ProjectPageShell
       projectId={projectId}
       crumb="Payments Received"
-      actions={() => (
-        <Button onClick={() => setOpen(true)}>
-          <Plus data-icon="inline-start" />
-          Record payment
-        </Button>
-      )}
+      actions={() =>
+        canRecord ? (
+          <Button onClick={() => setOpen(true)}>
+            <Plus data-icon="inline-start" />
+            Record payment
+          </Button>
+        ) : null
+      }
     >
       {(project) => (
         <>

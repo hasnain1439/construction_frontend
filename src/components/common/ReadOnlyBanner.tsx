@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { daysUntil } from "@/lib/dates";
-import { isThekedar } from "@/lib/permissions";
+import { can } from "@/lib/permissions";
 import { useAppSelector, useMe } from "@/store/hooks";
 
 function Banner({
@@ -54,7 +54,7 @@ export function ReadOnlyBanner({ message, action }: { message?: ReactNode; actio
   }
   if (!me) return null;
 
-  const renew = isThekedar(me) ? (
+  const renew = can(me, "subscription.manage") ? (
     <Button asChild size="sm">
       <Link href="/settings/subscription">{t("shell.renewNow")}</Link>
     </Button>

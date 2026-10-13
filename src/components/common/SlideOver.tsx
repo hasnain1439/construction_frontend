@@ -43,7 +43,7 @@ export function SlideOver({
         )}
         onInteractOutside={(e) => (busy ? e.preventDefault() : undefined)}
       >
-        <SheetHeader className="border-b px-4 py-4 pr-12 sm:px-6 sm:py-5">
+        <SheetHeader className="border-b px-4 py-4 pe-12 sm:px-6 sm:py-5">
           <SheetTitle className="text-lg font-semibold">{title}</SheetTitle>
           {description ? <SheetDescription>{description}</SheetDescription> : null}
         </SheetHeader>

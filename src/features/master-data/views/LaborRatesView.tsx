@@ -113,7 +113,7 @@ function SaveBar({ saving, onReset }: { saving: boolean; onReset: () => void }) 
 
 export function LaborRatesView() {
   const readOnly = useReadOnly();
-  const editable = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const editable = useCan("masterdata.laborrate.manage") && !readOnly;
   const { data, isLoading, error, refetch } = useGetLaborRatesQuery();
   const [save, { isLoading: saving }] = useUpdateLaborRatesMutation();
   const run = useMutationToast();

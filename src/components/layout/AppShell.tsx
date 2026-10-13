@@ -11,8 +11,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SessionsDialog } from "@/features/auth/components/SessionsDialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useT } from "@/i18n/useT";
-import { activeSection, COMPANY_NAV, PROJECT_NAV, projectHref, type NavItem, type NavSection } from "@/lib/navigation";
-import { canAccess } from "@/lib/permissions";
+import { observeSignedIn } from "@/lib/observability/identity";
+import {
+  activeSection,
+  COMPANY_NAV,
+  PROJECT_NAV,
+  projectHref,
+  visibleSections,
+  type NavItem,
+  type NavSection,
+} from "@/lib/navigation";
 import { loginUrl } from "@/lib/session";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
@@ -71,16 +79,20 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
     dispatch(setMobileNav(false));
   }, [pathname, dispatch]);
 
+  // Error reports / analytics carry the hashed user id and the tenant id (no-op when both are off).
+  const userId = me?.user.id;
+  const tenantId = me?.tenant.id;
+  useEffect(() => {
+    if (userId) void observeSignedIn({ userId, tenantId });
+  }, [userId, tenantId]);
+
   useEffect(() => {
     dispatch(setCurrentProject(projectId ?? null));
   }, [projectId, dispatch]);
 
   const sections = useMemo(() => {
     const all = mode === "project" ? PROJECT_NAV : COMPANY_NAV;
-    return all
-      .filter((section) => canAccess(me, section.access))
-      .map((section) => ({ ...section, items: section.items.filter((item) => canAccess(me, item.access)) }))
-      .filter((section) => section.items.length > 0);
+    return visibleSections(me, all);
   }, [mode, me]);
 
   const hrefFor = useCallback(

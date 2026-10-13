@@ -39,6 +39,7 @@ const TYPES: NotificationType[] = [
   "SUBSCRIPTION_PAYMENT_APPROVED",
   "SUBSCRIPTION_PAYMENT_REJECTED",
   "INVITE_ACCEPTED",
+  "PLATFORM_SUPPORT_ACCESS",
 ];
 
 /** Dashboard → Alerts & Notifications: every notification of the signed-in user, with filters and "mark all read". */

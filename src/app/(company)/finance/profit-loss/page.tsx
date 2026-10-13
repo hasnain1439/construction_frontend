@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Profit & Loss" };
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]} permission="profit.view">
+    <RequireAccess permission="finance.pnl.view">
       <ProfitLossView />
     </RequireAccess>
   );

@@ -5,7 +5,7 @@ import { PaymentTemplatesView } from "@/features/master-data/views/PaymentTempla
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR"]}>
+      <RequireAccess permission="masterdata.template.view">
         <PaymentTemplatesView />
       </RequireAccess>
     </Suspense>

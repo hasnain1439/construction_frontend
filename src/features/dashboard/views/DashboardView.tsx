@@ -8,7 +8,7 @@ import { useGetProjectsQuery } from "@/api/services/projects.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
 import { RingKpiCard } from "@/components/common/RingKpiCard";
@@ -26,13 +26,13 @@ import { SiteDashboardView } from "./SiteDashboardView";
 
 function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: boolean }) {
   const t = useT();
-  const isOwner = useCan({ roles: ["THEKEDAR"] });
+  const { can } = usePermissions();
   const steps = [
-    { done: hasLogo, label: t("dashboard.stepLogo"), href: "/settings/company", icon: ImageUp, owner: true },
-    { done: hasTeam, label: t("dashboard.stepInvite"), href: "/team/invitations?new=1", icon: UserPlus, owner: true },
-    { done: false, label: t("dashboard.stepRates"), href: "/settings/price-list", icon: PackageSearch, owner: true },
-    { done: false, label: t("dashboard.stepFirstProject"), href: "/projects/new", icon: FolderKanban, owner: false },
-  ].filter((s) => isOwner || !s.owner);
+    { done: hasLogo, label: t("dashboard.stepLogo"), href: "/settings/company", icon: ImageUp, key: "company.settings.manage" as const },
+    { done: hasTeam, label: t("dashboard.stepInvite"), href: "/team/invitations?new=1", icon: UserPlus, key: "team.member.manage" as const },
+    { done: false, label: t("dashboard.stepRates"), href: "/settings/price-list", icon: PackageSearch, key: "masterdata.pricelist.manage" as const },
+    { done: false, label: t("dashboard.stepFirstProject"), href: "/projects/new", icon: FolderKanban, key: "projects.project.create" as const },
+  ].filter((s) => can(s.key));
   return (
     <SectionCard title={t("dashboard.getStarted")} description={t("dashboard.getStartedDesc")}>
       <ul className="grid gap-3 md:grid-cols-2">
@@ -71,16 +71,18 @@ function OverviewSkeleton() {
  * A MUNSHI lands on their site dashboard instead.
  */
 export function DashboardView() {
+  // Without the office dashboard (a default MUNSHI, a store keeper …) you land on the site dashboard.
+  const office = useCan("dashboard.overview.view");
   const me = useMe();
-  if (me?.user.role === "MUNSHI") return <SiteDashboardView />;
+  if (me && !office) return <SiteDashboardView />;
   return <CompanyOverview />;
 }
 
 function CompanyOverview() {
   const t = useT();
   const me = useMe();
-  const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
-  const canCreate = useCan({ permission: "projects.manage" });
+  const isOffice = useCan({ anyPermission: ["team.member.view", "team.member.manage"] });
+  const canCreate = useCan("projects.project.create");
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
   const overview = useGetDashboardOverviewQuery(reportParams(filters), { refetchOnMountOrArgChange: 30 });
   const projects = useGetProjectsQuery({ limit: 1 });

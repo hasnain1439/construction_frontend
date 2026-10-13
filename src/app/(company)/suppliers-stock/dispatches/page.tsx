@@ -3,7 +3,7 @@ import { DispatchesView } from "@/features/procurement/views/DispatchViews";
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="procurement.dispatch.view">
       <DispatchesView />
     </RequireAccess>
   );

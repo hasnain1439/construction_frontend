@@ -7,13 +7,15 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StartActAsDialog } from "../actAs/StartActAsDialog";
 import { useCompanyData } from "./useCompanyData";
 
 /**
  * Every Company data screen (opened from the sidebar) starts with the company (tenant)
- * picker. Choosing a company shows this same screen with that company's data; switching
- * keeps the screen. Changes go through the company's own rules and are logged with the
- * super admin's name.
+ * picker. Choosing a company asks for a reason and starts a read-only support session (the
+ * owner is notified); then this same screen shows that company's data, and switching keeps the
+ * screen. The red banner above (ActAsBanner) shows the mode and time left. Changes need write
+ * mode, go through the company's own rules and are logged with the super admin's name + reason.
  */
 export function CompanyDataShell({ children }: { children: ReactNode }) {
   const d = useCompanyData();
@@ -29,7 +31,7 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
             <span className="text-muted-foreground">/ {d.project.data.name}</span>
           ) : null}
           <span className="hidden text-muted-foreground lg:inline">
-            — working as super admin; every change is logged.
+            — support session; the owner is notified and every change is logged.
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -49,8 +51,8 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Clear company"
-              title="Clear company"
+              aria-label="End the support session and clear the company"
+              title="End the support session and clear the company"
               onClick={d.exit}
             >
               <X />
@@ -65,7 +67,7 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
         <EmptyState
           icon={Building2}
           title="Choose a company"
-          description="Pick a company (tenant) above to see this screen with its data — and to add, edit or delete."
+          description="Pick a company (tenant) above and give a reason. You start read-only; switch to write mode (with a second reason) to add, edit or delete."
         />
       ) : d.me.isError ? (
         <EmptyState
@@ -80,6 +82,11 @@ export function CompanyDataShell({ children }: { children: ReactNode }) {
           {children}
         </div>
       )}
+      <StartActAsDialog
+        company={d.pending}
+        onOpenChange={(open) => !open && d.cancelChoose()}
+        onStarted={d.started}
+      />
     </div>
   );
 }

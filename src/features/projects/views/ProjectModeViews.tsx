@@ -10,7 +10,7 @@ import { ComingSoonCard } from "@/components/common/ComingSoonCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable } from "@/components/common/DataTable";
 import { InlineAlert } from "@/components/common/InlineAlert";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { ReadOnlyBanner } from "@/components/common/ReadOnlyBanner";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -43,7 +43,7 @@ import { wizardHref } from "../utils/links";
 function useProjectPage(projectId: string) {
   const query = useGetProjectQuery(projectId);
   const readOnly = useReadOnly();
-  const canManage = useCan({ permission: "projects.manage" });
+  const canManage = useCan("projects.project.edit");
   const status = query.data?.status;
   const locked = readOnly || (status ? LOCKED_STATUSES.includes(status) : false);
   return { query, canEdit: canManage && !locked, locked, readOnly };
@@ -94,7 +94,7 @@ export function ProjectPageShell({
 
 function StatusActions({ project }: { project: ProjectDetail }) {
   const router = useRouter();
-  const isOwner = useCan({ roles: ["THEKEDAR"] });
+  const isOwner = useCan("projects.project.manage");
   const readOnly = useReadOnly();
   const [changeStatus, { isLoading }] = useChangeProjectStatusMutation();
   const [remove, { isLoading: deleting }] = useDeleteProjectMutation();
@@ -170,9 +170,12 @@ function StatusActions({ project }: { project: ProjectDetail }) {
 }
 
 export function ProjectOverviewView({ projectId }: { projectId: string }) {
-  const canManage = useCan({ permission: "projects.manage" });
-  const isMunshi = useCan({ roles: ["MUNSHI"] });
-  const seesBilling = useCan(BILLING_ACCESS);
+  const { can, canAccess } = usePermissions();
+  const canManage = can("projects.project.edit");
+  // Site staff (no project edit, no office dashboard) get the short summary: client + team.
+  const isMunshi = !canManage && !can("dashboard.overview.view");
+  const canEditTeam = can("projects.team.manage");
+  const seesBilling = canAccess(BILLING_ACCESS);
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -215,7 +218,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               <ClientCard project={project} canEdit={canEdit} />
               <ContractCard project={project} canEdit={canEdit} />
-              <TeamCard project={project} canEdit={canEdit && !isMunshi} />
+              <TeamCard project={project} canEdit={canEdit && canEditTeam} />
               <PlotCard project={project} canEdit={canEdit} />
               <StructureCard project={project} canEdit={canEdit} />
               <CoverageCard project={project} canEdit={canEdit} />

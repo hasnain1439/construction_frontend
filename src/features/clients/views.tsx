@@ -30,6 +30,7 @@ import { ClientSlideOver } from "./ClientSlideOver";
 export function ClientsView() {
   const router = useRouter();
   const readOnly = useReadOnly();
+  const canCreate = useCan("clients.client.create");
   const list = useListState({});
   const { data, isLoading, isFetching, error, refetch } = useGetClientsQuery(list.query as ClientsQuery);
   const [addOpen, setAddOpen] = useSearchFlag();
@@ -49,7 +50,7 @@ export function ClientsView() {
         description="Home owners you build for."
         breadcrumbs={[{ label: "Sales" }, { label: "Clients" }]}
         actions={
-          !readOnly ? (
+          !readOnly && canCreate ? (
             <Button onClick={() => setAddOpen(true)}>
               <Plus data-icon="inline-start" />
               New client
@@ -84,6 +85,7 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
   const router = useRouter();
   const readOnly = useReadOnly();
   const seesBilling = useCan(BILLING_ACCESS);
+  const canEdit = useCan("clients.client.edit");
   const [editOpen, setEditOpen] = useState(false);
   return (
     <>
@@ -91,7 +93,7 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
         title={client.name}
         breadcrumbs={[{ label: "Sales" }, { label: "Clients", href: "/sales/clients" }, { label: client.name }]}
         actions={
-          !readOnly ? (
+          !readOnly && canEdit ? (
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil data-icon="inline-start" />
               Edit

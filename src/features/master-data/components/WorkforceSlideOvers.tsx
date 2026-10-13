@@ -10,7 +10,7 @@ import {
   useUpdateWorkerMutation,
 } from "@/api/services/masterData.api";
 import type { Subcontractor, Worker } from "@/api/types";
-import { useCan } from "@/components/common/PermissionGate";
+import { usePermissions } from "@/components/common/PermissionGate";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
@@ -52,7 +52,7 @@ function DailyRateField({ canSeeRates, standardRate }: { canSeeRates: boolean; s
 export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean; worker: Worker | null; onOpenChange: (open: boolean) => void }) {
   const FORM_ID = "worker-form";
   const t = useT();
-  const canSeeRates = useCan({ permission: "rates.view" });
+  const canSeeRates = usePermissions().canSee("rates");
   const [create, { isLoading: creating }] = useCreateWorkerMutation();
   const [update, { isLoading: updating }] = useUpdateWorkerMutation();
   // Active types, plus the worker's own type even if it was deactivated since.

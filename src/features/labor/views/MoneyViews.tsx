@@ -26,7 +26,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useApprovalLimitHint, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SlideOver } from "@/components/common/SlideOver";
@@ -51,13 +51,15 @@ import { currentWeekStart, formatWeekRange } from "@/lib/weeks";
 import { AdvanceSlideOver, DeductionSlideOver, MeasurementSlideOver, ProgressSlideOver, SubPaymentSlideOver, useIsMunshi } from "../components/LaborSlideOvers";
 import { PAID_FROM_OPTIONS, paidFromLabel, rateTypeLabel } from "../options";
 
-const OFFICE = { roles: ["THEKEDAR", "PM"] } as const;
 const isOpen = (status: string) => status === "ACTIVE" || status === "CLOSEOUT";
 
 // ─── Work measurements ──────────────────────────────────────────────────────
 
 export function MeasurementsView({ projectId }: { projectId: string }) {
-  const office = useCan(OFFICE);
+  const { can, canSee } = usePermissions();
+  const limitHint = useApprovalLimitHint();
+  const office = can("labor.measurement.approve");
+  const seesValue = canSee("rates");
   const [status, setStatus] = useState<"RECORDED" | "VERIFIED" | "REJECTED" | "ALL">("ALL");
   const list = useGetMeasurementsQuery({ projectId, limit: 100, ...(status !== "ALL" ? { status } : {}) });
   const [verify, { isLoading: verifying }] = useVerifyMeasurementMutation();
@@ -77,7 +79,7 @@ export function MeasurementsView({ projectId }: { projectId: string }) {
       ),
     },
     { id: "qty", header: "Quantity", align: "right", cell: (m) => <span className="tabular">{formatQty(m.quantity, m.unit)}</span> },
-    { id: "value", header: "Value", align: "right", hidden: !office, cell: (m) => <MoneyText paisa={m.valuePaisa} /> },
+    { id: "value", header: "Value", align: "right", hidden: !seesValue, cell: (m) => <MoneyText paisa={m.valuePaisa} /> },
     { id: "status", header: "Status", cell: (m) => <StatusBadge domain="measurement" value={m.status} /> },
     {
       id: "actions",
@@ -88,6 +90,7 @@ export function MeasurementsView({ projectId }: { projectId: string }) {
         m.status === "RECORDED" ? (
           <ApprovalActions
             size="sm"
+            approveBlockedReason={limitHint("labor.measurement.approve", m.valuePaisa)}
             decline="reject"
             approveLabel="Verify"
             approving={verifying}
@@ -377,7 +380,11 @@ function PayDialog({ settlement, lines, onClose }: { settlement: Settlement; lin
 }
 
 export function SettlementDetailView({ projectId, settlementId }: { projectId: string; settlementId: string }) {
-  const office = useCan(OFFICE);
+  const { can } = usePermissions();
+  const limitHint = useApprovalLimitHint();
+  const office = can("labor.settlement.approve");
+  const canAdjust = can("labor.settlement.edit");
+  const canPrepare = can("labor.settlement.create");
   const q = useGetSettlementQuery(settlementId);
   const [generate, { isLoading: regenerating }] = useGenerateSettlementMutation();
   const [submit, { isLoading: submitting }] = useSubmitSettlementMutation();
@@ -440,7 +447,7 @@ export function SettlementDetailView({ projectId, settlementId }: { projectId: s
         <span className="inline-flex items-center justify-end gap-1">
           {l.advanceAdjustedPaisa !== "0" ? <>−<MoneyText paisa={l.advanceAdjustedPaisa} /></> : "—"}
           {l.advanceOverride ? <span title={l.overrideNote ?? ""} className="text-xs text-primary">(set)</span> : null}
-          {editable && office ? (
+          {editable && canAdjust ? (
             <Button size="icon" variant="ghost" className="size-7" aria-label={`Change peshgi for ${l.worker.name}`} onClick={() => setAdjusting(l)}>
               <Pencil aria-hidden />
             </Button>
@@ -478,7 +485,7 @@ export function SettlementDetailView({ projectId, settlementId }: { projectId: s
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2">
-                {editable && isOpen(project.status) ? (
+                {editable && canPrepare && isOpen(project.status) ? (
                   <>
                     <Button variant="outline" disabled={regenerating} onClick={() => run(() => generate({ projectId: project.id, weekStart: s.weekStart }).unwrap(), { success: "Recalculated from hazri" })}>
                       <FileSpreadsheet data-icon="inline-start" />
@@ -492,6 +499,7 @@ export function SettlementDetailView({ projectId, settlementId }: { projectId: s
                 ) : null}
                 {s.status === "SUBMITTED" && office ? (
                   <ApprovalActions
+                    approveBlockedReason={limitHint("labor.settlement.approve", s.netPaisa)}
                     approving={approving}
                     declining={returning}
                     onApprove={() => run(() => approve(s.id).unwrap(), { success: "Approved — wages can be paid" })}
@@ -596,7 +604,10 @@ function LedgerSlideOver({ row, onClose }: { row: SubcontractAccountRow; onClose
 }
 
 export function SubcontractAccountsView({ projectId }: { projectId: string }) {
-  const owner = useCan({ roles: ["THEKEDAR"] });
+  const { can } = usePermissions();
+  const owner = can("labor.subcontract.manage");
+  const canPay = can("labor.subcontractpayment.create");
+  const canProgress = can("labor.subcontract.edit");
   const accounts = useGetSubcontractAccountsQuery(projectId);
   const [action, setAction] = useState<{ kind: "ledger" | "pay" | "deduct" | "progress"; row: SubcontractAccountRow } | null>(null);
   const columns: Column<SubcontractAccountRow>[] = [
@@ -634,8 +645,8 @@ export function SubcontractAccountsView({ projectId }: { projectId: string }) {
           name={r.subcontractor.name}
           actions={[
             { label: "Ledger", icon: BookOpen, onSelect: () => setAction({ kind: "ledger", row: r }) },
-            { label: "Progress", icon: Percent, hidden: !(r.isActive && r.rateType === "LUMPSUM"), onSelect: () => setAction({ kind: "progress", row: r }) },
-            { label: "Pay", icon: Banknote, onSelect: () => setAction({ kind: "pay", row: r }) },
+            { label: "Progress", icon: Percent, hidden: !(canProgress && r.isActive && r.rateType === "LUMPSUM"), onSelect: () => setAction({ kind: "progress", row: r }) },
+            { label: "Pay", icon: Banknote, hidden: !canPay, onSelect: () => setAction({ kind: "pay", row: r }) },
             { label: "Deduct", icon: Minus, hidden: !owner, onSelect: () => setAction({ kind: "deduct", row: r }) },
           ]}
         />

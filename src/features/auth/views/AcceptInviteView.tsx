@@ -72,7 +72,7 @@ export function AcceptInviteView({ token }: { token: string }) {
       if (result.user.role === "MUNSHI") {
         toast.info(values.password ? "On the mobile app, sign in with your phone and password — or with a code." : "On the mobile app, sign in with your phone and a code.");
       }
-      await afterLogin("/dashboard");
+      await afterLogin("/dashboard", "invite");
     } catch (err) {
       const code = errorCode(err);
       if (code && DEAD_LINK.has(code)) {

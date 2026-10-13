@@ -98,7 +98,11 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
         <DropdownMenuLabel className="space-y-0.5">
           <p className="text-sm font-semibold">{me.user.name}</p>
           <p className="text-xs font-normal text-muted-foreground">
-            {t(me.user.role === "THEKEDAR" ? "role.THEKEDAR" : me.user.role === "PM" ? "role.PM" : "role.MUNSHI")} ·{" "}
+            {/* A custom role (Accountant, "Site PM" …) shows its name; the default templates show the translated account type. */}
+            {me.permissionRole?.name && !["PROJECT_MANAGER", "MUNSHI"].includes(me.permissionRole.key ?? "")
+              ? me.permissionRole.name
+              : t(me.user.role === "THEKEDAR" ? "role.THEKEDAR" : me.user.role === "PM" ? "role.PM" : "role.MUNSHI")}{" "}
+            ·{" "}
             {me.tenant.name}
           </p>
         </DropdownMenuLabel>

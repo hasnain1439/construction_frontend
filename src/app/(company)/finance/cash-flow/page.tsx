@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Cash Flow Outlook" };
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="finance.cashflow.view">
       <CashFlowView />
     </RequireAccess>
   );

@@ -49,9 +49,10 @@ export function ProjectsBrowser({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const canCreate = useCan({ permission: "projects.manage" });
-  const isOffice = useCan({ roles: ["THEKEDAR", "PM"] });
-  const showMoney = useCan({ permission: "billing.view" });
+  const canCreate = useCan("projects.project.create");
+  // The PM filter needs the member list.
+  const isOffice = useCan({ anyPermission: ["team.member.view", "team.member.manage"] });
+  const showMoney = useCan("fields.contract");
   const initialStatus = (searchParams.get("status") as ProjectStatus | null) ?? defaultStatus;
   const list = useListState({ status: statuses.includes(initialStatus as ProjectStatus) ? initialStatus : defaultStatus, contractType: "", pmId: "" }, 24);
   const [view, setView] = useState<View>("cards");

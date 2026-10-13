@@ -5,7 +5,7 @@ import { InvitationsView } from "@/features/team/views/InvitationsView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR"]}>
+      <RequireAccess permission="team.member.manage">
         <InvitationsView />
       </RequireAccess>
     </Suspense>

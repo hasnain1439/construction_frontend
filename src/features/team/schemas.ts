@@ -8,6 +8,8 @@ export const inviteSchema = z.object({
   role: z.enum(["PM", "MUNSHI"], { error: "Choose a role" }),
   projectIds: z.array(z.string()),
   canSeeFinancials: z.boolean(),
+  /** Permission role template; null = the standard one for the account type. */
+  roleId: z.string().nullable(),
 });
 
 export const editMemberSchema = z.object({

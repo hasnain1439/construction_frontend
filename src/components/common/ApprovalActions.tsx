@@ -23,6 +23,7 @@ export function ApprovalActions({
   approving,
   declining,
   disabled,
+  approveBlockedReason,
   size = "default",
   className,
 }: {
@@ -34,6 +35,8 @@ export function ApprovalActions({
   approving?: boolean;
   declining?: boolean;
   disabled?: boolean;
+  /** Disables Approve only (e.g. above the user's approval limit) and explains why on hover. */
+  approveBlockedReason?: string;
   size?: "default" | "sm";
   className?: string;
 }) {
@@ -56,7 +59,13 @@ export function ApprovalActions({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <Button type="button" size={size} onClick={() => void onApprove()} disabled={disabled || busy}>
+      <Button
+        type="button"
+        size={size}
+        onClick={() => void onApprove()}
+        disabled={disabled || busy || Boolean(approveBlockedReason)}
+        title={approveBlockedReason}
+      >
         {approving ? <Loader2 className="animate-spin" aria-hidden /> : <Check aria-hidden />}
         {approveLabel}
       </Button>

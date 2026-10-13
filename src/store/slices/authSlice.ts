@@ -19,6 +19,12 @@ const fromAuthResult = (result: AuthResult): Me => ({
   tenant: result.tenant,
   subscription: result.subscription,
   permissions: result.permissions,
+  legacyPermissions: result.legacyPermissions,
+  fieldAccess: result.fieldAccess,
+  scopes: result.scopes,
+  approvalLimits: result.approvalLimits,
+  permissionRole: result.permissionRole,
+  // A login result has no project list; /auth/me (fetched right after) fills it in.
   assignedProjectIds: [],
 });
 

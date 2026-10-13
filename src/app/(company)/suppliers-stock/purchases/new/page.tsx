@@ -5,7 +5,7 @@ import { NewPurchaseView } from "@/features/procurement/views/NewPurchaseView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess permission="procurement.purchase.create">
         <NewPurchaseView />
       </RequireAccess>
     </Suspense>

@@ -4,7 +4,7 @@ import { PurchaseOrderDetailView } from "@/features/procurement/views/PurchaseOr
 export default async function Page({ params }: PageProps<"/suppliers-stock/purchase-orders/[orderId]">) {
   const { orderId } = await params;
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]}>
+    <RequireAccess permission="procurement.order.view">
       <PurchaseOrderDetailView orderId={orderId} />
     </RequireAccess>
   );

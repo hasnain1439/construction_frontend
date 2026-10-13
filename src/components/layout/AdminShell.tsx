@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ActAsBanner } from "@/features/admin/actAs/ActAsBanner";
 import { useAdminLogout } from "@/features/auth/hooks/useLogout";
 import { useT } from "@/i18n/useT";
 import { loginUrl } from "@/lib/session";
@@ -109,6 +110,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </div>
       </header>
+      {/* Working inside a company: red bar with mode, time left, write switch and End (every page). */}
+      <ActAsBanner />
       <div className="relative flex min-h-0 flex-1">
         {/* Same rail + flyout as the company dashboard; the menu button slides it out. */}
         <NavBackdrop />

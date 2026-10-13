@@ -1,23 +1,39 @@
-import type { Me, Role } from "@/api/types";
+import type { Me, PermissionCatalog, Role } from "@/api/types";
+import { PERMISSION_KEYS, type PermissionKey } from "@/lib/permissions";
+import catalogJson from "./catalogFixture.json";
+import { FINANCIAL_BUNDLE, MUNSHI_TEMPLATE, PM_TEMPLATE } from "./permissionTemplates";
 
-const PERMS: Record<Role, string[]> = {
-  THEKEDAR: [
-    "company.update",
-    "users.manage",
-    "billing.view",
-    "profit.view",
-    "rates.view",
-    "store.manage",
-    "projects.manage",
-    "site.entry",
-  ],
-  PM: ["projects.manage", "rates.view", "site.entry"],
-  MUNSHI: ["site.entry"],
-};
+/** Snapshot of GET /permissions/catalog from the dev API. */
+export const catalogFixture = catalogJson as unknown as PermissionCatalog;
 
-/** A `/auth/me` payload for tests, shaped like the seed accounts. */
-export function meFixture(role: Role, options: { canSeeFinancials?: boolean; readOnly?: boolean } = {}): Me {
+const SCOPED = new Set(catalogFixture.permissions.filter((p) => p.scoped).map((p) => p.key));
+
+/** Effective keys of a seed account (THEKEDAR every key; PM / MUNSHI their default template). */
+export function permissionsFor(role: Role, options: { canSeeFinancials?: boolean } = {}): PermissionKey[] {
+  if (role === "THEKEDAR") return [...PERMISSION_KEYS];
+  if (role === "MUNSHI") return [...MUNSHI_TEMPLATE];
+  return options.canSeeFinancials ? [...new Set([...PM_TEMPLATE, ...FINANCIAL_BUNDLE])] : [...PM_TEMPLATE];
+}
+
+/**
+ * A `/auth/me` payload for tests, shaped like the seed accounts. `permissions` replaces the
+ * template keys (a custom role); `deny` removes keys (DENY overrides).
+ */
+export function meFixture(
+  role: Role,
+  options: {
+    canSeeFinancials?: boolean;
+    readOnly?: boolean;
+    permissions?: PermissionKey[];
+    deny?: PermissionKey[];
+    approvalLimits?: Record<string, string | null>;
+  } = {},
+): Me {
   const financial = role === "PM" && options.canSeeFinancials;
+  const keys = (options.permissions ?? permissionsFor(role, options)).filter(
+    (k) => !options.deny?.includes(k),
+  );
+  const has = (k: PermissionKey) => keys.includes(k);
   return {
     user: {
       id: `user-${role.toLowerCase()}`,
@@ -45,7 +61,28 @@ export function meFixture(role: Role, options: { canSeeFinancials?: boolean; rea
       renewsOn: "2026-10-16T17:42:53.471Z",
       trialEndsAt: null,
     },
-    permissions: financial ? [...PERMS.PM, "billing.view", "profit.view"] : PERMS[role],
+    permissions: [...keys].sort(),
+    legacyPermissions: [],
+    fieldAccess: {
+      rates: has("fields.rates"),
+      amounts: has("fields.amounts"),
+      profit: has("fields.profit"),
+      contract: has("fields.contract"),
+    },
+    scopes: Object.fromEntries(
+      keys
+        .filter((k) => SCOPED.has(k))
+        .map((k) => [k, role === "THEKEDAR" ? "ALL_PROJECTS" : "ASSIGNED_PROJECTS"]),
+    ),
+    approvalLimits: options.approvalLimits ?? {},
+    permissionRole:
+      role === "THEKEDAR"
+        ? null
+        : {
+            id: `role-${role.toLowerCase()}`,
+            key: role === "PM" ? "PROJECT_MANAGER" : "MUNSHI",
+            name: role === "PM" ? "Project Manager" : "Munshi",
+          },
     assignedProjectIds: [],
   };
 }

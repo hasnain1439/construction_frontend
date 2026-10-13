@@ -36,7 +36,7 @@ const place = (l: Dispatch["from"]) => (l.type === "STORE" ? "Central Store" : l
 export function DispatchesView() {
   const router = useRouter();
   const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const owner = useCan("procurement.dispatch.create") && !readOnly;
   const projects = useSiteProjectOptions();
   const list = useListState({ status: "", projectId: "", from: "", to: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetDispatchesQuery(list.query as DispatchesQuery);
@@ -138,7 +138,7 @@ export function DispatchItemsTable({ dispatch }: { dispatch: Dispatch }) {
 
 function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
   const readOnly = useReadOnly();
-  const office = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
+  const office = useCan("procurement.dispatch.create") && !readOnly;
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancel, { isLoading }] = useCancelDispatchMutation();
   const run = useMutationToast();

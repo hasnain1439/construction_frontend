@@ -5,7 +5,7 @@ import { PurchasesView } from "@/features/procurement/views/PurchasesView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess permission="procurement.purchase.view">
         <PurchasesView />
       </RequireAccess>
     </Suspense>

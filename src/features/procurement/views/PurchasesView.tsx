@@ -25,7 +25,7 @@ import { PAYMENT_MODE_OPTIONS, useSupplierOptions } from "../options";
 export function PurchasesView() {
   const router = useRouter();
   const readOnly = useReadOnly();
-  const canCreate = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
+  const canCreate = useCan("procurement.purchase.create") && !readOnly;
   const suppliers = useSupplierOptions();
   const list = useListState({ supplierId: "", locationId: "", paymentMode: "", status: "", from: "", to: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetPurchasesQuery(list.query as PurchasesQuery);

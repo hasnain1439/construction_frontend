@@ -36,7 +36,8 @@ export type NotificationType =
   | "SUBSCRIPTION_RENEWAL"
   | "SUBSCRIPTION_PAYMENT_APPROVED"
   | "SUBSCRIPTION_PAYMENT_REJECTED"
-  | "INVITE_ACCEPTED";
+  | "INVITE_ACCEPTED"
+  | "PLATFORM_SUPPORT_ACCESS";
 
 export interface AppNotification {
   id: Id;

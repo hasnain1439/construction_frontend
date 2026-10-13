@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "My Approvals" };
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]}>
+    <RequireAccess permission="approvals.inbox.view">
       <ApprovalsInboxView />
     </RequireAccess>
   );

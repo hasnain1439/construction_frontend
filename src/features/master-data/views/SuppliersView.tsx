@@ -8,7 +8,7 @@ import type { Supplier, SuppliersQuery } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -27,9 +27,10 @@ import { SupplierSlideOver } from "../components/SupplierSlideOver";
 export function SuppliersView() {
   const router = useRouter();
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
-  const canToggle = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
-  const seesRates = useCan({ permission: "rates.view" });
+  const canCreate = useCan("masterdata.supplier.create") && !readOnly;
+  const canEdit = useCan("masterdata.supplier.edit") && !readOnly;
+  const canToggle = useCan("masterdata.supplier.manage") && !readOnly;
+  const seesRates = usePermissions().canSee("rates");
   const list = useListState({ isActive: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetSuppliersQuery(list.query as SuppliersQuery);
   const [setActive, { isLoading: toggling }] = useSetSupplierActiveMutation();
@@ -64,7 +65,7 @@ export function SuppliersView() {
     { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
       ...ACTIONS_COLUMN,
-      hidden: !canEdit,
+      hidden: !canEdit && !canToggle,
       cell: (s) => (
         <RowActions
           name={s.name}
@@ -94,7 +95,7 @@ export function SuppliersView() {
         description="Dealers you buy from, with the rates you've agreed."
         breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "All Suppliers" }]}
         actions={
-          canEdit ? (
+          canCreate ? (
             <Button onClick={() => setAddOpen(true)}>
               <Plus data-icon="inline-start" />
               Add supplier
