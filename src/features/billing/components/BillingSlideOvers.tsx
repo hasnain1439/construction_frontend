@@ -48,7 +48,6 @@ interface Open {
   onOpenChange: (open: boolean) => void;
 }
 
-const OWNER = { roles: ["THEKEDAR"] } as const;
 
 // ─── Mark ready ─────────────────────────────────────────────────────────────
 
@@ -131,7 +130,8 @@ const TYPES = [
 
 export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingModel, stageId }: Open & { projectId: string; billingModel: string | null; stageId?: string }) {
   const router = useRouter();
-  const owner = useCan(OWNER);
+  // "Other" invoices (free amounts) only for those who may issue invoices.
+  const owner = useCan("billing.invoice.approve");
   const stages = useGetBillingStagesQuery(projectId);
   const statement = useGetOwnerStatementQuery({ projectId });
   const running = billingModel === "RUNNING_BILLS";
@@ -282,7 +282,8 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 // ─── Record payment ─────────────────────────────────────────────────────────
 
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
-  const owner = useCan(OWNER);
+  // Company settings (tax) are readable with company.settings.manage only.
+  const owner = useCan("company.settings.manage");
   const settings = useGetCompanySettingsQuery(undefined, { skip: !owner });
   const invoices = useGetInvoicesQuery({ projectId, limit: 100 });
   const [record, { isLoading }] = useRecordPaymentMutation();

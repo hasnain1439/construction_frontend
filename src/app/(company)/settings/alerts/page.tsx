@@ -9,7 +9,7 @@ import { CompanySettingsForm } from "@/features/company/components/CompanySettin
 export default function AlertsLimitsPage() {
   const query = useGetCompanySettingsQuery();
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="company.settings.manage">
       <PageHeader
         title="Alerts & Limits"
         description="Rules the app uses to warn you and to ask for your approval."

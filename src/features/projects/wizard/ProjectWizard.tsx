@@ -8,6 +8,7 @@ import { useActivateProjectMutation, useGetProjectQuery, useGetReviewQuery } fro
 import type { ProjectDetail } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ErrorState } from "@/components/common/ErrorState";
+import { useCan } from "@/components/common/PermissionGate";
 import { ReadOnlyBanner } from "@/components/common/ReadOnlyBanner";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -63,6 +64,7 @@ function WizardActions({
   showBack: boolean;
 }) {
   const formTab = tab <= 4;
+  const canActivate = useCan("projects.project.approve");
   return (
     <div className="flex flex-wrap items-center gap-2">
       {showBack && tab > 1 ? (
@@ -90,7 +92,7 @@ function WizardActions({
             <ArrowRight data-icon="inline-end" />
           </Button>
         )
-      ) : project?.status === "DRAFT" && !locked ? (
+      ) : project?.status === "DRAFT" && !locked && canActivate ? (
         <Button type="button" variant="success" onClick={onActivate} disabled={activating}>
           {activating ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Rocket data-icon="inline-start" />}
           Activate project

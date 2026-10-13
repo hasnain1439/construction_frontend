@@ -9,6 +9,9 @@ export type UpdateCompanyBody = RequestBody<"/api/v1/company", "patch">;
 export type UpdateSettingsBody = RequestBody<"/api/v1/company/settings", "patch">;
 export type CreateHolidayBody = RequestBody<"/api/v1/company/holidays", "post">;
 export type HolidaysQuery = QueryParams<"/api/v1/company/holidays", "get">;
+/** One row of the company's own audit log (owner only); platform support rows carry `platformSupport`. */
+export type CompanyAuditEntry = Schemas["CompanyAuditEntry"];
+export type CompanyAuditQuery = QueryParams<"/api/v1/company/audit-logs", "get">;
 
 // ─── Attachments ────────────────────────────────────────────────────────────
 export type Attachment = Schemas["Attachment"];
@@ -47,6 +50,27 @@ export interface DeviceRow {
   revokedAt: IsoDateTime | null;
   current: boolean;
 }
+// ─── Roles & permissions (PERMISSIONS_API.md) ───────────────────────────────
+export type PermissionCatalog = Schemas["PermissionCatalog"];
+export type CatalogPermission = PermissionCatalog["permissions"][number];
+export type CatalogModule = PermissionCatalog["modules"][number];
+export type CatalogTemplate = PermissionCatalog["templates"][number];
+/** `{ en, roman, urdu }` label from the catalogue. */
+export type CatalogLabel = CatalogPermission["label"];
+export type PermissionRole = Schemas["Role"];
+export type RoleBaseRole = PermissionRole["baseRole"];
+export type RoleGrant = PermissionRole["permissions"][number];
+export type PermissionScope = NonNullable<RoleGrant["scope"]>;
+export type UserPermissions = Schemas["UserPermissions"];
+export type EffectivePermission = UserPermissions["effective"][number];
+export type PermissionOverride = UserPermissions["overrides"][number];
+export type CreateRoleBody = RequestBody<"/api/v1/roles", "post">;
+export type UpdateRoleBody = RequestBody<"/api/v1/roles/{id}", "patch">;
+export type DuplicateRoleBody = RequestBody<"/api/v1/roles/{id}/duplicate", "post">;
+export type SetRolePermissionsBody = RequestBody<"/api/v1/roles/{id}/permissions", "put">;
+export type SetOverridesBody = RequestBody<"/api/v1/users/{id}/permission-overrides", "put">;
+export type SetUserRoleBody = RequestBody<"/api/v1/users/{id}/role", "patch">;
+
 export type RevokeDeviceResult = ResponseData<"/api/v1/devices/{id}", "delete">;
 
 // ─── Subscription ───────────────────────────────────────────────────────────

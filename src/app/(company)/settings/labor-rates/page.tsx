@@ -5,7 +5,7 @@ import { LaborRatesView } from "@/features/master-data/views/LaborRatesView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR"]}>
+      <RequireAccess allPermissions={["masterdata.laborrate.view", "fields.rates"]}>
         <LaborRatesView />
       </RequireAccess>
     </Suspense>

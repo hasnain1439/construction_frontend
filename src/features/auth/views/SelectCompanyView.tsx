@@ -40,7 +40,7 @@ export function SelectCompanyView() {
         await verify({ phone: pending.phone, code: pending.code, tenantId }).unwrap();
       }
       clearPendingLogin();
-      await afterLogin(pending.next);
+      await afterLogin(pending.next, pending.kind);
     } catch (err) {
       setBusyTenant(null);
       if (errorCode(err) === "COMPANY_SUSPENDED") {

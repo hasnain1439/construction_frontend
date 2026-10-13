@@ -5,7 +5,7 @@ import { SuppliersView } from "@/features/master-data/views/SuppliersView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess permission="masterdata.supplier.view">
         <SuppliersView />
       </RequireAccess>
     </Suspense>

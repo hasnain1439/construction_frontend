@@ -5,7 +5,7 @@ import { MembersView } from "@/features/team/views/MembersView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess anyPermission={["team.member.view", "team.member.manage"]}>
         <MembersView />
       </RequireAccess>
     </Suspense>

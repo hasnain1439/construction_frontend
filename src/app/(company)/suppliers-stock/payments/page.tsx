@@ -3,7 +3,7 @@ import { SupplierPaymentsView } from "@/features/procurement/views/SupplierMoney
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]} permission="rates.view">
+    <RequireAccess permission="procurement.payment.view">
       <SupplierPaymentsView />
     </RequireAccess>
   );

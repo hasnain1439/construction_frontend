@@ -14,7 +14,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { HiddenForRole } from "@/components/common/HiddenForRole";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -40,10 +40,12 @@ const STATUS_OPTIONS = [
 
 export function WorkersView() {
   const readOnly = useReadOnly();
-  const canAdd = useCan({ roles: ["THEKEDAR", "PM", "MUNSHI"] }) && !readOnly;
-  const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
-  const canSeeRates = useCan({ permission: "rates.view" });
-  const office = useCan({ roles: ["THEKEDAR", "PM"] });
+  const { can, canSee } = usePermissions();
+  const canAdd = can("masterdata.worker.create") && !readOnly;
+  const canEdit = can("masterdata.worker.edit") && !readOnly;
+  const canSeeRates = canSee("rates");
+  // The worker page is their labour account (days, wages, peshgi).
+  const office = can("labor.account.view");
   const list = useListState({ type: "", isActive: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetWorkersQuery(list.query as WorkersQuery);
   const [setActive, { isLoading: toggling }] = useSetWorkerActiveMutation();
@@ -153,7 +155,9 @@ export function WorkersView() {
 
 export function SubcontractorsView() {
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
+  const canCreate = useCan("masterdata.subcontractor.create") && !readOnly;
+  const canEdit = useCan("masterdata.subcontractor.edit") && !readOnly;
+  const canOpen = useCan("labor.account.view");
   const list = useListState({ trade: "", isActive: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetSubcontractorsQuery(list.query as SubcontractorsQuery);
   const [setActive, { isLoading: toggling }] = useSetSubcontractorActiveMutation();
@@ -166,7 +170,7 @@ export function SubcontractorsView() {
       id: "name",
       header: "Name",
       cell: (s) =>
-        canEdit ? (
+        canOpen ? (
           <Link href={`/workforce/subcontractors/${s.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
             {s.name}
           </Link>
@@ -207,7 +211,7 @@ export function SubcontractorsView() {
         description="Teams paid by measured work — shuttering, steel fixing, plaster …"
         breadcrumbs={[{ label: "Workforce" }, { label: "Sub-contractors" }]}
         actions={
-          canEdit ? (
+          canCreate ? (
             <Button onClick={() => setAddOpen(true)}>
               <Plus data-icon="inline-start" />
               Add sub-contractor

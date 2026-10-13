@@ -81,7 +81,7 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
 
 export function ShortagesView() {
   const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const owner = useCan("procurement.shortage.approve") && !readOnly;
   const projects = useSiteProjectOptions();
   const list = useListState({ status: "OPEN", kind: "", source: "", projectId: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetShortagesQuery(list.query as ShortagesQuery);

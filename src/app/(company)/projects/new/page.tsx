@@ -11,7 +11,7 @@ export default async function NewProjectPage({ searchParams }: PageProps<"/proje
   const params = await searchParams;
   const id = typeof params.id === "string" ? params.id : null;
   return (
-    <RequireAccess permission="projects.manage">
+    <RequireAccess permission="projects.project.create">
       <ProjectWizard key={id ?? "new"} projectId={id} mode="new" initialTab={id ? clampTab(params.tab) : 1} />
     </RequireAccess>
   );

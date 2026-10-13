@@ -10,7 +10,7 @@ export default async function EditProjectPage({ params, searchParams }: PageProp
   const query = await searchParams;
   const tab = Math.min(6, Math.max(1, Number(query.tab) || 1));
   return (
-    <RequireAccess permission="projects.manage">
+    <RequireAccess permission="projects.project.edit">
       <ProjectWizard key={projectId} projectId={projectId} mode="edit" initialTab={tab} />
     </RequireAccess>
   );

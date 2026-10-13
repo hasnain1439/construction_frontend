@@ -34,7 +34,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { LateSyncBadge } from "@/components/common/LateSyncBadge";
@@ -62,7 +62,6 @@ import {
 } from "../components/LaborSlideOvers";
 import { rateTypeLabel } from "../options";
 
-const OFFICE = { roles: ["THEKEDAR", "PM"] } as const;
 const STATUS_TEXT: Record<AttendanceStatus, string> = {
   FULL: "Full day",
   HALF: "Half day",
@@ -116,7 +115,10 @@ function RateDialog({ worker, onClose }: { worker: ProjectWorker | null; onClose
 
 export function TeamOnSiteView({ projectId }: { projectId: string }) {
   const typeName = useWorkerTypeName();
-  const office = useCan(OFFICE);
+  const { can } = usePermissions();
+  const office = can("labor.team.edit");
+  const canAssign = can("labor.team.create");
+  const canSubcontract = can("labor.subcontract.create");
   const munshi = useIsMunshi();
   const workers = useGetProjectWorkersQuery({ projectId });
   const subs = useGetSubcontractsQuery({ projectId });
@@ -264,11 +266,13 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       actions={(project) =>
         project.status === "ACTIVE" || project.status === "CLOSEOUT" ? (
           <>
-            <Button onClick={() => setOpen("worker")}>
-              <UserPlus data-icon="inline-start" />
-              Assign worker
-            </Button>
-            {office ? (
+            {canAssign ? (
+              <Button onClick={() => setOpen("worker")}>
+                <UserPlus data-icon="inline-start" />
+                Assign worker
+              </Button>
+            ) : null}
+            {canSubcontract ? (
               <Button variant="outline" onClick={() => setOpen("sub")}>
                 <Plus data-icon="inline-start" />
                 Add sub-contract

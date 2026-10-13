@@ -43,7 +43,7 @@ export function MoneyInput({ value, onChange, onBlur, className, suffix, ...rest
 
   return (
     <div className={cn("relative", className)}>
-      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rs</span>
+      <span className="pointer-events-none absolute top-1/2 start-3 -translate-y-1/2 text-sm text-muted-foreground">Rs</span>
       <Input
         {...rest}
         inputMode="decimal"
@@ -59,10 +59,10 @@ export function MoneyInput({ value, onChange, onBlur, className, suffix, ...rest
           setDraft(next);
           onChange(next === "" || next === "." ? null : rupeesToPaisa(next));
         }}
-        className={cn("pl-9 tabular", suffix && "pr-16")}
+        className={cn("ps-9 tabular", suffix && "pe-16")}
       />
       {suffix ? (
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">{suffix}</span>
+        <span className="pointer-events-none absolute top-1/2 end-3 -translate-y-1/2 text-xs text-muted-foreground">{suffix}</span>
       ) : null}
     </div>
   );

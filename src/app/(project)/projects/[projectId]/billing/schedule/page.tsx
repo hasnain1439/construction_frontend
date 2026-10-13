@@ -4,7 +4,7 @@ import { ScheduleView } from "@/features/billing/views/BillingViews";
 export default async function Page({ params }: PageProps<"/projects/[projectId]/billing/schedule">) {
   const { projectId } = await params;
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]} permission="billing.view">
+    <RequireAccess permission="billing.invoice.view">
       <ScheduleView projectId={projectId} />
     </RequireAccess>
   );

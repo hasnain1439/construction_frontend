@@ -5,7 +5,7 @@ import { MaterialsView } from "@/features/master-data/views/MaterialsView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess permission="masterdata.material.view">
         <MaterialsView />
       </RequireAccess>
     </Suspense>

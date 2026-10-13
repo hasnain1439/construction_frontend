@@ -3,7 +3,7 @@ import { ReceivablesView } from "@/features/billing/views/BillingViews";
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="finance.receivables.view">
       <ReceivablesView />
     </RequireAccess>
   );

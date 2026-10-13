@@ -437,7 +437,7 @@ export function UsageView({ projectId }: { projectId: string }) {
 
 export function SiteStockView({ projectId }: { projectId: string }) {
   const stock = useGetProjectStockQuery(projectId);
-  const seesRates = useCan({ permission: "rates.view" });
+  const seesRates = useCan("fields.rates");
   const columns: Column<SiteStockRow>[] = [
     { id: "material", header: "Material", sortValue: (r) => r.material.name, cell: (r) => <span className="font-medium">{r.material.name}</span> },
     { id: "received", header: "Received", align: "right", cell: (r) => formatQty(r.receivedContractor, r.material.unit) },
@@ -485,8 +485,10 @@ export function CountsView({ projectId }: { projectId: string }) {
   const stock = useGetProjectStockQuery(projectId);
   const counts = useGetStockCountsQuery({ projectId, limit: 50 });
   const incoming = useGetIncomingQuery(projectId);
-  const office = useCan({ roles: ["THEKEDAR", "PM"] });
-  const seesRates = useCan({ permission: "rates.view" });
+  // Moving stock between sites is a dispatch.
+  const office = useCan("procurement.dispatch.create");
+  const canCount = useCan("inventory.count.create");
+  const seesRates = useCan("fields.rates");
   const [open, setOpen] = useState<"count" | "transfer" | null>(null);
   const items = stock.data?.items ?? [];
   const system = new Map(items.map((i) => [i.material.id, i.inStockOwner > 0 && i.inStockContractor === 0 ? i.inStockOwner : i.inStockContractor]));
@@ -520,10 +522,12 @@ export function CountsView({ projectId }: { projectId: string }) {
       actions={(project) =>
         editable(project) && stock.data?.location ? (
           <>
-            <Button onClick={() => setOpen("count")}>
-              <ClipboardCheck data-icon="inline-start" />
-              New count
-            </Button>
+            {canCount ? (
+              <Button onClick={() => setOpen("count")}>
+                <ClipboardCheck data-icon="inline-start" />
+                New count
+              </Button>
+            ) : null}
             {office ? (
               <Button variant="outline" onClick={() => setOpen("transfer")}>
                 <ArrowRightLeft data-icon="inline-start" />

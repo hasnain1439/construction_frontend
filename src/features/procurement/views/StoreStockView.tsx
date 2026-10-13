@@ -24,7 +24,7 @@ import { LowStockLevelsSlideOver, MovementHistorySlideOver, StockCountSlideOver 
 
 export function StoreStockView() {
   const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const owner = useCan("inventory.store.manage") && !readOnly;
   const locations = useGetStockLocationsQuery();
   const store = locations.data?.find((l) => l.type === "STORE");
   const [search, setSearch] = useState("");

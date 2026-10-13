@@ -2,12 +2,12 @@
 
 import { UserPlus, Users } from "lucide-react";
 import { useState } from "react";
+import { useGetRolesQuery } from "@/api/services/permissions.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
 import type { TeamUser, UsersQuery } from "@/api/types";
 import { AvatarName } from "@/components/common/AvatarName";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
-import { HiddenForRole } from "@/components/common/HiddenForRole";
 import { useCan } from "@/components/common/PermissionGate";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -20,7 +20,9 @@ import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useListState } from "@/hooks/useListState";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
+import { useLanguage, useT } from "@/i18n/useT";
 import { formatRelative } from "@/lib/dates";
+import { roleName } from "@/lib/permissionCatalog";
 import { ROLE_LABEL } from "@/lib/options";
 import { formatPhone } from "@/lib/phone";
 import { EditMemberSlideOver } from "../components/EditMemberSlideOver";
@@ -28,7 +30,12 @@ import { InviteMemberSlideOver } from "../components/InviteMemberSlideOver";
 import { ProjectChips, RoleBadge } from "../components/TeamBits";
 
 export function MembersView() {
-  const canManage = useCan({ permission: "users.manage" });
+  const canManage = useCan("team.member.manage");
+  const t = useT();
+  const language = useLanguage();
+  // Role names in the UI language (the list itself only carries the English name).
+  const roles = useGetRolesQuery(undefined, { skip: !canManage });
+  const roleById = new Map((roles.data ?? []).map((r) => [r.id, r]));
   const readOnly = useReadOnly();
   const list = useListState({ role: "", status: "", projectId: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery(list.query as UsersQuery); // empty filters are dropped by cleanParams
@@ -48,17 +55,15 @@ export function MembersView() {
     { id: "role", header: "Role", cell: (u) => <RoleBadge role={u.role} />, sortValue: (u) => u.role },
     { id: "projects", header: "Projects", cell: (u) => <ProjectChips projects={u.projects} all={u.allProjects} /> },
     {
-      id: "financials",
-      header: "Sees financials",
+      id: "permissionRole",
+      header: t("roles.inviteRole"),
       cell: (u) =>
-        u.role !== "PM" ? (
-          <span className="text-muted-foreground">—</span>
-        ) : u.canSeeFinancials === undefined ? (
-          <HiddenForRole compact />
-        ) : u.canSeeFinancials ? (
-          "Yes"
+        u.role === "THEKEDAR" ? (
+          <span className="text-sm text-muted-foreground">{t("roles.allPermissions")}</span>
+        ) : u.permissionRole ? (
+          <bdi className="text-sm">{roleById.has(u.permissionRole.id) ? roleName(roleById.get(u.permissionRole.id)!, language) : u.permissionRole.name}</bdi>
         ) : (
-          "No"
+          <span className="text-muted-foreground">—</span>
         ),
     },
     { id: "status", header: "Status", cell: (u) => <StatusBadge domain="user" value={u.status} />, sortValue: (u) => u.status },

@@ -1,0 +1,2163 @@
+{
+ "modules": [
+  {
+   "key": "projects",
+   "label": {
+    "en": "Projects",
+    "roman": "Projects",
+    "urdu": "پراجیکٹس"
+   }
+  },
+  {
+   "key": "clients",
+   "label": {
+    "en": "Clients",
+    "roman": "Clients (maalikaan)",
+    "urdu": "کلائنٹس"
+   }
+  },
+  {
+   "key": "labor",
+   "label": {
+    "en": "Labour",
+    "roman": "Mazdoor / Labour",
+    "urdu": "مزدور"
+   }
+  },
+  {
+   "key": "cashbook",
+   "label": {
+    "en": "Site cash",
+    "roman": "Site cash (kharcha)",
+    "urdu": "سائٹ کیش"
+   }
+  },
+  {
+   "key": "procurement",
+   "label": {
+    "en": "Purchases & dispatch",
+    "roman": "Khareedari aur dispatch",
+    "urdu": "خریداری اور ڈسپیچ"
+   }
+  },
+  {
+   "key": "inventory",
+   "label": {
+    "en": "Stock",
+    "roman": "Stock (maal)",
+    "urdu": "اسٹاک"
+   }
+  },
+  {
+   "key": "billing",
+   "label": {
+    "en": "Billing",
+    "roman": "Billing",
+    "urdu": "بلنگ"
+   }
+  },
+  {
+   "key": "finance",
+   "label": {
+    "en": "Finance & reports",
+    "roman": "Finance aur reports",
+    "urdu": "فنانس اور رپورٹس"
+   }
+  },
+  {
+   "key": "dashboard",
+   "label": {
+    "en": "Dashboards",
+    "roman": "Dashboard",
+    "urdu": "ڈیش بورڈ"
+   }
+  },
+  {
+   "key": "approvals",
+   "label": {
+    "en": "Approvals",
+    "roman": "Approvals (manzoori)",
+    "urdu": "منظوریاں"
+   }
+  },
+  {
+   "key": "dailylog",
+   "label": {
+    "en": "Daily logs",
+    "roman": "Rozana log",
+    "urdu": "روزانہ لاگ"
+   }
+  },
+  {
+   "key": "masterdata",
+   "label": {
+    "en": "Master data",
+    "roman": "Master data",
+    "urdu": "ماسٹر ڈیٹا"
+   }
+  },
+  {
+   "key": "team",
+   "label": {
+    "en": "Team",
+    "roman": "Team",
+    "urdu": "ٹیم"
+   }
+  },
+  {
+   "key": "company",
+   "label": {
+    "en": "Company",
+    "roman": "Company",
+    "urdu": "کمپنی"
+   }
+  },
+  {
+   "key": "subscription",
+   "label": {
+    "en": "Subscription",
+    "roman": "Subscription",
+    "urdu": "سبسکرپشن"
+   }
+  },
+  {
+   "key": "fields",
+   "label": {
+    "en": "Data visibility",
+    "roman": "Kya nazar aaye",
+    "urdu": "کیا نظر آئے"
+   }
+  }
+ ],
+ "permissions": [
+  {
+   "key": "projects.project.view",
+   "module": "projects",
+   "resource": "project",
+   "action": "view",
+   "label": {
+    "en": "View projects",
+    "roman": "Projects dekhna",
+    "urdu": "پراجیکٹس دیکھنا"
+   },
+   "description": "Project list and detail, floors.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.project.create",
+   "module": "projects",
+   "resource": "project",
+   "action": "create",
+   "label": {
+    "en": "Create projects",
+    "roman": "Naya project banana",
+    "urdu": "نیا پراجیکٹ بنانا"
+   },
+   "description": "Start a draft project (the creator is assigned to it).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.project.edit",
+   "module": "projects",
+   "resource": "project",
+   "action": "edit",
+   "label": {
+    "en": "Edit projects",
+    "roman": "Project mein tabdeeli",
+    "urdu": "پراجیکٹ میں تبدیلی"
+   },
+   "description": "Wizard tabs (basic, contract, plot & structure, coverage), floors, rooms, openings, review.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.project.approve",
+   "module": "projects",
+   "resource": "project",
+   "action": "approve",
+   "label": {
+    "en": "Activate projects",
+    "roman": "Project activate karna",
+    "urdu": "پراجیکٹ ایکٹیویٹ کرنا"
+   },
+   "description": "Activate a reviewed draft (counts against the plan).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.project.manage",
+   "module": "projects",
+   "resource": "project",
+   "action": "manage",
+   "label": {
+    "en": "Change project status / delete drafts",
+    "roman": "Project ka status / draft delete",
+    "urdu": "پراجیکٹ کا اسٹیٹس / ڈرافٹ ڈیلیٹ"
+   },
+   "description": "Close-out, hand over, close, reopen; delete a draft.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.team.manage",
+   "module": "projects",
+   "resource": "team",
+   "action": "manage",
+   "label": {
+    "en": "Assign project team",
+    "roman": "Project team muqarrar karna",
+    "urdu": "پراجیکٹ ٹیم مقرر کرنا"
+   },
+   "description": "Choose the PM and munshis of a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "clients.client.view",
+   "module": "clients",
+   "resource": "client",
+   "action": "view",
+   "label": {
+    "en": "View clients",
+    "roman": "Clients dekhna",
+    "urdu": "کلائنٹس دیکھنا"
+   },
+   "description": "Project owners (clients) list and detail.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "clients.client.create",
+   "module": "clients",
+   "resource": "client",
+   "action": "create",
+   "label": {
+    "en": "Add clients",
+    "roman": "Client shamil karna",
+    "urdu": "کلائنٹ شامل کرنا"
+   },
+   "description": "Add a client.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "clients.client.edit",
+   "module": "clients",
+   "resource": "client",
+   "action": "edit",
+   "label": {
+    "en": "Edit clients",
+    "roman": "Client mein tabdeeli",
+    "urdu": "کلائنٹ میں تبدیلی"
+   },
+   "description": "Change a client.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.team.view",
+   "module": "labor",
+   "resource": "team",
+   "action": "view",
+   "label": {
+    "en": "View team on site",
+    "roman": "Site ki team dekhna",
+    "urdu": "سائٹ کی ٹیم دیکھنا"
+   },
+   "description": "Workers and sub-contractors assigned to a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.team.create",
+   "module": "labor",
+   "resource": "team",
+   "action": "create",
+   "label": {
+    "en": "Add workers to a project",
+    "roman": "Mazdoor project mein dalna",
+    "urdu": "مزدور پراجیکٹ میں ڈالنا"
+   },
+   "description": "Assign a worker to a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.team.edit",
+   "module": "labor",
+   "resource": "team",
+   "action": "edit",
+   "label": {
+    "en": "Change / remove project workers",
+    "roman": "Project mazdoor tabdeel / hatana",
+    "urdu": "پراجیکٹ مزدور تبدیل / ہٹانا"
+   },
+   "description": "Rate override, end or remove a project worker.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.attendance.view",
+   "module": "labor",
+   "resource": "attendance",
+   "action": "view",
+   "label": {
+    "en": "View hazri",
+    "roman": "Hazri dekhna",
+    "urdu": "حاضری دیکھنا"
+   },
+   "description": "Attendance grid and today’s hazri.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.attendance.create",
+   "module": "labor",
+   "resource": "attendance",
+   "action": "create",
+   "label": {
+    "en": "Mark hazri",
+    "roman": "Hazri lagana",
+    "urdu": "حاضری لگانا"
+   },
+   "description": "Mark or change attendance (offline-safe).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.measurement.view",
+   "module": "labor",
+   "resource": "measurement",
+   "action": "view",
+   "label": {
+    "en": "View work measurements",
+    "roman": "Naap (measurement) dekhna",
+    "urdu": "پیمائش دیکھنا"
+   },
+   "description": "Measured work of sub-contractors.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.measurement.create",
+   "module": "labor",
+   "resource": "measurement",
+   "action": "create",
+   "label": {
+    "en": "Record work measurements",
+    "roman": "Naap darj karna",
+    "urdu": "پیمائش درج کرنا"
+   },
+   "description": "Record measured work.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.measurement.approve",
+   "module": "labor",
+   "resource": "measurement",
+   "action": "approve",
+   "label": {
+    "en": "Verify measurements",
+    "roman": "Naap verify karna",
+    "urdu": "پیمائش کی تصدیق"
+   },
+   "description": "Verify or reject measured work (adds work value).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "labor.advance.view",
+   "module": "labor",
+   "resource": "advance",
+   "action": "view",
+   "label": {
+    "en": "View peshgi",
+    "roman": "Peshgi dekhna",
+    "urdu": "پیشگی دیکھنا"
+   },
+   "description": "Advances given to workers and sub-contractors.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.advance.create",
+   "module": "labor",
+   "resource": "advance",
+   "action": "create",
+   "label": {
+    "en": "Give peshgi",
+    "roman": "Peshgi dena",
+    "urdu": "پیشگی دینا"
+   },
+   "description": "Record an advance.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.settlement.view",
+   "module": "labor",
+   "resource": "settlement",
+   "action": "view",
+   "label": {
+    "en": "View wage settlements",
+    "roman": "Hafta wari hisaab dekhna",
+    "urdu": "ہفتہ وار حساب دیکھنا"
+   },
+   "description": "Weekly wage settlements of a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.settlement.create",
+   "module": "labor",
+   "resource": "settlement",
+   "action": "create",
+   "label": {
+    "en": "Prepare wage settlements",
+    "roman": "Hafta wari hisaab banana",
+    "urdu": "ہفتہ وار حساب بنانا"
+   },
+   "description": "Generate and submit a weekly settlement.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.settlement.edit",
+   "module": "labor",
+   "resource": "settlement",
+   "action": "edit",
+   "label": {
+    "en": "Adjust settlement lines",
+    "roman": "Hisaab ki line tabdeel karna",
+    "urdu": "حساب کی لائن تبدیل کرنا"
+   },
+   "description": "Change days / overtime / peshgi of a settlement line.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.settlement.approve",
+   "module": "labor",
+   "resource": "settlement",
+   "action": "approve",
+   "label": {
+    "en": "Approve wage settlements",
+    "roman": "Hafta wari hisaab manzoor karna",
+    "urdu": "ہفتہ وار حساب منظور کرنا"
+   },
+   "description": "Approve or return a settlement; company-wide settlement list.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "labor.wagepayment.create",
+   "module": "labor",
+   "resource": "wagepayment",
+   "action": "create",
+   "label": {
+    "en": "Pay wages",
+    "roman": "Mazdoori ada karna",
+    "urdu": "مزدوری ادا کرنا"
+   },
+   "description": "Pay an approved settlement (site cash for site staff).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.subcontract.create",
+   "module": "labor",
+   "resource": "subcontract",
+   "action": "create",
+   "label": {
+    "en": "Assign sub-contractors",
+    "roman": "Theka dena",
+    "urdu": "ٹھیکہ دینا"
+   },
+   "description": "Assign a sub-contractor to a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.subcontract.edit",
+   "module": "labor",
+   "resource": "subcontract",
+   "action": "edit",
+   "label": {
+    "en": "Edit sub-contracts",
+    "roman": "Theka tabdeel karna",
+    "urdu": "ٹھیکہ تبدیل کرنا"
+   },
+   "description": "Change an assignment, record lump-sum progress.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.subcontractpayment.create",
+   "module": "labor",
+   "resource": "subcontractpayment",
+   "action": "create",
+   "label": {
+    "en": "Pay sub-contractors",
+    "roman": "Thekedar ko adayegi",
+    "urdu": "ٹھیکیدار کو ادائیگی"
+   },
+   "description": "Pay a sub-contractor (a company setting can still stop non-owners).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.subcontract.manage",
+   "module": "labor",
+   "resource": "subcontract",
+   "action": "manage",
+   "label": {
+    "en": "Sub-contractor deductions",
+    "roman": "Theke se katauti",
+    "urdu": "ٹھیکے سے کٹوتی"
+   },
+   "description": "Deduct from a sub-contractor, charge a shortage loss to one.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "labor.account.view",
+   "module": "labor",
+   "resource": "account",
+   "action": "view",
+   "label": {
+    "en": "View sub-contract accounts",
+    "roman": "Thekon ka hisaab dekhna",
+    "urdu": "ٹھیکوں کا حساب دیکھنا"
+   },
+   "description": "Sub-contract accounts and ledgers, worker / sub-contractor summaries.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.account.view",
+   "module": "cashbook",
+   "resource": "account",
+   "action": "view",
+   "label": {
+    "en": "View cash accounts",
+    "roman": "Cash account dekhna",
+    "urdu": "کیش اکاؤنٹ دیکھنا"
+   },
+   "description": "Cash accounts, entries, counts and project cash book (own account for site staff); acknowledge a float.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.float.view",
+   "module": "cashbook",
+   "resource": "float",
+   "action": "view",
+   "label": {
+    "en": "View cash floats",
+    "roman": "Cash floats dekhna",
+    "urdu": "کیش فلوٹس دیکھنا"
+   },
+   "description": "Who holds how much site cash (finance → cash floats).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.float.manage",
+   "module": "cashbook",
+   "resource": "float",
+   "action": "manage",
+   "label": {
+    "en": "Send cash floats",
+    "roman": "Cash float bhejna",
+    "urdu": "کیش فلوٹ بھیجنا"
+   },
+   "description": "Send cash to a munshi or project manager.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.expense.view",
+   "module": "cashbook",
+   "resource": "expense",
+   "action": "view",
+   "label": {
+    "en": "View kharcha",
+    "roman": "Kharcha dekhna",
+    "urdu": "خرچہ دیکھنا"
+   },
+   "description": "Site expenses.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.expense.create",
+   "module": "cashbook",
+   "resource": "expense",
+   "action": "create",
+   "label": {
+    "en": "Add kharcha",
+    "roman": "Kharcha darj karna",
+    "urdu": "خرچہ درج کرنا"
+   },
+   "description": "Record a site expense.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.expense.approve",
+   "module": "cashbook",
+   "resource": "expense",
+   "action": "approve",
+   "label": {
+    "en": "Approve kharcha",
+    "roman": "Kharcha manzoor karna",
+    "urdu": "خرچہ منظور کرنا"
+   },
+   "description": "Approve or reject kharcha above the company limit.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "cashbook.topup.view",
+   "module": "cashbook",
+   "resource": "topup",
+   "action": "view",
+   "label": {
+    "en": "View top-up requests",
+    "roman": "Top-up darkhwast dekhna",
+    "urdu": "ٹاپ اپ درخواست دیکھنا"
+   },
+   "description": "Requests for more site cash.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.topup.create",
+   "module": "cashbook",
+   "resource": "topup",
+   "action": "create",
+   "label": {
+    "en": "Ask for a top-up",
+    "roman": "Top-up mangna",
+    "urdu": "ٹاپ اپ مانگنا"
+   },
+   "description": "Ask the owner for more cash.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.topup.approve",
+   "module": "cashbook",
+   "resource": "topup",
+   "action": "approve",
+   "label": {
+    "en": "Approve top-ups",
+    "roman": "Top-up manzoor karna",
+    "urdu": "ٹاپ اپ منظور کرنا"
+   },
+   "description": "Send or reject a requested top-up.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "cashbook.count.create",
+   "module": "cashbook",
+   "resource": "count",
+   "action": "create",
+   "label": {
+    "en": "Count cash",
+    "roman": "Cash ginna",
+    "urdu": "کیش گننا"
+   },
+   "description": "Record a cash count.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "cashbook.handover.create",
+   "module": "cashbook",
+   "resource": "handover",
+   "action": "create",
+   "label": {
+    "en": "Hand over cash",
+    "roman": "Cash hawale karna",
+    "urdu": "کیش حوالے کرنا"
+   },
+   "description": "Hand cash over to another holder.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.order.view",
+   "module": "procurement",
+   "resource": "order",
+   "action": "view",
+   "label": {
+    "en": "View purchase orders",
+    "roman": "Purchase orders dekhna",
+    "urdu": "پرچیز آرڈرز دیکھنا"
+   },
+   "description": "Purchase orders.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.order.create",
+   "module": "procurement",
+   "resource": "order",
+   "action": "create",
+   "label": {
+    "en": "Manage purchase orders",
+    "roman": "Purchase order banana",
+    "urdu": "پرچیز آرڈر بنانا"
+   },
+   "description": "Create, change and cancel purchase orders.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.purchase.view",
+   "module": "procurement",
+   "resource": "purchase",
+   "action": "view",
+   "label": {
+    "en": "View purchases",
+    "roman": "Khareedari dekhna",
+    "urdu": "خریداری دیکھنا"
+   },
+   "description": "Purchases (site staff: their sites’ deliveries, no rates).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.purchase.create",
+   "module": "procurement",
+   "resource": "purchase",
+   "action": "create",
+   "label": {
+    "en": "Record purchases",
+    "roman": "Khareedari darj karna",
+    "urdu": "خریداری درج کرنا"
+   },
+   "description": "Record a purchase (site staff: site purchase without rates).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.purchase.edit",
+   "module": "procurement",
+   "resource": "purchase",
+   "action": "edit",
+   "label": {
+    "en": "Set purchase rates",
+    "roman": "Khareedari ke rate lagana",
+    "urdu": "خریداری کے ریٹ لگانا"
+   },
+   "description": "Set the rates of a pending-rate purchase.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.purchase.manage",
+   "module": "procurement",
+   "resource": "purchase",
+   "action": "manage",
+   "label": {
+    "en": "Correct purchases",
+    "roman": "Khareedari durust karna",
+    "urdu": "خریداری درست کرنا"
+   },
+   "description": "Corrections to saved purchases.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.return.view",
+   "module": "procurement",
+   "resource": "return",
+   "action": "view",
+   "label": {
+    "en": "View purchase returns",
+    "roman": "Wapsi dekhna",
+    "urdu": "واپسی دیکھنا"
+   },
+   "description": "Returns to suppliers.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.return.create",
+   "module": "procurement",
+   "resource": "return",
+   "action": "create",
+   "label": {
+    "en": "Return to supplier",
+    "roman": "Supplier ko wapsi",
+    "urdu": "سپلائر کو واپسی"
+   },
+   "description": "Return purchased material.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.receiving.create",
+   "module": "procurement",
+   "resource": "receiving",
+   "action": "create",
+   "label": {
+    "en": "Receive deliveries",
+    "roman": "Maal wasool karna",
+    "urdu": "مال وصول کرنا"
+   },
+   "description": "Receive a dispatch or a site delivery (count).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.dispatch.view",
+   "module": "procurement",
+   "resource": "dispatch",
+   "action": "view",
+   "label": {
+    "en": "View dispatches",
+    "roman": "Dispatch dekhna",
+    "urdu": "ڈسپیچ دیکھنا"
+   },
+   "description": "Dispatches and incoming material.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.dispatch.create",
+   "module": "procurement",
+   "resource": "dispatch",
+   "action": "create",
+   "label": {
+    "en": "Dispatch material",
+    "roman": "Maal bhejna",
+    "urdu": "مال بھیجنا"
+   },
+   "description": "Send material to a site, cancel a dispatch.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.shortage.view",
+   "module": "procurement",
+   "resource": "shortage",
+   "action": "view",
+   "label": {
+    "en": "View shortages",
+    "roman": "Kami dekhna",
+    "urdu": "کمی دیکھنا"
+   },
+   "description": "Shortages found on receiving.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.shortage.approve",
+   "module": "procurement",
+   "resource": "shortage",
+   "action": "approve",
+   "label": {
+    "en": "Resolve shortages",
+    "roman": "Kami ka faisla",
+    "urdu": "کمی کا فیصلہ"
+   },
+   "description": "Decide what happens to a shortage.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.ledger.view",
+   "module": "procurement",
+   "resource": "ledger",
+   "action": "view",
+   "label": {
+    "en": "View supplier ledger",
+    "roman": "Supplier khata dekhna",
+    "urdu": "سپلائر کھاتہ دیکھنا"
+   },
+   "description": "Supplier ledger and udhaar.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.payment.view",
+   "module": "procurement",
+   "resource": "payment",
+   "action": "view",
+   "label": {
+    "en": "View supplier payments",
+    "roman": "Supplier adayegi dekhna",
+    "urdu": "سپلائر ادائیگی دیکھنا"
+   },
+   "description": "Payments made to suppliers.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "procurement.payment.create",
+   "module": "procurement",
+   "resource": "payment",
+   "action": "create",
+   "label": {
+    "en": "Pay suppliers",
+    "roman": "Supplier ko adayegi",
+    "urdu": "سپلائر کو ادائیگی"
+   },
+   "description": "Record a supplier payment.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "procurement.payment.manage",
+   "module": "procurement",
+   "resource": "payment",
+   "action": "manage",
+   "label": {
+    "en": "Supplier cheque status",
+    "roman": "Supplier cheque status",
+    "urdu": "سپلائر چیک اسٹیٹس"
+   },
+   "description": "Mark supplier cheques cleared or bounced.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.stock.view",
+   "module": "inventory",
+   "resource": "stock",
+   "action": "view",
+   "label": {
+    "en": "View site stock",
+    "roman": "Site ka stock dekhna",
+    "urdu": "سائٹ کا اسٹاک دیکھنا"
+   },
+   "description": "Stock locations, project stock, material usage.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.store.view",
+   "module": "inventory",
+   "resource": "store",
+   "action": "view",
+   "label": {
+    "en": "View store stock",
+    "roman": "Store ka stock dekhna",
+    "urdu": "اسٹور کا اسٹاک دیکھنا"
+   },
+   "description": "Central store stock and the movement log.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.store.manage",
+   "module": "inventory",
+   "resource": "store",
+   "action": "manage",
+   "label": {
+    "en": "Manage the store",
+    "roman": "Store ka intezam",
+    "urdu": "اسٹور کا انتظام"
+   },
+   "description": "Low-stock levels, counting the central store, dispatching from it.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.count.view",
+   "module": "inventory",
+   "resource": "count",
+   "action": "view",
+   "label": {
+    "en": "View stock counts",
+    "roman": "Stock ginti dekhna",
+    "urdu": "اسٹاک گنتی دیکھنا"
+   },
+   "description": "Stock counts.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.count.create",
+   "module": "inventory",
+   "resource": "count",
+   "action": "create",
+   "label": {
+    "en": "Count stock",
+    "roman": "Stock ginna",
+    "urdu": "اسٹاک گننا"
+   },
+   "description": "Record a site stock count.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.usage.create",
+   "module": "inventory",
+   "resource": "usage",
+   "action": "create",
+   "label": {
+    "en": "Record material usage",
+    "roman": "Maal ka istemal darj karna",
+    "urdu": "مال کا استعمال درج کرنا"
+   },
+   "description": "Record material used on site.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.ownerdelivery.view",
+   "module": "inventory",
+   "resource": "ownerdelivery",
+   "action": "view",
+   "label": {
+    "en": "View owner deliveries",
+    "roman": "Maalik ka maal dekhna",
+    "urdu": "مالک کا مال دیکھنا"
+   },
+   "description": "Material delivered by the client.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "inventory.ownerdelivery.create",
+   "module": "inventory",
+   "resource": "ownerdelivery",
+   "action": "create",
+   "label": {
+    "en": "Record owner deliveries",
+    "roman": "Maalik ka maal darj karna",
+    "urdu": "مالک کا مال درج کرنا"
+   },
+   "description": "Record material delivered by the client.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.invoice.view",
+   "module": "billing",
+   "resource": "invoice",
+   "action": "view",
+   "label": {
+    "en": "View billing",
+    "roman": "Billing dekhna",
+    "urdu": "بلنگ دیکھنا"
+   },
+   "description": "Billing stages, running-bill progress, invoices, project receivables, owner statement.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.invoice.create",
+   "module": "billing",
+   "resource": "invoice",
+   "action": "create",
+   "label": {
+    "en": "Prepare invoices",
+    "roman": "Bill tayyar karna",
+    "urdu": "بل تیار کرنا"
+   },
+   "description": "Mark stages ready, running-bill progress, draft invoices.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.invoice.approve",
+   "module": "billing",
+   "resource": "invoice",
+   "action": "approve",
+   "label": {
+    "en": "Issue / cancel invoices",
+    "roman": "Bill jari / mansookh karna",
+    "urdu": "بل جاری / منسوخ کرنا"
+   },
+   "description": "Issue or cancel invoices.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": true,
+   "field": false
+  },
+  {
+   "key": "billing.stage.manage",
+   "module": "billing",
+   "resource": "stage",
+   "action": "manage",
+   "label": {
+    "en": "Edit billing stages",
+    "roman": "Billing stages tabdeel karna",
+    "urdu": "بلنگ اسٹیجز تبدیل کرنا"
+   },
+   "description": "Change a billing stage.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.payment.view",
+   "module": "billing",
+   "resource": "payment",
+   "action": "view",
+   "label": {
+    "en": "View owner payments",
+    "roman": "Maalik ki adayegi dekhna",
+    "urdu": "مالک کی ادائیگی دیکھنا"
+   },
+   "description": "Payments received from clients, receipts.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.payment.create",
+   "module": "billing",
+   "resource": "payment",
+   "action": "create",
+   "label": {
+    "en": "Record owner payments",
+    "roman": "Maalik ki adayegi darj karna",
+    "urdu": "مالک کی ادائیگی درج کرنا"
+   },
+   "description": "Record a client payment (a company setting can still stop non-owners).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "billing.payment.manage",
+   "module": "billing",
+   "resource": "payment",
+   "action": "manage",
+   "label": {
+    "en": "Owner cheque status",
+    "roman": "Maalik ka cheque status",
+    "urdu": "مالک کا چیک اسٹیٹس"
+   },
+   "description": "Mark client cheques cleared or bounced.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.receivables.view",
+   "module": "finance",
+   "resource": "receivables",
+   "action": "view",
+   "label": {
+    "en": "Company receivables",
+    "roman": "Company ki wasooliyan",
+    "urdu": "کمپنی کی وصولیاں"
+   },
+   "description": "Receivables and ageing across all projects, billing events.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.cashflow.view",
+   "module": "finance",
+   "resource": "cashflow",
+   "action": "view",
+   "label": {
+    "en": "Cash-flow outlook",
+    "roman": "Cash-flow andaza",
+    "urdu": "کیش فلو اندازہ"
+   },
+   "description": "Cash-flow outlook.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.pnl.view",
+   "module": "finance",
+   "resource": "pnl",
+   "action": "view",
+   "label": {
+    "en": "Profit & loss",
+    "roman": "Nafa nuqsan",
+    "urdu": "نفع نقصان"
+   },
+   "description": "P&L of projects.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.reports.view",
+   "module": "finance",
+   "resource": "reports",
+   "action": "view",
+   "label": {
+    "en": "Reports",
+    "roman": "Reports",
+    "urdu": "رپورٹس"
+   },
+   "description": "Project reports (money columns follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.companyreports.view",
+   "module": "finance",
+   "resource": "companyreports",
+   "action": "view",
+   "label": {
+    "en": "Company money reports",
+    "roman": "Company ki maali reports",
+    "urdu": "کمپنی کی مالی رپورٹس"
+   },
+   "description": "Supplier ageing, receivables ageing and stock valuation reports.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "dashboard.overview.view",
+   "module": "dashboard",
+   "resource": "overview",
+   "action": "view",
+   "label": {
+    "en": "Office dashboard",
+    "roman": "Office dashboard",
+    "urdu": "آفس ڈیش بورڈ"
+   },
+   "description": "Company overview and labour overview.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "dashboard.site.view",
+   "module": "dashboard",
+   "resource": "site",
+   "action": "view",
+   "label": {
+    "en": "Site dashboard",
+    "roman": "Site dashboard",
+    "urdu": "سائٹ ڈیش بورڈ"
+   },
+   "description": "The site dashboard of a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "approvals.inbox.view",
+   "module": "approvals",
+   "resource": "inbox",
+   "action": "view",
+   "label": {
+    "en": "Approvals inbox",
+    "roman": "Approvals inbox",
+    "urdu": "منظوریوں کا ان باکس"
+   },
+   "description": "One inbox of everything waiting (items follow the matching approve permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "dailylog.log.view",
+   "module": "dailylog",
+   "resource": "log",
+   "action": "view",
+   "label": {
+    "en": "View daily logs",
+    "roman": "Rozana log dekhna",
+    "urdu": "روزانہ لاگ دیکھنا"
+   },
+   "description": "Daily logs of a project.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "dailylog.log.create",
+   "module": "dailylog",
+   "resource": "log",
+   "action": "create",
+   "label": {
+    "en": "Write daily logs",
+    "roman": "Rozana log likhna",
+    "urdu": "روزانہ لاگ لکھنا"
+   },
+   "description": "Write or change your daily log.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.material.view",
+   "module": "masterdata",
+   "resource": "material",
+   "action": "view",
+   "label": {
+    "en": "View materials",
+    "roman": "Materials dekhna",
+    "urdu": "میٹیریلز دیکھنا"
+   },
+   "description": "Material list (never rates).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.material.create",
+   "module": "masterdata",
+   "resource": "material",
+   "action": "create",
+   "label": {
+    "en": "Add materials",
+    "roman": "Material shamil karna",
+    "urdu": "میٹیریل شامل کرنا"
+   },
+   "description": "Add custom materials.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.material.edit",
+   "module": "masterdata",
+   "resource": "material",
+   "action": "edit",
+   "label": {
+    "en": "Edit materials",
+    "roman": "Material tabdeel karna",
+    "urdu": "میٹیریل تبدیل کرنا"
+   },
+   "description": "Change materials, see hidden ones.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.material.manage",
+   "module": "masterdata",
+   "resource": "material",
+   "action": "manage",
+   "label": {
+    "en": "Hide / delete materials",
+    "roman": "Material chupana / delete",
+    "urdu": "میٹیریل چھپانا / ڈیلیٹ"
+   },
+   "description": "Hide, show or delete materials.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.pricelist.view",
+   "module": "masterdata",
+   "resource": "pricelist",
+   "action": "view",
+   "label": {
+    "en": "View price list",
+    "roman": "Rate list dekhna",
+    "urdu": "ریٹ لسٹ دیکھنا"
+   },
+   "description": "Quality categories, material rates and rate history.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.pricelist.manage",
+   "module": "masterdata",
+   "resource": "pricelist",
+   "action": "manage",
+   "label": {
+    "en": "Manage price list",
+    "roman": "Rate list ka intezam",
+    "urdu": "ریٹ لسٹ کا انتظام"
+   },
+   "description": "Quality categories and material rates.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.laborrate.view",
+   "module": "masterdata",
+   "resource": "laborrate",
+   "action": "view",
+   "label": {
+    "en": "View labour rates",
+    "roman": "Mazdoori rates dekhna",
+    "urdu": "مزدوری ریٹس دیکھنا"
+   },
+   "description": "Labour rates and worker types.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.laborrate.manage",
+   "module": "masterdata",
+   "resource": "laborrate",
+   "action": "manage",
+   "label": {
+    "en": "Manage labour rates",
+    "roman": "Mazdoori rates ka intezam",
+    "urdu": "مزدوری ریٹس کا انتظام"
+   },
+   "description": "Labour rates and worker types.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.template.view",
+   "module": "masterdata",
+   "resource": "template",
+   "action": "view",
+   "label": {
+    "en": "View payment templates",
+    "roman": "Payment templates dekhna",
+    "urdu": "پیمنٹ ٹیمپلیٹس دیکھنا"
+   },
+   "description": "Billing-stage payment templates.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.template.manage",
+   "module": "masterdata",
+   "resource": "template",
+   "action": "manage",
+   "label": {
+    "en": "Manage payment templates",
+    "roman": "Payment templates ka intezam",
+    "urdu": "پیمنٹ ٹیمپلیٹس کا انتظام"
+   },
+   "description": "Create, change and delete payment templates.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.supplier.view",
+   "module": "masterdata",
+   "resource": "supplier",
+   "action": "view",
+   "label": {
+    "en": "View suppliers",
+    "roman": "Suppliers dekhna",
+    "urdu": "سپلائرز دیکھنا"
+   },
+   "description": "Supplier list and detail, supplier rates (rates also need fields.rates).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.supplier.create",
+   "module": "masterdata",
+   "resource": "supplier",
+   "action": "create",
+   "label": {
+    "en": "Add suppliers",
+    "roman": "Supplier shamil karna",
+    "urdu": "سپلائر شامل کرنا"
+   },
+   "description": "Add a supplier.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.supplier.edit",
+   "module": "masterdata",
+   "resource": "supplier",
+   "action": "edit",
+   "label": {
+    "en": "Edit suppliers",
+    "roman": "Supplier tabdeel karna",
+    "urdu": "سپلائر تبدیل کرنا"
+   },
+   "description": "Change a supplier.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.supplier.manage",
+   "module": "masterdata",
+   "resource": "supplier",
+   "action": "manage",
+   "label": {
+    "en": "Manage suppliers",
+    "roman": "Suppliers ka intezam",
+    "urdu": "سپلائرز کا انتظام"
+   },
+   "description": "Activate / deactivate suppliers, set supplier rates.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.worker.view",
+   "module": "masterdata",
+   "resource": "worker",
+   "action": "view",
+   "label": {
+    "en": "View workers",
+    "roman": "Mazdoor dekhna",
+    "urdu": "مزدور دیکھنا"
+   },
+   "description": "Workers directory.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.worker.create",
+   "module": "masterdata",
+   "resource": "worker",
+   "action": "create",
+   "label": {
+    "en": "Add workers",
+    "roman": "Naya mazdoor",
+    "urdu": "نیا مزدور"
+   },
+   "description": "Add a worker.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.worker.edit",
+   "module": "masterdata",
+   "resource": "worker",
+   "action": "edit",
+   "label": {
+    "en": "Edit workers",
+    "roman": "Mazdoor tabdeel karna",
+    "urdu": "مزدور تبدیل کرنا"
+   },
+   "description": "Change, deactivate and activate workers.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.subcontractor.view",
+   "module": "masterdata",
+   "resource": "subcontractor",
+   "action": "view",
+   "label": {
+    "en": "View sub-contractors",
+    "roman": "Thekedar (sub) dekhna",
+    "urdu": "ذیلی ٹھیکیدار دیکھنا"
+   },
+   "description": "Sub-contractor list.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.subcontractor.create",
+   "module": "masterdata",
+   "resource": "subcontractor",
+   "action": "create",
+   "label": {
+    "en": "Add sub-contractors",
+    "roman": "Thekedar (sub) shamil karna",
+    "urdu": "ذیلی ٹھیکیدار شامل کرنا"
+   },
+   "description": "Add a sub-contractor.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "masterdata.subcontractor.edit",
+   "module": "masterdata",
+   "resource": "subcontractor",
+   "action": "edit",
+   "label": {
+    "en": "Edit sub-contractors",
+    "roman": "Thekedar (sub) tabdeel karna",
+    "urdu": "ذیلی ٹھیکیدار تبدیل کرنا"
+   },
+   "description": "Change, deactivate and activate sub-contractors.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "team.member.view",
+   "module": "team",
+   "resource": "member",
+   "action": "view",
+   "label": {
+    "en": "View team members",
+    "roman": "Team dekhna",
+    "urdu": "ٹیم دیکھنا"
+   },
+   "description": "List of company users.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "team.member.manage",
+   "module": "team",
+   "resource": "member",
+   "action": "manage",
+   "label": {
+    "en": "Manage team & permissions",
+    "roman": "Team aur ijazat ka intezam",
+    "urdu": "ٹیم اور اجازت کا انتظام"
+   },
+   "description": "Invite, edit, deactivate users, devices, roles and permissions (never an owner, never owner-only permissions).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "company.profile.view",
+   "module": "company",
+   "resource": "profile",
+   "action": "view",
+   "label": {
+    "en": "View company profile",
+    "roman": "Company profile dekhna",
+    "urdu": "کمپنی پروفائل دیکھنا"
+   },
+   "description": "Company name, NTN, logo, contact.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "company.settings.manage",
+   "module": "company",
+   "resource": "settings",
+   "action": "manage",
+   "label": {
+    "en": "Company profile & settings",
+    "roman": "Company profile aur settings",
+    "urdu": "کمپنی پروفائل اور سیٹنگز"
+   },
+   "description": "Change the company profile and settings.",
+   "ownerOnly": true,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "company.audit.view",
+   "module": "company",
+   "resource": "audit",
+   "action": "view",
+   "label": {
+    "en": "View audit log",
+    "roman": "Audit log dekhna",
+    "urdu": "آڈٹ لاگ دیکھنا"
+   },
+   "description": "Who changed what in the company, including platform support sessions.",
+   "ownerOnly": true,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "company.holiday.manage",
+   "module": "company",
+   "resource": "holiday",
+   "action": "manage",
+   "label": {
+    "en": "Manage holidays",
+    "roman": "Chhuttiyon ka intezam",
+    "urdu": "چھٹیوں کا انتظام"
+   },
+   "description": "Add or delete company holidays.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "subscription.manage",
+   "module": "subscription",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Subscription & payments",
+    "roman": "Subscription aur adayegi",
+    "urdu": "سبسکرپشن اور ادائیگی"
+   },
+   "description": "Plan, subscription payments, plan changes.",
+   "ownerOnly": true,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "fields.rates",
+   "module": "fields",
+   "resource": "field",
+   "action": "view",
+   "label": {
+    "en": "See rates & stock values",
+    "roman": "Rates aur stock ki qeemat dekhna",
+    "urdu": "ریٹس اور اسٹاک کی قیمت دیکھنا"
+   },
+   "description": "Material / supplier / sub-contract rates, purchase amounts, stock values, supplier balances.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": true
+  },
+  {
+   "key": "fields.amounts",
+   "module": "fields",
+   "resource": "field",
+   "action": "view",
+   "label": {
+    "en": "See billing & money amounts",
+    "roman": "Billing aur raqam dekhna",
+    "urdu": "بلنگ اور رقم دیکھنا"
+   },
+   "description": "Billing amounts, invoices, receivables, money KPIs.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": true
+  },
+  {
+   "key": "fields.profit",
+   "module": "fields",
+   "resource": "field",
+   "action": "view",
+   "label": {
+    "en": "See profit",
+    "roman": "Nafa dekhna",
+    "urdu": "نفع دیکھنا"
+   },
+   "description": "Profit, margins and own money invested.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": true
+  },
+  {
+   "key": "fields.contract",
+   "module": "fields",
+   "resource": "field",
+   "action": "view",
+   "label": {
+    "en": "See contract values",
+    "roman": "Theke ki raqam dekhna",
+    "urdu": "ٹھیکے کی رقم دیکھنا"
+   },
+   "description": "Project contract value, rate and stage amounts.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": true
+  }
+ ],
+ "templates": [
+  {
+   "key": "PROJECT_MANAGER",
+   "name": {
+    "en": "Project Manager",
+    "roman": "Project Manager",
+    "urdu": "پراجیکٹ مینیجر"
+   },
+   "baseRole": "PM",
+   "description": "Office user: projects, team on site, purchases, rates and approvals of assigned projects. No billing or profit (add them per user).",
+   "permissions": [
+    "projects.project.view",
+    "labor.team.view",
+    "labor.team.create",
+    "labor.attendance.view",
+    "labor.attendance.create",
+    "labor.measurement.view",
+    "labor.measurement.create",
+    "labor.advance.view",
+    "labor.advance.create",
+    "labor.settlement.view",
+    "labor.settlement.create",
+    "labor.wagepayment.create",
+    "cashbook.account.view",
+    "cashbook.expense.view",
+    "cashbook.expense.create",
+    "cashbook.topup.view",
+    "cashbook.topup.create",
+    "cashbook.count.create",
+    "cashbook.handover.create",
+    "procurement.purchase.view",
+    "procurement.purchase.create",
+    "procurement.receiving.create",
+    "procurement.dispatch.view",
+    "inventory.stock.view",
+    "inventory.count.view",
+    "inventory.count.create",
+    "inventory.usage.create",
+    "inventory.ownerdelivery.view",
+    "inventory.ownerdelivery.create",
+    "dashboard.site.view",
+    "dailylog.log.view",
+    "dailylog.log.create",
+    "masterdata.material.view",
+    "masterdata.laborrate.view",
+    "masterdata.worker.view",
+    "masterdata.worker.create",
+    "masterdata.subcontractor.view",
+    "projects.project.create",
+    "projects.project.edit",
+    "projects.project.approve",
+    "clients.client.view",
+    "clients.client.create",
+    "clients.client.edit",
+    "labor.team.edit",
+    "labor.measurement.approve",
+    "labor.settlement.edit",
+    "labor.settlement.approve",
+    "labor.subcontract.create",
+    "labor.subcontract.edit",
+    "labor.subcontractpayment.create",
+    "labor.account.view",
+    "cashbook.float.view",
+    "cashbook.expense.approve",
+    "procurement.order.view",
+    "procurement.order.create",
+    "procurement.purchase.edit",
+    "procurement.return.view",
+    "procurement.return.create",
+    "procurement.dispatch.create",
+    "procurement.shortage.view",
+    "procurement.ledger.view",
+    "procurement.payment.view",
+    "inventory.store.view",
+    "finance.reports.view",
+    "dashboard.overview.view",
+    "approvals.inbox.view",
+    "masterdata.material.create",
+    "masterdata.material.edit",
+    "masterdata.pricelist.view",
+    "masterdata.template.view",
+    "masterdata.supplier.view",
+    "masterdata.supplier.create",
+    "masterdata.supplier.edit",
+    "masterdata.worker.edit",
+    "masterdata.subcontractor.create",
+    "masterdata.subcontractor.edit",
+    "team.member.view",
+    "company.profile.view",
+    "fields.rates"
+   ]
+  },
+  {
+   "key": "MUNSHI",
+   "name": {
+    "en": "Munshi",
+    "roman": "Munshi",
+    "urdu": "منشی"
+   },
+   "baseRole": "MUNSHI",
+   "description": "Site supervisor on the mobile app: hazri, material, site cash, daily logs of assigned projects. Never rates or money totals.",
+   "permissions": [
+    "projects.project.view",
+    "labor.team.view",
+    "labor.team.create",
+    "labor.attendance.view",
+    "labor.attendance.create",
+    "labor.measurement.view",
+    "labor.measurement.create",
+    "labor.advance.view",
+    "labor.advance.create",
+    "labor.settlement.view",
+    "labor.settlement.create",
+    "labor.wagepayment.create",
+    "cashbook.account.view",
+    "cashbook.expense.view",
+    "cashbook.expense.create",
+    "cashbook.topup.view",
+    "cashbook.topup.create",
+    "cashbook.count.create",
+    "cashbook.handover.create",
+    "procurement.purchase.view",
+    "procurement.purchase.create",
+    "procurement.receiving.create",
+    "procurement.dispatch.view",
+    "inventory.stock.view",
+    "inventory.count.view",
+    "inventory.count.create",
+    "inventory.usage.create",
+    "inventory.ownerdelivery.view",
+    "inventory.ownerdelivery.create",
+    "dashboard.site.view",
+    "dailylog.log.view",
+    "dailylog.log.create",
+    "masterdata.material.view",
+    "masterdata.laborrate.view",
+    "masterdata.worker.view",
+    "masterdata.worker.create",
+    "masterdata.subcontractor.view"
+   ]
+  },
+  {
+   "key": "ACCOUNTANT",
+   "name": {
+    "en": "Accountant",
+    "roman": "Accountant",
+    "urdu": "اکاؤنٹنٹ"
+   },
+   "baseRole": "OTHER",
+   "description": "Office accounts: billing, owner and supplier payments, cash, receivables and reports across all projects. No project or site changes.",
+   "permissions": [
+    "projects.project.view",
+    "clients.client.view",
+    "labor.settlement.view",
+    "labor.advance.view",
+    "labor.account.view",
+    "cashbook.account.view",
+    "cashbook.float.view",
+    "cashbook.expense.view",
+    "cashbook.topup.view",
+    "procurement.purchase.view",
+    "procurement.return.view",
+    "procurement.ledger.view",
+    "procurement.payment.view",
+    "billing.invoice.view",
+    "billing.invoice.create",
+    "billing.payment.view",
+    "billing.payment.create",
+    "finance.pnl.view",
+    "finance.reports.view",
+    "dashboard.overview.view",
+    "approvals.inbox.view",
+    "masterdata.supplier.view",
+    "company.profile.view",
+    "fields.rates",
+    "fields.amounts",
+    "fields.contract"
+   ]
+  },
+  {
+   "key": "STORE_KEEPER",
+   "name": {
+    "en": "Store Keeper",
+    "roman": "Store Keeper",
+    "urdu": "اسٹور کیپر"
+   },
+   "baseRole": "OTHER",
+   "description": "Material: purchases at the store and sites, receiving, dispatch, stock counts and usage of assigned projects. No rates.",
+   "permissions": [
+    "projects.project.view",
+    "procurement.purchase.view",
+    "procurement.purchase.create",
+    "procurement.receiving.create",
+    "procurement.dispatch.view",
+    "procurement.dispatch.create",
+    "procurement.shortage.view",
+    "inventory.stock.view",
+    "inventory.store.view",
+    "inventory.store.manage",
+    "inventory.count.view",
+    "inventory.count.create",
+    "inventory.usage.create",
+    "inventory.ownerdelivery.view",
+    "inventory.ownerdelivery.create",
+    "dashboard.site.view",
+    "dailylog.log.view",
+    "dailylog.log.create",
+    "masterdata.material.view"
+   ]
+  }
+ ],
+ "financialBundle": [
+  "billing.invoice.view",
+  "billing.invoice.create",
+  "billing.payment.view",
+  "billing.payment.create",
+  "finance.pnl.view",
+  "fields.amounts",
+  "fields.profit",
+  "fields.contract"
+ ]
+}

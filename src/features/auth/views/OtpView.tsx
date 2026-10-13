@@ -53,7 +53,7 @@ export function OtpView() {
     setError(null);
     try {
       await verify({ phone, code: value }).unwrap();
-      await afterLogin();
+      await afterLogin(undefined, "otp");
     } catch (err) {
       const errCode = errorCode(err);
       if (errCode === "MULTIPLE_COMPANIES") {

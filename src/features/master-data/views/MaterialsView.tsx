@@ -33,8 +33,9 @@ import { MaterialSlideOver } from "../components/MaterialSlideOver";
 
 export function MaterialsView() {
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
-  const canHide = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const canCreate = useCan("masterdata.material.create") && !readOnly;
+  const canEdit = useCan("masterdata.material.edit") && !readOnly;
+  const canHide = useCan("masterdata.material.manage") && !readOnly;
   const [search, setSearch] = useState("");
   const [supplyCategory, setSupplyCategory] = useState("");
   const [showHidden, setShowHidden] = useState(false);
@@ -79,7 +80,7 @@ export function MaterialsView() {
     { id: "status", header: "Status", cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
     {
       ...ACTIONS_COLUMN,
-      hidden: !canEdit,
+      hidden: !canEdit && !canHide,
       cell: (m) => (
         <RowActions
           name={m.name}
@@ -117,7 +118,7 @@ export function MaterialsView() {
         description="Your company's material catalog. Rates are set per quality category in the Price List."
         breadcrumbs={[{ label: "Settings" }, { label: "Materials" }]}
         actions={
-          canEdit ? (
+          canCreate ? (
             <Button onClick={() => setAddOpen(true)}>
               <Plus data-icon="inline-start" />
               Add material

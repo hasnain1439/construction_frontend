@@ -3,7 +3,7 @@ import { PurchaseReturnsView } from "@/features/procurement/views/PurchaseReturn
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR", "PM"]}>
+    <RequireAccess permission="procurement.return.view">
       <PurchaseReturnsView />
     </RequireAccess>
   );

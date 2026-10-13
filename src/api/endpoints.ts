@@ -42,6 +42,7 @@ export const ENDPOINTS = {
     settings: "/company/settings",
     holidays: "/company/holidays",
     holidayById: (holidayId: string) => `/company/holidays/${id(holidayId)}`,
+    auditLogs: "/company/audit-logs",
   },
 
   users: {
@@ -52,6 +53,21 @@ export const ENDPOINTS = {
     /** A munshi's one-time sign-in code (when SMS doesn't arrive). */
     loginCode: (userId: string) => `/users/${id(userId)}/login-code`,
     password: (userId: string) => `/users/${id(userId)}/password`,
+    /** Effective permissions with the source of each (GET), overrides (PUT), role (PATCH). */
+    permissions: (userId: string) => `/users/${id(userId)}/permissions`,
+    permissionOverrides: (userId: string) => `/users/${id(userId)}/permission-overrides`,
+    role: (userId: string) => `/users/${id(userId)}/role`,
+  },
+
+  permissions: {
+    catalog: "/permissions/catalog",
+  },
+
+  roles: {
+    list: "/roles",
+    byId: (roleId: string) => `/roles/${id(roleId)}`,
+    duplicate: (roleId: string) => `/roles/${id(roleId)}/duplicate`,
+    permissions: (roleId: string) => `/roles/${id(roleId)}/permissions`,
   },
 
   invitations: {
@@ -304,6 +320,11 @@ export const ENDPOINTS = {
     holidays: "/admin/holidays",
     holidayById: (holidayId: string) => `/admin/holidays/${id(holidayId)}`,
     auditLogs: "/admin/audit-logs",
+    /** Support sessions (act-as): start with a reason, switch mode, end. */
+    actAsSessions: "/admin/act-as-sessions",
+    actAsSessionById: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}`,
+    actAsSessionMode: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}/mode`,
+    actAsSessionEnd: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}/end`,
     materialGroups: "/admin/material-groups",
     materials: "/admin/materials",
     materialById: (materialId: string) => `/admin/materials/${id(materialId)}`,

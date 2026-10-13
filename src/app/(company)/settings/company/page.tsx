@@ -9,7 +9,7 @@ import { CompanyProfileForm } from "@/features/company/components/CompanyProfile
 export default function CompanyProfilePage() {
   const query = useGetCompanyQuery();
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="company.settings.manage">
       <PageHeader title="Company Profile" breadcrumbs={[{ label: "Settings" }, { label: "Company Profile" }]} />
       <QueryState query={query}>{(company) => <CompanyProfileForm company={company} />}</QueryState>
     </RequireAccess>

@@ -5,7 +5,7 @@ import { ClientsView } from "@/features/clients/views";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM"]}>
+      <RequireAccess permission="clients.client.view">
         <ClientsView />
       </RequireAccess>
     </Suspense>

@@ -3,7 +3,7 @@
 Next.js web app for the multi-tenant Construction Management SaaS (Pakistani building contractors).
 It talks to the Express API in `../construction-platform` and only builds screens for what that
 backend already does (Phase 1, steps 1–10). Everything else in the menu opens a
-"Coming in the next phase" page. What changed and when: [CHANGELOG.md](CHANGELOG.md).
+"Coming in the next phase" page. What changed and when: [CHANGELOG.md](CHANGELOG.md). Docker / deployment: [Deployment](#deployment-docker-cicd).
 
 **Stack** — Next.js 16 (App Router, Turbopack) · React 19 · TypeScript 5.9 (strict) · Tailwind CSS 4 ·
 shadcn/ui (Radix) · lucide-react · Redux Toolkit + RTK Query · React Hook Form + Zod · date-fns(-tz) ·
@@ -29,6 +29,11 @@ npm run dev                      # http://localhost:3000
 | ------------------------- | ----------------------- | ------------------------------------------------------- |
 | `API_ORIGIN`              | `http://localhost:4000` | Where `/api/v1/*` is proxied (next.config.ts rewrites). |
 | `NEXT_PUBLIC_APP_VERSION` | `1.0.0`                 | Shown in the sticky footer.                             |
+| `API_PUBLIC_URL`          | `API_ORIGIN`            | Optional: origin of signed file links, allowed in the CSP. |
+| `NEXT_PUBLIC_SENTRY_DSN`  | empty (off)             | Optional: Sentry for the browser and the Next.js server. See [Observability](#observability). |
+| `SENTRY_DSN`              | `NEXT_PUBLIC_SENTRY_DSN` | Optional: server-only DSN override. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | empty (off)             | Optional: PostHog project key (`login` event only). |
+| `NEXT_PUBLIC_POSTHOG_HOST`| `https://us.i.posthog.com` | Optional: PostHog host. |
 
 The browser never calls the API origin directly. `next.config.ts` rewrites `/api/v1/:path*` to
 `${API_ORIGIN}/api/v1/:path*`, so the backend's httpOnly cookies (`access_token`, `refresh_token`,
@@ -147,6 +152,8 @@ tests/unit/ · e2e/
 - **Remember me** on login (ticked by default). Unticked, the API sets session cookies that end when the browser closes.
 - **Invite link sharing** after inviting or re-sending (Team → Invitations) and for the owner invite on the super
   admin's create-company screen.
+- **Team → Roles & Permissions** — access by permission keys, role templates and per-member overrides; see
+  [Roles & permissions](#roles--permissions).
 - **Super admin Company data** workspace — see [below](#super-admin-company-data).
 
 ## Procurement & Inventory (Phase 1 · Step 6)
@@ -239,16 +246,95 @@ Site entries now also come from the **Munshi phone app** (`../construction-mobil
 
 New: `components/common/LateSyncBadge.tsx`, `features/site/DailyLogsView.tsx`, `api/services/dailyLogs.api.ts` (`getDailyLogs`, `getDailyLog`, `getSyncStatus`; tags `DailyLogs`, `SyncStatus`), `api/types/sync.ts`, endpoints `ENDPOINTS.dailyLogs.*` and `ENDPOINTS.sync.status`. `lateSync?: boolean` was added to `AttendanceMark`, today's hazri rows, `CashEntry`, `Purchase`, `PurchaseListRow` and `Dispatch`. Navigation: _Daily Logs & Photos_ is now available. API types regenerated (`npm run api:types`).
 
+## Roles & permissions
+
+Access is decided by **permission keys** from `/auth/me` (`<module>.<resource>.<action>`, e.g.
+`labor.settlement.approve`), never by the account role. Backend contract: `../PERMISSIONS_API.md`.
+
+- **THEKEDAR = every key** (also checked client-side, so an owner is never locked out by a stale snapshot). PM /
+  MUNSHI get their role template + ALLOW overrides − DENY overrides, resolved by the API.
+- `lib/permissions.ts`: `can(me, key)`, `canAny`, `canAll`, `canSeeField(me, "rates" | "amounts" | "profit" |
+  "contract")` (from `fieldAccess`), `scopeOf`, `approvalLimitOf`, `withinLimit`, and `canAccess(me, rule)` for rules
+  `{ permission?, anyPermission?, allPermissions? }`. `lib/permissionKeys.ts` lists every key as a typed union, so a
+  typo fails `tsc` (a unit test keeps it equal to the catalogue).
+- Hooks (`components/common/PermissionGate.tsx`): `useCan("key")` / `useCan(rule)`, `usePermissions()` (`can`,
+  `canSee`, `scope`, `limit`, `withinLimit`) and `useApprovalLimitHint()` (translated reason to disable an Approve
+  button). `<PermissionGate permission="…">` hides; `<RequireAccess permission="…">` guards a page.
+- `lib/navigation.ts`: every nav item, project item and "+ Create" action has a key rule; `visibleSections(me, NAV)`
+  drops sections without a visible item. `user.role` is only used for rules that stay with the account type (a
+  MUNSHI's 7-day hazri window, site cash only, blind counts).
+- **403 `PERMISSION_DENIED`**, `APPROVAL_LIMIT_EXCEEDED` and the role errors have friendly messages in
+  `lib/apiErrors.ts` (Urdu script too). The error listener refreshes `/auth/me` (at most every 10 s) and shows one
+  toast for refused page data; mutations toast through `useMutationToast`.
+- **Team → Roles & Permissions** (`/team/roles`, needs `team.member.manage`): role list (system templates badged
+  _Template_ and read-only; _Duplicate_, _Rename_, _New role_ from a template or empty). `/team/roles/:id` is the
+  matrix editor (`features/team/components/PermissionMatrix.tsx`): modules as rows, actions (view / create / edit /
+  approve / manage) as columns, a checkbox per existing key, a project-scope select on scoped keys, an approval
+  limit (Rs) on limit keys, owner-only keys shown disabled, plus the four **data visibility** toggles. Labels come
+  from `GET /permissions/catalog` in the current language (pure helpers in `lib/permissionCatalog.ts`). Saving
+  sends the full list (`PUT /roles/:id/permissions`).
+- **Member slide-over → Role & permissions** (`MemberPermissions.tsx`): permission role select
+  (`PATCH /users/:id/role`), extra / removed permissions (ALLOW / DENY overrides,
+  `PUT /users/:id/permission-overrides`, with an "Add financial access" shortcut for the old _canSeeFinancials_
+  bundle) and an **effective permissions** preview with the source of each key. The invite form adds an optional
+  **Permission role** (`roleId`).
+- RTK Query: `api/services/permissions.api.ts` (`getPermissionCatalog`, `getRoles`, `getRole`, `createRole`,
+  `duplicateRole`, `updateRole`, `setRolePermissions`, `getUserPermissions`, `setUserOverrides`, `setUserRole`; tags
+  `PermissionCatalog`, `Roles`, `UserPermissions`). Changes also invalidate `Me`.
+- Tests: `tests/unit/lib/permissions.test.ts`, `lib/navigationPermissions.test.ts`,
+  `components/PermissionHooks.test.tsx`, `components/PermissionMatrix.test.tsx`. Fixtures build `/auth/me` from the
+  real templates (`tests/unit/permissionTemplates.ts`, `catalogFixture.json` — refresh them when the catalogue
+  changes).
+
 ## Super admin: Company data
 
-Platform console → **Company Data** (`/admin/data`): pick a company in the bar at the top and work in **that company's own screens** — Dashboard, Projects (and inside a project: Planning, Site, Labor, Cash Book, Billing), Sales, Suppliers & Stock, Workforce, Finance, Reports, Team, Settings — to view, add, edit and delete. **Exit** leaves the company. Company detail (`/admin/companies/:id`) also has read-only tabs: Projects, Team & devices, Activity & money.
+Platform console → **Company Data** (`/admin/data`): pick a company in the bar at the top, give a **reason** (5–300 characters, shown to the owner) and a length (default 60 minutes), and work in **that company's own screens** — Dashboard, Projects (and inside a project: Planning, Site, Labor, Cash Book, Billing), Sales, Suppliers & Stock, Workforce, Finance, Reports, Team, Settings. The **support session** starts **read-only**; to add, edit or delete, switch to **write mode** in the red banner with a second reason. **End** (banner) or the ✕ next to the company ends the session. Company detail (`/admin/companies/:id`) also has read-only tabs: Projects, Team & devices, Activity & money.
 
 How it works:
 
 - `/admin/data/<company path>` renders the company app's page for `<company path>` (`app/admin/(console)/data/[[...path]]`). The list of pages is generated: run `npm run routes:company` after adding or moving a page under `(company)` or `(project)` (a unit test fails when it is out of date).
-- The chosen company is the `act_as_tenant` cookie (`lib/actingCompany.ts`). While it is set (and the admin is signed in), the company API sends `X-Act-As-Tenant` with the admin's session and refreshes through the admin refresh endpoint; the proxy sends company links (`/projects/…`) to `/admin/data/…`, so every page's own links stay in the console.
-- Switching company or exiting clears the company cache, so one company's data never shows in another. Admin logout clears the choice too.
+- Picking a company opens `StartActAsDialog` → `POST /admin/act-as-sessions`; the owner gets an app notification and an email.
+- The chosen company and the session are the `act_as_tenant` + `act_as_session` cookies (`lib/actingCompany.ts`). While both are set (and the admin is signed in), the company API sends `X-Act-As-Tenant` + `X-Act-As-Session` with the admin's session and refreshes through the admin refresh endpoint; the proxy sends company links (`/projects/…`) to `/admin/data/…`, so every page's own links stay in the console.
+- `ActAsBanner` (in `AdminShell`, every admin page): "Acting as <company> · read-only · 42 min left · End", the write-mode switch (reason dialog) and back to read-only. When the session expires or is ended elsewhere, the banner (or any `403 ACT_AS_SESSION_*` answer, `baseApi`) leaves the company with a toast. Writes in read-only mode get `403 ACT_AS_READ_ONLY` (shown as a toast).
+- **Support Sessions** (`/admin/support-sessions`): every session with company, admin, reason, write reason, mode and status (live / expired / ended); filter by company and status; end a live one.
+- The company owner sees every session in **Settings → Audit log** (`/settings/audit-log`, `company.audit.view`): who, what and the support person's reason; filter "Platform support only".
+- Switching company or exiting clears the company cache, so one company's data never shows in another. Admin logout ends the session and clears the choice too.
 - Changes are made as the company's hidden "Super Admin (Platform)" user and logged with the admin's name (see the backend README).
+
+## Deployment (Docker, CI/CD)
+
+Full guide (VPS, DNS, HTTPS with Caddy, env files, releases, rollback): **[construction-platform/docs/DEPLOYMENT.md](../construction-platform/docs/DEPLOYMENT.md)** — the compose stack lives in the API repo.
+
+- `next.config.ts` has `output: "standalone"`: `next build` also writes `.next/standalone/server.js`, which the `Dockerfile` runs (Node 24 alpine, user `node`, `HEALTHCHECK` on `GET /api/health`). `npm run dev` / `npm start` are unchanged.
+- `API_ORIGIN`, `API_PUBLIC_URL` and every `NEXT_PUBLIC_*` value are **baked in at build time** (rewrites, CSP, browser code), so they are Docker **build args** and each environment gets its own image: `construction-web:staging-<sha>` / `production-<sha>`. In the compose stack `API_ORIGIN=http://api:4000`. Runtime env: only `SENTRY_DSN` (server-side override).
+- `SENTRY_AUTH_TOKEN` (source maps) is passed as a BuildKit secret: `docker build --secret id=sentry_auth_token,env=SENTRY_AUTH_TOKEN …`.
+- GitHub Actions: `.github/workflows/ci.yml` (pull requests: typecheck, lint, unit tests, build), `release.yml` (main → staging image → deploy over SSH), `deploy-production.yml` (manual, `production` environment approval). Required secrets / variables: DEPLOYMENT.md → GitHub set-up.
+
+```bash
+docker build -t construction-web --build-arg API_ORIGIN=http://host.docker.internal:4000 .   # API on your machine
+docker run --rm -p 3000:3000 construction-web          # http://localhost:3000/api/health → {"status":"ok"}
+```
+
+## Observability
+
+Optional and **off by default**: with the env keys empty, `Sentry.init` is never called, posthog-js is never downloaded and the CSP `connect-src` stays `'self'`. Code: `src/instrumentation.ts` (Next.js server), `src/instrumentation-client.ts` (browser), `src/lib/observability/` (`sentry.ts`, `scrub.ts`, `analytics.ts`, `identity.ts`, `hash.ts`). Same contract as the API (see its README "Observability").
+
+### Sentry (errors + performance, `@sentry/nextjs`)
+
+- `NEXT_PUBLIC_SENTRY_DSN` on → browser + server (`SENTRY_DSN` overrides on the server). Also `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_RELEASE`, `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` (default 0.1). Render / route-handler errors via `onRequestError`; page navigations via `onRouterTransitionStart`. No session replay.
+- **No PII**: `sendDefaultPii: false`; `beforeSend` / `beforeSendTransaction` / `beforeBreadcrumb` run `scrub.ts`, which drops request bodies, cookies and env, filters `Authorization` / `Cookie` / token / act-as / forwarded-for headers and secret-looking query values (token, code, sig, phone, email …), hides invite / reset tokens in paths, and masks emails, Pakistani / E.164 phones, JWTs, `Bearer` values, long tokens and `Rs` amounts in messages, exceptions, breadcrumbs and extras. The Sentry user is `{ id: <hashed user id> }` only, plus a `tenantId` tag.
+- **Build**: `withSentryConfig` (source-map upload) wraps `next.config.ts` **only when `SENTRY_AUTH_TOKEN` is set** (with `SENTRY_ORG`, `SENTRY_PROJECT`); otherwise the build is unchanged.
+
+### Product analytics (PostHog, `posthog-js`)
+
+- `NEXT_PUBLIC_POSTHOG_KEY` (+ optional `NEXT_PUBLIC_POSTHOG_HOST`) on → `track(event, props)` in `lib/observability/analytics.ts` lazily imports and initialises posthog-js on first use. Autocapture, page views / leaves, session recording, heatmaps, surveys, feature flags and external script loading are all **off**; `before_send` drops any event outside the shared list and strips query strings from URLs.
+- The web sends only **`login`** (after every successful sign-in: password, OTP, signup, invite, company pick) with `client: "web"`, `method`, `role`. Business events (`project_activated`, `hazri_marked`, `purchase_saved`, `invoice_issued`, `sync_error`) come from the API.
+- Person = first 32 hex of SHA-256(`"user:" + userId`) (same as API and mobile); company = group `company` keyed by the tenant id. Sign-out resets both.
+- Props allow-list: `client, platform, method, source, role, status, kind, count, error_code, app_version, offline, duration_ms`; numbers only for `count` / `duration_ms`; strings that look like an email, phone, token or amount are dropped. **No money values, names, phones or emails.**
+
+### CSP
+
+`src/lib/securityHeaders.ts` adds to `connect-src` the Sentry ingest origin taken from the DSN (no key or path) and the PostHog host (plus `us-` / `eu-assets.i.posthog.com` on PostHog Cloud), **only when their env is set** at build / start time.
 
 ## Rules of the codebase
 
@@ -261,8 +347,9 @@ How it works:
    response schema yet, the shape is written once in `src/api/types/*` from the backend DTOs.
 5. **Money is paisa strings.** Use `lib/money.ts` (`formatPKR`, `formatPKRShort`, `rupeesToPaisa`,
    `paisaToRupees`) and `MoneyInput` / `MoneyText`. Never `Number()` a contract value.
-6. **Permissions hide, never disable.** `PermissionGate`, `useCan`, `RequireAccess`; omitted financial
-   fields render `HiddenForRole`.
+6. **Permissions hide, never disable.** Gate on permission keys (`useCan("…")`, `PermissionGate`,
+   `RequireAccess`), never on `user.role`; omitted financial fields render `HiddenForRole`. The one exception: an
+   Approve button above the user's approval limit is disabled with the reason (`useApprovalLimitHint`).
 7. **Every list** has skeleton / empty / error states; **every mutation** toasts (`useMutationToast`);
    **every destructive action** goes through `ConfirmDialog`.
 
@@ -290,6 +377,8 @@ npm run typecheck
 ```
 
 ## Auth in short
+
+**Security headers** (every page, `next.config.ts` → `src/lib/securityHeaders.ts`): Content-Security-Policy (self + the API file origin + Cloudinary; `frame-ancestors 'none'`; dev adds `'unsafe-eval'` + websockets for hot reload), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, COOP and HSTS in production. A new external origin (CDN, analytics, maps) must be added there or the browser blocks it. Overview: [../construction-platform/docs/SECURITY.md](../construction-platform/docs/SECURITY.md).
 
 - Web sign-in uses the backend's cookies (`client: "web"`); nothing is stored in localStorage.
 - `proxy.ts` only checks that a cookie exists. The shells call `GET /auth/me` (or `/admin/auth/me`).

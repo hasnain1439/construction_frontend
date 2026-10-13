@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useT } from "@/i18n/useT";
-import { isThekedar } from "@/lib/permissions";
+import { can } from "@/lib/permissions";
 import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { hidePlanLimit } from "@/store/slices/uiSlice";
 
@@ -43,7 +43,7 @@ export function PlanLimitDialog() {
           <Button variant="outline" onClick={close}>
             {t("shell.notNow")}
           </Button>
-          {isThekedar(me) ? (
+          {can(me, "subscription.manage") ? (
             <Button
               onClick={() => {
                 close();

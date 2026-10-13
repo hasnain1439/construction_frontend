@@ -9,7 +9,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { DocumentHeader } from "@/components/common/DocumentHeader";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { usePermissions } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { LateSyncBadge } from "@/components/common/LateSyncBadge";
@@ -110,8 +110,10 @@ function Payment({ purchase }: { purchase: Purchase }) {
 
 function PurchaseBody({ purchase }: { purchase: Purchase }) {
   const readOnly = useReadOnly();
-  const office = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const { can } = usePermissions();
+  const canRate = can("procurement.purchase.edit") && !readOnly;
+  const canReturn = can("procurement.return.create") && !readOnly;
+  const owner = can("procurement.purchase.manage") && !readOnly;
   const [open, setOpen] = useState<"return" | "rates" | "correct" | null>(null);
   const final = FINAL.includes(purchase.status);
 
@@ -122,13 +124,13 @@ function PurchaseBody({ purchase }: { purchase: Purchase }) {
         breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Purchases", href: "/suppliers-stock/purchases" }, { label: purchase.number }]}
         actions={
           <>
-            {office && purchase.status === "PENDING_RATE" ? (
+            {canRate && purchase.status === "PENDING_RATE" ? (
               <Button onClick={() => setOpen("rates")}>
                 <Tag data-icon="inline-start" />
                 Add rates
               </Button>
             ) : null}
-            {office && final ? (
+            {canReturn && final ? (
               <Button variant="outline" onClick={() => setOpen("return")}>
                 <Undo2 data-icon="inline-start" />
                 Create return

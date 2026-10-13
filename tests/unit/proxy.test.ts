@@ -46,7 +46,11 @@ describe("proxy (route guard by cookie presence)", () => {
 });
 
 describe("proxy: super admin working inside a company (Company data)", () => {
-  const acting = { admin_access_token: "jwt", act_as_tenant: "01a10000-0000-7000-8000-000000000001" };
+  const acting = {
+    admin_access_token: "jwt",
+    act_as_tenant: "01a10000-0000-7000-8000-000000000001",
+    act_as_session: "01a10000-0000-7000-8000-0000000000f0",
+  };
 
   it("sends company links into the admin console", () => {
     expect(location(proxy(req("/suppliers-stock/purchases/abc?tab=x", acting)))).toBe(
@@ -60,6 +64,11 @@ describe("proxy: super admin working inside a company (Company data)", () => {
       location(proxy(req("/dashboard", { access_token: "jwt", act_as_tenant: acting.act_as_tenant }))),
     ).toBeNull();
     expect(location(proxy(req("/dashboard", { admin_access_token: "jwt", access_token: "jwt" })))).toBeNull();
+  });
+
+  it("does nothing without a support session (the company alone is not enough)", () => {
+    const { act_as_session: _session, ...noSession } = acting;
+    expect(location(proxy(req("/dashboard", { ...noSession, access_token: "jwt" })))).toBeNull();
   });
 
   it("leaves admin and public pages alone", () => {

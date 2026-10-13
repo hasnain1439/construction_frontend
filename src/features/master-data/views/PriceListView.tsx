@@ -137,7 +137,7 @@ function CategoryTabs({
 
 export function PriceListView() {
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const canEdit = useCan("masterdata.pricelist.manage") && !readOnly;
   const categories = useGetQualityCategoriesQuery();
   const groups = useGetMaterialGroupsQuery();
   const [selected, setSelected] = useState<string | undefined>();

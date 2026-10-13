@@ -31,8 +31,8 @@ export function WorkerTypesView() {
   const t = useT();
   const language = useLanguage();
   const readOnly = useReadOnly();
-  // Same rule as labour rates: only the owner edits.
-  const canEdit = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  // Same rule as labour rates.
+  const canEdit = useCan("masterdata.laborrate.manage") && !readOnly;
   const { data, isLoading, isFetching, error, refetch } = useAllWorkerTypes();
   const [update, { isLoading: toggling }] = useUpdateWorkerTypeMutation();
   const [showInactive, setShowInactive] = useState(false);

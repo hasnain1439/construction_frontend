@@ -6,7 +6,34 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **Docker image** for production: multi-stage `Dockerfile` on Next.js standalone output (`output: "standalone"` in `next.config.ts`), Node 24 alpine, non-root, healthcheck on the new `GET /api/health`; API origin, CSP origins and `NEXT_PUBLIC_*` keys are build args (one image per environment). See README → Deployment.
+- **GitHub Actions**: pull requests run typecheck, lint, unit tests and a production build; `main` builds the staging image (`ghcr.io/<owner>/construction-web:staging-<sha>`) and deploys it to staging over SSH; production is a manual workflow behind the `production` environment's approval.
+
+- **Team → Roles & Permissions**: see every role (templates are read-only — duplicate one to change it), create your own, and tick what each role may do per area and action, with "assigned / all projects", an approval limit in rupees and which values (rates, amounts, profit, contract) it sees.
+- In a member's panel: their permission role, extra or removed permissions, and a preview of everything they can do and where it comes from. Invites can pick a permission role.
+- A clear "You don't have permission" message, in all three languages, when the server refuses something.
+- Super admin **support sessions**: opening a company in Company Data asks for a reason and a length (default 60 minutes) and starts **read-only**. A red banner on every admin page shows "Acting as <company> · read-only · 42 min left · End", with a write-mode switch that asks for a second reason.
+- Platform console → **Support Sessions** page: every session with company, admin, reasons, mode and status; filter by company and live / finished; end a live session.
+- **Settings → Audit log** for the owner: who changed what, with every platform support visit (support person and reason) highlighted and a "Platform support only" filter. New "Platform support accessed your account" notification type.
+- Optional **error monitoring (Sentry)** for the browser and the Next.js server and **product analytics (PostHog)** sending only a `login` event (hashed user id, company group). Both are off unless `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_POSTHOG_KEY` are set; reports are scrubbed of emails, phones, tokens, cookies, request bodies and query secrets, and the CSP allows their hosts only when configured. See README "Observability".
+
+### Changed
+
+- `503 SMS_UNAVAILABLE` (login code could not be sent) shows a friendly message in English / Roman Urdu / Urdu; API types regenerated.
+- **Breaking (admin):** Company Data needs a support session — the company API calls send `X-Act-As-Session` with `X-Act-As-Tenant`; an expired or ended session leaves the company with a message. Admin logout ends the session.
+- Menus, buttons and row actions follow each person's permissions instead of their account type, so a PM or Munshi sees exactly what their role allows (for example, a PM now also sees Store Stock, Supplier Ledger and Cash Floats — read-only where they can't act).
+- Approve buttons are disabled, with the reason, when the amount is above the person's approval limit.
+- The "can see financials" switch in the member panel is replaced by "Add financial access" under extra permissions.
+
+### Fixed
+
+- Side panels and money fields lay out correctly right-to-left in Urdu (close button, "Rs" prefix).
+
+### Security
+
+- Every page sends security headers: a Content-Security-Policy (only this site, the API's file origin and Cloudinary; no framing), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a `Permissions-Policy` turning off camera / microphone / location / payment, `Cross-Origin-Opener-Policy` and HSTS in production (`src/lib/securityHeaders.ts`). New optional `API_PUBLIC_URL` when signed file links use another address than `API_ORIGIN`.
 
 ## 2026-10-12 — Worker Types, Actions menu, invite sharing
 

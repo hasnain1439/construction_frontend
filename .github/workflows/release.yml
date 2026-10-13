@@ -1,0 +1,98 @@
+# main → CI → build the STAGING web image → push ghcr.io/<owner>/construction-web:staging-<sha> → deploy to staging.
+# Next.js bakes API_ORIGIN, API_PUBLIC_URL and NEXT_PUBLIC_* into the build, so each environment
+# gets its own image (production: deploy-production.yml).
+#
+# Repository → Settings → Environments → "staging":
+#   secrets   SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, SENTRY_AUTH_TOKEN (optional, source maps)
+#   variables API_PUBLIC_URL (https://api.staging.example.pk), STAGING_URL, DEPLOY_PATH (default /opt/construction),
+#             NEXT_PUBLIC_SENTRY_DSN, NEXT_PUBLIC_POSTHOG_KEY, NEXT_PUBLIC_POSTHOG_HOST, SENTRY_ORG, SENTRY_PROJECT (optional)
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  staging:
+    name: Build, push & deploy to staging
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+    concurrency:
+      group: deploy-staging-web
+      cancel-in-progress: false
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/construction' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Image name and tag
+        id: vars
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/construction-web" >> "$GITHUB_OUTPUT"
+          echo "tag=staging-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}
+            ${{ steps.vars.outputs.image }}:staging
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            API_ORIGIN=http://api:4000
+            API_PUBLIC_URL=${{ vars.API_PUBLIC_URL }}
+            NEXT_PUBLIC_APP_VERSION=${{ steps.vars.outputs.tag }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging
+            NEXT_PUBLIC_SENTRY_RELEASE=construction-web@${{ github.sha }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ vars.NEXT_PUBLIC_POSTHOG_HOST }}
+            SENTRY_ORG=${{ vars.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ vars.SENTRY_PROJECT }}
+          secrets: |
+            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=web-staging
+          cache-to: type=gha,mode=max,scope=web-staging
+
+      - name: SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # deploy.sh and the compose files come from the API repository (its release uploads them).
+      - name: Deploy (pull, restart, readiness)
+        env:
+          TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$TARGET" "'$DEPLOY_PATH/deploy.sh' --web '$TAG' --no-migrate"

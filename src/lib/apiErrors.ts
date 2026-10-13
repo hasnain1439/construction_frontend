@@ -5,7 +5,8 @@
 import type { ApiError, CompanyChoice, FieldIssue } from "@/api/types";
 import type { UiLanguage } from "@/store/slices/uiSlice";
 
-type Message = { en: string; ur: string };
+/** `ur` = Roman Urdu; `urdu` = Urdu script (falls back to Roman Urdu). */
+type Message = { en: string; ur: string; urdu?: string };
 
 const MESSAGES: Record<string, Message> = {
   NETWORK_ERROR: {
@@ -33,6 +34,11 @@ const MESSAGES: Record<string, Message> = {
   OTP_EXPIRED: { en: "That code has expired. Ask for a new one.", ur: "Code expire ho gaya. Naya code mangwayein." },
   OTP_RESEND_WAIT: { en: "Wait a moment before asking for another code.", ur: "Naya code mangwane se pehle thora intezar karein." },
   OTP_LIMIT_REACHED: { en: "Too many codes requested. Try again in an hour.", ur: "Bohat code mangwaye gaye. Ek ghante baad koshish karein." },
+  SMS_UNAVAILABLE: {
+    en: "The code could not be sent right now. Try again in a minute.",
+    ur: "Code abhi nahi bheja ja saka. Ek minute baad dobara koshish karein.",
+    urdu: "کوڈ ابھی نہیں بھیجا جا سکا۔ ایک منٹ بعد دوبارہ کوشش کریں۔",
+  },
   OTP_TOO_MANY_ATTEMPTS: { en: "Too many wrong codes. Ask for a new one.", ur: "Bohat ghalat code. Naya code mangwayein." },
   MULTIPLE_COMPANIES: { en: "Choose which company to sign in to.", ur: "Company chunein jis mein login karna hai." },
   COMPANY_SUSPENDED: { en: "This company account is suspended.", ur: "Is company ka account band hai." },
@@ -53,8 +59,63 @@ const MESSAGES: Record<string, Message> = {
     en: "Your company is read-only until the subscription is renewed.",
     ur: "Subscription renew hone tak records sirf dekhe ja sakte hain.",
   },
+  // Platform super admin working inside a company (support sessions)
+  ACT_AS_READ_ONLY: {
+    en: "This support session is read-only. Switch to write mode (with a reason) to make changes.",
+    ur: "Yeh support session sirf dekhne ke liye hai. Tabdeeli ke liye wajah likh kar write mode on karein.",
+    urdu: "یہ سپورٹ سیشن صرف دیکھنے کے لیے ہے۔ تبدیلی کے لیے وجہ لکھ کر رائٹ موڈ آن کریں۔",
+  },
+  ACT_AS_SESSION_REQUIRED: {
+    en: "Start a support session (with a reason) to open this company.",
+    ur: "Is company ko kholne ke liye wajah likh kar support session shuru karein.",
+    urdu: "اس کمپنی کو کھولنے کے لیے وجہ لکھ کر سپورٹ سیشن شروع کریں۔",
+  },
+  ACT_AS_SESSION_INVALID: {
+    en: "This support session isn't yours or isn't for this company. Start a new one.",
+    ur: "Yeh support session aap ka ya is company ka nahi. Naya shuru karein.",
+    urdu: "یہ سپورٹ سیشن آپ کا یا اس کمپنی کا نہیں۔ نیا شروع کریں۔",
+  },
+  ACT_AS_SESSION_EXPIRED: {
+    en: "The support session has expired. Start a new one to continue.",
+    ur: "Support session ka waqt khatam ho gaya. Jaari rakhne ke liye naya shuru karein.",
+    urdu: "سپورٹ سیشن کا وقت ختم ہو گیا۔ جاری رکھنے کے لیے نیا شروع کریں۔",
+  },
+  ACT_AS_SESSION_ENDED: {
+    en: "The support session has ended. Start a new one to continue.",
+    ur: "Support session khatam ho gaya. Jaari rakhne ke liye naya shuru karein.",
+    urdu: "سپورٹ سیشن ختم ہو گیا۔ جاری رکھنے کے لیے نیا شروع کریں۔",
+  },
+  ACT_AS_SESSION_NOT_ACTIVE: {
+    en: "The support session has ended or expired. Start a new one.",
+    ur: "Support session khatam ya expire ho gaya. Naya shuru karein.",
+    urdu: "سپورٹ سیشن ختم یا ایکسپائر ہو گیا۔ نیا شروع کریں۔",
+  },
   PLAN_LIMIT_REACHED: { en: "Your plan limit is reached. Upgrade to continue.", ur: "Plan ki had poori ho gayi. Aage barhne ke liye upgrade karein." },
   FORBIDDEN: { en: "You don't have access to this.", ur: "Aap ko is ki ijazat nahi." },
+
+  // Permissions (PERMISSIONS_API.md §4)
+  PERMISSION_DENIED: {
+    en: "You don't have permission for this. Ask your Thekedar.",
+    ur: "Aap ko is ki ijazat nahi. Apne Thekedar se kahein.",
+    urdu: "آپ کو اس کی اجازت نہیں۔ اپنے ٹھیکیدار سے کہیں۔",
+  },
+  APPROVAL_LIMIT_EXCEEDED: {
+    en: "This amount is above your approval limit — the owner approves it.",
+    ur: "Ye raqam aap ki manzoori ki had se zyada hai.",
+    urdu: "یہ رقم آپ کی منظوری کی حد سے زیادہ ہے۔",
+  },
+  OWNER_ONLY_PERMISSION: { en: "Only the owner can have this permission.", ur: "Ye ijazat sirf maalik ke paas ho sakti hai.", urdu: "یہ اجازت صرف مالک کے پاس ہو سکتی ہے۔" },
+  ROLE_IS_SYSTEM: { en: "System templates can't be changed — duplicate it first.", ur: "System template nahi badalta — pehle copy banayein.", urdu: "سسٹم ٹیمپلیٹ نہیں بدلتا — پہلے کاپی بنائیں۔" },
+  CANNOT_EDIT_OWNER: { en: "The Thekedar's permissions can't be changed.", ur: "Thekedar ki ijazatein nahi badal sakti.", urdu: "ٹھیکیدار کی اجازتیں نہیں بدل سکتیں۔" },
+  CANNOT_EDIT_OWN_PERMISSIONS: { en: "You can't change your own permissions.", ur: "Aap apni ijazatein khud nahi badal sakte.", urdu: "آپ اپنی اجازتیں خود نہیں بدل سکتے۔" },
+  GRANT_EXCEEDS_OWN: { en: "You can only give permissions you have yourself.", ur: "Aap sirf wohi ijazat de sakte hain jo aap ke paas hai.", urdu: "آپ صرف وہی اجازت دے سکتے ہیں جو آپ کے پاس ہے۔" },
+  ROLE_NOT_FOR_ACCOUNT: { en: "This role doesn't fit this kind of account.", ur: "Ye role is qisam ke account ke liye nahi.", urdu: "یہ رول اس قسم کے اکاؤنٹ کے لیے نہیں۔" },
+  ROLE_NOT_FOUND: { en: "This role no longer exists.", ur: "Ye role ab maujood nahi.", urdu: "یہ رول اب موجود نہیں۔" },
+  ROLE_NAME_TAKEN: { en: "A role with this name already exists.", ur: "Is naam ka role pehle se hai.", urdu: "اس نام کا رول پہلے سے ہے۔" },
+  ROLE_IN_USE: { en: "Members of another account type have this role.", ur: "Doosri qisam ke members ke paas ye role hai.", urdu: "دوسری قسم کے ممبرز کے پاس یہ رول ہے۔" },
+  UNKNOWN_PERMISSION: { en: "Unknown permission.", ur: "Na-maloom ijazat.", urdu: "نامعلوم اجازت۔" },
+  DUPLICATE_PERMISSION: { en: "A permission is listed twice.", ur: "Ek ijazat do dafa hai.", urdu: "ایک اجازت دو دفعہ ہے۔" },
+  DENY_HAS_NO_SCOPE: { en: "A removed permission has no project scope or limit.", ur: "Hatai gayi ijazat ka scope ya had nahi hoti.", urdu: "ہٹائی گئی اجازت کا اسکوپ یا حد نہیں ہوتی۔" },
   NOT_FOUND: { en: "Not found.", ur: "Nahi mila." },
 
   // Team
@@ -193,8 +254,8 @@ export function getErrorMessage(error: unknown, language: UiLanguage = "en"): st
       }
     }
     const known = MESSAGES[error.code];
-    // Urdu-script mode shows the Roman Urdu messages until they are translated.
-    if (known) return language !== "en" ? known.ur : known.en;
+    // Urdu-script mode shows the Roman Urdu message when a message has no Urdu script yet.
+    if (known) return language === "ur" && known.urdu ? known.urdu : language !== "en" ? known.ur : known.en;
     return error.message || MESSAGES.INTERNAL_ERROR.en;
   }
   if (error instanceof Error && error.message) return error.message;

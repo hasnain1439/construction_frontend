@@ -83,7 +83,8 @@ function ClientPicker({ disabled }: { disabled: boolean }) {
 /** Tab 1 — creates the draft (POST /projects) or updates it (PATCH basic + PUT team). */
 export function BasicTab() {
   const { projectId, project, locked, onSaved } = useWizard();
-  const isOwner = useCan({ roles: ["THEKEDAR"] });
+  // Picking the PM / munshis needs the team permission and the member list.
+  const isOwner = useCan({ allPermissions: ["projects.team.manage", "team.member.view"] });
   const [create] = useCreateProjectMutation();
   const [updateBasic] = useUpdateBasicMutation();
   const [setTeam] = useSetTeamMutation();

@@ -13,11 +13,12 @@ export interface ReportDef {
   dateLabel?: string;
 }
 
-const OWNER: AccessRule = { roles: ["THEKEDAR"] };
-const OFFICE: AccessRule = { roles: ["THEKEDAR", "PM"] };
+/** Company-wide money reports (supplier ageing, receivables ageing, stock valuation). */
+const OWNER: AccessRule = { allPermissions: ["finance.reports.view", "finance.companyreports.view"] };
+const OFFICE: AccessRule = { permission: "finance.reports.view" };
 
 export const REPORTS: Record<ReportName, ReportDef> = {
-  "project-summary": { name: "project-summary", title: "Project Summary", description: "Contract, billed, received, cost by bucket and own money per project.", access: { roles: ["THEKEDAR", "PM"], permission: "billing.view" }, project: true, dates: false },
+  "project-summary": { name: "project-summary", title: "Project Summary", description: "Contract, billed, received, cost by bucket and own money per project.", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: false },
   "material-audit": { name: "material-audit", title: "Material Audit", description: "Delivered, used, sent away, adjusted and lost material per site — and what is in stock.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },
   "labor-peshgi": { name: "labor-peshgi", title: "Labor & Peshgi", description: "Days, wages, peshgi and balances per worker and sub-contractor.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },
   "cash-book": { name: "cash-book", title: "Cash Book", description: "Floats, kharcha by category and balances per holder and site.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },

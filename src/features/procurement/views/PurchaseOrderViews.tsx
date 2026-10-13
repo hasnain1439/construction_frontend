@@ -48,7 +48,7 @@ const destination = (po: Pick<PurchaseOrder, "deliverTo" | "project" | "location
 export function PurchaseOrdersView() {
   const router = useRouter();
   const readOnly = useReadOnly();
-  const canCreate = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
+  const canCreate = useCan("procurement.order.create") && !readOnly;
   const suppliers = useSupplierOptions();
   const list = useListState({ supplierId: "", status: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetPurchaseOrdersQuery(list.query as PurchaseOrdersQuery);
@@ -112,7 +112,7 @@ export function PurchaseOrdersView() {
 function OrderBody({ order }: { order: PurchaseOrder }) {
   const router = useRouter();
   const readOnly = useReadOnly();
-  const editable = useCan({ roles: ["THEKEDAR", "PM"] }) && !readOnly;
+  const editable = useCan("procurement.order.create") && !readOnly;
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancel, { isLoading }] = useCancelPurchaseOrderMutation();
   const run = useMutationToast();

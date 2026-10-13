@@ -5,7 +5,7 @@ import { DevicesView } from "@/features/team/views/DevicesView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR"]}>
+      <RequireAccess permission="team.member.manage">
         <DevicesView />
       </RequireAccess>
     </Suspense>

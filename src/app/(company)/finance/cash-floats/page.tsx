@@ -3,7 +3,7 @@ import { CashFloatsOverviewView } from "@/features/cashbook/views/CashViews";
 
 export default function Page() {
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="cashbook.float.view">
       <CashFloatsOverviewView />
     </RequireAccess>
   );

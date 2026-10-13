@@ -5,7 +5,7 @@ import { WorkersView } from "@/features/master-data/views/WorkforceViews";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM", "MUNSHI"]}>
+      <RequireAccess permission="masterdata.worker.view">
         <WorkersView />
       </RequireAccess>
     </Suspense>

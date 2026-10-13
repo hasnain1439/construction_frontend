@@ -124,7 +124,7 @@ function TemplateSlideOver({ template, open, onOpenChange }: { template: Payment
 
 export function PaymentTemplatesView() {
   const readOnly = useReadOnly();
-  const canEdit = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const canEdit = useCan("masterdata.template.manage") && !readOnly;
   const { data, isLoading, error, refetch } = useGetPaymentTemplatesQuery();
   const [remove, { isLoading: deleting }] = useDeletePaymentTemplateMutation();
   const [update] = useUpdatePaymentTemplateMutation();

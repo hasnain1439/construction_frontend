@@ -8,7 +8,7 @@ import { renderWithStore } from "../render";
 describe("PermissionGate", () => {
   it("shows content to a user with the permission", () => {
     renderWithStore(
-      <PermissionGate permission="users.manage">
+      <PermissionGate permission="team.member.manage">
         <button type="button">Invite member</button>
       </PermissionGate>,
       { me: meFixture("THEKEDAR") },
@@ -18,7 +18,7 @@ describe("PermissionGate", () => {
 
   it("hides content (not disables) from a user without it", () => {
     renderWithStore(
-      <PermissionGate permission="users.manage">
+      <PermissionGate permission="team.member.manage">
         <button type="button">Invite member</button>
       </PermissionGate>,
       { me: meFixture("PM") },
@@ -26,9 +26,9 @@ describe("PermissionGate", () => {
     expect(screen.queryByRole("button", { name: "Invite member" })).not.toBeInTheDocument();
   });
 
-  it("checks roles and renders a fallback", () => {
+  it("checks keys and renders a fallback", () => {
     renderWithStore(
-      <PermissionGate roles={["THEKEDAR"]} fallback={<span>Owners only</span>}>
+      <PermissionGate permission="subscription.manage" fallback={<span>Owners only</span>}>
         <span>Settings</span>
       </PermissionGate>,
       { me: meFixture("MUNSHI") },
@@ -39,7 +39,7 @@ describe("PermissionGate", () => {
 
   it("hides everything while signed out", () => {
     renderWithStore(
-      <PermissionGate permission="site.entry">
+      <PermissionGate permission="projects.project.view">
         <span>Site</span>
       </PermissionGate>,
     );

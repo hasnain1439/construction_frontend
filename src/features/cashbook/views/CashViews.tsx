@@ -24,7 +24,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useApprovalLimitHint, useCan } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { LateSyncBadge } from "@/components/common/LateSyncBadge";
@@ -41,8 +41,6 @@ import { formatPKR, formatPKRShort, toPaisaBigInt } from "@/lib/money";
 import { useMe } from "@/store/hooks";
 import { ApproveTopupSlideOver, CashCountSlideOver, HandoverSlideOver, KharchaSlideOver, SendFloatSlideOver, TopupRequestSlideOver } from "../components/CashSlideOvers";
 
-const OFFICE = { roles: ["THEKEDAR", "PM"] } as const;
-const OWNER = { roles: ["THEKEDAR"] } as const;
 const isOpen = (p: ProjectDetail) => p.status === "ACTIVE" || p.status === "CLOSEOUT";
 
 function useMyAccount() {
@@ -114,6 +112,7 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
   const [approve, { isLoading: approving }] = useApproveExpenseMutation();
   const [reject, { isLoading: rejecting }] = useRejectExpenseMutation();
   const run = useMutationToast();
+  const limitHint = useApprovalLimitHint();
   if (!pending.data?.items.length) return null;
   return (
     <SectionCard flush title={`Kharcha waiting for approval (${pending.data.items.length})`} description="Above the company limit. The cash is already spent; rejecting makes it owed back.">
@@ -145,6 +144,7 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
                 decline="reject"
                 approving={approving}
                 declining={rejecting}
+                approveBlockedReason={limitHint("cashbook.expense.approve", e.amountPaisa)}
                 onApprove={() => run(() => approve({ id: e.id }).unwrap(), { success: "Kharcha approved" })}
                 onDecline={async (note) => {
                   const ok = await run(() => reject({ id: e.id, note }).unwrap(), { success: "Rejected — the holder owes it back" });
@@ -162,7 +162,10 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
 // ─── Site kharcha ───────────────────────────────────────────────────────────
 
 export function KharchaView({ projectId }: { projectId: string }) {
-  const office = useCan(OFFICE);
+  // Approvers see every holder's cash and the kharcha waiting for approval.
+  const office = useCan("cashbook.expense.approve");
+  const canAdd = useCan("cashbook.expense.create");
+  const canAskTopup = useCan("cashbook.topup.create");
   const { mine } = useMyAccount();
   const [category, setCategory] = useState<KharchaCategory | undefined>();
   const book = useGetProjectCashbookQuery({ projectId, limit: 100, ...(category ? { category } : {}) });
@@ -172,7 +175,7 @@ export function KharchaView({ projectId }: { projectId: string }) {
       projectId={projectId}
       crumb="Site Kharcha"
       actions={(p) =>
-        isOpen(p) && mine ? (
+        isOpen(p) && mine && canAdd ? (
           <Button onClick={() => setOpen("kharcha")}>
             <Plus data-icon="inline-start" />
             Add kharcha
@@ -186,10 +189,12 @@ export function KharchaView({ projectId }: { projectId: string }) {
             <BalanceCard
               account={mine}
               actions={
-                <Button variant="outline" onClick={() => setOpen("topup")}>
-                  <HandCoins data-icon="inline-start" />
-                  Ask for top-up
-                </Button>
+                canAskTopup ? (
+                  <Button variant="outline" onClick={() => setOpen("topup")}>
+                    <HandCoins data-icon="inline-start" />
+                    Ask for top-up
+                  </Button>
+                ) : null
               }
             />
           ) : !office ? (
@@ -263,7 +268,7 @@ function useProjectAccounts(projectId: string) {
 }
 
 export function FloatsView({ projectId }: { projectId: string }) {
-  const owner = useCan(OWNER);
+  const owner = useCan("cashbook.float.manage");
   const { accounts, mine, userId } = useProjectAccounts(projectId);
   const [picked, setPicked] = useState<string | undefined>();
   const accountId = picked ?? accounts[0]?.id;
@@ -328,7 +333,7 @@ export function FloatsView({ projectId }: { projectId: string }) {
 // ─── Top-ups ────────────────────────────────────────────────────────────────
 
 export function TopupTable({ status }: { status?: "PENDING" | "APPROVED" | "REJECTED" }) {
-  const owner = useCan(OWNER);
+  const owner = useCan("cashbook.topup.approve");
   const list = useGetTopupsQuery({ limit: 50, ...(status ? { status } : {}) });
   const [reject, { isLoading: rejecting }] = useRejectTopupMutation();
   const run = useMutationToast();
@@ -372,7 +377,10 @@ export function TopupTable({ status }: { status?: "PENDING" | "APPROVED" | "REJE
 }
 
 export function TopupsView({ projectId }: { projectId: string }) {
-  const owner = useCan(OWNER);
+  // Approvers don't ask for top-ups themselves.
+  const asks = useCan("cashbook.topup.create");
+  const approves = useCan("cashbook.topup.approve");
+  const owner = !asks || approves;
   const [open, setOpen] = useState(false);
   return (
     <ProjectPageShell
@@ -405,7 +413,9 @@ export function TopupsView({ projectId }: { projectId: string }) {
 // ─── Counts & handover ──────────────────────────────────────────────────────
 
 export function CashCountsView({ projectId }: { projectId: string }) {
-  const office = useCan(OFFICE);
+  const office = useCan("cashbook.float.manage");
+  const canCount = useCan("cashbook.count.create");
+  const canHandover = useCan("cashbook.handover.create");
   const { accounts } = useProjectAccounts(projectId);
   const [picked, setPicked] = useState<string | undefined>();
   const account = accounts.find((a) => a.id === (picked ?? accounts[0]?.id));
@@ -424,14 +434,18 @@ export function CashCountsView({ projectId }: { projectId: string }) {
               account={account}
               actions={
                 <>
-                  <Button onClick={() => setOpen("count")}>
-                    <Calculator data-icon="inline-start" />
-                    Count cash
-                  </Button>
-                  <Button variant="outline" onClick={() => setOpen("handover")} disabled={toPaisaBigInt(account.balancePaisa)! <= BigInt(0)}>
-                    <Repeat data-icon="inline-start" />
-                    Hand over
-                  </Button>
+                  {canCount ? (
+                    <Button onClick={() => setOpen("count")}>
+                      <Calculator data-icon="inline-start" />
+                      Count cash
+                    </Button>
+                  ) : null}
+                  {canHandover ? (
+                    <Button variant="outline" onClick={() => setOpen("handover")} disabled={toPaisaBigInt(account.balancePaisa)! <= BigInt(0)}>
+                      <Repeat data-icon="inline-start" />
+                      Hand over
+                    </Button>
+                  ) : null}
                 </>
               }
             />
@@ -473,6 +487,7 @@ export function CashCountsView({ projectId }: { projectId: string }) {
 // ─── Company: cash floats overview (THEKEDAR) ───────────────────────────────
 
 export function CashFloatsOverviewView() {
+  const canSend = useCan("cashbook.float.manage");
   const accounts = useGetCashFloatsQuery();
   const [sending, setSending] = useState<string | null | undefined>(undefined);
   const t = accounts.data?.totals;
@@ -514,6 +529,7 @@ export function CashFloatsOverviewView() {
     { id: "last", header: "Last entry", cell: (a) => formatDate(a.lastEntryAt) },
     {
       ...ACTIONS_COLUMN,
+      hidden: !canSend,
       cell: (a) => <RowActions name={a.holder.name} actions={[{ label: "Send float", icon: Send, onSelect: () => setSending(a.holder.id) }]} />,
     },
   ];
@@ -524,10 +540,12 @@ export function CashFloatsOverviewView() {
         description="Site cash with munshis and project managers."
         breadcrumbs={[{ label: "Finance" }, { label: "Cash Floats" }]}
         actions={
-          <Button onClick={() => setSending(null)}>
-            <Send data-icon="inline-start" />
-            Send float
-          </Button>
+          canSend ? (
+            <Button onClick={() => setSending(null)}>
+              <Send data-icon="inline-start" />
+              Send float
+            </Button>
+          ) : null
         }
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

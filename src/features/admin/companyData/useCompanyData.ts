@@ -1,16 +1,17 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
-import { baseApi } from "@/api/baseApi";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGetTenantsQuery } from "@/api/services/admin/tenants.api";
 import { useGetMeQuery } from "@/api/services/auth.api";
 import { useGetProjectQuery } from "@/api/services/projects.api";
-import { clearActingTenant, setActingTenant, useActingTenant } from "@/lib/actingCompany";
+import type { ActAsSession } from "@/api/types";
+import { useActingTenant } from "@/lib/actingCompany";
 import { DATA_BASE, toAdminDataPath } from "@/lib/companyRoutes";
 import { COMPANY_NAV, PROJECT_NAV, projectHref, type NavSection } from "@/lib/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
+import { useActAsSwitch } from "../actAs/useActAs";
 
 const PROJECT_PATH = /^\/admin\/data\/projects\/([0-9a-f-]{36})(?:\/|$)/i;
 
@@ -18,6 +19,9 @@ const PROJECT_PATH = /^\/admin\/data\/projects\/([0-9a-f-]{36})(?:\/|$)/i;
  * Company data state shared by the admin sidebar (company picker + the company's sections)
  * and the page area: the chosen company, the company's sections the super admin may open,
  * and the project open right now (project sections replace company sections inside one).
+ *
+ * Choosing a company asks for a reason first (StartActAsDialog → a read-only support session);
+ * the company opens once the session has started. Clearing the company ends the session.
  */
 export function useCompanyData() {
   const router = useRouter();
@@ -39,26 +43,39 @@ export function useCompanyData() {
     if (inData) dispatch(setCurrentProject(projectId ?? null));
   }, [inData, projectId, dispatch]);
 
+  const { enter, leave } = useActAsSwitch();
+  /** The company waiting for a reason (start-session dialog open). */
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const pending = useMemo(() => {
+    const t = tenants.data?.items.find((x) => x.id === pendingId);
+    return t ? { id: t.id, name: t.name } : null;
+  }, [tenants.data, pendingId]);
+
   const choose = useCallback(
     (id: string) => {
-      if (id === tenantId) return;
-      setActingTenant(id);
-      // Nothing cached from the previous company may show in the next one.
-      dispatch(baseApi.util.resetApiState());
+      if (id !== tenantId) setPendingId(id);
+    },
+    [tenantId],
+  );
+  const cancelChoose = useCallback(() => setPendingId(null), []);
+
+  /** The support session started: open the company (nothing cached from the previous one shows). */
+  const started = useCallback(
+    (session: ActAsSession) => {
+      setPendingId(null);
+      enter(session);
       // Stay on the same screen, now for this company. A project page belongs to the old
       // company, so go to the projects list; the bare Company data page opens the dashboard.
       if (projectId) router.push(`${DATA_BASE}/projects`);
       else if (!inData || pathname === DATA_BASE) router.push(`${DATA_BASE}/dashboard`);
     },
-    [tenantId, dispatch, router, projectId, inData, pathname],
+    [enter, router, projectId, inData, pathname],
   );
 
-  /** Clears the chosen company (the screen stays and asks again). */
+  /** Ends the support session and clears the company (the screen stays and asks again). */
   const exit = useCallback(() => {
-    clearActingTenant();
-    dispatch(baseApi.util.resetApiState());
-    if (projectId) router.push(`${DATA_BASE}/projects`);
-  }, [dispatch, router, projectId]);
+    void leave();
+  }, [leave]);
 
   /**
    * The super admin works as the company's owner, so every section the owner has — listed
@@ -107,6 +124,9 @@ export function useCompanyData() {
     projectId,
     project,
     choose,
+    pending,
+    cancelChoose,
+    started,
     exit,
     sections,
     hrefOf,

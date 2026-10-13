@@ -243,7 +243,7 @@ function Schedule({ templates, seesMoney, coveredArea, disabled }: { templates: 
 /** Tab 2 — PATCH /projects/:id/contract (supply rules + billing stages). */
 export function ContractTab() {
   const { projectId, project, locked, onSaved } = useWizard();
-  const seesMoney = useCan({ permission: "billing.view" });
+  const seesMoney = useCan("fields.contract");
   const presets = useGetSupplyPresetsQuery();
   const categories = useGetQualityCategoriesQuery();
   const templates = useGetPaymentTemplatesQuery();

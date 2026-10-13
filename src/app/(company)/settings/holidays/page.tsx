@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Holidays" };
 
 export default function HolidaysPage() {
   return (
-    <RequireAccess roles={["THEKEDAR"]}>
+    <RequireAccess permission="company.holiday.manage">
       <PageHeader
         title="Holidays"
         description="National holidays plus your company's own days off. Schedules skip these days."

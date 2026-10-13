@@ -3,7 +3,14 @@ import type { FetchArgs } from "@reduxjs/toolkit/query/react";
 import { createReauthBaseQuery, type ApiBaseQuery } from "@/api/baseQuery";
 import { API_BASE_URL, ENDPOINTS } from "@/api/endpoints";
 import { COMPANY_TAGS } from "@/api/tags";
-import { ACT_AS_HEADER, actingTenantId } from "@/lib/actingCompany";
+import {
+  ACT_AS_HEADER,
+  ACT_AS_SESSION_GONE,
+  ACT_AS_SESSION_HEADER,
+  actingSessionId,
+  actingTenantId,
+  clearActingTenant,
+} from "@/lib/actingCompany";
 import { redirectToLogin } from "@/lib/session";
 import { sessionExpired } from "@/store/sessionEvents";
 
@@ -27,7 +34,7 @@ const companyQuery = createReauthBaseQuery({
   },
 });
 
-/** The platform super admin working inside a company (Company data): admin session + X-Act-As-Tenant. */
+/** The platform super admin working inside a company (Company data): admin session + X-Act-As-Tenant + X-Act-As-Session. */
 const actingQuery = createReauthBaseQuery({
   baseUrl: API_BASE_URL,
   refreshUrl: ENDPOINTS.adminAuth.refresh,
@@ -38,13 +45,20 @@ const actingQuery = createReauthBaseQuery({
   },
 });
 
-const companyOrActing: ApiBaseQuery = (args, api, extraOptions) => {
+const companyOrActing: ApiBaseQuery = async (args, api, extraOptions) => {
   const tenantId = actingTenantId();
-  if (!tenantId) return companyQuery(args, api, extraOptions);
+  const sessionId = actingSessionId();
+  if (!tenantId || !sessionId) return companyQuery(args, api, extraOptions);
   const request: FetchArgs = typeof args === "string" ? { url: args } : args;
   const headers = new Headers(request.headers as HeadersInit | undefined);
   headers.set(ACT_AS_HEADER, tenantId);
-  return actingQuery({ ...request, headers }, api, extraOptions);
+  headers.set(ACT_AS_SESSION_HEADER, sessionId);
+  const result = await actingQuery({ ...request, headers }, api, extraOptions);
+  // The support session expired or was ended (here or by another admin): leave the company.
+  if (result.error && ACT_AS_SESSION_GONE.has(result.error.code) && actingSessionId() === sessionId) {
+    clearActingTenant();
+  }
+  return result;
 };
 
 /** Company API (THEKEDAR / PM / MUNSHI). Services add endpoints with `injectEndpoints`. */

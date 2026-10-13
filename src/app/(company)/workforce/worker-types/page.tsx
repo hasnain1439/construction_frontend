@@ -5,7 +5,7 @@ import { WorkerTypesView } from "@/features/master-data/views/WorkerTypesView";
 export default function Page() {
   return (
     <Suspense>
-      <RequireAccess roles={["THEKEDAR", "PM", "MUNSHI"]}>
+      <RequireAccess permission="masterdata.laborrate.view">
         <WorkerTypesView />
       </RequireAccess>
     </Suspense>

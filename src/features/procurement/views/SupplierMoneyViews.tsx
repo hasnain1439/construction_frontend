@@ -140,7 +140,8 @@ function ChequeDialog({ target, onClose }: { target: { payment: SupplierPayment;
 /** Payments of one supplier (supplier detail tab). */
 export function SupplierPaymentsPanel({ supplierId }: { supplierId: string }) {
   const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const owner = useCan("procurement.payment.manage") && !readOnly;
+  const canPay = useCan("procurement.payment.create") && !readOnly;
   const list = useListState({});
   const { data, isLoading, isFetching, error, refetch } = useGetSupplierPaymentsQuery({ supplierId, ...list.query });
   const [open, setOpen] = useState(false);
@@ -152,7 +153,7 @@ export function SupplierPaymentsPanel({ supplierId }: { supplierId: string }) {
       title="Payments"
       description={data?.meta.totalPaidPaisa ? <>Total paid <MoneyText paisa={data.meta.totalPaidPaisa} /></> : undefined}
       actions={
-        owner ? (
+        canPay ? (
           <Button size="sm" onClick={() => setOpen(true)}>
             <Plus data-icon="inline-start" />
             Record payment
@@ -179,7 +180,8 @@ export function SupplierPaymentsPanel({ supplierId }: { supplierId: string }) {
 /** All supplier payments with filters + cheque actions. */
 export function SupplierPaymentsView() {
   const readOnly = useReadOnly();
-  const owner = useCan({ roles: ["THEKEDAR"] }) && !readOnly;
+  const owner = useCan("procurement.payment.manage") && !readOnly;
+  const canPay = useCan("procurement.payment.create") && !readOnly;
   const suppliers = useSupplierOptions();
   const list = useListState({ supplierId: "", method: "", status: "", from: "", to: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetSupplierPaymentsQuery(list.query as SupplierPaymentsQuery);
@@ -193,7 +195,7 @@ export function SupplierPaymentsView() {
         description="Money paid to suppliers. Cheques stay pending until they clear."
         breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Supplier Payments" }]}
         actions={
-          owner ? (
+          canPay ? (
             <Button onClick={() => setOpen(true)}>
               <Plus data-icon="inline-start" />
               Record payment

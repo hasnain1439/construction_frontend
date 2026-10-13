@@ -2,8 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { IconRail } from "@/components/layout/IconRail";
-import { activeSection, COMPANY_NAV, PROJECT_NAV } from "@/lib/navigation";
-import { canAccess } from "@/lib/permissions";
+import { activeSection, COMPANY_NAV, PROJECT_NAV, visibleSections } from "@/lib/navigation";
 import { meFixture } from "../fixtures";
 import { renderWithStore } from "../render";
 
@@ -47,12 +46,12 @@ describe("IconRail", () => {
     expect(activeSection(PROJECT_NAV, "/projects/p1/overview", "p1")?.id).toBe("p.overview");
   });
 
-  it("gives a PM no Team, Settings or Finance in the rail", () => {
-    const pm = meFixture("PM");
-    const visible = COMPANY_NAV.filter((s) => canAccess(pm, s.access)).map((s) => s.id);
+  it("gives a MUNSHI no Team, Finance or Reports in the rail", () => {
+    const munshi = meFixture("MUNSHI");
+    const visible = visibleSections(munshi, COMPANY_NAV).map((s) => s.id);
     expect(visible).not.toContain("team");
-    expect(visible).not.toContain("settings");
     expect(visible).not.toContain("finance");
+    expect(visible).not.toContain("reports");
     expect(visible).toContain("projects");
   });
 });
