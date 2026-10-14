@@ -9,6 +9,7 @@ import type {
   SetOverridesBody,
   SetRolePermissionsBody,
   SetUserRoleBody,
+  SetUserRolesBody,
   UpdateRoleBody,
   UserPermissions,
 } from "@/api/types";
@@ -80,6 +81,16 @@ export const permissionsApi = baseApi.injectEndpoints({
         "Me",
       ],
     }),
+    setUserRoles: build.mutation<UserPermissions, { userId: string; body: SetUserRolesBody }>({
+      query: ({ userId, body }) => ({ url: ENDPOINTS.users.roles(userId), method: "PUT", body }),
+      invalidatesTags: (_r, _e, { userId }) => [
+        { type: "UserPermissions", id: userId },
+        { type: "Users", id: userId },
+        { type: "Users", id: LIST },
+        { type: "Roles", id: LIST },
+        "Me",
+      ],
+    }),
     setUserRole: build.mutation<UserPermissions, { userId: string; body: SetUserRoleBody }>({
       query: ({ userId, body }) => ({ url: ENDPOINTS.users.role(userId), method: "PATCH", body }),
       invalidatesTags: (_r, _e, { userId }) => [
@@ -104,4 +115,5 @@ export const {
   useGetUserPermissionsQuery,
   useSetUserOverridesMutation,
   useSetUserRoleMutation,
+  useSetUserRolesMutation,
 } = permissionsApi;

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { FormProvider, type FieldValues, type SubmitHandler, type UseFormReturn } from "react-hook-form";
+import { FormProvider, type FieldValues, type SubmitErrorHandler, type SubmitHandler, type UseFormReturn } from "react-hook-form";
 import { cn } from "@/lib/cn";
 
 /**
@@ -11,19 +11,22 @@ import { cn } from "@/lib/cn";
 export function Form<TFieldValues extends FieldValues, TTransformed = TFieldValues>({
   form,
   onSubmit,
+  onInvalid,
   children,
   id,
   className,
 }: {
   form: UseFormReturn<TFieldValues, unknown, TTransformed>;
   onSubmit: SubmitHandler<TTransformed>;
+  /** Called when validation fails (e.g. to show the tab that holds the errors). */
+  onInvalid?: SubmitErrorHandler<TFieldValues>;
   children: ReactNode;
   id?: string;
   className?: string;
 }) {
   return (
     <FormProvider {...form}>
-      <form id={id} noValidate onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-5", className)}>
+      <form id={id} noValidate onSubmit={form.handleSubmit(onSubmit, onInvalid)} className={cn("space-y-5", className)}>
         {children}
       </form>
     </FormProvider>

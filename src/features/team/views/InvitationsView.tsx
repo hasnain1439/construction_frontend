@@ -24,7 +24,7 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatDate, formatRelative } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
-import { InviteMemberSlideOver } from "../components/InviteMemberSlideOver";
+import { InviteMemberModal } from "../components/MemberModal";
 import { ProjectChips, RoleBadge } from "../components/TeamBits";
 
 const STATUSES: InvitationStatus[] = ["PENDING", "ACCEPTED", "EXPIRED", "CANCELLED"];
@@ -129,7 +129,7 @@ export function InvitationsView() {
           }
         />
       </SectionCard>
-      <InviteMemberSlideOver open={inviteOpen} onOpenChange={setInviteOpen} />
+      <InviteMemberModal open={inviteOpen} onOpenChange={setInviteOpen} />
       <Dialog open={Boolean(shared)} onOpenChange={(o) => !o && setShared(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

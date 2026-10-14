@@ -12,9 +12,9 @@ async function adminSignIn(page: Page) {
 
 /**
  * Company data: the company app's tabs sit in the admin rail (same layout as the company dashboard). Opening any tab shows the
- * company (tenant) picker on that screen; choosing a company asks for a reason (read-only
- * support session), then shows that screen's data for it, and switching company keeps the
- * screen. Every link stays inside the admin console.
+ * company (tenant) picker on that screen; choosing a company opens it directly (full access, no
+ * reason), then shows that screen's data for it, and switching company keeps the screen. Every
+ * link stays inside the admin console.
  */
 test("super admin: open a tab → pick the company on that screen → its data; switch company keeps the screen", async ({
   page,
@@ -26,9 +26,7 @@ test("super admin: open a tab → pick the company on that screen → its data; 
   const pick = async (name: RegExp) => {
     await company.click();
     await page.getByRole("option", { name }).click();
-    const dialog = page.getByRole("alertdialog");
-    await dialog.getByLabel(/Reason/).fill("E2E: check the company screens");
-    await dialog.getByRole("button", { name: "Start read-only session" }).click();
+    await expect(page.getByRole("alertdialog")).toHaveCount(0); // no reason dialog
     await expect(page.getByTestId("act-as-banner")).toContainText(name);
   };
 
@@ -74,12 +72,8 @@ test("super admin: open a tab → pick the company on that screen → its data; 
   await expect(page.getByText("Khalid Malik").first()).toBeVisible();
   await expect(page.getByText("Super Admin (Platform)")).toHaveCount(0);
 
-  // Add a worker from the console — needs write mode (second reason); saved through the
-  // company's own rules; the company's Timeline names the super admin.
-  await page.getByTestId("act-as-banner").getByRole("button", { name: "Enable write mode" }).click();
-  await page.getByRole("alertdialog").getByLabel(/What will you change/).fill("E2E: add a test worker");
-  await page.getByRole("alertdialog").getByRole("button", { name: "Enable write mode" }).click();
-  await expect(page.getByTestId("act-as-banner")).toContainText("write mode");
+  // Add a worker from the console — full access, no write mode; saved through the company's
+  // own rules; the company's audit names the super admin.
   const name = `Admin Worker ${Date.now().toString().slice(-6)}`;
   await page.goto("/admin/data/workforce/workers");
   await page.getByRole("button", { name: "Add worker" }).first().click();
@@ -100,8 +94,8 @@ test("super admin: open a tab → pick the company on that screen → its data; 
     "PLATFORM_ADMIN",
   );
 
-  // Clear the company (ends the support session) → the screen stays and asks again.
-  await page.getByRole("button", { name: "End the support session and clear the company" }).click();
+  // Clear the company → the screen stays and asks again.
+  await page.getByRole("button", { name: "Exit this company" }).click();
   await expect(page.getByTestId("act-as-banner")).toHaveCount(0);
   await expect(page).toHaveURL(/\/admin\/data\/workforce\/workers$/);
   await expect(page.getByRole("status").getByText("Choose a company")).toBeVisible();

@@ -7,6 +7,8 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **Add / Edit member** is now a wide centered modal with three tabs — Personal details, Roles (tick one or more roles: Administrator, Project Manager, Munshi, Accountant, Store Keeper and your own roles) and Custom permissions (every permission as a checkbox, pre-ticked from the roles, with "+N added, −M removed"). The account type follows the roles; office and site roles can't be mixed; things you don't have yourself are disabled.
+- **Roles & Permissions**: create / edit a role in the same centered modal (Details | Permissions with Select all, a section per module and a 3-column grid); templates are read-only with Duplicate to edit. The old role editor page now opens this modal.
 
 - **Setup checklist** on the dashboard for the owner: progress bar and a link for each step (logo, rates, invite team, workers, suppliers, first project) from the API, "My rates are fine", a link to Opening balances, "Try with demo data", and Hide. It replaces the old "Get started" card.
 - **Import from Excel / CSV** on Workers, Sub-contractors, Suppliers, Materials and Clients: download the template, upload, check every row (problems highlighted per cell), then import — nothing is imported while a row has a problem unless you choose to import only the good rows.
@@ -31,11 +33,18 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ### Changed
 
+- **Super admin: direct, full access to any company.** Choosing a company in Company Data opens it at once with full read and write access — no reason dialog, no read-only mode, no write-mode switch, no 60-minute timer, and the company owner gets no notification or email. A small neutral bar on every admin page shows "Viewing <company>" with **Exit**. Only `X-Act-As-Tenant` is sent (no `act_as_session` cookie / `X-Act-As-Session` header). Every change is still logged silently in the company's audit log with the admin's name. This replaces the support-session entries above (never released). API types regenerated.
+- Settings → Audit log text: lists changes made by platform support with the support person's name (no more promise of a notification / email).
 - `503 SMS_UNAVAILABLE` (login code could not be sent) shows a friendly message in English / Roman Urdu / Urdu; API types regenerated.
-- **Breaking (admin):** Company Data needs a support session — the company API calls send `X-Act-As-Session` with `X-Act-As-Tenant`; an expired or ended session leaves the company with a message. Admin logout ends the session.
 - Menus, buttons and row actions follow each person's permissions instead of their account type, so a PM or Munshi sees exactly what their role allows (for example, a PM now also sees Store Stock, Supplier Ledger and Cash Floats — read-only where they can't act).
 - Approve buttons are disabled, with the reason, when the amount is above the person's approval limit.
 - The "can see financials" switch in the member panel is replaced by "Add financial access" under extra permissions.
+
+### Removed
+
+- Start-support-session dialog (reason, length), the red read-only banner with countdown and the write-mode dialog (`StartActAsDialog`, old `ActAsBanner`).
+- Platform console → **Support Sessions** page (`/admin/support-sessions`, `ActAsSessionsView`), its menu item and the `/admin/act-as-sessions` API calls (`actAs.api.ts`).
+- `ACT_AS_SESSION_*` / `ACT_AS_READ_ONLY` error messages and handling, the `act_as_session` cookie (now only cleared) and the unused `actAs.*` texts in all three languages.
 
 ### Fixed
 

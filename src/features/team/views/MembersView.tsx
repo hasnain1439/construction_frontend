@@ -24,8 +24,7 @@ import { useLanguage, useStatusT, useT } from "@/i18n/useT";
 import { formatRelative } from "@/lib/dates";
 import { roleName } from "@/lib/permissionCatalog";
 import { formatPhone } from "@/lib/phone";
-import { EditMemberSlideOver } from "../components/EditMemberSlideOver";
-import { InviteMemberSlideOver } from "../components/InviteMemberSlideOver";
+import { EditMemberModal, InviteMemberModal } from "../components/MemberModal";
 import { ProjectChips, RoleBadge } from "../components/TeamBits";
 
 export function MembersView() {
@@ -150,8 +149,8 @@ export function MembersView() {
       </SectionCard>
       {canManage ? (
         <>
-          <InviteMemberSlideOver open={inviteOpen} onOpenChange={setInviteOpen} />
-          <EditMemberSlideOver userId={editing} onClose={() => setEditing(null)} />
+          <InviteMemberModal open={inviteOpen} onOpenChange={setInviteOpen} />
+          <EditMemberModal userId={editing} onClose={() => setEditing(null)} />
         </>
       ) : null}
     </>

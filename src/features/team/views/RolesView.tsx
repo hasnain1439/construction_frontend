@@ -16,7 +16,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useLanguage, useT } from "@/i18n/useT";
 import { roleName } from "@/lib/permissionCatalog";
-import { RoleSlideOver } from "../components/RoleSlideOver";
+import { RoleModal, type RoleTab } from "../components/RoleModal";
 
 /** Other-language names under the main one ("Project Manager · پراجیکٹ مینیجر"). */
 function otherNames(role: PermissionRole, shown: string): string[] {
@@ -35,24 +35,32 @@ export function RoleTypeBadge({ role }: { role: Pick<PermissionRole, "isSystem">
   );
 }
 
-/** Team → Roles & Permissions: every role template of the company, with duplicate / rename. */
-export function RolesView() {
+/**
+ * Team → Roles & Permissions: every role template of the company. Edit / Rename / New role open the
+ * role modal (Details | Permissions); /team/roles/:id opens it for that role.
+ */
+export function RolesView({ initialRoleId }: { initialRoleId?: string } = {}) {
   const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const readOnly = useReadOnly();
   const { data, isLoading, isFetching, error, refetch } = useGetRolesQuery();
   const [duplicate, { isLoading: duplicating }] = useDuplicateRoleMutation();
-  const [createOpen, setCreateOpen] = useState(false);
-  const [renaming, setRenaming] = useState<PermissionRole | null>(null);
+  const [modal, setModal] = useState<{ roleId: string | null; tab: RoleTab } | null>(
+    initialRoleId ? { roleId: initialRoleId, tab: "permissions" } : null,
+  );
   const run = useMutationToast();
 
-  const open = (role: PermissionRole) => router.push(`/team/roles/${role.id}`);
+  const open = (role: PermissionRole) => setModal({ roleId: role.id, tab: "permissions" });
+  const close = () => {
+    setModal(null);
+    if (initialRoleId) router.replace("/team/roles");
+  };
   const copy = async (role: PermissionRole) => {
     const created = await run(() => duplicate({ id: role.id }).unwrap(), {
       success: (r) => t("roles.duplicated", { name: roleName(r, language) }),
     });
-    if (created) router.push(`/team/roles/${created.id}`);
+    if (created) setModal({ roleId: created.id, tab: "details" });
   };
 
   const columns: Column<PermissionRole>[] = [
@@ -121,7 +129,7 @@ export function RolesView() {
             {
               label: role.isSystem || readOnly ? t("roles.viewPermissions") : t("roles.editPermissions"),
               icon: role.isSystem || readOnly ? Eye : Pencil,
-              href: `/team/roles/${role.id}`,
+              onSelect: () => open(role),
             },
             {
               label: t("roles.duplicate"),
@@ -134,7 +142,7 @@ export function RolesView() {
               label: t("roles.rename"),
               icon: Type,
               hidden: readOnly || role.isSystem,
-              onSelect: () => setRenaming(role),
+              onSelect: () => setModal({ roleId: role.id, tab: "details" }),
             },
           ]}
         />
@@ -150,7 +158,7 @@ export function RolesView() {
         breadcrumbs={[{ label: t("roles.team") }, { label: t("roles.title") }]}
         actions={
           !readOnly ? (
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button onClick={() => setModal({ roleId: null, tab: "details" })}>
               <Plus data-icon="inline-start" />
               {t("roles.newRole")}
             </Button>
@@ -173,14 +181,12 @@ export function RolesView() {
           empty={{ title: t("roles.emptyTitle"), description: t("roles.emptyDesc"), icon: ShieldCheck }}
         />
       </SectionCard>
-      <RoleSlideOver
-        open={createOpen || Boolean(renaming)}
-        role={renaming}
-        onOpenChange={(o) => {
-          if (o) return;
-          setCreateOpen(false);
-          setRenaming(null);
-        }}
+      <RoleModal
+        open={modal !== null}
+        roleId={modal?.roleId ?? null}
+        initialTab={modal?.tab}
+        onClose={close}
+        onOpenRole={(roleId, tab) => setModal({ roleId, tab: tab ?? "details" })}
       />
     </>
   );

@@ -49,7 +49,6 @@ describe("proxy: super admin working inside a company (Company data)", () => {
   const acting = {
     admin_access_token: "jwt",
     act_as_tenant: "01a10000-0000-7000-8000-000000000001",
-    act_as_session: "01a10000-0000-7000-8000-0000000000f0",
   };
 
   it("sends company links into the admin console", () => {
@@ -66,9 +65,10 @@ describe("proxy: super admin working inside a company (Company data)", () => {
     expect(location(proxy(req("/dashboard", { admin_access_token: "jwt", access_token: "jwt" })))).toBeNull();
   });
 
-  it("does nothing without a support session (the company alone is not enough)", () => {
-    const { act_as_session: _session, ...noSession } = acting;
-    expect(location(proxy(req("/dashboard", { ...noSession, access_token: "jwt" })))).toBeNull();
+  it("needs no support session: the chosen company + the admin cookie are enough", () => {
+    expect(location(proxy(req("/dashboard", { ...acting, access_token: "jwt" })))).toBe(
+      "http://localhost:3000/admin/data/dashboard",
+    );
   });
 
   it("leaves admin and public pages alone", () => {
