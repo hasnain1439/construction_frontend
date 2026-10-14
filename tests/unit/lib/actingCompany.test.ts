@@ -1,29 +1,25 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { actingSessionId, actingTenantId, clearActingTenant, setActingTenant } from "@/lib/actingCompany";
+import { actingTenantId, clearActingTenant, setActingTenant } from "@/lib/actingCompany";
 
 const TENANT = "01a10000-0000-7000-8000-000000000001";
-const SESSION = "01a10000-0000-7000-8000-0000000000f0";
 
-describe("acting company cookies (super admin support session)", () => {
+describe("acting company cookie (super admin direct access)", () => {
   afterEach(() => clearActingTenant());
 
-  it("needs both the company and the support session", () => {
+  it("the company cookie alone is enough (no support session)", () => {
     expect(actingTenantId()).toBeNull();
-    document.cookie = `act_as_tenant=${TENANT}; Path=/`;
-    // The company alone is not enough (the API refuses it without X-Act-As-Session).
-    expect(actingTenantId()).toBeNull();
-    expect(actingSessionId()).toBeNull();
-    setActingTenant(TENANT, SESSION);
+    setActingTenant(TENANT);
     expect(actingTenantId()).toBe(TENANT);
-    expect(actingSessionId()).toBe(SESSION);
+    expect(document.cookie).toContain(`act_as_tenant=${TENANT}`);
   });
 
-  it("ignores malformed ids and clears both cookies", () => {
-    setActingTenant(TENANT, "not-a-session");
-    expect(actingSessionId()).toBeNull();
-    setActingTenant(TENANT, SESSION);
+  it("ignores malformed ids, clears the cookie and any legacy session cookie", () => {
+    setActingTenant("not-a-company");
+    expect(actingTenantId()).toBeNull();
+    document.cookie = "act_as_session=01a10000-0000-7000-8000-0000000000f0; Path=/";
+    setActingTenant(TENANT);
+    expect(document.cookie).not.toContain("act_as_session=0");
     clearActingTenant();
     expect(actingTenantId()).toBeNull();
-    expect(actingSessionId()).toBeNull();
   });
 });

@@ -290,7 +290,7 @@ Access is decided by **permission keys** from `/auth/me` (`<module>.<resource>.<
 `labor.settlement.approve`), never by the account role. Backend contract: `../PERMISSIONS_API.md`.
 
 - **THEKEDAR = every key** (also checked client-side, so an owner is never locked out by a stale snapshot). PM /
-  MUNSHI get their role template + ALLOW overrides − DENY overrides, resolved by the API.
+  MUNSHI get the union of their roles (several allowed) + ALLOW overrides − DENY overrides, resolved by the API.
 - `lib/permissions.ts`: `can(me, key)`, `canAny`, `canAll`, `canSeeField(me, "rates" | "amounts" | "profit" |
   "contract")` (from `fieldAccess`), `scopeOf`, `approvalLimitOf`, `withinLimit`, and `canAccess(me, rule)` for rules
   `{ permission?, anyPermission?, allPermissions? }`. `lib/permissionKeys.ts` lists every key as a typed union, so a
@@ -304,20 +304,26 @@ Access is decided by **permission keys** from `/auth/me` (`<module>.<resource>.<
 - **403 `PERMISSION_DENIED`**, `APPROVAL_LIMIT_EXCEEDED` and the role errors have friendly messages in
   `lib/apiErrors.ts` (Urdu script too). The error listener refreshes `/auth/me` (at most every 10 s) and shows one
   toast for refused page data; mutations toast through `useMutationToast`.
-- **Team → Roles & Permissions** (`/team/roles`, needs `team.member.manage`): role list (system templates badged
-  _Template_ and read-only; _Duplicate_, _Rename_, _New role_ from a template or empty). `/team/roles/:id` is the
-  matrix editor (`features/team/components/PermissionMatrix.tsx`): modules as rows, actions (view / create / edit /
-  approve / manage) as columns, a checkbox per existing key, a project-scope select on scoped keys, an approval
-  limit (Rs) on limit keys, owner-only keys shown disabled, plus the four **data visibility** toggles. Labels come
+- **Team → Roles & Permissions** (`/team/roles`, needs `team.member.manage`): role list (Administrator first, system
+  templates badged _Template_ and read-only; row Actions: Edit, _Duplicate_, _Rename_; _New role_ from a template or
+  empty). Edit / New open the **role modal** (`features/team/components/RoleModal.tsx`, a centered `WideModal`, 90vw /
+  max-w-6xl) with **Details** (names en / Roman / Urdu, description, can be given to, start from) and **Permissions**
+  (`PermissionMatrix.tsx`: Select all, one section per module with its own select-all and a 3-column grid, scope /
+  approval limit (Rs) as small controls under the grid, owner-only keys disabled, data visibility as its own
+  section). Templates show _Duplicate to edit_. `/team/roles/:id` opens the list with that role's modal. Labels come
   from `GET /permissions/catalog` in the current language (pure helpers in `lib/permissionCatalog.ts`). Saving
   sends the full list (`PUT /roles/:id/permissions`).
-- **Member slide-over → Role & permissions** (`MemberPermissions.tsx`): permission role select
-  (`PATCH /users/:id/role`), extra / removed permissions (ALLOW / DENY overrides,
-  `PUT /users/:id/permission-overrides`, with an "Add financial access" shortcut for the old _canSeeFinancials_
-  bundle) and an **effective permissions** preview with the source of each key. The invite form adds an optional
-  **Permission role** (`roleId`).
+- **Add / Edit member modal** (`MemberModal.tsx`, `MemberRoles.tsx`): tabs **Personal details** (name, phone, email,
+  account type, projects; edit adds status, sign-in help, (de)activation) · **Roles** (every role as a checkbox card,
+  several allowed; office and site roles can't be mixed; roles beyond a non-owner's own permissions disabled) ·
+  **Custom permissions** (every key as a checkbox, pre-ticked from the union of the roles with a _from role_ hint;
+  hand-made additions / removals highlighted; "+N added, −M removed vs <roles>"). Back / Next and Save on every tab;
+  a tab with validation errors gets a dot. The account type follows the roles (`accountOfRoles`). Pure logic in
+  `lib/rolePermissions.ts` (`unionGrants`, `diffGrants`, `reapplyChanges`, `canGive`, `fitsWith`). Invite sends
+  `roleIds` + `permissionOverrides` (the diff); edit sends `PATCH /users/:id`, `PUT /users/:id/projects`,
+  `PUT /users/:id/roles`, `PUT /users/:id/permission-overrides` as needed.
 - RTK Query: `api/services/permissions.api.ts` (`getPermissionCatalog`, `getRoles`, `getRole`, `createRole`,
-  `duplicateRole`, `updateRole`, `setRolePermissions`, `getUserPermissions`, `setUserOverrides`, `setUserRole`; tags
+  `duplicateRole`, `updateRole`, `setRolePermissions`, `getUserPermissions`, `setUserOverrides`, `setUserRole`, `setUserRoles`; tags
   `PermissionCatalog`, `Roles`, `UserPermissions`). Changes also invalidate `Me`.
 - Tests: `tests/unit/lib/permissions.test.ts`, `lib/navigationPermissions.test.ts`,
   `components/PermissionHooks.test.tsx`, `components/PermissionMatrix.test.tsx`. Fixtures build `/auth/me` from the
@@ -326,17 +332,16 @@ Access is decided by **permission keys** from `/auth/me` (`<module>.<resource>.<
 
 ## Super admin: Company data
 
-Platform console → **Company Data** (`/admin/data`): pick a company in the bar at the top, give a **reason** (5–300 characters, shown to the owner) and a length (default 60 minutes), and work in **that company's own screens** — Dashboard, Projects (and inside a project: Planning, Site, Labor, Cash Book, Billing), Sales, Suppliers & Stock, Workforce, Finance, Reports, Team, Settings. The **support session** starts **read-only**; to add, edit or delete, switch to **write mode** in the red banner with a second reason. **End** (banner) or the ✕ next to the company ends the session. Company detail (`/admin/companies/:id`) also has read-only tabs: Projects, Team & devices, Activity & money.
+Platform console → **Company Data** (`/admin/data`): pick a company in the bar at the top and work in **that company's own screens** — Dashboard, Projects (and inside a project: Planning, Site, Labor, Cash Book, Billing), Sales, Suppliers & Stock, Workforce, Finance, Reports, Team, Settings. Access is **direct and full** (owner decision): no request, no reason, no read-only mode, no timer, and the company is not notified. Every change is silently logged in the company's audit log with the admin's name. **Exit** (the small bar at the top) or the ✕ next to the company leaves it. Company detail (`/admin/companies/:id`) also has read-only tabs: Projects, Team & devices, Activity & money.
 
 How it works:
 
 - `/admin/data/<company path>` renders the company app's page for `<company path>` (`app/admin/(console)/data/[[...path]]`). The list of pages is generated: run `npm run routes:company` after adding or moving a page under `(company)` or `(project)` (a unit test fails when it is out of date).
-- Picking a company opens `StartActAsDialog` → `POST /admin/act-as-sessions`; the owner gets an app notification and an email.
-- The chosen company and the session are the `act_as_tenant` + `act_as_session` cookies (`lib/actingCompany.ts`). While both are set (and the admin is signed in), the company API sends `X-Act-As-Tenant` + `X-Act-As-Session` with the admin's session and refreshes through the admin refresh endpoint; the proxy sends company links (`/projects/…`) to `/admin/data/…`, so every page's own links stay in the console.
-- `ActAsBanner` (in `AdminShell`, every admin page): "Acting as <company> · read-only · 42 min left · End", the write-mode switch (reason dialog) and back to read-only. When the session expires or is ended elsewhere, the banner (or any `403 ACT_AS_SESSION_*` answer, `baseApi`) leaves the company with a toast. Writes in read-only mode get `403 ACT_AS_READ_ONLY` (shown as a toast).
-- **Support Sessions** (`/admin/support-sessions`): every session with company, admin, reason, write reason, mode and status (live / expired / ended); filter by company and status; end a live one.
-- The company owner sees every session in **Settings → Audit log** (`/settings/audit-log`, `company.audit.view`): who, what and the support person's reason; filter "Platform support only".
-- Switching company or exiting clears the company cache, so one company's data never shows in another. Admin logout ends the session and clears the choice too.
+- Picking a company opens it at once (`useCompanyData.choose` → `useActAsSwitch.enter`); nothing is sent to the server to start or end it.
+- The chosen company is the `act_as_tenant` cookie (`lib/actingCompany.ts`). While it is set (and the admin is signed in), the company API sends `X-Act-As-Tenant` with the admin's session and refreshes through the admin refresh endpoint; the proxy sends company links (`/projects/…`) to `/admin/data/…`, so every page's own links stay in the console. A leftover `act_as_session` cookie from the former support-session flow is cleared.
+- `ActAsBanner` (in `AdminShell`, every admin page): a small neutral bar "Viewing <company> · platform admin · full access · changes are logged" with **Open company** (outside Company Data) and **Exit**.
+- The company owner sees every change the admin made in **Settings → Audit log** (`/settings/audit-log`, `company.audit.view`) as "Platform support · <admin>"; filter "Platform support only". Older rows from the former support-session flow still show their reason.
+- Switching company or exiting clears the company cache, so one company's data never shows in another. Admin logout clears the choice too.
 - Changes are made as the company's hidden "Super Admin (Platform)" user and logged with the admin's name (see the backend README).
 
 ## Deployment (Docker, CI/CD)

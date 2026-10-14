@@ -76,17 +76,22 @@ describe("buildMatrix", () => {
   });
 });
 
-// A full matrix is ~120 checkboxes: queries are scoped to one cell / row, and the timeout is generous for a loaded CI box.
+// A full matrix is ~120 checkboxes: queries are scoped to one cell / section, and the timeout is generous for a loaded CI box.
 describe("PermissionMatrix", { timeout: 30_000 }, () => {
-  it("renders catalogue labels with checkboxes only where a key exists", () => {
-    renderWithStore(<Harness />);
-    const head = screen.getByTestId("permission-matrix").querySelector("thead") as HTMLElement;
-    expect(within(head).getByRole("columnheader", { name: "Approve" })).toBeInTheDocument();
+  it("one section per module (heading, its own select-all, the keys as checkboxes) and a Select all on top", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithStore(<Harness onChange={onChange} />);
+    expect(within(row("clients")).getByRole("heading", { name: "Clients" })).toBeInTheDocument();
     expect(
       within(cell("cashbook.expense.approve")).getByRole("checkbox", { name: "Approve kharcha" }),
     ).not.toBeChecked();
-    // Clients have no approve / manage keys → an empty marker, no checkbox.
-    expect(row("clients").querySelectorAll("[role=checkbox]")).toHaveLength(4); // 3 keys + "select row"
+    expect(row("clients").querySelectorAll("[role=checkbox]")).toHaveLength(4); // 3 keys + "select section"
+    await user.click(screen.getByRole("checkbox", { name: "Select all" }));
+    const all = Object.keys(onChange.mock.lastCall![0]);
+    // Every grantable action key (data visibility has its own toggles in the role editor).
+    expect(all).toHaveLength(catalogFixture.permissions.filter((p) => !p.ownerOnly && !p.field).length);
+    expect(all).not.toContain("subscription.manage");
   });
 
   it("ticking a scoped approve key adds a scope select and an amount limit", async () => {
@@ -99,7 +104,8 @@ describe("PermissionMatrix", { timeout: 30_000 }, () => {
     expect(onChange).toHaveBeenLastCalledWith({
       "cashbook.expense.approve": { scope: "ASSIGNED_PROJECTS", maxAmountPaisa: null },
     });
-    const approve = cell("cashbook.expense.approve");
+    // Scope + limit are small inline controls under the module grid.
+    const approve = document.querySelector('[data-permission-controls="cashbook.expense.approve"]') as HTMLElement;
     expect(
       within(approve).getByRole("combobox", { name: "Projects for “Approve kharcha”" }),
     ).toHaveTextContent("Assigned projects");
@@ -164,11 +170,6 @@ describe("PermissionMatrix", { timeout: 30_000 }, () => {
     expect(
       within(cell("cashbook.expense.approve")).getByRole("checkbox", { name: "خرچہ منظور کرنا" }),
     ).toBeInTheDocument();
-    expect(
-      within(screen.getByTestId("permission-matrix").querySelector("thead") as HTMLElement).getByRole(
-        "columnheader",
-        { name: "منظوری" },
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "سب چنیں" })).toBeInTheDocument();
   });
 });

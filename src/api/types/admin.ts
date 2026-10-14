@@ -279,30 +279,6 @@ export interface AuditLogRow {
 
 export type AuditLogsQuery = QueryParams<"/api/v1/admin/audit-logs", "get">;
 
-// ─── Act-as (support) sessions ──────────────────────────────────────────────
-
-export type ActAsMode = "READ_ONLY" | "WRITE";
-export type ActAsStatus = "ACTIVE" | "EXPIRED" | "ENDED";
-
-export interface ActAsSession {
-  id: Id;
-  tenant: { id: Id; name: string; slug: string };
-  admin: { id: Id; name: string; email: string };
-  reason: string;
-  mode: ActAsMode;
-  writeReason: string | null;
-  writeEnabledAt: IsoDateTime | null;
-  startedAt: IsoDateTime;
-  expiresAt: IsoDateTime;
-  endedAt: IsoDateTime | null;
-  status: ActAsStatus;
-  secondsLeft: number;
-}
-
-export type StartActAsBody = RequestBody<"/api/v1/admin/act-as-sessions", "post">;
-export type ActAsModeBody = RequestBody<"/api/v1/admin/act-as-sessions/{id}/mode", "post">;
-export type ActAsSessionsQuery = QueryParams<"/api/v1/admin/act-as-sessions", "get">;
-
 // ─── Platform material catalog ──────────────────────────────────────────────
 
 export interface CatalogGroup {

@@ -70,6 +70,7 @@ export type DuplicateRoleBody = RequestBody<"/api/v1/roles/{id}/duplicate", "pos
 export type SetRolePermissionsBody = RequestBody<"/api/v1/roles/{id}/permissions", "put">;
 export type SetOverridesBody = RequestBody<"/api/v1/users/{id}/permission-overrides", "put">;
 export type SetUserRoleBody = RequestBody<"/api/v1/users/{id}/role", "patch">;
+export type SetUserRolesBody = RequestBody<"/api/v1/users/{id}/roles", "put">;
 
 export type RevokeDeviceResult = ResponseData<"/api/v1/devices/{id}", "delete">;
 

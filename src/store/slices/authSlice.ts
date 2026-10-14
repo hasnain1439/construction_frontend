@@ -24,6 +24,7 @@ const fromAuthResult = (result: AuthResult): Me => ({
   scopes: result.scopes,
   approvalLimits: result.approvalLimits,
   permissionRole: result.permissionRole,
+  permissionRoles: result.permissionRoles ?? [],
   // A login result has no project list; /auth/me (fetched right after) fills it in.
   assignedProjectIds: [],
 });

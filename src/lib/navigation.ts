@@ -28,7 +28,6 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Layers,
-  LifeBuoy,
   Megaphone,
   PackageSearch,
   Receipt,
@@ -945,15 +944,6 @@ export const ADMIN_NAV: AdminNavItem[] = [
     available: true,
     icon: Database,
     keywords: ["tenant", "impersonate", "projects", "employees", "stock", "purchases"],
-  },
-  // Every time a super admin opened a company (reason, write reason, how it ended).
-  {
-    id: "admin.supportSessions",
-    label: L("Support Sessions", "Support sessions", "سپورٹ سیشنز"),
-    href: "/admin/support-sessions",
-    available: true,
-    icon: LifeBuoy,
-    keywords: ["act as", "impersonate", "audit", "reason"],
   },
   {
     id: "admin.payments",

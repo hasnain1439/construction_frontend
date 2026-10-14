@@ -58,6 +58,7 @@ export const ENDPOINTS = {
     permissions: (userId: string) => `/users/${id(userId)}/permissions`,
     permissionOverrides: (userId: string) => `/users/${id(userId)}/permission-overrides`,
     role: (userId: string) => `/users/${id(userId)}/role`,
+    roles: (userId: string) => `/users/${id(userId)}/roles`,
   },
 
   permissions: {
@@ -345,11 +346,6 @@ export const ENDPOINTS = {
     holidays: "/admin/holidays",
     holidayById: (holidayId: string) => `/admin/holidays/${id(holidayId)}`,
     auditLogs: "/admin/audit-logs",
-    /** Support sessions (act-as): start with a reason, switch mode, end. */
-    actAsSessions: "/admin/act-as-sessions",
-    actAsSessionById: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}`,
-    actAsSessionMode: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}/mode`,
-    actAsSessionEnd: (sessionId: string) => `/admin/act-as-sessions/${id(sessionId)}/end`,
     materialGroups: "/admin/material-groups",
     materials: "/admin/materials",
     materialById: (materialId: string) => `/admin/materials/${id(materialId)}`,

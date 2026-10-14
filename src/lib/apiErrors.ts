@@ -59,37 +59,6 @@ const MESSAGES: Record<string, Message> = {
     en: "Your company is read-only until the subscription is renewed.",
     ur: "Subscription renew hone tak records sirf dekhe ja sakte hain.",
   },
-  // Platform super admin working inside a company (support sessions)
-  ACT_AS_READ_ONLY: {
-    en: "This support session is read-only. Switch to write mode (with a reason) to make changes.",
-    ur: "Yeh support session sirf dekhne ke liye hai. Tabdeeli ke liye wajah likh kar write mode on karein.",
-    urdu: "یہ سپورٹ سیشن صرف دیکھنے کے لیے ہے۔ تبدیلی کے لیے وجہ لکھ کر رائٹ موڈ آن کریں۔",
-  },
-  ACT_AS_SESSION_REQUIRED: {
-    en: "Start a support session (with a reason) to open this company.",
-    ur: "Is company ko kholne ke liye wajah likh kar support session shuru karein.",
-    urdu: "اس کمپنی کو کھولنے کے لیے وجہ لکھ کر سپورٹ سیشن شروع کریں۔",
-  },
-  ACT_AS_SESSION_INVALID: {
-    en: "This support session isn't yours or isn't for this company. Start a new one.",
-    ur: "Yeh support session aap ka ya is company ka nahi. Naya shuru karein.",
-    urdu: "یہ سپورٹ سیشن آپ کا یا اس کمپنی کا نہیں۔ نیا شروع کریں۔",
-  },
-  ACT_AS_SESSION_EXPIRED: {
-    en: "The support session has expired. Start a new one to continue.",
-    ur: "Support session ka waqt khatam ho gaya. Jaari rakhne ke liye naya shuru karein.",
-    urdu: "سپورٹ سیشن کا وقت ختم ہو گیا۔ جاری رکھنے کے لیے نیا شروع کریں۔",
-  },
-  ACT_AS_SESSION_ENDED: {
-    en: "The support session has ended. Start a new one to continue.",
-    ur: "Support session khatam ho gaya. Jaari rakhne ke liye naya shuru karein.",
-    urdu: "سپورٹ سیشن ختم ہو گیا۔ جاری رکھنے کے لیے نیا شروع کریں۔",
-  },
-  ACT_AS_SESSION_NOT_ACTIVE: {
-    en: "The support session has ended or expired. Start a new one.",
-    ur: "Support session khatam ya expire ho gaya. Naya shuru karein.",
-    urdu: "سپورٹ سیشن ختم یا ایکسپائر ہو گیا۔ نیا شروع کریں۔",
-  },
   PLAN_LIMIT_REACHED: { en: "Your plan limit is reached. Upgrade to continue.", ur: "Plan ki had poori ho gayi. Aage barhne ke liye upgrade karein." },
   FORBIDDEN: { en: "You don't have access to this.", ur: "Aap ko is ki ijazat nahi." },
 

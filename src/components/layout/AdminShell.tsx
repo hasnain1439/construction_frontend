@@ -110,7 +110,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </div>
       </header>
-      {/* Working inside a company: red bar with mode, time left, write switch and End (every page). */}
+      {/* Working inside a company: small neutral bar with the company and Exit (every page). */}
       <ActAsBanner />
       <div className="relative flex min-h-0 flex-1">
         {/* Same rail + flyout as the company dashboard; the menu button slides it out. */}

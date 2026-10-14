@@ -244,6 +244,7 @@ export interface paths {
                          *           "labor.settlement.approve": null
                          *         },
                          *         "permissionRole": null,
+                         *         "permissionRoles": [],
                          *         "accessTokenExpiresIn": 900,
                          *         "accessToken": "<jwt — mobile only>",
                          *         "refreshToken": "<opaque — mobile only>"
@@ -416,6 +417,7 @@ export interface paths {
                          *           "labor.settlement.approve": null
                          *         },
                          *         "permissionRole": null,
+                         *         "permissionRoles": [],
                          *         "accessTokenExpiresIn": 900,
                          *         "accessToken": "<jwt — mobile only>",
                          *         "refreshToken": "<opaque — mobile only>"
@@ -800,6 +802,7 @@ export interface paths {
                          *           "labor.settlement.approve": null
                          *         },
                          *         "permissionRole": null,
+                         *         "permissionRoles": [],
                          *         "accessTokenExpiresIn": 900,
                          *         "accessToken": "<jwt — mobile only>",
                          *         "refreshToken": "<opaque — mobile only>"
@@ -1624,6 +1627,7 @@ export interface paths {
                          *           "labor.settlement.approve": null
                          *         },
                          *         "permissionRole": null,
+                         *         "permissionRoles": [],
                          *         "accessTokenExpiresIn": 900,
                          *         "accessToken": "<jwt — mobile only>",
                          *         "refreshToken": "<opaque — mobile only>"
@@ -2606,16 +2610,16 @@ export interface paths {
         };
         /**
          * Company audit log
-         * @description Owner only (`company.audit.view`). Newest first. Everything platform support did in the company has `actor.type` PLATFORM_ADMIN and `platformSupport` = the support session, the support person and their reason: `admin.act_as_started` (with the reason), `admin.act_as_mode_changed` (write mode with its reason), `admin.act_as_ended` and every change made during the session. Filter with `actorType=PLATFORM_ADMIN` or `action=admin.act_as`. Secret-looking fields are redacted.
+         * @description Owner only (`company.audit.view`). Newest first. Everything platform support did in the company has `actor.type` PLATFORM_ADMIN and `actor.name` "Platform support · <admin>": every change a platform super admin made while working inside the company (`details.actingAsCompany: true`, `details.adminName`). `platformSupport.adminName` names the admin; `sessionId` / `reason` are only filled on older entries from the former support-session flow (`admin.act_as_*`). Filter with `actorType=PLATFORM_ADMIN`. Secret-looking fields are redacted.
          */
         get: {
             parameters: {
                 query?: {
                     page?: number;
                     limit?: number;
-                    /** @description PLATFORM_ADMIN = platform support (act-as sessions and admin actions) */
+                    /** @description PLATFORM_ADMIN = platform support (changes a super admin made inside the company, and admin actions) */
                     actorType?: "USER" | "PLATFORM_ADMIN" | "SYSTEM";
-                    /** @description Prefix, e.g. "admin.act_as" or "supplier." */
+                    /** @description Prefix, e.g. "supplier." or "admin." */
                     action?: string;
                     from?: string;
                     to?: string;
@@ -2638,8 +2642,8 @@ export interface paths {
                          *       "data": [
                          *         {
                          *           "id": "0199a8c0-0000-7000-8000-0000000000f1",
-                         *           "action": "admin.act_as_started",
-                         *           "entityType": "ActAsSession",
+                         *           "action": "supplier.update",
+                         *           "entityType": "Supplier",
                          *           "entityId": "0199a8c0-0000-7000-8000-0000000000f0",
                          *           "actor": {
                          *             "type": "PLATFORM_ADMIN",
@@ -2647,15 +2651,14 @@ export interface paths {
                          *             "name": "Platform support · Platform Admin"
                          *           },
                          *           "platformSupport": {
-                         *             "sessionId": "0199a8c0-0000-7000-8000-0000000000f0",
+                         *             "sessionId": null,
                          *             "adminName": "Platform Admin",
-                         *             "reason": "Owner asked us to check a wrong supplier balance"
+                         *             "reason": null
                          *           },
                          *           "details": {
-                         *             "adminName": "Platform Admin",
-                         *             "reason": "Owner asked us to check a wrong supplier balance",
-                         *             "mode": "READ_ONLY",
-                         *             "expiresAt": "2026-10-12T10:00:00.000Z"
+                         *             "name": "Lahore Steel Traders",
+                         *             "actingAsCompany": true,
+                         *             "adminName": "Platform Admin"
                          *           },
                          *           "createdAt": "2026-10-12T09:00:00.000Z"
                          *         }
@@ -3543,7 +3546,7 @@ export interface paths {
         put?: never;
         /**
          * Invite a PM or Munshi
-         * @description THEKEDAR only. Sends an SMS (Roman Urdu) with a one-time link valid 7 days. A PM invite reserves an office seat (active THEKEDAR + PM + pending PM invites ≤ plan limit). The response includes `inviteUrl` (the one-time link) so the inviter can share it on WhatsApp / SMS too.
+         * @description THEKEDAR only. Sends an SMS (Roman Urdu) with a one-time link valid 7 days. A PM invite reserves an office seat (active THEKEDAR + PM + pending PM invites ≤ plan limit). The response includes `inviteUrl` (the one-time link) so the inviter can share it on WhatsApp / SMS too. Permissions: `roleId` (GET /roles; must fit the account type) plus optional `permissionOverrides` — ALLOW adds a key on top of the role, DENY removes one — validated exactly like PUT /users/{id}/permission-overrides (no owner-only keys; a non-owner inviter can only give what they hold). On accept they become the new user’s overrides (same transaction, audited `user.permissions_update` with `via: "invitation"`).
          */
         post: {
             parameters: {
@@ -3578,9 +3581,29 @@ export interface paths {
                         canSeeFinancials?: boolean;
                         /**
                          * Format: uuid
-                         * @description Permission role given on accept (GET /roles). Default: the system template of  (Project Manager / Munshi).
+                         * @description One permission role given on accept (GET /roles). Use roleIds for several. Default: the system template of the account type (Project Manager / Munshi).
                          */
                         roleId?: string;
+                        /** @description Permission roles given on accept (union of their permissions; the first = primary). Wins over roleId. Every role must fit the account type. */
+                        roleIds?: string[];
+                        /** @description Extra (ALLOW) / removed (DENY) permissions on top of the role, validated like PUT /users/:id/permission-overrides (no owner-only keys; a non-owner inviter only grants what they hold). Applied as the new user’s overrides on accept. */
+                        permissionOverrides?: {
+                            /** @example fields.amounts */
+                            key: string;
+                            /** @enum {string} */
+                            effect: "ALLOW" | "DENY";
+                            /**
+                             * @description ALLOW + scoped keys only; default: the role’s scope
+                             * @enum {string}
+                             */
+                            scope?: "ASSIGNED_PROJECTS" | "ALL_PROJECTS";
+                            /**
+                             * @description ALLOW + limit keys only
+                             * @example 2500000
+                             */
+                            maxAmountPaisa?: string | number | null;
+                            note?: string;
+                        }[];
                         /**
                          * @description Language of the invite SMS / email (en | roman | ur); becomes the person's language on accept. Default: the company's default language.
                          * @example ur
@@ -3615,7 +3638,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR | INVALID_PROJECT */
+                /** @description VALIDATION_ERROR | INVALID_PROJECT | ROLE_NOT_FOR_ACCOUNT | UNKNOWN_PERMISSION | SCOPE_NOT_SUPPORTED | LIMIT_NOT_SUPPORTED | DUPLICATE_PERMISSION | DENY_HAS_NO_SCOPE */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -3642,8 +3665,17 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | OWNER_ONLY_PERMISSION | GRANT_EXCEEDS_OWN */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ROLE_NOT_FOUND */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -4843,8 +4875,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Change a user’s role
-         * @description THEKEDAR, or a user with `team.member.manage`. The role must fit the account: `baseRole` PM → office (PM) accounts, MUNSHI → site accounts, OTHER → either. Overrides are kept. Audited `user.role_change` (before / after).
+         * Give a user one role (replaces their roles)
+         * @description THEKEDAR, or a user with `team.member.manage`. Same as PUT /users/{id}/roles with one role. The role must fit the account: `baseRole` PM → office (PM) accounts, MUNSHI → site accounts, OTHER → either. Overrides are kept. Audited `user.role_change` (before / after).
          */
         patch: {
             parameters: {
@@ -4916,6 +4948,95 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/v1/users/{id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set a user’s roles (several allowed)
+         * @description THEKEDAR, or a user with `team.member.manage`. Replaces the member’s permission roles. Effective permissions = the UNION of the roles (a key in several roles gets the widest scope and the highest approval limit — "no limit" wins) + ALLOW − DENY overrides (kept). Every role must fit the account type (office-only and site-only roles can’t be mixed); a non-owner can only give roles within their own permissions. The first role is the primary one (`permissionRole` in /auth/me; `permissionRoles` lists all). Applies on the next request (permission cache stamp). Audited `user.role_change` (before / after).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description User id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Permission roles in order (the first = the primary role, /auth/me permissionRole). Effective = union of the roles + overrides. */
+                        roleIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Effective permissions after the change (each key lists the roles that give it) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["UserPermissions"];
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | ROLE_NOT_FOR_ACCOUNT | DUPLICATE_ROLE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | CANNOT_EDIT_OWNER | CANNOT_EDIT_OWN_PERMISSIONS | GRANT_EXCEEDS_OWN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description USER_NOT_FOUND | ROLE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/subscription": {
@@ -34546,7 +34667,7 @@ export interface paths {
         };
         /**
          * Pull changes (mobile read model)
-         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays and own notifications. Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
+         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole, permissionRoles — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays and own notifications. Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
          */
         get: {
             parameters: {
@@ -34601,7 +34722,14 @@ export interface paths {
                          *             "id": "0199a8c0-0000-7000-8000-000000000302",
                          *             "key": "MUNSHI",
                          *             "name": "Munshi"
-                         *           }
+                         *           },
+                         *           "permissionRoles": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000302",
+                         *               "key": "MUNSHI",
+                         *               "name": "Munshi"
+                         *             }
+                         *           ]
                          *         },
                          *         "changes": {
                          *           "attendance": {
@@ -36779,546 +36907,6 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/admin/act-as-sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Support sessions
-         * @description Newest first. Filter by company (`tenantId`), admin (`adminId`) and `active` (true = live, false = ended or expired). `status` is ACTIVE, EXPIRED or ENDED.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    limit?: number;
-                    tenantId?: string;
-                    adminId?: string;
-                    /** @description true: only live sessions (not ended, not expired); false: only finished ones */
-                    active?: "true" | "false";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Sessions */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "success": true,
-                         *       "data": [
-                         *         {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000f0",
-                         *           "tenant": {
-                         *             "id": "0199a8c0-0000-7000-8000-0000000000aa",
-                         *             "name": "Malik & Sons Builders",
-                         *             "slug": "malik-and-sons-builders"
-                         *           },
-                         *           "admin": {
-                         *             "id": "0199a8c0-0000-7000-8000-0000000000a1",
-                         *             "name": "Platform Admin",
-                         *             "email": "admin@platform.local"
-                         *           },
-                         *           "reason": "Owner asked us to check a wrong supplier balance (ticket 1042)",
-                         *           "mode": "READ_ONLY",
-                         *           "writeReason": null,
-                         *           "writeEnabledAt": null,
-                         *           "startedAt": "2026-10-12T09:00:00.000Z",
-                         *           "expiresAt": "2026-10-12T10:00:00.000Z",
-                         *           "endedAt": null,
-                         *           "status": "ACTIVE",
-                         *           "secondsLeft": 2520
-                         *         }
-                         *       ]
-                         *     }
-                         */
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description VALIDATION_ERROR */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description FORBIDDEN */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Start a support session in a company
-         * @description Opens a company for this admin: **READ_ONLY**, for `durationMinutes` (default 60, 5–240). The reason (5–300 characters) is shown to the company. The admin's other live sessions end. Every active owner gets an in-app notification (`PLATFORM_SUPPORT_ACCESS`) and an email: *"Platform support accessed your account: <reason>"*. Audited as `admin.act_as_started` in the company audit log. Then call the normal company API with the admin token plus `X-Act-As-Tenant: <companyId>` and `X-Act-As-Session: <session id>`. Without a live session of this admin in this company the company API answers `403 ACT_AS_SESSION_REQUIRED | ACT_AS_SESSION_INVALID | ACT_AS_SESSION_EXPIRED | ACT_AS_SESSION_ENDED`; a READ_ONLY session answers every POST / PUT / PATCH / DELETE with `403 ACT_AS_READ_ONLY`.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        tenantId: string;
-                        /**
-                         * @description Why support needs to open this company — shown to the company owner
-                         * @example Owner asked us to check a wrong supplier balance (ticket 1042)
-                         */
-                        reason: string;
-                        /**
-                         * @description Minutes until the session expires (default 60)
-                         * @default 60
-                         */
-                        durationMinutes?: number;
-                    };
-                };
-            };
-            responses: {
-                /** @description Session started */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "success": true,
-                         *       "data": {
-                         *         "id": "0199a8c0-0000-7000-8000-0000000000f0",
-                         *         "tenant": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000aa",
-                         *           "name": "Malik & Sons Builders",
-                         *           "slug": "malik-and-sons-builders"
-                         *         },
-                         *         "admin": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000a1",
-                         *           "name": "Platform Admin",
-                         *           "email": "admin@platform.local"
-                         *         },
-                         *         "reason": "Owner asked us to check a wrong supplier balance (ticket 1042)",
-                         *         "mode": "READ_ONLY",
-                         *         "writeReason": null,
-                         *         "writeEnabledAt": null,
-                         *         "startedAt": "2026-10-12T09:00:00.000Z",
-                         *         "expiresAt": "2026-10-12T10:00:00.000Z",
-                         *         "endedAt": null,
-                         *         "status": "ACTIVE",
-                         *         "secondsLeft": 2520
-                         *       }
-                         *     }
-                         */
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description VALIDATION_ERROR */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description FORBIDDEN */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description TENANT_NOT_FOUND */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/act-as-sessions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * One support session
-         * @description Mode, time left (`secondsLeft`) and status — the admin console banner reads this.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Session id */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Session */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "success": true,
-                         *       "data": {
-                         *         "id": "0199a8c0-0000-7000-8000-0000000000f0",
-                         *         "tenant": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000aa",
-                         *           "name": "Malik & Sons Builders",
-                         *           "slug": "malik-and-sons-builders"
-                         *         },
-                         *         "admin": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000a1",
-                         *           "name": "Platform Admin",
-                         *           "email": "admin@platform.local"
-                         *         },
-                         *         "reason": "Owner asked us to check a wrong supplier balance (ticket 1042)",
-                         *         "mode": "READ_ONLY",
-                         *         "writeReason": null,
-                         *         "writeEnabledAt": null,
-                         *         "startedAt": "2026-10-12T09:00:00.000Z",
-                         *         "expiresAt": "2026-10-12T10:00:00.000Z",
-                         *         "endedAt": null,
-                         *         "status": "ACTIVE",
-                         *         "secondsLeft": 2520
-                         *       }
-                         *     }
-                         */
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description FORBIDDEN */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description ACT_AS_SESSION_NOT_FOUND */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/act-as-sessions/{id}/mode": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Switch a support session to write mode (or back to read-only)
-         * @description Own live sessions only. `WRITE` needs a second reason (5–300 characters): what you need to change and why. Changes made afterwards are audited with that reason. Audited as `admin.act_as_mode_changed`. `409 ACT_AS_SESSION_NOT_ACTIVE` when the session has ended or expired.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Session id */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        mode: "READ_ONLY" | "WRITE";
-                        /** @description Required to switch to WRITE: what you need to change and why */
-                        reason?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Session */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "success": true,
-                         *       "data": {
-                         *         "id": "0199a8c0-0000-7000-8000-0000000000f0",
-                         *         "tenant": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000aa",
-                         *           "name": "Malik & Sons Builders",
-                         *           "slug": "malik-and-sons-builders"
-                         *         },
-                         *         "admin": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000a1",
-                         *           "name": "Platform Admin",
-                         *           "email": "admin@platform.local"
-                         *         },
-                         *         "reason": "Owner asked us to check a wrong supplier balance (ticket 1042)",
-                         *         "mode": "WRITE",
-                         *         "writeReason": "Correct the duplicated supplier payment the owner reported",
-                         *         "writeEnabledAt": "2026-10-12T09:10:00.000Z",
-                         *         "startedAt": "2026-10-12T09:00:00.000Z",
-                         *         "expiresAt": "2026-10-12T10:00:00.000Z",
-                         *         "endedAt": null,
-                         *         "status": "ACTIVE",
-                         *         "secondsLeft": 2520
-                         *       }
-                         *     }
-                         */
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description VALIDATION_ERROR */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description FORBIDDEN */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description ACT_AS_SESSION_NOT_FOUND */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description ACT_AS_SESSION_NOT_ACTIVE */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/act-as-sessions/{id}/end": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * End a support session
-         * @description Ends it now (idempotent). Any super admin may end any session. Audited as `admin.act_as_ended`.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Session id */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Session */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "success": true,
-                         *       "data": {
-                         *         "id": "0199a8c0-0000-7000-8000-0000000000f0",
-                         *         "tenant": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000aa",
-                         *           "name": "Malik & Sons Builders",
-                         *           "slug": "malik-and-sons-builders"
-                         *         },
-                         *         "admin": {
-                         *           "id": "0199a8c0-0000-7000-8000-0000000000a1",
-                         *           "name": "Platform Admin",
-                         *           "email": "admin@platform.local"
-                         *         },
-                         *         "reason": "Owner asked us to check a wrong supplier balance (ticket 1042)",
-                         *         "mode": "READ_ONLY",
-                         *         "writeReason": null,
-                         *         "writeEnabledAt": null,
-                         *         "startedAt": "2026-10-12T09:00:00.000Z",
-                         *         "expiresAt": "2026-10-12T10:00:00.000Z",
-                         *         "endedAt": "2026-10-12T09:20:00.000Z",
-                         *         "status": "ENDED",
-                         *         "secondsLeft": 0
-                         *       }
-                         *     }
-                         */
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description FORBIDDEN */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description ACT_AS_SESSION_NOT_FOUND */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/audit-logs": {
         parameters: {
             query?: never;
@@ -37919,13 +37507,20 @@ export interface components {
             approvalLimits: {
                 [key: string]: string | null;
             };
-            /** @description The role template (null for THEKEDAR) */
+            /** @description The primary (first) role template (null for THEKEDAR) */
             permissionRole: {
                 /** Format: uuid */
                 id: string | null;
                 key: string | null;
                 name: string | null;
             } | null;
+            /** @description Every role of the member, primary first (effective = union of them + overrides). Empty for THEKEDAR. */
+            permissionRoles: {
+                /** Format: uuid */
+                id: string | null;
+                key: string | null;
+                name: string | null;
+            }[];
             /**
              * @description Seconds
              * @example 900
@@ -38027,13 +37622,20 @@ export interface components {
             approvalLimits: {
                 [key: string]: string | null;
             };
-            /** @description The role template (null for THEKEDAR) */
+            /** @description The primary (first) role template (null for THEKEDAR) */
             permissionRole: {
                 /** Format: uuid */
                 id: string | null;
                 key: string | null;
                 name: string | null;
             } | null;
+            /** @description Every role of the member, primary first (effective = union of them + overrides). Empty for THEKEDAR. */
+            permissionRoles: {
+                /** Format: uuid */
+                id: string | null;
+                key: string | null;
+                name: string | null;
+            }[];
             /** @description Empty for THEKEDAR = all projects */
             assignedProjectIds: string[];
         };
@@ -38170,7 +37772,7 @@ export interface components {
         CompanyAuditEntry: {
             /** Format: uuid */
             id: string;
-            /** @example admin.act_as_started */
+            /** @example supplier.update */
             action: string;
             entityType: string | null;
             entityId: string | null;
@@ -38181,7 +37783,7 @@ export interface components {
                 /** @example Platform support · Platform Admin */
                 name: string;
             };
-            /** @description Set for everything platform support did: the support person and their reason */
+            /** @description Set for everything platform support did: the support person (adminName). sessionId / reason are only filled on older entries from the former support-session flow */
             platformSupport: {
                 sessionId: string | null;
                 adminName: string | null;
@@ -38204,13 +37806,20 @@ export interface components {
             canSeeFinancials?: boolean;
             /** @description THEKEDAR works on every project */
             allProjects: boolean;
-            /** @description Permission role template (null for THEKEDAR = every permission) */
+            /** @description Primary permission role (null for THEKEDAR = every permission) */
             permissionRole: {
                 /** Format: uuid */
                 id: string;
                 key: string;
                 name: string;
             } | null;
+            /** @description Every permission role of the member (primary first; empty for THEKEDAR) */
+            permissionRoles: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                name: string;
+            }[];
             projects: {
                 /** Format: uuid */
                 id: string;
@@ -38232,13 +37841,20 @@ export interface components {
             canSeeFinancials: boolean;
             /** @description THEKEDAR works on every project */
             allProjects: boolean;
-            /** @description Permission role template (null for THEKEDAR = every permission) */
+            /** @description Primary permission role (null for THEKEDAR = every permission) */
             permissionRole: {
                 /** Format: uuid */
                 id: string;
                 key: string;
                 name: string;
             } | null;
+            /** @description Every permission role of the member (primary first; empty for THEKEDAR) */
+            permissionRoles: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                name: string;
+            }[];
             projects: {
                 /** Format: uuid */
                 id: string;
@@ -38267,9 +37883,21 @@ export interface components {
             canSeeFinancials: boolean;
             /**
              * Format: uuid
-             * @description Permission role given on accept
+             * @description Primary permission role given on accept (= roleIds[0])
              */
             roleId: string | null;
+            /** @description Every permission role given on accept */
+            roleIds: string[];
+            /** @description Extra / removed permissions on top of the role, applied on accept */
+            permissionOverrides: {
+                key: string;
+                /** @enum {string} */
+                effect: "ALLOW" | "DENY";
+                /** @enum {string|null} */
+                scope: "ASSIGNED_PROJECTS" | "ALL_PROJECTS" | null;
+                maxAmountPaisa: string | null;
+                note: string | null;
+            }[];
             /**
              * @description Language of the invite messages; the person's language on accept
              * @example ur
@@ -38385,16 +38013,31 @@ export interface components {
                 role: "THEKEDAR" | "PM" | "MUNSHI";
             };
             owner: boolean;
+            /** @description The primary (first) role */
             role: {
                 /** Format: uuid */
                 id: string | null;
                 key: string | null;
                 name: string | null;
             } | null;
+            /** @description Every permission role of the member, primary first */
+            roles: {
+                /** Format: uuid */
+                id: string | null;
+                key: string | null;
+                name: string | null;
+            }[];
             effective: {
                 key: string;
                 /** @enum {string} */
                 source: "owner" | "role" | "override";
+                /** @description The roles that give this permission (empty for owner / extra-only) */
+                roles: {
+                    /** Format: uuid */
+                    id: string | null;
+                    key: string | null;
+                    name: string | null;
+                }[];
                 /** @enum {string|null} */
                 scope: "ASSIGNED_PROJECTS" | "ALL_PROJECTS" | null;
                 maxAmountPaisa: string | null;

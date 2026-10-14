@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { adminBaseApi } from "@/api/adminBaseApi";
 import { baseApi } from "@/api/baseApi";
-import { actingSessionId, clearActingTenant } from "@/lib/actingCompany";
+import { clearActingTenant } from "@/lib/actingCompany";
 import { observeSignedOut } from "@/lib/observability/identity";
-import { useEndActAsSessionMutation } from "@/api/services/admin/actAs.api";
 import { useAdminLogoutMutation } from "@/api/services/admin/auth.api";
 import { useLogoutAllMutation, useLogoutMutation } from "@/api/services/auth.api";
 import { useAppDispatch } from "@/store/hooks";
@@ -47,12 +46,8 @@ export function useAdminLogout() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [logout, { isLoading }] = useAdminLogoutMutation();
-  const [endSession] = useEndActAsSessionMutation();
   const signOut = useCallback(async () => {
     try {
-      // A support session ends with the sign-out (it would stop working anyway).
-      const sessionId = actingSessionId();
-      if (sessionId) await endSession(sessionId).unwrap().catch(() => undefined);
       await logout().unwrap();
     } finally {
       dispatch(loggedOut({ audience: "platform" }));
@@ -62,6 +57,6 @@ export function useAdminLogout() {
       dispatch(baseApi.util.resetApiState());
       router.replace("/admin/login");
     }
-  }, [logout, endSession, dispatch, router]);
+  }, [logout, dispatch, router]);
   return { signOut, isLoading };
 }
