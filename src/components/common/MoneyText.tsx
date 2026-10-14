@@ -18,7 +18,7 @@ export function MoneyText({
   if (paisa === undefined) return <HiddenForRole compact={short} />;
   const text = short ? formatPKRShort(paisa) : formatPKR(paisa);
   return (
-    <span className={cn("tabular whitespace-nowrap", className)} title={short ? formatPKR(paisa) : undefined}>
+    <span dir="ltr" className={cn("tabular whitespace-nowrap", className)} title={short ? formatPKR(paisa) : undefined}>
       {text}
     </span>
   );

@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { MoneyText } from "./MoneyText";
 import { SegmentedControl } from "./SegmentedControl";
@@ -47,7 +48,12 @@ const DECLINE: ApprovalAction[] = ["reject", "return", "bounce"];
 export const isDecline = (action: ApprovalAction) => DECLINE.includes(action);
 const MIN_NOTE = 3;
 
-export const ageText = (days: number) => (days <= 0 ? "Today" : days === 1 ? "1 day" : `${days} days`);
+/** "waiting 3 days" in the current language. */
+function useWaitingText() {
+  const t = useT();
+  return (days: number) =>
+    days <= 0 ? t("app.components.approval.waitingToday") : days === 1 ? t("app.components.approval.waitingOneDay") : t("app.components.approval.waitingDays", { n: days });
+}
 
 /**
  * Asks for what an action needs before it runs: a note (reject / return / bounce) and / or
@@ -66,6 +72,8 @@ export function ActionInputDialog({
   onConfirm: (input: ActionInput) => void;
   busy?: boolean;
 }) {
+  const t = useT();
+  const te = useEnumT();
   const [note, setNote] = useState("");
   const [method, setMethod] = useState<FloatMethod>("CASH");
   if (!action) return null;
@@ -74,38 +82,35 @@ export function ActionInputDialog({
     <Dialog open onOpenChange={(open) => (!open && !busy ? onCancel() : undefined)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {action.label}
-            {count > 1 ? ` — ${count} items` : ""}
-          </DialogTitle>
-          <DialogDescription>{action.needsNote ? "Say why — whoever submitted it will see this." : "Choose how the cash is sent."}</DialogDescription>
+          <DialogTitle>{count > 1 ? t("app.components.approval.titleWithCount", { label: action.label, n: count }) : action.label}</DialogTitle>
+          <DialogDescription>{action.needsNote ? t("app.components.approval.sayWhy") : t("app.components.approval.chooseCashMethod")}</DialogDescription>
         </DialogHeader>
         {action.needsMethod ? (
           <div className="space-y-1.5">
-            <Label>Send by</Label>
+            <Label>{t("app.components.approval.sendBy")}</Label>
             <SegmentedControl<FloatMethod>
-              ariaLabel="Send by"
+              ariaLabel={t("app.components.approval.sendBy")}
               value={method}
               onChange={setMethod}
               options={[
-                { value: "CASH", label: "Cash" },
-                { value: "BANK", label: "Bank" },
-                { value: "JAZZCASH", label: "JazzCash" },
-                { value: "EASYPAISA", label: "Easypaisa" },
+                { value: "CASH", label: t("field.cash") },
+                { value: "BANK", label: t("field.bank") },
+                { value: "JAZZCASH", label: te("paymentMethod", "JAZZCASH") },
+                { value: "EASYPAISA", label: te("paymentMethod", "EASYPAISA") },
               ]}
             />
           </div>
         ) : null}
         {action.needsNote ? (
           <div className="space-y-1.5">
-            <Label htmlFor="approval-note">Note</Label>
+            <Label htmlFor="approval-note">{t("field.note")}</Label>
             <Textarea id="approval-note" rows={3} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} aria-invalid={note.length > 0 && noteShort} />
-            {note.length > 0 && noteShort ? <p className="text-xs text-danger">Write at least {MIN_NOTE} characters.</p> : null}
+            {note.length > 0 && noteShort ? <p className="text-xs text-danger">{t("app.components.approval.minChars", { n: MIN_NOTE })}</p> : null}
           </div>
         ) : null}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -139,6 +144,8 @@ export function ApprovalItem({
   onAction: (item: Item, action: ApprovalAction, input: ActionInput) => Promise<unknown> | void;
   busy?: boolean;
 }) {
+  const t = useT();
+  const waiting = useWaitingText();
   const [asking, setAsking] = useState<QuickAction | null>(null);
   const Icon = APPROVAL_ICON[item.type];
   const run = async (qa: QuickAction, input: ActionInput = {}) => {
@@ -151,7 +158,7 @@ export function ApprovalItem({
         <Checkbox
           checked={selected}
           onCheckedChange={(v) => onSelect(v === true)}
-          aria-label={`Select ${item.title}`}
+          aria-label={t("app.components.approval.selectItem", { name: item.title })}
           disabled={!item.quickActions.length}
         />
       ) : null}
@@ -163,7 +170,7 @@ export function ApprovalItem({
           {item.title}
         </Link>
         <p className="truncate text-xs text-muted-foreground">
-          {[item.project?.code, item.subtitle, `waiting ${ageText(item.ageDays).toLowerCase()}`].filter(Boolean).join(" · ")}
+          {[item.project?.code, item.subtitle, waiting(item.ageDays)].filter(Boolean).join(" · ")}
         </p>
       </div>
       {item.amountPaisa !== null ? <MoneyText paisa={item.amountPaisa} className="text-sm font-semibold" /> : null}
@@ -182,7 +189,7 @@ export function ApprovalItem({
         ))}
         {!item.quickActions.length ? (
           <Button asChild size="sm" variant="outline">
-            <Link href={item.actionUrl}>Open</Link>
+            <Link href={item.actionUrl}>{t("common.open")}</Link>
           </Button>
         ) : null}
       </div>

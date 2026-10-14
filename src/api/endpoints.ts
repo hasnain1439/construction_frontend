@@ -21,6 +21,7 @@ export const ENDPOINTS = {
     passwordForgot: "/auth/password/forgot",
     passwordReset: "/auth/password/reset",
     me: "/auth/me",
+    mePreferences: "/auth/me/preferences",
     sessions: "/auth/sessions",
     acceptInvitation: (token: string) => `/invitations/${id(token)}/accept`,
   },
@@ -137,6 +138,30 @@ export const ENDPOINTS = {
     subcontractorById: (subcontractorId: string) => `/subcontractors/${id(subcontractorId)}`,
     subcontractorActivate: (subcontractorId: string) => `/subcontractors/${id(subcontractorId)}/activate`,
     subcontractorDeactivate: (subcontractorId: string) => `/subcontractors/${id(subcontractorId)}/deactivate`,
+  },
+
+  /** First-login setup checklist (owner). */
+  onboarding: {
+    checklist: "/onboarding/checklist",
+    dismiss: "/onboarding/checklist/dismiss",
+    ratesReviewed: "/onboarding/checklist/rates-reviewed",
+  },
+
+  /** Excel / CSV import: template → preview → commit (same file again). */
+  imports: {
+    template: (entity: string) => `/imports/${id(entity)}/template`,
+    preview: (entity: string) => `/imports/${id(entity)}/preview`,
+    commit: (entity: string) => `/imports/${id(entity)}/commit`,
+  },
+
+  /** Opening balances (company.opening.manage), locked once saved. */
+  openingBalances: {
+    list: "/opening-balances",
+  },
+
+  /** "Try with demo data": POST creates, DELETE removes everything tagged DEMO. */
+  demo: {
+    root: "/demo",
   },
 
   clients: {

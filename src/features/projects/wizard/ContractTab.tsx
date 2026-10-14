@@ -23,6 +23,7 @@ import { SegmentedField } from "@/components/forms/SegmentedField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StageEditor } from "@/features/master-data/components/StageEditor";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useMessageT, useT } from "@/i18n/useT";
 import { formatPKR, multiplyPaisa } from "@/lib/money";
 import { CONTRACT_TYPES, SUPPLY_CATEGORIES } from "../constants";
 import { contractSchema } from "./schemas";
@@ -32,11 +33,11 @@ type Values = z.input<ReturnType<typeof contractSchema>>;
 type Rule = Values["supplyRules"][number];
 
 function rulesFromPreset(preset: SupplyPreset | undefined, defaultCategory: string | null, keep: Rule[] = []): Rule[] {
-  return SUPPLY_CATEGORIES.map(({ key, label }) => {
+  return SUPPLY_CATEGORIES.map(({ key }) => {
     const locked = keep.find((r) => r.categoryKey === key && r.locked);
     if (locked) return locked;
     const suppliedBy = preset?.rules.find((r) => r.categoryKey === key)?.suppliedBy ?? "CONTRACTOR";
-    return { categoryKey: key, label, suppliedBy, qualityCategoryId: suppliedBy === "CONTRACTOR" ? defaultCategory : null, locked: false };
+    return { categoryKey: key, label: key, suppliedBy, qualityCategoryId: suppliedBy === "CONTRACTOR" ? defaultCategory : null, locked: false };
   });
 }
 
@@ -50,7 +51,7 @@ function initialValues(p: ProjectDetail, presets: SupplyPreset[], defaultCategor
     locked: r.locked,
   }));
   const supplyRules = existing.length
-    ? SUPPLY_CATEGORIES.map(({ key, label }) => existing.find((r) => r.categoryKey === key) ?? { categoryKey: key, label, suppliedBy: "OWNER" as const, qualityCategoryId: null, locked: false })
+    ? SUPPLY_CATEGORIES.map(({ key }) => existing.find((r) => r.categoryKey === key) ?? { categoryKey: key, label: key, suppliedBy: "OWNER" as const, qualityCategoryId: null, locked: false })
     : rulesFromPreset(presets.find((x) => x.contractType === contractType), defaultCategory);
   return {
     contractType,
@@ -68,7 +69,9 @@ function initialValues(p: ProjectDetail, presets: SupplyPreset[], defaultCategor
 
 function ContractTypeCards({ presets, defaultCategory, disabled }: { presets: SupplyPreset[]; defaultCategory: string | null; disabled: boolean }) {
   const { control, setValue, getValues } = useFormContext<Values>();
+  const t = useT();
   const error = useFieldError("contractType");
+  const options = CONTRACT_TYPES.map((c) => ({ value: c.value, icon: c.icon, title: t(c.titleKey), description: t(c.descriptionKey), ...(c.badgeKey ? { badge: t(c.badgeKey) } : {}) }));
   return (
     <Controller
       control={control}
@@ -76,12 +79,12 @@ function ContractTypeCards({ presets, defaultCategory, disabled }: { presets: Su
       render={({ field }) => (
         <div className="space-y-1.5">
           <RadioCardGroup<ContractType>
-            ariaLabel="Contract type"
+            ariaLabel={t("projects.section.contractType")}
             columns={3}
             value={field.value}
             disabled={disabled}
             invalid={Boolean(error)}
-            options={CONTRACT_TYPES}
+            options={options}
             onChange={(type) => {
               field.onChange(type);
               // A new contract type starts from its preset (locked rows stay as they are).
@@ -102,31 +105,36 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
   const rules = (useWatch({ control, name: "supplyRules" }) as Rule[]) ?? [];
   const defaultCategory = categories.find((c) => c.isDefault)?.id ?? null;
   const errors = useFormContext<Values>().formState.errors.supplyRules;
+  const t = useT();
+  const te = useEnumT();
+  const tm = useMessageT();
   return (
     <div className="overflow-x-auto rounded-xl border">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase">
           <tr>
-            <th className="px-4 py-2.5 text-left">Category</th>
-            <th className="px-4 py-2.5 text-left">Supplied by</th>
-            <th className="px-4 py-2.5 text-left">Quality category</th>
+            <th className="px-4 py-2.5 text-start">{t("field.category")}</th>
+            <th className="px-4 py-2.5 text-start">{t("projects.section.suppliedBy")}</th>
+            <th className="px-4 py-2.5 text-start">{t("projects.section.qualityCategory")}</th>
           </tr>
         </thead>
         <tbody>
           {rules.map((rule, index) => {
             const meta = SUPPLY_CATEGORIES.find((c) => c.key === rule.categoryKey);
             const rowDisabled = disabled || rule.locked;
-            const error = errors?.[index]?.qualityCategoryId?.message;
+            const errorText = errors?.[index]?.qualityCategoryId?.message;
+            const error = errorText ? tm(errorText) : undefined;
+            const categoryLabel = meta ? te("projectSupplyCategory", rule.categoryKey) : rule.label;
             return (
               <tr key={rule.categoryKey} className="border-t">
                 <td className="px-4 py-2.5">
-                  <span className="font-medium">{meta?.label ?? rule.label}</span>
-                  {meta?.oftenChanges ? <StatusBadge tone="warning" label="often changes" className="ml-2 h-5 px-2 text-[11px]" /> : null}
-                  {rule.locked ? <Lock className="ml-2 inline size-3.5 text-muted-foreground" aria-label="Locked" /> : null}
+                  <span className="font-medium">{categoryLabel}</span>
+                  {meta?.oftenChanges ? <StatusBadge tone="warning" label={t("projects.contract.oftenChanges")} className="ms-2 h-5 px-2 text-[11px]" /> : null}
+                  {rule.locked ? <Lock className="ms-2 inline size-3.5 text-muted-foreground" aria-label={t("projects.section.locked")} /> : null}
                 </td>
                 <td className="px-4 py-2">
                   <SegmentedControl<"CONTRACTOR" | "OWNER">
-                    ariaLabel={`${meta?.label ?? rule.label} supplied by`}
+                    ariaLabel={t("projects.contract.suppliedByAria", { category: categoryLabel })}
                     size="sm"
                     disabled={rowDisabled}
                     value={rule.suppliedBy}
@@ -138,8 +146,8 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
                       });
                     }}
                     options={[
-                      { value: "CONTRACTOR", label: "Contractor" },
-                      { value: "OWNER", label: "Owner" },
+                      { value: "CONTRACTOR", label: t("projects.section.contractor") },
+                      { value: "OWNER", label: t("projects.section.owner") },
                     ]}
                   />
                 </td>
@@ -153,8 +161,8 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
                         disabled={rowDisabled}
                         onValueChange={(v) => setValue(`supplyRules.${index}.qualityCategoryId`, v, { shouldDirty: true, shouldValidate: true })}
                       >
-                        <SelectTrigger size="sm" className="w-48" aria-label={`${meta?.label ?? rule.label} quality`} aria-invalid={Boolean(error) || undefined}>
-                          <SelectValue placeholder="Choose quality" />
+                        <SelectTrigger size="sm" className="w-48" aria-label={t("projects.contract.qualityAria", { category: categoryLabel })} aria-invalid={Boolean(error) || undefined}>
+                          <SelectValue placeholder={t("projects.contract.chooseQuality")} />
                         </SelectTrigger>
                         <SelectContent>
                           {categories.map((c) => (
@@ -180,10 +188,11 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
 function ValueFields({ coveredArea, seesMoney, disabled }: { coveredArea: number | null; seesMoney: boolean; disabled: boolean }) {
   const contractType = useWatch({ name: "contractType" }) as ContractType;
   const rate = useWatch({ name: "ratePerSqftPaisa" }) as string | null;
+  const t = useT();
   if (!seesMoney) {
     return (
       <div className="rounded-xl border bg-muted/30 p-4">
-        <p className="mb-1 text-sm font-medium">{contractType === "LABOR_ONLY" ? "Rate per sq ft" : "Contract value"}</p>
+        <p className="mb-1 text-sm font-medium">{contractType === "LABOR_ONLY" ? t("projects.section.ratePerSqft") : t("projects.section.contractValue")}</p>
         <HiddenForRole />
       </div>
     );
@@ -192,43 +201,44 @@ function ValueFields({ coveredArea, seesMoney, disabled }: { coveredArea: number
     const total = rate && coveredArea ? multiplyPaisa(rate, coveredArea) : null;
     return (
       <div className="space-y-2">
-        <MoneyField name="ratePerSqftPaisa" label="Rate per sq ft" required suffix="/ sq ft" disabled={disabled} />
+        <MoneyField name="ratePerSqftPaisa" label={t("projects.section.ratePerSqft")} required suffix={t("projects.unit.perSqft")} disabled={disabled} />
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {total && rate && coveredArea
-            ? `${formatPKR(rate)} × ${coveredArea.toLocaleString("en-PK")} sq ft = ${formatPKR(total)}`
-            : "Set the covered area in tab 4 to see the contract total."}
+            ? t("projects.contract.rateCalc", { rate: formatPKR(rate), area: coveredArea.toLocaleString("en-PK"), total: formatPKR(total) })
+            : t("projects.contract.setCoveredFirst")}
         </p>
       </div>
     );
   }
-  return <MoneyField name="contractValuePaisa" label="Contract value" required disabled={disabled} />;
+  return <MoneyField name="contractValuePaisa" label={t("projects.section.contractValue")} required disabled={disabled} />;
 }
 
 function Schedule({ templates, seesMoney, coveredArea, disabled }: { templates: Array<{ id: string; name: string; stages: Values["stages"] }>; seesMoney: boolean; coveredArea: number | null; disabled: boolean }) {
   const { setValue } = useFormContext<Values>();
   const [contractType, value, rate] = useWatch({ name: ["contractType", "contractValuePaisa", "ratePerSqftPaisa"] }) as [ContractType, string | null, string | null];
+  const t = useT();
   const totalPaisa = !seesMoney ? undefined : contractType === "LABOR_ONLY" ? (rate && coveredArea ? multiplyPaisa(rate, coveredArea) : null) : value;
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium">
-          Payment schedule<span className="text-destructive">*</span>
+          {t("projects.contract.paymentSchedule")}<span className="text-destructive">*</span>
         </p>
         {templates.length && !disabled ? (
           <Select
             value=""
             onValueChange={(id) => {
-              const template = templates.find((t) => t.id === id);
+              const template = templates.find((tpl) => tpl.id === id);
               if (template) setValue("stages", template.stages, { shouldDirty: true, shouldValidate: true });
             }}
           >
-            <SelectTrigger size="sm" className="w-56" aria-label="Start from template">
-              <SelectValue placeholder="Start from template…" />
+            <SelectTrigger size="sm" className="w-56" aria-label={t("projects.contract.startFromTemplate")}>
+              <SelectValue placeholder={t("projects.contract.startFromTemplatePh")} />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
+              {templates.map((tpl) => (
+                <SelectItem key={tpl.id} value={tpl.id}>
+                  {tpl.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -249,16 +259,18 @@ export function ContractTab() {
   const templates = useGetPaymentTemplatesQuery();
   const [save] = useUpdateContractMutation();
   const run = useMutationToast();
+  const t = useT();
+  const te = useEnumT();
   const schema = useMemo(() => contractSchema(seesMoney), [seesMoney]);
 
   const defaultCategory = categories.data?.find((c) => c.isDefault)?.id ?? null;
-  const defaultTemplate = templates.data?.find((t) => t.isDefault);
+  const defaultTemplate = templates.data?.find((tpl) => tpl.isDefault);
   const defaultStages = useMemo<Values["stages"]>(
     () =>
       defaultTemplate?.stages.map((s) => ({ label: s.label, percent: s.percent, isRetention: Boolean(s.isRetention) })) ?? [
-        { label: "Advance", percent: 100, isRetention: false },
+        { label: t("projects.contract.defaultStage"), percent: 100, isRetention: false },
       ],
-    [defaultTemplate],
+    [defaultTemplate, t],
   );
   const ready = Boolean(project && presets.data && categories.data && templates.data);
   const values = useMemo(
@@ -272,7 +284,7 @@ export function ContractTab() {
   if (!ready) {
     return (
       <SectionCard>
-        <p className="text-sm text-muted-foreground">Loading contract options…</p>
+        <p className="text-sm text-muted-foreground">{t("projects.contract.loadingOptions")}</p>
       </SectionCard>
     );
   }
@@ -319,43 +331,43 @@ export function ContractTab() {
 
   return (
     <Form form={form} onSubmit={onSubmit} id={WIZARD_FORM_ID}>
-      <SectionCard title="Contract type">
+      <SectionCard title={t("projects.section.contractType")}>
         <ContractTypeCards presets={presets.data ?? []} defaultCategory={defaultCategory} disabled={locked} />
       </SectionCard>
-      <SectionCard title="Who supplies what" description="Contractor rows use your Price List quality categories.">
+      <SectionCard title={t("projects.section.whoSupplies")} description={t("projects.contract.supplyDesc")}>
         <SupplyTable categories={(categories.data ?? []).filter((c) => !c.isArchived)} disabled={locked} />
       </SectionCard>
-      <SectionCard title="Value & billing">
+      <SectionCard title={t("projects.contract.valueBilling")}>
         <div className="space-y-6">
           <FieldGrid>
             <ValueFields coveredArea={coveredArea} seesMoney={seesMoney} disabled={locked} />
             <SegmentedField
               name="billingModel"
-              label="Billing model"
+              label={t("projects.contract.billingModel")}
               required
               disabled={locked}
               options={[
-                { value: "STAGE_SCHEDULE", label: "Stage schedule" },
-                { value: "RUNNING_BILLS", label: "Running bills" },
+                { value: "STAGE_SCHEDULE", label: te("billingModel", "STAGE_SCHEDULE") },
+                { value: "RUNNING_BILLS", label: te("billingModel", "RUNNING_BILLS") },
               ]}
             />
           </FieldGrid>
           <Schedule
-            templates={(templates.data ?? []).map((t) => ({
-              id: t.id,
-              name: t.name,
-              stages: t.stages.map((s) => ({ label: s.label, percent: s.percent, isRetention: Boolean(s.isRetention) })),
+            templates={(templates.data ?? []).map((tpl) => ({
+              id: tpl.id,
+              name: tpl.name,
+              stages: tpl.stages.map((s) => ({ label: s.label, percent: s.percent, isRetention: Boolean(s.isRetention) })),
             }))}
             seesMoney={seesMoney}
             coveredArea={coveredArea}
             disabled={locked}
           />
           <FieldGrid>
-            <NumberField name="retentionPercent" label="Retention" required unit="%" decimals={2} hint="Held back until the defect period ends (0–10 %)." disabled={locked} />
-            <NumberField name="defectPeriodMonths" label="Defect period" required unit="months" decimals={0} disabled={locked} />
+            <NumberField name="retentionPercent" label={t("field.retention")} required unit="%" decimals={2} hint={t("projects.contract.retentionHint")} disabled={locked} />
+            <NumberField name="defectPeriodMonths" label={t("projects.contract.defectPeriod")} required unit={t("projects.unit.months")} decimals={0} disabled={locked} />
           </FieldGrid>
           {project.billingStages?.some((s) => s.status !== "UPCOMING") ? (
-            <InlineAlert tone="warning">Some stages are already invoiced or paid — the schedule may be locked.</InlineAlert>
+            <InlineAlert tone="warning">{t("projects.contract.stagesLocked")}</InlineAlert>
           ) : null}
         </div>
       </SectionCard>

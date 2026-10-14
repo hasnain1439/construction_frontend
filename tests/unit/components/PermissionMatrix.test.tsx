@@ -130,6 +130,7 @@ describe("PermissionMatrix", { timeout: 30_000 }, () => {
     await user.click(within(row("company")).getByRole("checkbox", { name: "Everything in Company" }));
     expect(Object.keys(onChange.mock.lastCall![0]).sort()).toEqual([
       "company.holiday.manage",
+      "company.opening.manage",
       "company.profile.view",
     ]);
   });

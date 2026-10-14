@@ -152,6 +152,8 @@ export interface Supplier {
   ntn: string | null;
   notes: string | null;
   isActive: boolean;
+  /** Sample supplier from "Try with demo data". */
+  isDemo?: boolean;
   createdAt: IsoDateTime;
   /** Present with rates.view (THEKEDAR, PM). */
   udhaarBalancePaisa?: Paisa;
@@ -224,6 +226,8 @@ export interface Worker {
   phone: string | null;
   dailyRatePaisa: Paisa;
   isActive: boolean;
+  /** Sample worker from "Try with demo data". */
+  isDemo?: boolean;
   notes: string | null;
   createdAt: IsoDateTime;
 }

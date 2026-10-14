@@ -17,6 +17,7 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { applyLineError } from "@/features/procurement/lineErrors";
 import { ownerDeliverySchema, usageSchema, type OwnerDeliveryValues, type UsageValues } from "@/features/procurement/schemas";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 
@@ -37,6 +38,7 @@ export const SUPPLY_GROUPS: Record<string, string[]> = {
 
 /** Material used on site today: each quantity must be in the site stock. */
 export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: { open: boolean; onOpenChange: (open: boolean) => void; projectId: string; stock: SiteStockRow[] }) {
+  const t = useT();
   const [record, { isLoading }] = useRecordUsageMutation();
   const run = useMutationToast();
   const byId = new Map(stock.map((s) => [s.material.id, s]));
@@ -48,7 +50,7 @@ export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: {
     const result = await run(
       () => record({ projectId, body: { usageDate: v.usageDate, ...(v.note ? { note: v.note } : {}), items: v.items.map((i) => ({ materialId: i.materialId, qty: i.qty })) } }).unwrap(),
       {
-        success: "Usage saved",
+        success: t("cashSite.site.usageSaved"),
         setError: form.setError,
         codeFields: { DATE_IN_FUTURE: "usageDate" },
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { INSUFFICIENT_STOCK: "qty" }),
@@ -61,32 +63,32 @@ export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: {
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Record material usage"
-      description="Maal lag gaya — what was used on site."
+      title={t("cashSite.site.recordUsageTitle")}
+      description={t("cashSite.site.recordUsageDesc")}
       busy={isLoading}
-      footer={<FormActions formId="usage-form" submitLabel="Save usage" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="usage-form" submitLabel={t("cashSite.site.saveUsage")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="usage-form">
-        <DateField name="usageDate" label="Date" required max={todayPK()} />
+        <DateField name="usageDate" label={t("field.date")} required max={todayPK()} />
         <LineItemsEditor
           name="items"
           materialIds={stock.filter((s) => s.inStock > 0).map((s) => s.material.id)}
           describeMaterial={(m) => {
             const s = byId.get(m.id);
-            return s ? `In stock: ${formatQty(s.inStock, s.material.unit)}` : undefined;
+            return s ? t("cashSite.site.inStockQty", { qty: formatQty(s.inStock, s.material.unit) }) : undefined;
           }}
-          columns={[{ key: "qty", label: "Used", kind: "quantity", required: true, width: "w-40" }]}
+          columns={[{ key: "qty", label: t("cashSite.site.colUsed"), kind: "quantity", required: true, width: "w-40" }]}
           info={(row) => {
             const s = row.materialId ? byId.get(row.materialId) : undefined;
-            return s ? `In stock: ${formatQty(s.inStock, s.material.unit)}` : null;
+            return s ? t("cashSite.site.inStockQty", { qty: formatQty(s.inStock, s.material.unit) }) : null;
           }}
           rowError={(row) => {
             const s = row.materialId ? byId.get(row.materialId) : undefined;
-            return s && Number(row.qty ?? 0) > s.inStock ? `Only ${formatQty(s.inStock, s.material.unit)} in stock` : undefined;
+            return s && Number(row.qty ?? 0) > s.inStock ? t("cashSite.site.onlyInStock", { qty: formatQty(s.inStock, s.material.unit) }) : undefined;
           }}
           emptyRow={() => ({ materialId: null, qty: null })}
         />
-        <TextareaField name="note" label="Note" rows={2} placeholder="Roof slab, first floor" />
+        <TextareaField name="note" label={t("field.note")} rows={2} placeholder={t("cashSite.site.usagePlaceholder")} />
       </Form>
     </SlideOver>
   );
@@ -94,6 +96,7 @@ export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: {
 
 /** Material the owner brought himself — only categories the owner supplies on this project. */
 export function OwnerDeliverySlideOver({ open, onOpenChange, projectId, supplyRules }: { open: boolean; onOpenChange: (open: boolean) => void; projectId: string; supplyRules?: SupplyRule[] }) {
+  const t = useT();
   const [create, { isLoading }] = useCreateOwnerDeliveryMutation();
   const materials = useGetMaterialsQuery();
   const run = useMutationToast();
@@ -111,7 +114,7 @@ export function OwnerDeliverySlideOver({ open, onOpenChange, projectId, supplyRu
           body: { deliveryDate: v.deliveryDate, ...(v.note ? { note: v.note } : {}), photoAttachmentIds: v.photo ? [v.photo.id] : [], items: v.items.map((i) => ({ materialId: i.materialId, qty: i.qty })) },
         }).unwrap(),
       {
-        success: "Owner delivery recorded",
+        success: t("cashSite.site.ownerDeliveryRecorded"),
         setError: form.setError,
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { NOT_OWNER_SUPPLIED: "materialId" }),
       },
@@ -123,17 +126,17 @@ export function OwnerDeliverySlideOver({ open, onOpenChange, projectId, supplyRu
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Record owner delivery"
-      description="Material the owner sent himself. It is tracked in the site stock at no cost to you."
+      title={t("cashSite.site.recordOwnerDelivery")}
+      description={t("cashSite.site.ownerDeliveryFormDesc")}
       busy={isLoading}
-      footer={<FormActions formId="owner-delivery-form" submitLabel="Save delivery" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="owner-delivery-form" submitLabel={t("cashSite.site.saveDelivery")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="owner-delivery-form">
-        <DateField name="deliveryDate" label="Date" required max={todayPK()} />
-        {allowed && allowed.length === 0 ? <p className="text-sm text-muted-foreground">The owner doesn&apos;t supply any material category on this project (see Supply Split).</p> : null}
-        <LineItemsEditor name="items" materialIds={allowed} columns={[{ key: "qty", label: "Quantity", kind: "quantity", required: true, width: "w-40" }]} emptyRow={() => ({ materialId: null, qty: null })} />
-        <AttachmentField name="photo" label="Photo (optional)" kind="SITE_PHOTO" />
-        <TextareaField name="note" label="Note" rows={2} />
+        <DateField name="deliveryDate" label={t("field.date")} required max={todayPK()} />
+        {allowed && allowed.length === 0 ? <p className="text-sm text-muted-foreground">{t("cashSite.site.ownerSuppliesNothing")}</p> : null}
+        <LineItemsEditor name="items" materialIds={allowed} columns={[{ key: "qty", label: t("field.quantity"), kind: "quantity", required: true, width: "w-40" }]} emptyRow={() => ({ materialId: null, qty: null })} />
+        <AttachmentField name="photo" label={t("cashSite.site.photoOptional")} kind="SITE_PHOTO" />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );

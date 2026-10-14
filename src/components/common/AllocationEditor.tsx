@@ -3,6 +3,7 @@
 import { Wand2 } from "lucide-react";
 import { MoneyInput } from "@/components/forms/MoneyInput";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { formatPKR, toPaisaBigInt } from "@/lib/money";
@@ -57,18 +58,19 @@ export function AllocationEditor({
   onChange: (value: Record<string, string | null>) => void;
   className?: string;
 }) {
+  const t = useT();
   const s = allocationSummary(invoices, value, totalPaisa);
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium">Put against invoices</p>
+        <p className="text-sm font-medium">{t("app.components.allocation.title")}</p>
         <Button type="button" size="sm" variant="outline" onClick={() => onChange(autoAllocate(invoices, totalPaisa))} disabled={!invoices.length}>
           <Wand2 data-icon="inline-start" />
-          Auto (oldest first)
+          {t("app.components.allocation.auto")}
         </Button>
       </div>
       {invoices.length === 0 ? (
-        <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">No open invoices — the whole amount is kept as credit for the next invoice.</p>
+        <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{t("app.components.allocation.noOpen")}</p>
       ) : (
         <ul className="divide-y rounded-lg border">
           {invoices.map((inv) => (
@@ -76,13 +78,14 @@ export function AllocationEditor({
               <div className="min-w-0">
                 <p className="font-medium tabular">{inv.number}</p>
                 <p className={cn("text-xs", inv.overdue ? "text-danger" : "text-muted-foreground")}>
-                  Open {formatPKR(inv.openPaisa)}
-                  {inv.dueDate ? ` · due ${formatDate(inv.dueDate)}` : ""}
+                  {inv.dueDate
+                    ? t("app.components.allocation.openDue", { amount: formatPKR(inv.openPaisa), date: formatDate(inv.dueDate) })
+                    : t("app.components.allocation.open", { amount: formatPKR(inv.openPaisa) })}
                 </p>
               </div>
               <div className="w-40">
                 <MoneyInput
-                  aria-label={`Amount for ${inv.number}`}
+                  aria-label={t("app.components.allocation.amountFor", { number: inv.number })}
                   value={value[inv.id] ?? null}
                   onChange={(v) => onChange({ ...value, [inv.id]: v })}
                   aria-invalid={s.overInvoice.includes(inv.id) || undefined}
@@ -93,12 +96,12 @@ export function AllocationEditor({
         </ul>
       )}
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm" data-testid="allocation-summary">
-        <dt className="text-muted-foreground">Against invoices</dt>
-        <dd className="text-right tabular">{formatPKR(s.allocated.toString())}</dd>
-        <dt className="text-muted-foreground">{s.overPayment ? "More than received" : "Kept as credit"}</dt>
-        <dd className={cn("text-right font-medium tabular", s.overPayment && "text-danger")}>{formatPKR((s.overPayment ? -s.remainder : s.remainder).toString())}</dd>
+        <dt className="text-muted-foreground">{t("app.components.allocation.against")}</dt>
+        <dd className="text-end tabular">{formatPKR(s.allocated.toString())}</dd>
+        <dt className="text-muted-foreground">{s.overPayment ? t("app.components.allocation.moreThanReceived") : t("app.components.allocation.keptAsCredit")}</dt>
+        <dd className={cn("text-end font-medium tabular", s.overPayment && "text-danger")}>{formatPKR((s.overPayment ? -s.remainder : s.remainder).toString())}</dd>
       </dl>
-      {s.overInvoice.length ? <p className="text-xs text-danger">An amount is more than that invoice&apos;s open balance.</p> : null}
+      {s.overInvoice.length ? <p className="text-xs text-danger">{t("app.components.allocation.overInvoice")}</p> : null}
     </div>
   );
 }

@@ -3,22 +3,26 @@
 import { Check, ChevronDown, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useChangeLanguage } from "@/features/auth/hooks/useChangeLanguage";
 import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLanguage, type UiLanguage } from "@/store/slices/uiSlice";
+import { useAppSelector } from "@/store/hooks";
+import type { UiLanguage } from "@/store/slices/uiSlice";
 
-/** Each language named in its own script, so anyone can find theirs. */
+/** Each language named in its own script, so anyone can find theirs (never translated). */
 const LANGUAGES: { value: UiLanguage; label: string; short: string; dir?: "rtl" }[] = [
-  { value: "en", label: "English", short: "EN" },
-  { value: "roman-ur", label: "Roman Urdu", short: "Roman" },
-  { value: "ur", label: "اردو", short: "اردو", dir: "rtl" },
+  { value: "en", label: "English", short: "EN" }, // i18n-ignore: language names stay in their own language
+  { value: "roman-ur", label: "Roman Urdu", short: "Roman" }, // i18n-ignore
+  { value: "ur", label: "اردو", short: "اردو", dir: "rtl" }, // i18n-ignore
 ];
 
-/** Language picker: a compact button (globe + current language) opening English · Roman Urdu · اردو. */
+/**
+ * Language picker: a compact button (globe + current language) opening English · Roman Urdu · اردو.
+ * The choice is kept in this browser and saved on the account (see useChangeLanguage).
+ */
 export function LanguageMenu({ className }: { className?: string }) {
   const t = useT();
-  const dispatch = useAppDispatch();
+  const changeLanguage = useChangeLanguage();
   const language = useAppSelector((state) => state.ui.language);
   const current = LANGUAGES.find((l) => l.value === language) ?? LANGUAGES[0]!;
   return (
@@ -36,7 +40,7 @@ export function LanguageMenu({ className }: { className?: string }) {
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">{t("shell.language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {LANGUAGES.map((l) => (
-          <DropdownMenuItem key={l.value} onSelect={() => dispatch(setLanguage(l.value))} className="justify-between">
+          <DropdownMenuItem key={l.value} onSelect={() => changeLanguage(l.value)} className="justify-between">
             <span dir={l.dir}>{l.label}</span>
             {l.value === language ? <Check className="size-4" aria-hidden /> : null}
           </DropdownMenuItem>

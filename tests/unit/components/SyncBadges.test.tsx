@@ -1,11 +1,11 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DeviceRow, SyncDeviceStatus } from "@/api/types";
 import { AttendanceGrid } from "@/components/common/AttendanceGrid";
 import { LateSyncBadge, LATE_SYNC_HINT } from "@/components/common/LateSyncBadge";
 import { meFixture } from "../fixtures";
-import { renderWithStore } from "../render";
+import { renderWithStore, renderWithStore as render } from "../render";
 
 const DEVICES: DeviceRow[] = [
   {

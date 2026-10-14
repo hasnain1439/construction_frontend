@@ -6,6 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { FormField, useFieldError, type BaseFieldProps } from "./FormField";
 
@@ -33,9 +34,9 @@ export function Combobox({
   value,
   onChange,
   options,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyText = "Nothing found",
+  placeholder: placeholderProp,
+  searchPlaceholder,
+  emptyText,
   createLabel,
   onCreate,
   multiple,
@@ -55,6 +56,8 @@ export function Combobox({
   /** Accessible name when there is no visible <label> (table cells). */
   ariaLabel?: string;
 }) {
+  const t = useT();
+  const placeholder = placeholderProp ?? t("app.components.forms.select");
   const [open, setOpen] = useState(false);
   const listId = useId();
   const selected = multiple ? ((value as string[] | undefined) ?? []) : value ? [value as string] : [];
@@ -83,7 +86,7 @@ export function Combobox({
           aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
-            "flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-1.5 text-left text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+            "flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 py-1.5 text-start text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
             invalid && "border-destructive ring-3 ring-destructive/20",
           )}
         >
@@ -103,9 +106,9 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent id={listId} className="w-(--radix-popover-trigger-width) min-w-64 p-0" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={searchPlaceholder ?? t("common.searchPlaceholder")} />
           <CommandList>
-            <CommandEmpty>{loading ? "Loading…" : emptyText}</CommandEmpty>
+            <CommandEmpty>{loading ? t("common.loading") : (emptyText ?? t("app.components.forms.nothingFound"))}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -143,7 +146,7 @@ export function Combobox({
               {multiple && selected.length ? (
                 <Button type="button" variant="ghost" size="sm" onClick={() => onChange([])}>
                   <X data-icon="inline-start" />
-                  Clear
+                  {t("common.clear")}
                 </Button>
               ) : null}
             </div>

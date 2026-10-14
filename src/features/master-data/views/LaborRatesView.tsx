@@ -16,8 +16,9 @@ import { NumberInput } from "@/components/forms/NumberField";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useEnumT, useT } from "@/i18n/useT";
+import { msg } from "@/i18n/message";
 import { formatPKR } from "@/lib/money";
-import { LABOR_UNIT_LABEL } from "@/lib/options";
 
 interface RateValues {
   rates: Array<{ id: string; ratePaisa: string | null; overtimeMultiplier: number | null }>;
@@ -38,15 +39,17 @@ function RatesTable({
   editable: boolean;
   daily: boolean;
 }) {
+  const t = useT();
+  const te = useEnumT();
   return (
     <SectionCard title={title} description={description} flush>
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/40 hover:bg-muted/40">
-            <TableHead className="px-4 text-xs font-semibold text-muted-foreground uppercase">Work</TableHead>
-            <TableHead className="px-4 text-xs font-semibold text-muted-foreground uppercase">Unit</TableHead>
-            <TableHead className="w-56 px-4 text-right text-xs font-semibold text-muted-foreground uppercase">Rate</TableHead>
-            {daily ? <TableHead className="w-40 px-4 text-right text-xs font-semibold text-muted-foreground uppercase">Overtime ×</TableHead> : null}
+            <TableHead className="px-4 text-xs font-semibold text-muted-foreground uppercase">{t("masterData.laborRates.colWork")}</TableHead>
+            <TableHead className="px-4 text-xs font-semibold text-muted-foreground uppercase">{t("field.unit")}</TableHead>
+            <TableHead className="w-56 px-4 text-end text-xs font-semibold text-muted-foreground uppercase">{t("field.rate")}</TableHead>
+            {daily ? <TableHead className="w-40 px-4 text-end text-xs font-semibold text-muted-foreground uppercase">{t("masterData.laborRates.colOvertime")}</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -55,14 +58,14 @@ function RatesTable({
             return (
               <TableRow key={rate.id}>
                 <TableCell className="px-4 py-3 font-medium">{rate.label}</TableCell>
-                <TableCell className="px-4 py-3 text-muted-foreground">{LABOR_UNIT_LABEL[rate.unit] ?? rate.unit}</TableCell>
-                <TableCell className="px-4 py-2 text-right">
+                <TableCell className="px-4 py-3 text-muted-foreground">{te("laborUnit", rate.unit)}</TableCell>
+                <TableCell className="px-4 py-2 text-end">
                   {editable ? (
                     <Controller
                       name={`rates.${index}.ratePaisa`}
                       render={({ field, fieldState }) => (
                         <MoneyInput
-                          aria-label={`${rate.label} rate`}
+                          aria-label={t("masterData.common.rateAria", { name: rate.label })}
                           value={field.value as string | null}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
@@ -75,13 +78,13 @@ function RatesTable({
                   )}
                 </TableCell>
                 {daily ? (
-                  <TableCell className="px-4 py-2 text-right">
+                  <TableCell className="px-4 py-2 text-end">
                     {editable ? (
                       <Controller
                         name={`rates.${index}.overtimeMultiplier`}
                         render={({ field }) => (
                           <NumberInput
-                            aria-label={`${rate.label} overtime multiplier`}
+                            aria-label={t("masterData.laborRates.overtimeAria", { name: rate.label })}
                             value={field.value as number | null}
                             onChange={field.onChange}
                             onBlur={field.onBlur}
@@ -91,7 +94,7 @@ function RatesTable({
                         )}
                       />
                     ) : (
-                      <span className="tabular">{rate.overtimeMultiplier ? `${rate.overtimeMultiplier}×` : "—"}</span>
+                      <span className="tabular" dir="ltr">{rate.overtimeMultiplier ? `${rate.overtimeMultiplier}×` : "—"}</span>
                     )}
                   </TableCell>
                 ) : null}
@@ -105,13 +108,15 @@ function RatesTable({
 }
 
 function SaveBar({ saving, onReset }: { saving: boolean; onReset: () => void }) {
+  const t = useT();
   const { isDirty } = useFormState<RateValues>();
   return (
-    <FormActions submitLabel="Save rates" loading={saving} disabled={!isDirty} onCancel={isDirty ? onReset : undefined} cancelLabel="Discard" />
+    <FormActions submitLabel={t("masterData.common.saveRates")} loading={saving} disabled={!isDirty} onCancel={isDirty ? onReset : undefined} cancelLabel={t("action.discard")} />
   );
 }
 
 export function LaborRatesView() {
+  const t = useT();
   const readOnly = useReadOnly();
   const editable = useCan("masterdata.laborrate.manage") && !readOnly;
   const { data, isLoading, error, refetch } = useGetLaborRatesQuery();
@@ -127,7 +132,7 @@ export function LaborRatesView() {
     if (!data) return;
     const invalid = submitted.rates.findIndex((r) => !r.ratePaisa);
     if (invalid !== -1) {
-      form.setError(`rates.${invalid}.ratePaisa`, { type: "required", message: "Enter a rate" });
+      form.setError(`rates.${invalid}.ratePaisa`, { type: "required", message: msg("masterData.v.enterRate") });
       return;
     }
     const changed = submitted.rates
@@ -142,7 +147,7 @@ export function LaborRatesView() {
         ...(original.kind === "DAILY" ? { overtimeMultiplier: r.overtimeMultiplier } : {}),
       }));
     if (!changed.length) return;
-    await run(() => save({ rates: changed }).unwrap(), { success: `${changed.length} rate${changed.length === 1 ? "" : "s"} saved` });
+    await run(() => save({ rates: changed }).unwrap(), { success: changed.length === 1 ? t("masterData.common.oneRateSaved") : t("masterData.common.nRatesSaved", { n: changed.length }) });
   };
 
   const indexOf = (id: string) => (data ?? []).findIndex((r) => r.id === id);
@@ -152,9 +157,9 @@ export function LaborRatesView() {
   return (
     <>
       <PageHeader
-        title="Labor Rates"
-        description="Default wages for hazri and piece rates for sub-contract work. New workers start with these."
-        breadcrumbs={[{ label: "Settings" }, { label: "Labor Rates" }]}
+        title={t("masterData.laborRates.title")}
+        description={t("masterData.laborRates.description")}
+        breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.laborRates.title") }]}
       />
       {isLoading ? (
         <TableSkeleton />
@@ -162,8 +167,8 @@ export function LaborRatesView() {
         <ErrorState error={error} onRetry={refetch} />
       ) : (
         <Form form={form} onSubmit={onSubmit} className="space-y-6">
-            <RatesTable title="Daily wages (hazri)" description="Per day. Overtime is paid at the multiplier." rows={daily} indexOf={indexOf} editable={editable} daily />
-            <RatesTable title="Sub-contract piece rates" description="Paid per unit of work measured." rows={subcontract} indexOf={indexOf} editable={editable} daily={false} />
+            <RatesTable title={t("masterData.laborRates.dailyTitle")} description={t("masterData.laborRates.dailyDesc")} rows={daily} indexOf={indexOf} editable={editable} daily />
+            <RatesTable title={t("masterData.laborRates.subTitle")} description={t("masterData.laborRates.subDesc")} rows={subcontract} indexOf={indexOf} editable={editable} daily={false} />
             {editable ? <SaveBar saving={saving} onReset={() => form.reset(values)} /> : null}
         </Form>
       )}

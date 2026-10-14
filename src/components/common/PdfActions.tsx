@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { SharedPdf } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { DocumentPreview } from "./DocumentPreview";
 
 /** WhatsApp click-to-chat link: digits only (no +), message URL-encoded. Without a phone, the share sheet picks the chat. */
@@ -18,17 +19,18 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
  * signed URL (and the ready message) each time, so links never go stale.
  */
 export function PdfActions({ load, title, phone, size = "sm" }: { load: () => Promise<SharedPdf>; title: string; phone?: string | null; size?: "sm" | "default" }) {
+  const t = useT();
   const { busy, act, preview } = usePdfActions({ load, title, phone });
   const icon = (kind: typeof busy, Icon: typeof Eye) => (busy === kind ? <Loader2 className="animate-spin" aria-hidden /> : <Icon aria-hidden />);
   return (
     <div className="flex flex-wrap gap-2">
       <Button type="button" size={size} variant="outline" onClick={() => void act("preview")} disabled={busy !== null}>
         {icon("preview", Eye)}
-        Preview
+        {t("app.components.pdf.preview")}
       </Button>
       <Button type="button" size={size} variant="outline" onClick={() => void act("download")} disabled={busy !== null}>
         {icon("download", Download)}
-        Download
+        {t("action.download")}
       </Button>
       <Button type="button" size={size} variant="success" onClick={() => void act("share")} disabled={busy !== null}>
         {icon("share", MessageCircle)}

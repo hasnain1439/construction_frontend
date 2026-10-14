@@ -5,8 +5,7 @@ export default function AllProjectsPage() {
   return (
     <Suspense>
       <ProjectsBrowser
-        title="All Projects"
-        crumb="All Projects"
+        titleKey="projects.list.allTitle"
         statuses={["DRAFT", "ACTIVE", "CLOSEOUT", "HANDED_OVER", "CLOSED", "READ_ONLY"]}
       />
     </Suspense>

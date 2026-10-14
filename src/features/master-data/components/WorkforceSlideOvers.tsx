@@ -21,8 +21,8 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatPKR } from "@/lib/money";
-import { useT } from "@/i18n/useT";
-import { toOptions, TRADE_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
+import { TRADE_LABEL } from "@/lib/options";
 import { formatPhone } from "@/lib/phone";
 import { OTHER_WORKER_TYPE } from "@/lib/workerTypes";
 import { useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
@@ -100,7 +100,7 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
                 notes: v.notes ?? null,
               },
             }).unwrap(),
-          { ...options, success: `${v.name} saved` },
+          { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
           () =>
@@ -111,7 +111,7 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
               ...(v.dailyRatePaisa ? { dailyRatePaisa: v.dailyRatePaisa } : {}),
               ...(v.notes ? { notes: v.notes } : {}),
             }).unwrap(),
-          { ...options, success: `${v.name} added` },
+          { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) onOpenChange(false);
   };
@@ -120,12 +120,12 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={worker ? `Edit ${worker.name}` : "Add worker"}
+      title={worker ? t("masterData.common.editTitle", { name: worker.name }) : t("masterData.workers.add")}
       busy={creating || updating}
-      footer={<FormActions formId={FORM_ID} submitLabel={worker ? "Save worker" : "Add worker"} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={worker ? t("masterData.workers.save") : t("masterData.workers.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Name" required placeholder="Ustad Akram" />
+        <TextField name="name" label={t("field.name")} required placeholder={t("masterData.workers.namePlaceholder")} />
         <FieldGrid>
           <SelectField
             name="type"
@@ -135,10 +135,10 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
             placeholder={t("workerTypes.chooseType")}
             onValueChange={onTypeChange}
           />
-          <PhoneField name="phone" label="Phone" />
+          <PhoneField name="phone" label={t("field.phone")} />
         </FieldGrid>
         <DailyRateField canSeeRates={canSeeRates} standardRate={byKey.get(type)?.ratePaisa ?? null} />
-        <TextareaField name="notes" label="Notes" rows={2} />
+        <TextareaField name="notes" label={t("field.notes")} rows={2} />
       </Form>
     </SlideOver>
   );
@@ -156,6 +156,8 @@ export function SubcontractorSlideOver({
   onOpenChange: (open: boolean) => void;
 }) {
   const FORM_ID = "subcontractor-form";
+  const t = useT();
+  const te = useEnumT();
   const [create, { isLoading: creating }] = useCreateSubcontractorMutation();
   const [update, { isLoading: updating }] = useUpdateSubcontractorMutation();
   const run = useMutationToast();
@@ -174,11 +176,11 @@ export function SubcontractorSlideOver({
     const result = subcontractor
       ? await run(
           () => update({ id: subcontractor.id, body: { name: v.name, trade: v.trade, phone: v.phone ?? null, notes: v.notes ?? null } }).unwrap(),
-          { ...options, success: `${v.name} saved` },
+          { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
           () => create({ name: v.name, trade: v.trade, ...(v.phone ? { phone: v.phone } : {}), ...(v.notes ? { notes: v.notes } : {}) }).unwrap(),
-          { ...options, success: `${v.name} added` },
+          { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) onOpenChange(false);
   };
@@ -187,20 +189,20 @@ export function SubcontractorSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={subcontractor ? `Edit ${subcontractor.name}` : "Add sub-contractor"}
-      description="A team paid by measured work (sq ft, tons, bricks …)."
+      title={subcontractor ? t("masterData.common.editTitle", { name: subcontractor.name }) : t("masterData.subcontractors.add")}
+      description={t("masterData.subcontractors.formDesc")}
       busy={creating || updating}
       footer={
-        <FormActions formId={FORM_ID} submitLabel={subcontractor ? "Save sub-contractor" : "Add sub-contractor"} loading={creating || updating} onCancel={() => onOpenChange(false)} />
+        <FormActions formId={FORM_ID} submitLabel={subcontractor ? t("masterData.subcontractors.save") : t("masterData.subcontractors.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />
       }
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Name" required placeholder="Ustad Sharif Shuttering" />
+        <TextField name="name" label={t("field.name")} required placeholder={t("masterData.subcontractors.namePlaceholder")} />
         <FieldGrid>
-          <SelectField name="trade" label="Trade" required options={toOptions(TRADE_LABEL)} />
-          <PhoneField name="phone" label="Phone" allowLandline />
+          <SelectField name="trade" label={t("masterData.common.trade")} required options={Object.keys(TRADE_LABEL).map((value) => ({ value, label: te("trade", value) }))} />
+          <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
-        <TextareaField name="notes" label="Notes" rows={2} />
+        <TextareaField name="notes" label={t("field.notes")} rows={2} />
       </Form>
     </SlideOver>
   );

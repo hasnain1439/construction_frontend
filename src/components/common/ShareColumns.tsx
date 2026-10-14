@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 export interface ShareItem {
@@ -23,17 +26,18 @@ export function ShareColumns({
   items,
   ariaLabel,
   className,
-  empty = "Nothing yet",
+  empty,
 }: {
   items: ShareItem[];
   ariaLabel: string;
   className?: string;
   empty?: ReactNode;
 }) {
+  const t = useT();
   const shown = items.filter((i) => i.value > 0).sort((a, b) => b.value - a.value);
   const total = shown.reduce((sum, i) => sum + i.value, 0);
   const max = shown[0]?.value ?? 0;
-  if (!shown.length || max <= 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
+  if (!shown.length || max <= 0) return <p className="text-sm text-muted-foreground">{empty ?? t("app.components.shareEmpty")}</p>;
 
   return (
     // Side-by-side only when the card itself is wide enough (container query, not the viewport).

@@ -2,6 +2,7 @@
 
 import { ChartNoAxesColumn } from "lucide-react";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { EmptyState } from "./EmptyState";
 import { SectionCard } from "./SectionCard";
@@ -18,8 +19,9 @@ export interface LegendItem {
 
 /** Legend for ≥ 2 series: swatch + label (+ value) in text colours — never colour alone. `rows`: one per line, value right-aligned. */
 export function ChartLegend({ items, rows, className }: { items: LegendItem[]; rows?: boolean; className?: string }) {
+  const t = useT();
   return (
-    <ul className={cn(rows ? "grid w-full gap-2 text-sm text-muted-foreground" : "flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground", className)} aria-label="Legend">
+    <ul className={cn(rows ? "grid w-full gap-2 text-sm text-muted-foreground" : "flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground", className)} aria-label={t("app.components.chart.legend")}>
       {items.map((item) => (
         <li key={item.label} className={cn("flex items-center gap-1.5", rows && "gap-2")}>
           <span className="size-2.5 shrink-0 rounded-full" style={{ background: item.color }} aria-hidden />
@@ -42,7 +44,7 @@ export function ChartCard<P extends string = string>({
   actions,
   legend,
   empty,
-  emptyText = "Nothing to show for this period yet.",
+  emptyText,
   children,
   className,
 }: {
@@ -56,6 +58,7 @@ export function ChartCard<P extends string = string>({
   children: ReactNode;
   className?: string;
 }) {
+  const t = useT();
   return (
     <SectionCard
       title={title}
@@ -64,14 +67,14 @@ export function ChartCard<P extends string = string>({
       actions={
         period || actions ? (
           <div className="flex flex-wrap items-center gap-2">
-            {period ? <SegmentedControl<P> size="sm" ariaLabel="Period" value={period.value} onChange={period.onChange} options={period.options} /> : null}
+            {period ? <SegmentedControl<P> size="sm" ariaLabel={t("app.components.chart.period")} value={period.value} onChange={period.onChange} options={period.options} /> : null}
             {actions}
           </div>
         ) : undefined
       }
     >
       {empty ? (
-        <EmptyState compact icon={ChartNoAxesColumn} title="No data" description={emptyText} />
+        <EmptyState compact icon={ChartNoAxesColumn} title={t("app.components.chart.noData")} description={emptyText ?? t("app.components.chart.emptyText")} />
       ) : (
         <div className="space-y-3">
           {legend && legend.length > 1 ? <ChartLegend items={legend} /> : null}

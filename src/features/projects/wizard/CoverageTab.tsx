@@ -11,6 +11,7 @@ import { NumberField } from "@/components/forms/NumberField";
 import { SegmentedField } from "@/components/forms/SegmentedField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { formatArea } from "../utils/calc";
 import { coverageSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
@@ -32,15 +33,16 @@ const toValues = (p: ProjectDetail | null): Values => ({
 /** Covered / semi-covered / open as one proportional bar. */
 function SplitBar() {
   const [covered, semi, open] = useWatch({ name: ["coveredAreaSqft", "semiCoveredSqft", "openAreaSqft"] }) as [number | null, number | null, number | null];
+  const t = useT();
   const parts = [
-    { label: "Covered", value: covered ?? 0, className: "bg-primary" },
-    { label: "Semi-covered", value: semi ?? 0, className: "bg-amber" },
-    { label: "Open", value: open ?? 0, className: "bg-success" },
+    { label: t("projects.section.covered"), value: covered ?? 0, className: "bg-primary" },
+    { label: t("projects.section.semiCovered"), value: semi ?? 0, className: "bg-amber" },
+    { label: t("projects.section.open"), value: open ?? 0, className: "bg-success" },
   ];
   const total = parts.reduce((s, p) => s + p.value, 0);
   if (!total) return null;
   return (
-    <div className="space-y-2" aria-label="Area split">
+    <div className="space-y-2" aria-label={t("projects.coverage.areaSplit")}>
       <div className="flex h-3 overflow-hidden rounded-full bg-muted">
         {parts.map((p) => (p.value ? <div key={p.label} className={p.className} style={{ width: `${(p.value / total) * 100}%` }} /> : null))}
       </div>
@@ -48,10 +50,10 @@ function SplitBar() {
         {parts.map((p) => (
           <span key={p.label} className="flex items-center gap-1.5">
             <span className={`size-2.5 rounded-full ${p.className}`} aria-hidden />
-            {p.label} {formatArea(p.value)} sq ft
+            {t("projects.coverage.splitItem", { label: p.label, area: formatArea(p.value) })}
           </span>
         ))}
-        <span className="font-medium text-foreground">Total {formatArea(total)} sq ft</span>
+        <span className="font-medium text-foreground">{t("projects.coverage.total", { area: formatArea(total) })}</span>
       </div>
     </div>
   );
@@ -59,14 +61,15 @@ function SplitBar() {
 
 function BoundaryFields({ disabled }: { disabled: boolean }) {
   const on = useWatch({ name: "boundaryWall" }) as boolean;
+  const t = useT();
   if (!on) return null;
   return (
     <FieldGrid>
-      <NumberField name="boundaryLengthFt" label="Length" required unit="running ft" disabled={disabled} />
-      <NumberField name="boundaryHeightFt" label="Height" required unit="ft" disabled={disabled} />
+      <NumberField name="boundaryLengthFt" label={t("projects.coverage.length")} required unit={t("projects.unit.runningFt")} disabled={disabled} />
+      <NumberField name="boundaryHeightFt" label={t("projects.coverage.height")} required unit={t("projects.unit.ft")} disabled={disabled} />
       <SegmentedField
         name="boundaryThickness"
-        label="Thickness"
+        label={t("projects.coverage.thickness")}
         required
         disabled={disabled}
         options={[
@@ -76,12 +79,12 @@ function BoundaryFields({ disabled }: { disabled: boolean }) {
       />
       <SegmentedField
         name="boundaryPlasterSides"
-        label="Plaster"
+        label={t("projects.coverage.plaster")}
         required
         disabled={disabled}
         options={[
-          { value: "1", label: "One side" },
-          { value: "2", label: "Both sides" },
+          { value: "1", label: t("projects.coverage.oneSide") },
+          { value: "2", label: t("projects.coverage.bothSides") },
         ]}
       />
     </FieldGrid>
@@ -93,6 +96,7 @@ export function CoverageTab() {
   const { projectId, project, locked, onSaved } = useWizard();
   const [save] = useUpdateCoverageMutation();
   const run = useMutationToast();
+  const t = useT();
   const form = useForm<Values, unknown, Output>({ resolver: zodResolver(coverageSchema), values: toValues(project) });
   useReportForm(form);
   if (!projectId) return null;
@@ -127,19 +131,19 @@ export function CoverageTab() {
 
   return (
     <Form form={form} onSubmit={onSubmit} id={WIZARD_FORM_ID}>
-      <SectionCard title="Coverage" description="Covered area drives labour-only totals and the room check on the Review tab.">
+      <SectionCard title={t("projects.coverage.coverage")} description={t("projects.coverage.coverageDesc")}>
         <div className="space-y-4">
           <FieldGrid columns={3}>
-            <NumberField name="coveredAreaSqft" label="Covered area" required unit="sq ft" disabled={locked} />
-            <NumberField name="semiCoveredSqft" label="Semi-covered / car porch" unit="sq ft" disabled={locked} />
-            <NumberField name="openAreaSqft" label="Open area" unit="sq ft" disabled={locked} />
+            <NumberField name="coveredAreaSqft" label={t("projects.coverage.coveredArea")} required unit={t("projects.unit.sqft")} disabled={locked} />
+            <NumberField name="semiCoveredSqft" label={t("projects.coverage.semiCovered")} unit={t("projects.unit.sqft")} disabled={locked} />
+            <NumberField name="openAreaSqft" label={t("projects.coverage.openArea")} unit={t("projects.unit.sqft")} disabled={locked} />
           </FieldGrid>
           <SplitBar />
         </div>
       </SectionCard>
-      <SectionCard title="Boundary wall">
+      <SectionCard title={t("projects.section.boundaryWall")}>
         <div className="space-y-4">
-          <ToggleField name="boundaryWall" label="Boundary wall" description="Build a boundary wall around the plot." disabled={locked} />
+          <ToggleField name="boundaryWall" label={t("projects.section.boundaryWall")} description={t("projects.coverage.boundaryWallDesc")} disabled={locked} />
           <BoundaryFields disabled={locked} />
         </div>
       </SectionCard>

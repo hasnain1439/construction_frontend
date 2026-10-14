@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLoginMutation, useVerifyOtpMutation } from "@/api/services/auth.api";
 import { InlineAlert } from "@/components/common/InlineAlert";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { errorCode, getErrorMessage } from "@/lib/apiErrors";
 import { AuthCard } from "../components/AuthLayout";
 import { CompanyPicker } from "../components/CompanyPicker";
@@ -15,6 +15,7 @@ import { clearPendingLogin, getPendingLogin } from "../pendingLogin";
 
 /** After 409 MULTIPLE_COMPANIES: choose a company and resend with `tenantId`. */
 export function SelectCompanyView() {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const afterLogin = useAfterLogin();
@@ -53,8 +54,8 @@ export function SelectCompanyView() {
 
   return (
     <AuthCard
-      title="Choose a company"
-      description="Your number works for more than one company. Which one do you want to open?"
+      title={t("app.auth.chooseCompany")}
+      description={t("app.auth.chooseCompanyDesc")}
       icon={
         <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
           <Building2 className="size-6" aria-hidden />
@@ -62,7 +63,7 @@ export function SelectCompanyView() {
       }
       footer={
         <Link href="/login" onClick={() => clearPendingLogin()} className="font-medium text-primary hover:underline">
-          Back to sign in
+          {t("app.auth.backToSignIn")}
         </Link>
       }
     >

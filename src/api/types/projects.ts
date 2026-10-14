@@ -16,6 +16,7 @@ export interface Client {
   email: string | null;
   address: string | null;
   notes: string | null;
+  isDemo?: boolean;
   createdAt: IsoDateTime;
   projectsCount?: number;
 }
@@ -96,6 +97,8 @@ export interface ProjectListItem {
   munshi: NamedRef | null;
   coveredAreaSqft: number | null;
   contractValuePaisa?: Paisa | null;
+  /** Sample project from "Try with demo data" (never counts against the plan). */
+  isDemo?: boolean;
 }
 
 export type ProjectsQuery = QueryParams<"/api/v1/projects", "get">;
@@ -182,6 +185,8 @@ export interface ProjectBasic {
   code: string;
   name: string;
   status: ProjectStatus;
+  /** Sample project from "Try with demo data". */
+  isDemo?: boolean;
   client: { id: Id; name: string; phone?: string } | null;
   siteAddress: string | null;
   city: string | null;

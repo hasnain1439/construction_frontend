@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileStack, Pencil, Plus, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import {
@@ -31,24 +31,25 @@ import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
-import { BILLING_MODEL_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
 import { StageEditor } from "../components/StageEditor";
 import { templateSchema } from "../schemas";
 
 const FORM_ID = "template-form";
 type Values = z.input<typeof templateSchema>;
 
-const blank: Values = {
+/** A new template starts with a typical schedule, its stage names in the UI language. */
+const blankValues = (t: ReturnType<typeof useT>): Values => ({
   name: "",
   billingModel: "STAGE_SCHEDULE",
   isDefault: false,
   stages: [
-    { label: "Advance", percent: 20, isRetention: false },
-    { label: "Grey structure", percent: 50, isRetention: false },
-    { label: "Finishing", percent: 25, isRetention: false },
-    { label: "Retention", percent: 5, isRetention: true },
+    { label: t("masterData.templates.stageAdvance"), percent: 20, isRetention: false },
+    { label: t("masterData.templates.stageGrey"), percent: 50, isRetention: false },
+    { label: t("masterData.templates.stageFinishing"), percent: 25, isRetention: false },
+    { label: t("masterData.templates.stageRetention"), percent: 5, isRetention: true },
   ],
-};
+});
 
 const toValues = (t: PaymentTemplate): Values => ({
   name: t.name,
@@ -58,6 +59,9 @@ const toValues = (t: PaymentTemplate): Values => ({
 });
 
 function TemplateSlideOver({ template, open, onOpenChange }: { template: PaymentTemplate | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useT();
+  const te = useEnumT();
+  const blank = useMemo(() => blankValues(t), [t]);
   const [create, { isLoading: creating }] = useCreatePaymentTemplateMutation();
   const [update, { isLoading: updating }] = useUpdatePaymentTemplateMutation();
   const run = useMutationToast();
@@ -79,11 +83,11 @@ function TemplateSlideOver({ template, open, onOpenChange }: { template: Payment
               id: template.id,
               body: { name: values.name, billingModel: values.billingModel, stages, ...(values.isDefault && !template.isDefault ? { isDefault: true as const } : {}) },
             }).unwrap(),
-          { ...options, success: `${values.name} saved` },
+          { ...options, success: t("masterData.common.saved", { name: values.name }) },
         )
       : await run(() => create({ name: values.name, billingModel: values.billingModel, stages, isDefault: values.isDefault }).unwrap(), {
           ...options,
-          success: `${values.name} created`,
+          success: t("masterData.common.created", { name: values.name }),
         });
     if (result) onOpenChange(false);
   };
@@ -93,28 +97,28 @@ function TemplateSlideOver({ template, open, onOpenChange }: { template: Payment
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={template ? `Edit ${template.name}` : "New payment template"}
-      description="Stages must add up to exactly 100%. Projects can start from a template and adjust it."
+      title={template ? t("masterData.common.editTitle", { name: template.name }) : t("masterData.templates.newTitle")}
+      description={t("masterData.templates.formDesc")}
       busy={creating || updating}
-      footer={<FormActions formId={FORM_ID} submitLabel={template ? "Save template" : "Create template"} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={template ? t("masterData.templates.save") : t("masterData.templates.create")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Template name" required placeholder="Villa — 4 stages" />
+        <TextField name="name" label={t("masterData.templates.name")} required placeholder={t("masterData.templates.namePlaceholder")} />
         <SegmentedField
           name="billingModel"
-          label="Billing model"
+          label={t("masterData.templates.billingModel")}
           options={[
-            { value: "STAGE_SCHEDULE", label: "Stage schedule" },
-            { value: "RUNNING_BILLS", label: "Running bills" },
+            { value: "STAGE_SCHEDULE", label: te("billingModel", "STAGE_SCHEDULE") },
+            { value: "RUNNING_BILLS", label: te("billingModel", "RUNNING_BILLS") },
           ]}
         />
-        <FormSection title="Stages" description="Tick the retention stage (released after the defect period).">
+        <FormSection title={t("masterData.templates.stages")} description={t("masterData.templates.stagesDesc")}>
           <StageEditor name="stages" />
         </FormSection>
         <ToggleField
           name="isDefault"
-          label="Default template"
-          description="New projects start with this schedule."
+          label={t("masterData.templates.isDefault")}
+          description={t("masterData.templates.isDefaultDesc")}
           disabled={Boolean(template?.isDefault)}
         />
       </Form>
@@ -123,6 +127,8 @@ function TemplateSlideOver({ template, open, onOpenChange }: { template: Payment
 }
 
 export function PaymentTemplatesView() {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const canEdit = useCan("masterdata.template.manage") && !readOnly;
   const { data, isLoading, error, refetch } = useGetPaymentTemplatesQuery();
@@ -136,14 +142,14 @@ export function PaymentTemplatesView() {
   return (
     <>
       <PageHeader
-        title="Payment Templates"
-        description="Reusable payment schedules for contracts."
-        breadcrumbs={[{ label: "Settings" }, { label: "Payment Templates" }]}
+        title={t("masterData.templates.title")}
+        description={t("masterData.templates.description")}
+        breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.templates.title") }]}
         actions={
           canEdit ? (
             <Button onClick={() => setNewOpen(true)}>
               <Plus data-icon="inline-start" />
-              New template
+              {t("masterData.templates.newTemplate")}
             </Button>
           ) : null
         }
@@ -156,34 +162,34 @@ export function PaymentTemplatesView() {
         </SectionCard>
       ) : !data?.length ? (
         <SectionCard>
-          <EmptyState icon={FileStack} title="No templates yet" description="Create a schedule like Advance 20% · Grey 50% · Finishing 25% · Retention 5%." />
+          <EmptyState icon={FileStack} title={t("masterData.templates.emptyTitle")} description={t("masterData.templates.emptyDesc")} />
         </SectionCard>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {data.map((t) => (
+          {data.map((tpl) => (
             <SectionCard
-              key={t.id}
+              key={tpl.id}
               title={
                 <span className="flex flex-wrap items-center gap-2">
-                  {t.name}
-                  {t.isDefault ? <StatusBadge tone="info" icon={Star} label="Default" /> : null}
+                  {tpl.name}
+                  {tpl.isDefault ? <StatusBadge tone="info" icon={Star} label={t("masterData.common.defaultBadge")} /> : null}
                 </span>
               }
-              description={BILLING_MODEL_LABEL[t.billingModel]}
+              description={te("billingModel", tpl.billingModel)}
               actions={
                 canEdit ? (
                   <>
-                    {!t.isDefault ? (
-                      <Button variant="ghost" size="sm" onClick={() => run(() => update({ id: t.id, body: { isDefault: true } }).unwrap(), { success: `${t.name} is now the default` })}>
+                    {!tpl.isDefault ? (
+                      <Button variant="ghost" size="sm" onClick={() => run(() => update({ id: tpl.id, body: { isDefault: true } }).unwrap(), { success: t("masterData.common.isNowDefault", { name: tpl.name }) })}>
                         <Star data-icon="inline-start" />
-                        Make default
+                        {t("masterData.templates.makeDefault")}
                       </Button>
                     ) : null}
-                    <Button variant="ghost" size="icon-sm" aria-label={`Edit ${t.name}`} onClick={() => setEditing(t)}>
+                    <Button variant="ghost" size="icon-sm" aria-label={t("masterData.common.editAria", { name: tpl.name })} onClick={() => setEditing(tpl)}>
                       <Pencil />
                     </Button>
-                    {!t.isDefault ? (
-                      <Button variant="ghost" size="icon-sm" className="text-danger" aria-label={`Delete ${t.name}`} onClick={() => setToDelete(t)}>
+                    {!tpl.isDefault ? (
+                      <Button variant="ghost" size="icon-sm" className="text-danger" aria-label={t("masterData.common.deleteAria", { name: tpl.name })} onClick={() => setToDelete(tpl)}>
                         <Trash2 />
                       </Button>
                     ) : null}
@@ -192,17 +198,17 @@ export function PaymentTemplatesView() {
               }
             >
               <ol className="space-y-2">
-                {t.stages.map((s, i) => (
+                {tpl.stages.map((s, i) => (
                   <li key={`${s.label}-${i}`} className="flex items-center gap-3 text-sm">
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">{i + 1}</span>
                     <span className="flex-1">{s.label}</span>
-                    {s.isRetention ? <StatusBadge tone="warning" label="Retention" className="h-5 px-2 text-[11px]" /> : null}
-                    <span className="w-14 text-right font-semibold tabular">{s.percent}%</span>
+                    {s.isRetention ? <StatusBadge tone="warning" label={t("field.retention")} className="h-5 px-2 text-[11px]" /> : null}
+                    <span className="w-14 text-end font-semibold tabular" dir="ltr">{s.percent}%</span>
                   </li>
                 ))}
               </ol>
               <div className="mt-4 flex justify-end">
-                <PercentTotalChip total={percentTotal(t.stages.map((s) => s.percent))} />
+                <PercentTotalChip total={percentTotal(tpl.stages.map((s) => s.percent))} />
               </div>
             </SectionCard>
           ))}
@@ -220,13 +226,13 @@ export function PaymentTemplatesView() {
       <ConfirmDialog
         open={Boolean(toDelete)}
         onOpenChange={(o) => !o && setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? "template"}?`}
-        description="Projects that already used it keep their schedule."
-        confirmLabel="Delete template"
+        title={t("masterData.common.deleteTitle", { name: toDelete?.name ?? t("masterData.templates.thisTemplate") })}
+        description={t("masterData.templates.deleteDesc")}
+        confirmLabel={t("masterData.templates.deleteConfirm")}
         loading={deleting}
         onConfirm={async () => {
           if (!toDelete) return;
-          await run(() => remove(toDelete.id).unwrap(), { success: "Template deleted" });
+          await run(() => remove(toDelete.id).unwrap(), { success: t("masterData.templates.deleted") });
           setToDelete(null);
         }}
       />

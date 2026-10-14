@@ -4,14 +4,14 @@ import { Gauge } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useT } from "@/i18n/useT";
+import { useT, type TranslationKey } from "@/i18n/useT";
 import { can } from "@/lib/permissions";
 import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { hidePlanLimit } from "@/store/slices/uiSlice";
 
-const RESOURCE_LABEL: Record<string, string> = {
-  activeProjects: "active projects",
-  officeUsers: "office users",
+const RESOURCE_LABEL: Record<string, TranslationKey> = {
+  activeProjects: "app.components.planLimit.activeProjects",
+  officeUsers: "app.components.planLimit.officeUsers",
 };
 
 /** Opens automatically on any 402 PLAN_LIMIT_REACHED (see store/errorListener). */
@@ -22,7 +22,7 @@ export function PlanLimitDialog() {
   const me = useMe();
   const info = useAppSelector((state) => state.ui.planLimit);
   const close = () => dispatch(hidePlanLimit());
-  const resource = info?.resource ? (RESOURCE_LABEL[info.resource] ?? info.resource) : null;
+  const resource = info?.resource ? (RESOURCE_LABEL[info.resource] ? t(RESOURCE_LABEL[info.resource]!) : info.resource) : null;
 
   return (
     <Dialog open={Boolean(info)} onOpenChange={(open) => (!open ? close() : undefined)}>
@@ -34,7 +34,7 @@ export function PlanLimitDialog() {
           <DialogTitle className="text-base font-semibold">{t("shell.planLimitTitle")}</DialogTitle>
           <DialogDescription>
             {resource && typeof info?.limit === "number"
-              ? `Your plan allows ${info.limit} ${resource} and you are using ${info.used ?? info.limit}. `
+              ? `${t("app.components.planLimit.usage", { limit: info.limit, resource, used: info.used ?? info.limit })} `
               : ""}
             {t("shell.planLimitBody")}
           </DialogDescription>

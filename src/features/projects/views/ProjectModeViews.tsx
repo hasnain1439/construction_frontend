@@ -1,11 +1,12 @@
 "use client";
 
+import { DemoBadge, DemoProjectBanner } from "@/features/onboarding/components/DemoBadge";
 import { Calculator, Pencil, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useChangeProjectStatusMutation, useDeleteProjectMutation, useGetFloorsQuery, useGetProjectQuery } from "@/api/services/projects.api";
-import type { ProjectDetail, ProjectStatus } from "@/api/types";
+import type { ProjectDetail } from "@/api/types";
 import { ComingSoonCard } from "@/components/common/ComingSoonCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable } from "@/components/common/DataTable";
@@ -23,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { BILLING_ACCESS, projectHref } from "@/lib/navigation";
-import { statusMeta } from "@/lib/status";
+import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import {
   ClientCard,
   ContractCard,
@@ -35,7 +36,7 @@ import {
   TeamCard,
 } from "../components/ProjectSections";
 import { ProjectMoneyCard } from "@/features/billing/components/ProjectMoneyCard";
-import { LOCKED_STATUSES, OPENING_LABEL, ROOM_TYPE_LABEL, STATUS_TRANSITIONS } from "../constants";
+import { LOCKED_STATUSES, STATUS_TRANSITIONS, type StatusTransition } from "../constants";
 import { formatArea } from "../utils/calc";
 import { wizardHref } from "../utils/links";
 
@@ -50,9 +51,11 @@ function useProjectPage(projectId: string) {
 }
 
 function LockedNotice({ project, readOnly }: { project: ProjectDetail; readOnly: boolean }) {
+  const t = useT();
+  const ts = useStatusT();
   if (!LOCKED_STATUSES.includes(project.status)) return null;
   if (readOnly && project.status !== "READ_ONLY") return null;
-  return <ReadOnlyBanner message={`This project is ${statusMeta("project", project.status).label.toLowerCase()} — its records are read-only.`} />;
+  return <ReadOnlyBanner message={t("projects.mode.lockedNotice", { status: ts("project", project.status) })} />;
 }
 
 export function ProjectPageShell({
@@ -68,6 +71,7 @@ export function ProjectPageShell({
   actions?: (project: ProjectDetail) => ReactNode;
   children: (project: ProjectDetail, flags: { canEdit: boolean; readOnly: boolean }) => ReactNode;
 }) {
+  const t = useT();
   const { query, canEdit, readOnly } = useProjectPage(projectId);
   return (
     <QueryState query={query} skeleton={<CardsSkeleton count={4} height="h-40" />}>
@@ -75,16 +79,22 @@ export function ProjectPageShell({
         <>
           <PageHeader
             title={title ?? project.name}
-            meta={<StatusBadge domain="project" value={project.status} />}
+            meta={
+              <span className="inline-flex flex-wrap items-center gap-2">
+                <StatusBadge domain="project" value={project.status} />
+                <DemoBadge isDemo={project.isDemo} />
+              </span>
+            }
             description={`${project.code}${project.client ? ` · ${project.client.name}` : ""}`}
             breadcrumbs={[
-              { label: "Projects", href: "/projects" },
+              { label: t("crumb.projects"), href: "/projects" },
               { label: project.name, href: projectHref(project.id, "/overview") },
               ...(crumb ? [{ label: crumb }] : []),
             ]}
             actions={actions?.(project)}
           />
           <LockedNotice project={project} readOnly={readOnly} />
+          <DemoProjectBanner isDemo={project.isDemo} />
           {children(project, { canEdit, readOnly })}
         </>
       )}
@@ -93,29 +103,32 @@ export function ProjectPageShell({
 }
 
 function StatusActions({ project }: { project: ProjectDetail }) {
+  const t = useT();
+  const ts = useStatusT();
   const router = useRouter();
   const isOwner = useCan("projects.project.manage");
   const readOnly = useReadOnly();
   const [changeStatus, { isLoading }] = useChangeProjectStatusMutation();
   const [remove, { isLoading: deleting }] = useDeleteProjectMutation();
-  const [target, setTarget] = useState<{ to: ProjectStatus; label: string; tone: "default" | "danger" } | null>(null);
+  const [target, setTarget] = useState<StatusTransition | null>(null);
   const [note, setNote] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const run = useMutationToast();
   if (!isOwner || readOnly) return null;
   const transitions = STATUS_TRANSITIONS[project.status] ?? [];
+  const targetLabel = target ? t(target.labelKey) : t("projects.mode.changeStatus");
 
   return (
     <>
       {project.status === "DRAFT" ? (
         <Button variant="destructive-soft" onClick={() => setConfirmDelete(true)}>
           <Trash2 data-icon="inline-start" />
-          Delete draft
+          {t("action.deleteDraft")}
         </Button>
       ) : null}
-      {transitions.map((t) => (
-        <Button key={t.to} variant={t.tone === "danger" ? "destructive-soft" : "outline"} onClick={() => setTarget(t)}>
-          {t.label}
+      {transitions.map((tr) => (
+        <Button key={tr.to} variant={tr.tone === "danger" ? "destructive-soft" : "outline"} onClick={() => setTarget(tr)}>
+          {t(tr.labelKey)}
         </Button>
       ))}
       <ConfirmDialog
@@ -127,20 +140,20 @@ function StatusActions({ project }: { project: ProjectDetail }) {
           }
         }}
         tone={target?.tone === "danger" ? "danger" : "default"}
-        title={`${target?.label ?? "Change status"}?`}
+        title={t("projects.mode.confirmTitle", { action: targetLabel })}
         description={
           target?.to === "ACTIVE"
-            ? "Reopening counts against your plan's active projects again."
+            ? t("projects.mode.reopenDesc")
             : target?.to === "CLOSED"
-              ? "A closed project stays read-only for your records."
-              : `The project moves to “${target ? statusMeta("project", target.to).label : ""}”.`
+              ? t("projects.mode.closeDesc")
+              : t("projects.mode.moveDesc", { status: target ? ts("project", target.to) : "" })
         }
-        confirmLabel={target?.label ?? "Confirm"}
+        confirmLabel={target ? targetLabel : t("common.confirm")}
         loading={isLoading}
         onConfirm={async () => {
           if (!target) return;
           const ok = await run(() => changeStatus({ id: project.id, body: { status: target.to as "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED", ...(note ? { note } : {}) } }).unwrap(), {
-            success: `Project is now ${statusMeta("project", target.to).label.toLowerCase()}`,
+            success: t("projects.mode.statusChanged", { status: ts("project", target.to) }),
           });
           if (ok) {
             setTarget(null);
@@ -149,19 +162,19 @@ function StatusActions({ project }: { project: ProjectDetail }) {
         }}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="status-note">Note (optional)</Label>
+          <Label htmlFor="status-note">{t("field.noteOptional")}</Label>
           <Textarea id="status-note" rows={2} value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
         </div>
       </ConfirmDialog>
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title={`Delete draft ${project.name}?`}
-        description="Drafts don't count against your plan. This can't be undone."
-        confirmLabel="Delete draft"
+        title={t("projects.mode.deleteDraftTitle", { name: project.name })}
+        description={t("projects.mode.deleteDraftDesc")}
+        confirmLabel={t("action.deleteDraft")}
         loading={deleting}
         onConfirm={async () => {
-          const ok = await run(() => remove(project.id).unwrap(), { success: "Draft deleted" });
+          const ok = await run(() => remove(project.id).unwrap(), { success: t("projects.mode.draftDeleted") });
           if (ok) router.push("/projects");
         }}
       />
@@ -170,6 +183,7 @@ function StatusActions({ project }: { project: ProjectDetail }) {
 }
 
 export function ProjectOverviewView({ projectId }: { projectId: string }) {
+  const t = useT();
   const { can, canAccess } = usePermissions();
   const canManage = can("projects.project.edit");
   // Site staff (no project edit, no office dashboard) get the short summary: client + team.
@@ -179,7 +193,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Project Summary"
+      crumb={t("projects.mode.crumbSummary")}
       actions={(project) => (
         <>
           <StatusActions project={project} />
@@ -187,14 +201,14 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
             <Button asChild>
               <Link href={wizardHref(project.id)}>
                 <Play data-icon="inline-start" />
-                Continue setup
+                {t("projects.mode.continueSetup")}
               </Link>
             </Button>
           ) : canManage && !LOCKED_STATUSES.includes(project.status) ? (
             <Button asChild variant="outline">
               <Link href={wizardHref(project.id)}>
                 <Pencil data-icon="inline-start" />
-                Edit setup
+                {t("projects.mode.editSetup")}
               </Link>
             </Button>
           ) : null}
@@ -210,8 +224,8 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
         ) : (
           <>
             {project.status === "DRAFT" ? (
-              <InlineAlert tone="info" title="This project is a draft">
-                Finish the 6 setup steps and activate it to start site work. Drafts don&apos;t count against your plan.
+              <InlineAlert tone="info" title={t("projects.mode.draftTitle")}>
+                {t("projects.mode.draftBody")}
               </InlineAlert>
             ) : null}
             {seesBilling && project.status !== "DRAFT" ? <ProjectMoneyCard projectId={project.id} /> : null}
@@ -225,7 +239,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
             </div>
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
               <RoomsSummaryCard project={project} canEdit={canEdit} />
-              <ComingSoonCard title="Estimate (BoQ)" icon={Calculator} description="Material quantities and costs from your rooms — comes in Phase 2." />
+              <ComingSoonCard title={t("projects.mode.boqTitle")} icon={Calculator} description={t("projects.mode.boqDesc")} />
             </div>
           </>
         )
@@ -235,8 +249,9 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
 }
 
 export function SiteSetupView({ projectId }: { projectId: string }) {
+  const t = useT();
   return (
-    <ProjectPageShell projectId={projectId} crumb="Site Setup">
+    <ProjectPageShell projectId={projectId} crumb={t("projects.mode.crumbSiteSetup")}>
       {(project, { canEdit }) => (
         <div className="grid gap-4 lg:grid-cols-2">
           <ClientCard project={project} canEdit={canEdit} />
@@ -250,30 +265,38 @@ export function SiteSetupView({ projectId }: { projectId: string }) {
 }
 
 export function SupplySplitView({ projectId }: { projectId: string }) {
+  const t = useT();
   return (
-    <ProjectPageShell projectId={projectId} crumb="Supply Split">
+    <ProjectPageShell projectId={projectId} crumb={t("projects.mode.crumbSupplySplit")}>
       {(project, { canEdit }) => <SupplyRulesCard project={project} canEdit={canEdit} />}
     </ProjectPageShell>
   );
 }
 
 function FloorsDetail({ projectId, canEdit }: { projectId: string; canEdit: boolean }) {
+  const t = useT();
+  const te = useEnumT();
   const { data, isLoading } = useGetFloorsQuery(projectId);
   if (isLoading) return <CardsSkeleton count={2} height="h-48" />;
+  const sqft = (v: number) => t("projects.unit.sqftValue", { n: formatArea(v) });
   return (
     <div className="space-y-4">
       {(data?.floors ?? []).map((floor) => (
         <SectionCard
           key={floor.id}
-          title={floor.name}
-          description={`${floor.calculations.rooms} rooms · ${formatArea(floor.calculations.totalFloorAreaSqft)} sq ft · ceiling ${floor.ceilingHeightFt} ft`}
+          title={te("projectFloorLevel", floor.level, floor.name)}
+          description={t("projects.mode.floorDesc", {
+            rooms: floor.calculations.rooms,
+            area: formatArea(floor.calculations.totalFloorAreaSqft),
+            height: floor.ceilingHeightFt,
+          })}
           flush
           actions={
             canEdit ? (
               <Button asChild variant="ghost" size="sm">
                 <Link href={wizardHref(projectId, 5)}>
                   <Pencil data-icon="inline-start" />
-                  Edit rooms
+                  {t("projects.mode.editRooms")}
                 </Link>
               </Button>
             ) : null
@@ -283,28 +306,40 @@ function FloorsDetail({ projectId, canEdit }: { projectId: string; canEdit: bool
             rows={floor.rooms}
             getRowId={(r) => r.id}
             clientPageSize={0}
-            empty={{ title: "No rooms on this floor" }}
+            empty={{ title: t("projects.mode.noRoomsOnFloor") }}
             columns={[
               {
                 id: "room",
-                header: "Room",
+                header: t("projects.mode.room"),
                 cell: (r) => (
                   <div>
                     <p className="font-medium">{r.name}</p>
-                    <p className="text-xs text-muted-foreground">{ROOM_TYPE_LABEL[r.type]}</p>
+                    <p className="text-xs text-muted-foreground">{te("projectRoomType", r.type)}</p>
                   </div>
                 ),
               },
-              { id: "size", header: "L × W × H", cell: (r) => `${r.lengthFt} × ${r.widthFt} × ${r.heightFt} ft` },
+              {
+                id: "size",
+                header: t("projects.mode.size"),
+                cell: (r) => <bdi>{t("projects.mode.sizeValue", { l: r.lengthFt, w: r.widthFt, h: r.heightFt })}</bdi>,
+              },
               {
                 id: "openings",
-                header: "Openings",
+                header: t("projects.mode.openings"),
                 cell: (r) =>
-                  r.openings.length ? r.openings.map((o) => `${o.quantity}× ${OPENING_LABEL[o.type]} ${o.widthFt}×${o.heightFt}`).join(", ") : "—",
+                  r.openings.length
+                    ? r.openings
+                        .map((o) => t("projects.mode.openingValue", { qty: o.quantity, type: te("projectOpeningType", o.type), w: o.widthFt, h: o.heightFt }))
+                        .join(", ")
+                    : "—",
               },
-              { id: "wet", header: "Wet", cell: (r) => (r.isWet ? <StatusBadge tone="info" label="Wet" /> : "Dry") },
-              { id: "floor", header: "Floor area", align: "right", cell: (r) => `${formatArea(r.calculations.floorAreaSqft)} sq ft` },
-              { id: "net", header: "Net wall", align: "right", cell: (r) => `${formatArea(r.calculations.netWallAreaSqft)} sq ft` },
+              {
+                id: "wet",
+                header: t("projects.mode.wet"),
+                cell: (r) => (r.isWet ? <StatusBadge tone="info" label={t("projects.mode.wet")} /> : t("projects.mode.dry")),
+              },
+              { id: "floor", header: t("projects.mode.floorArea"), align: "right", cell: (r) => sqft(r.calculations.floorAreaSqft) },
+              { id: "net", header: t("projects.mode.netWall"), align: "right", cell: (r) => sqft(r.calculations.netWallAreaSqft) },
             ]}
           />
         </SectionCard>
@@ -314,11 +349,12 @@ function FloorsDetail({ projectId, canEdit }: { projectId: string; canEdit: bool
 }
 
 export function FloorsRoomsView({ projectId }: { projectId: string }) {
+  const t = useT();
   return (
-    <ProjectPageShell projectId={projectId} crumb="Floors & Rooms">
+    <ProjectPageShell projectId={projectId} crumb={t("projects.mode.crumbFloorsRooms")}>
       {(project, { canEdit }) => (
         <>
-          <RoomsSummaryCard project={project} title="Totals" />
+          <RoomsSummaryCard project={project} title={t("projects.mode.totals")} />
           <FloorsDetail projectId={project.id} canEdit={canEdit} />
         </>
       )}

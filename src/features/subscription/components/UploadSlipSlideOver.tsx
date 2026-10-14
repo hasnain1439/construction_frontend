@@ -19,16 +19,20 @@ import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { datePlusDays, todayPK } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
-import { PAYMENT_METHOD_OPTIONS } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
 import { paymentSlipSchema } from "../schemas";
 
 const FORM_ID = "payment-slip-form";
+const METHODS = ["JAZZCASH", "EASYPAISA", "RAAST", "IBFT"] as const;
+/** Sample transaction ID shown in the empty field (a code, the same in every language). */
+const TRANSACTION_EXAMPLE = "EP2610030117";
 type Values = z.input<typeof paymentSlipSchema>;
 
 function SlipField() {
+  const t = useT();
   const error = useFieldError("slip");
   return (
-    <FormField label="Payment screenshot" required error={error} hint="Photo or PDF of the receipt (max 10 MB)">
+    <FormField label={t("teamCompany.slip.screenshot")} required error={error} hint={t("teamCompany.slip.screenshotHint")}>
       {() => (
         <Controller
           name="slip"
@@ -40,6 +44,7 @@ function SlipField() {
 }
 
 function ExpectedAmount({ plans }: { plans: PlanOption[] }) {
+  const t = useT();
   const { setValue, getFieldState } = useFormContext<Values>();
   const planId = useWatch({ name: "planId" }) as string;
   const plan = plans.find((p) => p.id === planId);
@@ -47,11 +52,16 @@ function ExpectedAmount({ plans }: { plans: PlanOption[] }) {
   useEffect(() => {
     if (plan && !getFieldState("amountPaisa").isDirty) setValue("amountPaisa", plan.pricePaisa);
   }, [plan, setValue, getFieldState]);
-  return plan ? (
+  if (!plan) return null;
+  // The amount is bold, so the sentence is split around its placeholder.
+  const [before, after] = t("teamCompany.slip.payExactly", { plan: plan.name }).split("{amount}");
+  return (
     <InlineAlert tone="info">
-      Pay exactly <strong>{formatPKR(plan.pricePaisa)}</strong> for one month of {plan.name}.
+      {before}
+      <strong>{formatPKR(plan.pricePaisa)}</strong>
+      {after}
     </InlineAlert>
-  ) : null;
+  );
 }
 
 /** Upload a JazzCash / Easypaisa / Raast / bank slip for the platform to approve. */
@@ -66,6 +76,8 @@ export function UploadSlipSlideOver({
   plans: PlanOption[];
   defaultPlanId: string;
 }) {
+  const t = useT();
+  const te = useEnumT();
   const [submit, { isLoading }] = useSubmitPaymentMutation();
   const run = useMutationToast();
   const priceOf = (id: string) => plans.find((p) => p.id === id)?.pricePaisa ?? null;
@@ -94,7 +106,7 @@ export function UploadSlipSlideOver({
           attachmentId: values.slip!.id,
         }).unwrap(),
       {
-        success: "Payment slip sent — we'll review it shortly",
+        success: t("teamCompany.slip.sent"),
         setError: form.setError,
         codeFields: {
           AMOUNT_MISMATCH: "amountPaisa",
@@ -115,26 +127,26 @@ export function UploadSlipSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Upload payment slip"
-      description="Send the money first, then upload the receipt here. Approval activates 30 days."
+      title={t("teamCompany.slip.title")}
+      description={t("teamCompany.slip.desc")}
       busy={isLoading}
-      footer={<FormActions formId={FORM_ID} submitLabel="Submit for review" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={t("teamCompany.slip.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <SelectField
           name="planId"
-          label="Plan"
+          label={t("teamCompany.slip.plan")}
           required
-          options={plans.map((p) => ({ value: p.id, label: `${p.name} — ${formatPKR(p.pricePaisa)} / month` }))}
+          options={plans.map((p) => ({ value: p.id, label: t("teamCompany.slip.planOption", { name: p.name, price: formatPKR(p.pricePaisa) }) }))}
         />
         <ExpectedAmount plans={plans} />
         <FieldGrid>
-          <SelectField name="method" label="Paid with" required options={[...PAYMENT_METHOD_OPTIONS]} />
-          <TextField name="transactionId" label="Transaction ID" required uppercase placeholder="EP2610030117" />
+          <SelectField name="method" label={t("teamCompany.slip.paidWith")} required options={METHODS.map((value) => ({ value, label: te("walletMethod", value) }))} />
+          <TextField name="transactionId" label={t("teamCompany.slip.transactionId")} required uppercase placeholder={TRANSACTION_EXAMPLE} dir="ltr" />
         </FieldGrid>
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="paidOn" label="Paid on" required min={datePlusDays(-30)} max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="paidOn" label={t("teamCompany.slip.paidOn")} required min={datePlusDays(-30)} max={todayPK()} />
         </FieldGrid>
         <SlipField />
       </Form>

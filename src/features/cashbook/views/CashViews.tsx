@@ -18,7 +18,7 @@ import { useGetCashFloatsQuery } from "@/api/services/finance.api";
 import type { CashAccount, CashEntry, CashFloatItem, ProjectDetail, TopupRequest } from "@/api/types";
 import { ApprovalActions } from "@/components/common/ApprovalActions";
 import { BalanceCard } from "@/components/common/BalanceCard";
-import { categoryLabel, CategoryChips, type KharchaCategory } from "@/components/common/CategoryChips";
+import { CategoryChips, type KharchaCategory } from "@/components/common/CategoryChips";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -32,9 +32,9 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CASH_ENTRY_LABELS } from "@/features/labor/options";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPKR, formatPKRShort, toPaisaBigInt } from "@/lib/money";
@@ -49,58 +49,74 @@ function useMyAccount() {
   return { accounts, mine: accounts.data?.items.find((a) => a.holder.id === me?.user.id), userId: me?.user.id };
 }
 
+/** Kharcha category label in the current language ("—" when none). */
+function useCategoryLabel() {
+  const te = useEnumT();
+  return (value: string | null | undefined) => (value ? te("cashKharchaCategory", value) : "—");
+}
+
 function SignedAmount({ paisa }: { paisa: string }) {
+  const t = useT();
   const negative = paisa.startsWith("-");
   return (
     <span className={cn("inline-flex items-center gap-1 tabular", negative ? "text-danger" : "text-success")}>
       {negative ? <ArrowUpRight className="size-3.5" aria-hidden /> : <ArrowDownLeft className="size-3.5" aria-hidden />}
       <MoneyText paisa={negative ? paisa.slice(1) : paisa} />
-      <span className="sr-only">{negative ? "out" : "in"}</span>
+      <span className="sr-only">{negative ? t("cashSite.cash.moneyOut") : t("cashSite.cash.moneyIn")}</span>
     </span>
   );
 }
 
-const entryColumns = (withHolder: boolean): Column<CashEntry>[] => [
-  { id: "date", header: "Date", sortValue: (e) => e.occurredAt, cell: (e) => formatDate(e.occurredAt) },
-  ...(withHolder ? [{ id: "holder", header: "By", cell: (e: CashEntry) => e.holder?.name ?? "—" } satisfies Column<CashEntry>] : []),
-  {
-    id: "what",
-    header: "Entry",
-    cell: (e) => (
-      <div>
-        <p className="font-medium">{e.description}</p>
-        <p className="text-xs text-muted-foreground">{e.type === "EXPENSE" ? categoryLabel(e.category) : (CASH_ENTRY_LABELS[e.type] ?? e.type)}</p>
-        {e.lateSync ? <LateSyncBadge className="mt-1" /> : null}
-      </div>
-    ),
-  },
-  { id: "amount", header: "Amount", align: "right", sortValue: (e) => Number(e.amountPaisa), cell: (e) => <SignedAmount paisa={e.amountPaisa} /> },
-  ...(!withHolder ? [{ id: "running", header: "Balance", align: "right" as const, cell: (e: CashEntry) => <MoneyText paisa={e.runningBalancePaisa} /> } satisfies Column<CashEntry>] : []),
-  {
-    id: "status",
-    header: "Status",
-    cell: (e) => (
-      <span className="inline-flex flex-wrap items-center gap-1">
-        <StatusBadge domain="cashEntry" value={e.status} />
-        {e.recoverableFromHolder ? <StatusBadge tone="danger" icon={TriangleAlert} label="To pay back" /> : null}
-      </span>
-    ),
-  },
-];
+function useEntryColumns(withHolder: boolean): Column<CashEntry>[] {
+  const t = useT();
+  const te = useEnumT();
+  const categoryLabel = useCategoryLabel();
+  return [
+    { id: "date", header: t("field.date"), sortValue: (e) => e.occurredAt, cell: (e) => formatDate(e.occurredAt) },
+    ...(withHolder ? [{ id: "holder", header: t("field.by"), cell: (e: CashEntry) => e.holder?.name ?? "—" } satisfies Column<CashEntry>] : []),
+    {
+      id: "what",
+      header: t("field.entry"),
+      cell: (e) => (
+        <div>
+          <p className="font-medium">{e.description}</p>
+          <p className="text-xs text-muted-foreground">{e.type === "EXPENSE" ? categoryLabel(e.category) : te("cashEntryType", e.type)}</p>
+          {e.lateSync ? <LateSyncBadge className="mt-1" /> : null}
+        </div>
+      ),
+    },
+    { id: "amount", header: t("field.amount"), align: "right", sortValue: (e) => Number(e.amountPaisa), cell: (e) => <SignedAmount paisa={e.amountPaisa} /> },
+    ...(!withHolder
+      ? [{ id: "running", header: t("field.balance"), align: "right" as const, cell: (e: CashEntry) => <MoneyText paisa={e.runningBalancePaisa} /> } satisfies Column<CashEntry>]
+      : []),
+    {
+      id: "status",
+      header: t("field.status"),
+      cell: (e) => (
+        <span className="inline-flex flex-wrap items-center gap-1">
+          <StatusBadge domain="cashEntry" value={e.status} />
+          {e.recoverableFromHolder ? <StatusBadge tone="danger" icon={TriangleAlert} label={t("cashSite.cash.toPayBack")} /> : null}
+        </span>
+      ),
+    },
+  ];
+}
 
 /** Spend by category: one bar per category, value labelled (single series → no legend). */
 function SpendChart({ rows }: { rows: Array<{ category: string | null; amountPaisa: string }> }) {
+  const t = useT();
+  const categoryLabel = useCategoryLabel();
   const max = rows.reduce((m, r) => Math.max(m, Number(r.amountPaisa)), 0);
-  if (!rows.length) return <EmptyState title="No kharcha yet" compact />;
+  if (!rows.length) return <EmptyState title={t("cashSite.cash.noKharcha")} compact />;
   return (
-    <ul className="space-y-2.5" aria-label="Spend by category">
+    <ul className="space-y-2.5" aria-label={t("cashSite.cash.spendByCategory")}>
       {rows.map((r) => (
         <li key={r.category ?? "none"} className="grid grid-cols-[7.5rem_1fr_auto] items-center gap-3 text-sm" title={`${categoryLabel(r.category)}: ${formatPKR(r.amountPaisa)}`}>
           <span className="truncate text-muted-foreground">{categoryLabel(r.category)}</span>
           <span className="h-3 rounded-full bg-muted">
             <span className="block h-3 rounded-full bg-chart-brand" style={{ width: `${max ? Math.max(2, (Number(r.amountPaisa) / max) * 100) : 0}%` }} />
           </span>
-          <MoneyText paisa={r.amountPaisa} short className="text-right font-medium" />
+          <MoneyText paisa={r.amountPaisa} short className="text-end font-medium" />
         </li>
       ))}
     </ul>
@@ -108,6 +124,8 @@ function SpendChart({ rows }: { rows: Array<{ category: string | null; amountPai
 }
 
 export function PendingKharcha({ projectId }: { projectId?: string }) {
+  const t = useT();
+  const categoryLabel = useCategoryLabel();
   const pending = useGetExpensesQuery({ status: "PENDING_APPROVAL", limit: 50, ...(projectId ? { projectId } : {}) });
   const [approve, { isLoading: approving }] = useApproveExpenseMutation();
   const [reject, { isLoading: rejecting }] = useRejectExpenseMutation();
@@ -115,17 +133,17 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
   const limitHint = useApprovalLimitHint();
   if (!pending.data?.items.length) return null;
   return (
-    <SectionCard flush title={`Kharcha waiting for approval (${pending.data.items.length})`} description="Above the company limit. The cash is already spent; rejecting makes it owed back.">
+    <SectionCard flush title={t("cashSite.cash.pendingTitle", { n: pending.data.items.length })} description={t("cashSite.cash.pendingDesc")}>
       <DataTable
         rows={pending.data.items}
         getRowId={(e) => e.id}
-        empty={{ title: "Nothing waiting", compact: true }}
+        empty={{ title: t("cashSite.cash.nothingWaiting"), compact: true }}
         columns={[
-          { id: "date", header: "Date", cell: (e) => formatDate(e.occurredAt) },
-          { id: "by", header: "By", cell: (e) => e.holder?.name ?? "—" },
+          { id: "date", header: t("field.date"), cell: (e) => formatDate(e.occurredAt) },
+          { id: "by", header: t("field.by"), cell: (e) => e.holder?.name ?? "—" },
           {
             id: "what",
-            header: "For",
+            header: t("cashSite.cash.colFor"),
             cell: (e) => (
               <div>
                 <p className="font-medium">{e.description}</p>
@@ -133,7 +151,7 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
               </div>
             ),
           },
-          { id: "amount", header: "Amount", align: "right", cell: (e) => <MoneyText paisa={e.amountPaisa} className="font-semibold" /> },
+          { id: "amount", header: t("field.amount"), align: "right", cell: (e) => <MoneyText paisa={e.amountPaisa} className="font-semibold" /> },
           {
             id: "actions",
             header: "",
@@ -145,9 +163,9 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
                 approving={approving}
                 declining={rejecting}
                 approveBlockedReason={limitHint("cashbook.expense.approve", e.amountPaisa)}
-                onApprove={() => run(() => approve({ id: e.id }).unwrap(), { success: "Kharcha approved" })}
+                onApprove={() => run(() => approve({ id: e.id }).unwrap(), { success: t("cashSite.cash.kharchaApproved") })}
                 onDecline={async (note) => {
-                  const ok = await run(() => reject({ id: e.id, note }).unwrap(), { success: "Rejected — the holder owes it back" });
+                  const ok = await run(() => reject({ id: e.id, note }).unwrap(), { success: t("cashSite.cash.rejectedOwesBack") });
                   if (!ok) throw new Error("failed");
                 }}
               />
@@ -162,6 +180,7 @@ export function PendingKharcha({ projectId }: { projectId?: string }) {
 // ─── Site kharcha ───────────────────────────────────────────────────────────
 
 export function KharchaView({ projectId }: { projectId: string }) {
+  const t = useT();
   // Approvers see every holder's cash and the kharcha waiting for approval.
   const office = useCan("cashbook.expense.approve");
   const canAdd = useCan("cashbook.expense.create");
@@ -170,15 +189,16 @@ export function KharchaView({ projectId }: { projectId: string }) {
   const [category, setCategory] = useState<KharchaCategory | undefined>();
   const book = useGetProjectCashbookQuery({ projectId, limit: 100, ...(category ? { category } : {}) });
   const [open, setOpen] = useState<"kharcha" | "topup" | null>(null);
+  const columns = useEntryColumns(true);
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Site Kharcha"
+      crumb={t("cashSite.cash.crumbKharcha")}
       actions={(p) =>
         isOpen(p) && mine && canAdd ? (
           <Button onClick={() => setOpen("kharcha")}>
             <Plus data-icon="inline-start" />
-            Add kharcha
+            {t("cashSite.cash.addKharcha")}
           </Button>
         ) : null
       }
@@ -192,14 +212,14 @@ export function KharchaView({ projectId }: { projectId: string }) {
                 canAskTopup ? (
                   <Button variant="outline" onClick={() => setOpen("topup")}>
                     <HandCoins data-icon="inline-start" />
-                    Ask for top-up
+                    {t("cashSite.cash.askTopup")}
                   </Button>
                 ) : null
               }
             />
           ) : !office ? (
-            <InlineAlert tone="info" title="No site cash yet">
-              The office sends a float first; you will get an SMS.
+            <InlineAlert tone="info" title={t("cashSite.cash.noSiteCashYet")}>
+              {t("cashSite.cash.noSiteCashBody")}
             </InlineAlert>
           ) : null}
           {office && book.data?.accounts.length ? (
@@ -207,15 +227,15 @@ export function KharchaView({ projectId }: { projectId: string }) {
               {book.data.accounts
                 .filter((a) => a.id !== mine?.id)
                 .map((a) => (
-                  <BalanceCard key={a.id} account={a} title="Site cash" />
+                  <BalanceCard key={a.id} account={a} title={t("cashSite.cash.siteCash")} />
                 ))}
             </div>
           ) : null}
           {office ? <PendingKharcha projectId={project.id} /> : null}
           <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
-            <SectionCard flush title="Cash book">
+            <SectionCard flush title={t("cashSite.cash.cashBook")}>
               <div className="border-b p-3">
-                <CategoryChips allowAll value={category} onChange={setCategory} ariaLabel="Filter by category" />
+                <CategoryChips allowAll value={category} onChange={setCategory} ariaLabel={t("cashSite.cash.filterByCategory")} />
               </div>
               <DataTable
                 rows={book.data?.entries}
@@ -223,11 +243,14 @@ export function KharchaView({ projectId }: { projectId: string }) {
                 loading={book.isLoading}
                 error={book.error}
                 onRetry={book.refetch}
-                columns={entryColumns(true)}
-                empty={{ title: "No cash entries on this project", icon: Wallet }}
+                columns={columns}
+                empty={{ title: t("cashSite.cash.noEntries"), icon: Wallet }}
               />
             </SectionCard>
-            <SectionCard title="Spend by category" description={book.data ? `This week: ${formatPKR(book.data.summary.kharchaThisWeekPaisa)}` : undefined}>
+            <SectionCard
+              title={t("cashSite.cash.spendByCategory")}
+              description={book.data ? t("cashSite.cash.thisWeek", { amount: formatPKR(book.data.summary.kharchaThisWeekPaisa) }) : undefined}
+            >
               <SpendChart rows={book.data?.summary.spentByCategory ?? []} />
             </SectionCard>
           </div>
@@ -242,11 +265,12 @@ export function KharchaView({ projectId }: { projectId: string }) {
 // ─── Floats ─────────────────────────────────────────────────────────────────
 
 function AccountPicker({ accounts, value, onChange }: { accounts: CashAccount[]; value: string | undefined; onChange: (id: string) => void }) {
+  const t = useT();
   if (accounts.length < 2) return null;
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-56" aria-label="Cash holder">
-        <SelectValue placeholder="Choose holder" />
+      <SelectTrigger className="w-56" aria-label={t("cashSite.cash.cashHolder")}>
+        <SelectValue placeholder={t("cashSite.cash.chooseHolder")} />
       </SelectTrigger>
       <SelectContent>
         {accounts.map((a) => (
@@ -268,6 +292,8 @@ function useProjectAccounts(projectId: string) {
 }
 
 export function FloatsView({ projectId }: { projectId: string }) {
+  const t = useT();
+  const te = useEnumT();
   const owner = useCan("cashbook.float.manage");
   const { accounts, mine, userId } = useProjectAccounts(projectId);
   const [picked, setPicked] = useState<string | undefined>();
@@ -278,20 +304,24 @@ export function FloatsView({ projectId }: { projectId: string }) {
   const run = useMutationToast();
   const [sending, setSending] = useState(false);
   const columns: Column<CashEntry>[] = [
-    { id: "date", header: "Sent", cell: (e) => formatDateTime(e.occurredAt) },
-    { id: "amount", header: "Amount", align: "right", cell: (e) => <MoneyText paisa={e.amountPaisa} className="font-semibold" /> },
-    { id: "method", header: "By", cell: (e) => [e.method ? e.method.charAt(0) + e.method.slice(1).toLowerCase() : null, e.reference].filter(Boolean).join(" · ") || "—" },
-    { id: "note", header: "Note", cell: (e) => <span className="text-sm text-muted-foreground">{e.description}</span> },
-    { id: "status", header: "Status", cell: (e) => <StatusBadge domain="cashEntry" value={e.status} label={e.status === "POSTED" ? "Received" : undefined} /> },
+    { id: "date", header: t("field.sent"), cell: (e) => formatDateTime(e.occurredAt) },
+    { id: "amount", header: t("field.amount"), align: "right", cell: (e) => <MoneyText paisa={e.amountPaisa} className="font-semibold" /> },
+    {
+      id: "method",
+      header: t("field.by"),
+      cell: (e) => [e.method ? te("cashFloatMethod", e.method, e.method.charAt(0) + e.method.slice(1).toLowerCase()) : null, e.reference].filter(Boolean).join(" · ") || "—",
+    },
+    { id: "note", header: t("field.note"), cell: (e) => <span className="text-sm text-muted-foreground">{e.description}</span> },
+    { id: "status", header: t("field.status"), cell: (e) => <StatusBadge domain="cashEntry" value={e.status} label={e.status === "POSTED" ? t("field.received") : undefined} /> },
     {
       id: "actions",
       header: "",
       align: "right",
       cell: (e) =>
         e.status === "PENDING_ACK" && account?.holder.id === userId ? (
-          <Button size="sm" disabled={acking} onClick={() => run(() => ack(e.id).unwrap(), { success: `${formatPKR(e.amountPaisa)} received` })}>
+          <Button size="sm" disabled={acking} onClick={() => run(() => ack(e.id).unwrap(), { success: t("cashSite.cash.amountReceived", { amount: formatPKR(e.amountPaisa) }) })}>
             <Inbox data-icon="inline-start" />
-            Mil gaye (received)
+            {t("cashSite.cash.milGaye")}
           </Button>
         ) : null,
     },
@@ -299,12 +329,12 @@ export function FloatsView({ projectId }: { projectId: string }) {
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Cash Floats"
+      crumb={t("cashSite.cash.crumbFloats")}
       actions={() =>
         owner ? (
           <Button onClick={() => setSending(true)}>
             <Send data-icon="inline-start" />
-            Send float
+            {t("cashSite.cash.sendFloat")}
           </Button>
         ) : null
       }
@@ -312,15 +342,27 @@ export function FloatsView({ projectId }: { projectId: string }) {
       {(project) => (
         <>
           {mine && toPaisaBigInt(mine.pendingAckPaisa)! > BigInt(0) ? (
-            <InlineAlert tone="info" title={`${formatPKR(mine.pendingAckPaisa)} sent to you`}>
-              Confirm when the money reaches you — it is added to your cash in hand.
+            <InlineAlert tone="info" title={t("cashSite.cash.sentToYou", { amount: formatPKR(mine.pendingAckPaisa) })}>
+              {t("cashSite.cash.sentToYouBody")}
             </InlineAlert>
           ) : null}
-          <SectionCard flush title={account ? `Floats — ${account.holder.name}` : "Floats"} actions={<AccountPicker accounts={accounts} value={accountId} onChange={setPicked} />}>
+          <SectionCard
+            flush
+            title={account ? t("cashSite.cash.floatsOf", { name: account.holder.name }) : t("cashSite.cash.floats")}
+            actions={<AccountPicker accounts={accounts} value={accountId} onChange={setPicked} />}
+          >
             {accountId ? (
-              <DataTable rows={floats.data?.items} getRowId={(e) => e.id} loading={floats.isLoading} error={floats.error} onRetry={floats.refetch} columns={columns} empty={{ title: "No floats yet", icon: Send }} />
+              <DataTable
+                rows={floats.data?.items}
+                getRowId={(e) => e.id}
+                loading={floats.isLoading}
+                error={floats.error}
+                onRetry={floats.refetch}
+                columns={columns}
+                empty={{ title: t("cashSite.cash.noFloats"), icon: Send }}
+              />
             ) : (
-              <EmptyState title="Nobody holds site cash on this project yet" description={owner ? "Send a float to the munshi to start." : undefined} icon={Wallet} />
+              <EmptyState title={t("cashSite.cash.nobodyHoldsProject")} description={owner ? t("cashSite.cash.sendFloatToStart") : undefined} icon={Wallet} />
             )}
           </SectionCard>
           {sending ? <SendFloatSlideOver open onOpenChange={setSending} projectId={project.id} holderUserId={project.team.munshis[0]?.id} /> : null}
@@ -333,50 +375,60 @@ export function FloatsView({ projectId }: { projectId: string }) {
 // ─── Top-ups ────────────────────────────────────────────────────────────────
 
 export function TopupTable({ status }: { status?: "PENDING" | "APPROVED" | "REJECTED" }) {
+  const t = useT();
   const owner = useCan("cashbook.topup.approve");
   const list = useGetTopupsQuery({ limit: 50, ...(status ? { status } : {}) });
   const [reject, { isLoading: rejecting }] = useRejectTopupMutation();
   const run = useMutationToast();
   const [approving, setApproving] = useState<TopupRequest | null>(null);
   const columns: Column<TopupRequest>[] = [
-    { id: "date", header: "Asked", cell: (t) => formatDateTime(t.createdAt) },
-    { id: "holder", header: "By", cell: (t) => <span className="font-medium">{t.holder.name}</span> },
-    { id: "amount", header: "Amount", align: "right", cell: (t) => <MoneyText paisa={t.amountPaisa} className="font-semibold" /> },
-    { id: "balance", header: "Has now", align: "right", cell: (t) => <MoneyText paisa={t.balancePaisa} /> },
-    { id: "note", header: "For", cell: (t) => <span className="text-sm text-muted-foreground">{t.note ?? ""}</span> },
-    { id: "status", header: "Status", cell: (t) => <StatusBadge domain="topup" value={t.status} /> },
+    { id: "date", header: t("cashSite.cash.colAsked"), cell: (r) => formatDateTime(r.createdAt) },
+    { id: "holder", header: t("field.by"), cell: (r) => <span className="font-medium">{r.holder.name}</span> },
+    { id: "amount", header: t("field.amount"), align: "right", cell: (r) => <MoneyText paisa={r.amountPaisa} className="font-semibold" /> },
+    { id: "balance", header: t("cashSite.cash.colHasNow"), align: "right", cell: (r) => <MoneyText paisa={r.balancePaisa} /> },
+    { id: "note", header: t("cashSite.cash.colFor"), cell: (r) => <span className="text-sm text-muted-foreground">{r.note ?? ""}</span> },
+    { id: "status", header: t("field.status"), cell: (r) => <StatusBadge domain="topup" value={r.status} /> },
     {
       id: "actions",
       header: "",
       align: "right",
       hidden: !owner,
-      cell: (t) =>
-        t.status === "PENDING" ? (
+      cell: (r) =>
+        r.status === "PENDING" ? (
           <ApprovalActions
             size="sm"
             decline="reject"
-            approveLabel="Approve & send"
+            approveLabel={t("cashSite.cash.approveSend")}
             declining={rejecting}
-            onApprove={() => setApproving(t)}
+            onApprove={() => setApproving(r)}
             onDecline={async (note) => {
-              const ok = await run(() => reject({ id: t.id, note }).unwrap(), { success: "Top-up rejected" });
+              const ok = await run(() => reject({ id: r.id, note }).unwrap(), { success: t("cashSite.cash.topupRejected") });
               if (!ok) throw new Error("failed");
             }}
           />
-        ) : t.decisionNote ? (
-          <span className="text-xs text-muted-foreground">“{t.decisionNote}”</span>
+        ) : r.decisionNote ? (
+          <span className="text-xs text-muted-foreground">“{r.decisionNote}”</span>
         ) : null,
     },
   ];
   return (
     <>
-      <DataTable rows={list.data?.items} getRowId={(t) => t.id} loading={list.isLoading} error={list.error} onRetry={list.refetch} columns={columns} empty={{ title: "No top-up requests", icon: HandCoins, compact: true }} />
+      <DataTable
+        rows={list.data?.items}
+        getRowId={(r) => r.id}
+        loading={list.isLoading}
+        error={list.error}
+        onRetry={list.refetch}
+        columns={columns}
+        empty={{ title: t("cashSite.cash.noTopups"), icon: HandCoins, compact: true }}
+      />
       {approving ? <ApproveTopupSlideOver open onOpenChange={(o) => (!o ? setApproving(null) : undefined)} topup={approving} /> : null}
     </>
   );
 }
 
 export function TopupsView({ projectId }: { projectId: string }) {
+  const t = useT();
   // Approvers don't ask for top-ups themselves.
   const asks = useCan("cashbook.topup.create");
   const approves = useCan("cashbook.topup.approve");
@@ -385,22 +437,22 @@ export function TopupsView({ projectId }: { projectId: string }) {
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Top-up Requests"
+      crumb={t("cashSite.cash.crumbTopups")}
       actions={() =>
         !owner ? (
           <Button onClick={() => setOpen(true)}>
             <HandCoins data-icon="inline-start" />
-            Ask for top-up
+            {t("cashSite.cash.askTopup")}
           </Button>
         ) : null
       }
     >
       {() => (
         <>
-          <SectionCard flush title="Waiting">
+          <SectionCard flush title={t("cashSite.cash.waiting")}>
             <TopupTable status="PENDING" />
           </SectionCard>
-          <SectionCard flush title="All requests">
+          <SectionCard flush title={t("cashSite.cash.allRequests")}>
             <TopupTable />
           </SectionCard>
           {open ? <TopupRequestSlideOver open onOpenChange={setOpen} /> : null}
@@ -413,6 +465,7 @@ export function TopupsView({ projectId }: { projectId: string }) {
 // ─── Counts & handover ──────────────────────────────────────────────────────
 
 export function CashCountsView({ projectId }: { projectId: string }) {
+  const t = useT();
   const office = useCan("cashbook.float.manage");
   const canCount = useCan("cashbook.count.create");
   const canHandover = useCan("cashbook.handover.create");
@@ -422,9 +475,12 @@ export function CashCountsView({ projectId }: { projectId: string }) {
   const counts = useGetCashCountsQuery({ accountId: account?.id, limit: 50 }, { skip: !account });
   const [open, setOpen] = useState<"count" | "handover" | null>(null);
   return (
-    <ProjectPageShell projectId={projectId} crumb="Cash Counts & Handover">
+    <ProjectPageShell projectId={projectId} crumb={t("cashSite.cash.crumbCounts")}>
       {(project) => {
-        const people = [...(project.team.pm ? [{ ...project.team.pm, description: "Project manager" }] : []), ...project.team.munshis.map((m) => ({ ...m, description: "Munshi" }))];
+        const people = [
+          ...(project.team.pm ? [{ ...project.team.pm, description: t("field.projectManager") }] : []),
+          ...project.team.munshis.map((m) => ({ ...m, description: t("field.munshi") })),
+        ];
         return account ? (
           <>
             <div className="flex justify-end">
@@ -437,19 +493,19 @@ export function CashCountsView({ projectId }: { projectId: string }) {
                   {canCount ? (
                     <Button onClick={() => setOpen("count")}>
                       <Calculator data-icon="inline-start" />
-                      Count cash
+                      {t("cashSite.cash.countCash")}
                     </Button>
                   ) : null}
                   {canHandover ? (
                     <Button variant="outline" onClick={() => setOpen("handover")} disabled={toPaisaBigInt(account.balancePaisa)! <= BigInt(0)}>
                       <Repeat data-icon="inline-start" />
-                      Hand over
+                      {t("cashSite.cash.handOver")}
                     </Button>
                   ) : null}
                 </>
               }
             />
-            <SectionCard flush title="Counts">
+            <SectionCard flush title={t("cashSite.cash.counts")}>
               <DataTable
                 rows={counts.data?.items}
                 getRowId={(c) => c.id}
@@ -457,18 +513,18 @@ export function CashCountsView({ projectId }: { projectId: string }) {
                 error={counts.error}
                 onRetry={counts.refetch}
                 columns={[
-                  { id: "at", header: "Counted", cell: (c) => formatDateTime(c.countedAt) },
-                  { id: "book", header: "Book", align: "right", cell: (c) => <MoneyText paisa={c.systemPaisa} /> },
-                  { id: "counted", header: "Counted", align: "right", cell: (c) => <MoneyText paisa={c.countedPaisa} /> },
+                  { id: "at", header: t("field.counted"), cell: (c) => formatDateTime(c.countedAt) },
+                  { id: "book", header: t("cashSite.cash.colBook"), align: "right", cell: (c) => <MoneyText paisa={c.systemPaisa} /> },
+                  { id: "counted", header: t("field.counted"), align: "right", cell: (c) => <MoneyText paisa={c.countedPaisa} /> },
                   {
                     id: "diff",
-                    header: "Difference",
+                    header: t("cashSite.cash.colDifference"),
                     align: "right",
-                    cell: (c) => (c.differencePaisa === "0" ? <StatusBadge tone="success" label="Matches" /> : <SignedAmount paisa={c.differencePaisa} />),
+                    cell: (c) => (c.differencePaisa === "0" ? <StatusBadge tone="success" label={t("cashSite.cash.matches")} /> : <SignedAmount paisa={c.differencePaisa} />),
                   },
-                  { id: "note", header: "Reason", cell: (c) => <span className="text-sm text-muted-foreground">{c.note ?? ""}</span> },
+                  { id: "note", header: t("field.reason"), cell: (c) => <span className="text-sm text-muted-foreground">{c.note ?? ""}</span> },
                 ]}
-                empty={{ title: "Never counted", description: "Count the cash every week — differences are explained here.", icon: Calculator }}
+                empty={{ title: t("cashSite.cash.neverCounted"), description: t("cashSite.cash.neverCountedDesc"), icon: Calculator }}
               />
             </SectionCard>
             {open === "count" ? <CashCountSlideOver open onOpenChange={(o) => setOpen(o ? "count" : null)} account={account} /> : null}
@@ -476,7 +532,11 @@ export function CashCountsView({ projectId }: { projectId: string }) {
           </>
         ) : (
           <SectionCard>
-            <EmptyState title="No site cash on this project" description={office ? "Send a float to the munshi first (Cash Floats)." : "The office sends a float first."} icon={Wallet} />
+            <EmptyState
+              title={t("cashSite.cash.noSiteCashProject")}
+              description={office ? t("cashSite.cash.sendFloatFirst") : t("cashSite.cash.officeSendsFirst")}
+              icon={Wallet}
+            />
           </SectionCard>
         );
       }}
@@ -487,77 +547,113 @@ export function CashCountsView({ projectId }: { projectId: string }) {
 // ─── Company: cash floats overview (THEKEDAR) ───────────────────────────────
 
 export function CashFloatsOverviewView() {
+  const t = useT();
   const canSend = useCan("cashbook.float.manage");
   const accounts = useGetCashFloatsQuery();
   const [sending, setSending] = useState<string | null | undefined>(undefined);
-  const t = accounts.data?.totals;
+  const totals = accounts.data?.totals;
   const columns: Column<CashFloatItem>[] = [
     {
       id: "holder",
-      header: "Holder",
+      header: t("cashSite.cash.colHolder"),
       sortValue: (a) => a.holder.name,
       cell: (a) => (
         <div>
           <p className="font-medium">{a.holder.name}</p>
           <p className="text-xs text-muted-foreground">
-            {a.holder.role === "PM" ? "Project manager" : "Munshi"} · {a.holder.phone}
+            {a.holder.role === "PM" ? t("field.projectManager") : t("field.munshi")} · <bdi>{a.holder.phone}</bdi>
           </p>
         </div>
       ),
     },
-    { id: "sites", header: "Sites", cell: (a) => (a.projects.length ? a.projects.map((p) => p.code).join(", ") : "—") },
-    { id: "balance", header: "In hand", align: "right", sortValue: (a) => Number(a.balancePaisa), cell: (a) => <MoneyText paisa={a.balancePaisa} className="font-semibold" /> },
-    { id: "week", header: "Spent this week", align: "right", cell: (a) => (a.spentThisWeekPaisa === "0" ? "—" : <MoneyText paisa={a.spentThisWeekPaisa} />) },
-    { id: "floated", header: "Floated (total)", align: "right", cell: (a) => <MoneyText paisa={a.totalFloatedPaisa} short /> },
-    { id: "ack", header: "Not received yet", align: "right", cell: (a) => (a.pendingAckPaisa === "0" ? "—" : <MoneyText paisa={a.pendingAckPaisa} />) },
-    { id: "approval", header: "Waiting approval", align: "right", cell: (a) => (a.pendingApprovalPaisa === "0" ? "—" : <MoneyText paisa={a.pendingApprovalPaisa} className="text-warning" />) },
-    { id: "recover", header: "To pay back", align: "right", cell: (a) => (a.recoverablePaisa === "0" ? "—" : <MoneyText paisa={a.recoverablePaisa} className="text-danger" />) },
+    { id: "sites", header: t("cashSite.cash.colSites"), cell: (a) => (a.projects.length ? a.projects.map((p) => p.code).join(", ") : "—") },
+    {
+      id: "balance",
+      header: t("cashSite.cash.colInHand"),
+      align: "right",
+      sortValue: (a) => Number(a.balancePaisa),
+      cell: (a) => <MoneyText paisa={a.balancePaisa} className="font-semibold" />,
+    },
+    { id: "week", header: t("cashSite.cash.colSpentThisWeek"), align: "right", cell: (a) => (a.spentThisWeekPaisa === "0" ? "—" : <MoneyText paisa={a.spentThisWeekPaisa} />) },
+    { id: "floated", header: t("cashSite.cash.colFloatedTotal"), align: "right", cell: (a) => <MoneyText paisa={a.totalFloatedPaisa} short /> },
+    { id: "ack", header: t("cashSite.cash.colNotReceived"), align: "right", cell: (a) => (a.pendingAckPaisa === "0" ? "—" : <MoneyText paisa={a.pendingAckPaisa} />) },
+    {
+      id: "approval",
+      header: t("cashSite.cash.colWaitingApproval"),
+      align: "right",
+      cell: (a) => (a.pendingApprovalPaisa === "0" ? "—" : <MoneyText paisa={a.pendingApprovalPaisa} className="text-warning" />),
+    },
+    { id: "recover", header: t("cashSite.cash.toPayBack"), align: "right", cell: (a) => (a.recoverablePaisa === "0" ? "—" : <MoneyText paisa={a.recoverablePaisa} className="text-danger" />) },
     {
       id: "count",
-      header: "Last count",
+      header: t("cashSite.cash.colLastCount"),
       cell: (a) =>
         a.lastCount ? (
           <span>
             {formatDate(a.lastCount.countedAt)}
-            {a.lastCount.differencePaisa !== "0" ? <MoneyText paisa={a.lastCount.differencePaisa} className="block text-xs text-danger" /> : <span className="block text-xs text-success">Matched</span>}
+            {a.lastCount.differencePaisa !== "0" ? (
+              <MoneyText paisa={a.lastCount.differencePaisa} className="block text-xs text-danger" />
+            ) : (
+              <span className="block text-xs text-success">{t("cashSite.cash.matched")}</span>
+            )}
           </span>
         ) : (
-          <StatusBadge tone="warning" label="Never" />
+          <StatusBadge tone="warning" label={t("cashSite.cash.never")} />
         ),
     },
-    { id: "topup", header: "Top-up asked", align: "right", cell: (a) => (a.pendingTopup ? <MoneyText paisa={a.pendingTopup.amountPaisa} className="text-warning" /> : "—") },
-    { id: "last", header: "Last entry", cell: (a) => formatDate(a.lastEntryAt) },
+    { id: "topup", header: t("cashSite.cash.colTopupAsked"), align: "right", cell: (a) => (a.pendingTopup ? <MoneyText paisa={a.pendingTopup.amountPaisa} className="text-warning" /> : "—") },
+    { id: "last", header: t("cashSite.cash.colLastEntry"), cell: (a) => formatDate(a.lastEntryAt) },
     {
       ...ACTIONS_COLUMN,
       hidden: !canSend,
-      cell: (a) => <RowActions name={a.holder.name} actions={[{ label: "Send float", icon: Send, onSelect: () => setSending(a.holder.id) }]} />,
+      cell: (a) => <RowActions name={a.holder.name} actions={[{ label: t("cashSite.cash.sendFloat"), icon: Send, onSelect: () => setSending(a.holder.id) }]} />,
     },
   ];
+  const holdersDesc = totals
+    ? `${t(totals.holders === 1 ? "cashSite.cash.oneHolder" : "cashSite.cash.nHolders", { n: totals.holders })} · ${t(
+        totals.pendingTopups === 1 ? "cashSite.cash.oneTopupWaiting" : "cashSite.cash.nTopupsWaiting",
+        { n: totals.pendingTopups },
+      )}`
+    : undefined;
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Cash Floats Overview"
-        description="Site cash with munshis and project managers."
-        breadcrumbs={[{ label: "Finance" }, { label: "Cash Floats" }]}
+        title={t("cashSite.cash.overviewTitle")}
+        description={t("cashSite.cash.overviewDesc")}
+        breadcrumbs={[{ label: t("crumb.finance") }, { label: t("cashSite.cash.crumbFloats") }]}
         actions={
           canSend ? (
             <Button onClick={() => setSending(null)}>
               <Send data-icon="inline-start" />
-              Send float
+              {t("cashSite.cash.sendFloat")}
             </Button>
           ) : null
         }
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Cash with site staff" icon={Wallet} value={formatPKRShort(t?.balancePaisa ?? "0")} loading={accounts.isLoading} />
-        <KpiCard label="Floats not received yet" icon={Clock} value={formatPKRShort(t?.pendingAckPaisa ?? "0")} loading={accounts.isLoading} hint={t ? `Spent this week ${formatPKRShort(t.spentThisWeekPaisa)}` : undefined} />
-        <KpiCard label="Kharcha waiting approval" icon={Hourglass} tone="warning" value={formatPKRShort(t?.pendingApprovalPaisa ?? "0")} loading={accounts.isLoading} />
-        <KpiCard label="To pay back" icon={TriangleAlert} tone="danger" value={formatPKRShort(t?.recoverablePaisa ?? "0")} loading={accounts.isLoading} />
+        <KpiCard label={t("cashSite.cash.kpiCashWithStaff")} icon={Wallet} value={formatPKRShort(totals?.balancePaisa ?? "0")} loading={accounts.isLoading} />
+        <KpiCard
+          label={t("cashSite.cash.kpiFloatsNotReceived")}
+          icon={Clock}
+          value={formatPKRShort(totals?.pendingAckPaisa ?? "0")}
+          loading={accounts.isLoading}
+          hint={totals ? t("cashSite.cash.kpiSpentThisWeek", { amount: formatPKRShort(totals.spentThisWeekPaisa) }) : undefined}
+        />
+        <KpiCard label={t("cashSite.cash.kpiKharchaWaiting")} icon={Hourglass} tone="warning" value={formatPKRShort(totals?.pendingApprovalPaisa ?? "0")} loading={accounts.isLoading} />
+        <KpiCard label={t("cashSite.cash.toPayBack")} icon={TriangleAlert} tone="danger" value={formatPKRShort(totals?.recoverablePaisa ?? "0")} loading={accounts.isLoading} />
       </div>
-      <SectionCard flush title="Holders" description={t ? `${t.holders} holder${t.holders === 1 ? "" : "s"} · ${t.pendingTopups} top-up${t.pendingTopups === 1 ? "" : "s"} waiting` : undefined}>
-        <DataTable rows={accounts.data?.items} getRowId={(a) => a.id} loading={accounts.isLoading} error={accounts.error} onRetry={accounts.refetch} columns={columns} empty={{ title: "Nobody holds site cash yet", icon: Wallet }} />
+      <SectionCard flush title={t("cashSite.cash.holders")} description={holdersDesc}>
+        <DataTable
+          rows={accounts.data?.items}
+          getRowId={(a) => a.id}
+          loading={accounts.isLoading}
+          error={accounts.error}
+          onRetry={accounts.refetch}
+          columns={columns}
+          empty={{ title: t("cashSite.cash.nobodyHolds"), icon: Wallet }}
+        />
       </SectionCard>
-      <SectionCard flush title="Top-up requests waiting">
+      <SectionCard flush title={t("cashSite.cash.topupsWaiting")}>
         <TopupTable status="PENDING" />
       </SectionCard>
       <PendingKharcha />

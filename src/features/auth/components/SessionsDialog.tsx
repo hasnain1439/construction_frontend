@@ -10,14 +10,16 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { TableSkeleton } from "@/components/common/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useLanguage, useT } from "@/i18n/useT";
+import { useRelativeTime } from "@/components/common/useRelativeTime";
+import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
-import { formatRelative } from "@/lib/dates";
 import { useLogout } from "../hooks/useLogout";
 
 /** Where the signed-in user is logged in (GET /auth/sessions) + sign out everywhere. */
 export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const t = useT();
+  const te = useEnumT();
+  const rel = useRelativeTime();
   const language = useLanguage();
   const { data, isLoading, error, refetch } = useGetSessionsQuery(undefined, { skip: !open });
   const { signOutEverywhere, isLoading: signingOut } = useLogout();
@@ -30,7 +32,7 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">{t("shell.sessions")}</DialogTitle>
             <DialogDescription>
-              Devices and browsers where you are signed in{data?.length ? ` (${data.length})` : ""}.
+              {data?.length ? t("app.auth.sessionsDescCount", { n: data.length }) : t("app.auth.sessionsDesc")}
             </DialogDescription>
           </DialogHeader>
           {isLoading ? (
@@ -46,13 +48,13 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                     <Icon className="size-5 text-muted-foreground" aria-hidden />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
-                        {session.platform === "WEB" ? "Web browser" : (session.model ?? session.platform)}
+                        {session.platform === "WEB" ? te("platform", "WEB") : (session.model ?? te("platform", session.platform))}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {session.ip ?? "Unknown IP"} · active {formatRelative(session.lastActiveAt)}
+                        {t("app.auth.sessionLine", { ip: session.ip ?? t("app.auth.unknownIp"), when: rel(session.lastActiveAt) })}
                       </p>
                     </div>
-                    {session.current ? <StatusBadge tone="info" label="This device" /> : null}
+                    {session.current ? <StatusBadge tone="info" label={t("app.auth.thisDevice")} /> : null}
                   </li>
                 );
               })}
@@ -61,7 +63,7 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
           <div className="flex shrink-0 justify-end">
             <Button variant="destructive-soft" onClick={() => setConfirm(true)}>
               <LogOut data-icon="inline-start" />
-              Sign out everywhere
+              {t("app.auth.signOutEverywhere")}
             </Button>
           </div>
         </DialogContent>
@@ -69,9 +71,9 @@ export function SessionsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       <ConfirmDialog
         open={confirm}
         onOpenChange={setConfirm}
-        title="Sign out everywhere?"
-        description="Every device — including this one — will need to sign in again."
-        confirmLabel="Sign out everywhere"
+        title={t("app.auth.signOutEverywhereTitle")}
+        description={t("app.auth.signOutEverywhereBody")}
+        confirmLabel={t("app.auth.signOutEverywhere")}
         loading={signingOut}
         onConfirm={async () => {
           try {

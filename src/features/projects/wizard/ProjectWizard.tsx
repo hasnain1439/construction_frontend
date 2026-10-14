@@ -20,7 +20,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { errorCode } from "@/lib/apiErrors";
 import { projectHref } from "@/lib/navigation";
-import { statusMeta } from "@/lib/status";
+import { useStatusT, useT } from "@/i18n/useT";
 import { LOCKED_STATUSES, WIZARD_STEPS } from "../constants";
 import { BasicTab } from "./BasicTab";
 import { ContractTab } from "./ContractTab";
@@ -63,39 +63,40 @@ function WizardActions({
   onActivate: () => void;
   showBack: boolean;
 }) {
+  const t = useT();
   const formTab = tab <= 4;
   const canActivate = useCan("projects.project.approve");
   return (
     <div className="flex flex-wrap items-center gap-2">
       {showBack && tab > 1 ? (
         <Button type="button" variant="ghost" onClick={onBack}>
-          <ArrowLeft data-icon="inline-start" />
-          Back
+          <ArrowLeft data-icon="inline-start" className="rtl:-scale-x-100" />
+          {t("common.back")}
         </Button>
       ) : null}
       {formTab && !locked ? (
         <Button type="submit" form={WIZARD_FORM_ID} variant="outline" disabled={saving} onClick={() => onIntent("draft")}>
           <Save data-icon="inline-start" />
-          Save as draft
+          {t("projects.wizard.saveDraft")}
         </Button>
       ) : null}
       {tab < 6 ? (
         formTab && !locked ? (
           <Button type="submit" form={WIZARD_FORM_ID} disabled={saving} onClick={() => onIntent("next")}>
             {saving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : null}
-            {tab === 1 && !project ? "Create & continue" : "Next"}
-            <ArrowRight data-icon="inline-end" />
+            {tab === 1 && !project ? t("projects.wizard.createContinue") : t("common.next")}
+            <ArrowRight data-icon="inline-end" className="rtl:-scale-x-100" />
           </Button>
         ) : (
           <Button type="button" onClick={onNextNoForm} disabled={!project}>
-            Next
-            <ArrowRight data-icon="inline-end" />
+            {t("common.next")}
+            <ArrowRight data-icon="inline-end" className="rtl:-scale-x-100" />
           </Button>
         )
       ) : project?.status === "DRAFT" && !locked && canActivate ? (
         <Button type="button" variant="success" onClick={onActivate} disabled={activating}>
           {activating ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Rocket data-icon="inline-start" />}
-          Activate project
+          {t("projects.wizard.activate")}
         </Button>
       ) : null}
     </div>
@@ -108,6 +109,8 @@ function WizardActions({
  * what's missing (red dots).
  */
 export function ProjectWizard({ projectId, mode, initialTab }: { projectId: string | null; mode: "new" | "edit"; initialTab: number }) {
+  const t = useT();
+  const ts = useStatusT();
   const router = useRouter();
   const pathname = usePathname();
   const readOnlyCompany = useReadOnly();
@@ -150,13 +153,13 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
         router.replace(`/projects/new?id=${saved.id}&tab=${intent === "next" ? 2 : 1}`);
         return;
       }
-      if (intent === "draft") toast.success("Saved as draft");
+      if (intent === "draft") toast.success(t("projects.wizard.savedDraft"));
       else {
-        toast.success(`${WIZARD_STEPS[tab - 1].label} saved`);
+        toast.success(t("projects.wizard.stepSaved", { step: t(WIZARD_STEPS[tab - 1].labelKey) }));
         setTab(Math.min(6, tab + 1));
       }
     },
-    [projectId, router, setTab, tab],
+    [projectId, router, setTab, tab, t],
   );
 
   const context = useMemo<WizardContextValue>(
@@ -168,7 +171,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
   const errorTabs = new Set((review.data?.errors ?? []).map((e) => e.tab));
   const steps: Step[] = WIZARD_STEPS.map((s) => ({
     id: s.id,
-    label: s.label,
+    label: t(s.labelKey),
     completed: completed.includes(s.id),
     hasError: errorTabs.has(s.id) && (completed.includes(s.id) || visited.includes(s.id) || s.id < tab),
     disabled: !projectId && s.id > 1,
@@ -179,7 +182,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
     const result = await run(() => activate(projectId).unwrap(), {
       onError: (code) => {
         if (code === "PROJECT_NOT_READY") {
-          toast.error("Fix the errors listed on this tab first.");
+          toast.error(t("projects.wizard.fixErrorsFirst"));
           void review.refetch();
           return true;
         }
@@ -187,7 +190,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       },
     });
     if (result) {
-      toast.success("Project activated. Estimate (BoQ) comes in Phase 2.");
+      toast.success(t("projects.wizard.activated"));
       router.push(projectHref(projectId, "/overview"));
     }
   };
@@ -196,7 +199,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
   if (projectId && projectQuery.error && !project) {
     return (
       <SectionCard>
-        <ErrorState error={projectQuery.error} onRetry={projectQuery.refetch} title={errorCode(projectQuery.error) === "PROJECT_NOT_FOUND" ? "Project not found" : undefined} />
+        <ErrorState error={projectQuery.error} onRetry={projectQuery.refetch} title={errorCode(projectQuery.error) === "PROJECT_NOT_FOUND" ? t("projects.wizard.notFound") : undefined} />
       </SectionCard>
     );
   }
@@ -222,13 +225,13 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
     <WizardContext.Provider value={context}>
       <div className="space-y-6 pb-4">
         <PageHeader
-          title={mode === "new" ? "New Project" : `Edit ${project?.name ?? "project"}`}
+          title={mode === "new" ? t("projects.wizard.newTitle") : project ? t("projects.wizard.editTitle", { name: project.name }) : t("projects.wizard.editProject")}
           meta={project ? <StatusBadge domain="project" value={project.status} /> : null}
-          description={project ? `${project.code}${project.client ? ` · ${project.client.name}` : ""}` : "Six short steps. You can save a draft at any point."}
+          description={project ? `${project.code}${project.client ? ` · ${project.client.name}` : ""}` : t("projects.wizard.newDesc")}
           breadcrumbs={[
-            { label: "Projects", href: "/projects" },
+            { label: t("crumb.projects"), href: "/projects" },
             ...(mode === "edit" && project ? [{ label: project.name, href: projectHref(project.id, "/overview") }] : []),
-            { label: mode === "new" ? "New Project" : "Edit" },
+            { label: mode === "new" ? t("projects.wizard.newTitle") : t("common.edit") },
           ]}
           actions={actions(false)}
         />
@@ -236,12 +239,12 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
           <ReadOnlyBanner
             message={
               readOnlyCompany
-                ? "Your company is read-only until the subscription is renewed."
-                : `This project is ${statusMeta("project", project.status).label.toLowerCase()} — its setup can no longer be changed.`
+                ? t("projects.wizard.companyReadOnly")
+                : t("projects.wizard.projectLocked", { status: ts("project", project.status) })
             }
           />
         ) : null}
-        <StepTabs steps={steps} current={tab} onSelect={goTo} ariaLabel="Project setup steps" />
+        <StepTabs steps={steps} current={tab} onSelect={goTo} ariaLabel={t("projects.wizard.stepsAria")} />
         <div role="tabpanel" id={`step-panel-${tab}`} aria-labelledby={`step-tab-${tab}`}>
           {TABS[tab]()}
         </div>
@@ -250,9 +253,9 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       <ConfirmDialog
         open={pendingTab !== null}
         onOpenChange={(o) => !o && setPendingTab(null)}
-        title="Discard unsaved changes?"
-        description={`Your changes on “${WIZARD_STEPS[tab - 1].label}” haven't been saved.`}
-        confirmLabel="Discard"
+        title={t("projects.wizard.discardTitle")}
+        description={t("projects.wizard.discardDesc", { step: t(WIZARD_STEPS[tab - 1].labelKey) })}
+        confirmLabel={t("action.discard")}
         onConfirm={() => {
           const next = pendingTab;
           setPendingTab(null);

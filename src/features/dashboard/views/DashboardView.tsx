@@ -1,56 +1,25 @@
 "use client";
 
-import { CircleCheck, ClipboardList, FolderKanban, ImageUp, PackageSearch, PackageX, Plus, Store, Truck, UserPlus, Wallet } from "lucide-react";
+import { ClipboardList, FolderKanban, PackageX, Plus, Store, Truck, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useGetDashboardOverviewQuery } from "@/api/services/dashboard.api";
-import { useGetProjectsQuery } from "@/api/services/projects.api";
-import { useGetUsersQuery } from "@/api/services/team.api";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan, usePermissions } from "@/components/common/PermissionGate";
+import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
 import { RingKpiCard } from "@/components/common/RingKpiCard";
-import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useT } from "@/i18n/useT";
-import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { useMe } from "@/store/hooks";
+import { SetupChecklist } from "@/features/onboarding/components/SetupChecklist";
 import { AlertsList, LaborAnalysis, PaymentAnalysis, ProjectsSummary, SiteStats } from "../components/OverviewSections";
 import { SiteDashboardView } from "./SiteDashboardView";
-
-function OnboardingChecklist({ hasLogo, hasTeam }: { hasLogo: boolean; hasTeam: boolean }) {
-  const t = useT();
-  const { can } = usePermissions();
-  const steps = [
-    { done: hasLogo, label: t("dashboard.stepLogo"), href: "/settings/company", icon: ImageUp, key: "company.settings.manage" as const },
-    { done: hasTeam, label: t("dashboard.stepInvite"), href: "/team/invitations?new=1", icon: UserPlus, key: "team.member.manage" as const },
-    { done: false, label: t("dashboard.stepRates"), href: "/settings/price-list", icon: PackageSearch, key: "masterdata.pricelist.manage" as const },
-    { done: false, label: t("dashboard.stepFirstProject"), href: "/projects/new", icon: FolderKanban, key: "projects.project.create" as const },
-  ].filter((s) => can(s.key));
-  return (
-    <SectionCard title={t("dashboard.getStarted")} description={t("dashboard.getStartedDesc")}>
-      <ul className="grid gap-3 md:grid-cols-2">
-        {steps.map(({ done, label, href, icon: Icon }) => (
-          <li key={label}>
-            <Link href={href} className={cn("flex items-center gap-3 rounded-2xl bg-muted p-3 pe-4 transition-colors hover:bg-accent", done && "bg-success-soft")}>
-              <span className={cn("flex size-10 items-center justify-center rounded-full", done ? "bg-success text-white" : "bg-card text-foreground shadow-card")}>
-                {done ? <CircleCheck className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
-              </span>
-              <span className={cn("text-sm font-medium", done && "text-muted-foreground line-through")}>{label}</span>
-              <span className="sr-only">{done ? t("dashboard.stepDone") : t("dashboard.stepToDo")}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </SectionCard>
-  );
-}
 
 function OverviewSkeleton() {
   return (
@@ -81,12 +50,9 @@ export function DashboardView() {
 function CompanyOverview() {
   const t = useT();
   const me = useMe();
-  const isOffice = useCan({ anyPermission: ["team.member.view", "team.member.manage"] });
   const canCreate = useCan("projects.project.create");
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
   const overview = useGetDashboardOverviewQuery(reportParams(filters), { refetchOnMountOrArgChange: 30 });
-  const projects = useGetProjectsQuery({ limit: 1 });
-  const users = useGetUsersQuery({ limit: 1 }, { skip: !isOffice });
   const d = overview.data;
 
   return (
@@ -107,7 +73,7 @@ function CompanyOverview() {
         }
       />
 
-      {projects.data && projects.data.meta.total === 0 ? <OnboardingChecklist hasLogo={Boolean(me?.tenant.logoUrl)} hasTeam={(users.data?.meta.usage?.officeUsers ?? 1) > 1} /> : null}
+      <SetupChecklist />
 
       <ReportFilterBar value={filters} onChange={setFilters} dateLabel={t("dashboard.last30Days")} trailing={d ? <span dir="ltr" className="px-2 text-xs text-muted-foreground">{formatDate(d.period.from)} – {formatDate(d.period.to)}</span> : null} />
 

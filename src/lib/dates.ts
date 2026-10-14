@@ -17,25 +17,35 @@ function toDate(value: DateInput): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/**
+ * In Urdu (right-to-left) a date such as "8 Oct 2026" would show as "Oct 2026 8": the leading day
+ * number joins the right-to-left text around it. While the page is RTL, dates are wrapped in
+ * invisible left-to-right isolate marks (U+2066 … U+2069) so they always read as one unit.
+ */
+export function isolateLtr(text: string): string {
+  if (typeof document === "undefined" || document.documentElement.dir !== "rtl") return text;
+  return `⁦${text}⁩`;
+}
+
 /** Calendar dates are formatted in UTC so "2026-10-15" stays the 15th everywhere. */
 const zoneFor = (value: DateInput) => (typeof value === "string" && DATE_ONLY.test(value) ? "UTC" : TIME_ZONE);
 
 /** "15 Oct 2026" */
 export function formatDate(value: DateInput, fallback = "—"): string {
   const date = toDate(value);
-  return date ? formatInTimeZone(date, zoneFor(value), "d MMM yyyy") : fallback;
+  return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM yyyy")) : fallback;
 }
 
 /** "15 Oct 2026, 2:30 pm" (Pakistan time). */
 export function formatDateTime(value: DateInput, fallback = "—"): string {
   const date = toDate(value);
-  return date ? formatInTimeZone(date, zoneFor(value), "d MMM yyyy, h:mm aaa") : fallback;
+  return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM yyyy, h:mm aaa")) : fallback;
 }
 
 /** "Oct 2026" — for month buckets such as "2026-09". */
 export function formatMonth(value: string): string {
   const date = toDate(/^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value);
-  return date ? formatInTimeZone(date, "UTC", "MMM yyyy") : value;
+  return date ? isolateLtr(formatInTimeZone(date, "UTC", "MMM yyyy")) : value;
 }
 
 /** "3 days ago" / "in 2 hours". */

@@ -3,6 +3,7 @@
 import { Phone } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPhone, normaliseAnyPhone, normalisePhone } from "@/lib/phone";
 import { FormField, useFieldError, type BaseFieldProps } from "./FormField";
@@ -28,15 +29,16 @@ export interface PhoneInputProps {
  * (lib/validation), which sends the backend the normalised +92 form.
  */
 export function PhoneInput({ value, onChange, onBlur, allowLandline, className, placeholder, ...rest }: PhoneInputProps) {
+  const t = useT();
   return (
     <div className={cn("relative", className)}>
-      <Phone className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <Phone className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <Input
         {...rest}
         type="tel"
         inputMode="tel"
         autoComplete="tel"
-        placeholder={placeholder ?? (allowLandline ? "0300 1234567 or 042 35761234" : "0300 1234567")}
+        placeholder={placeholder ?? (allowLandline ? t("app.components.forms.phoneOrLandline") : "0300 1234567")}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => {
@@ -44,7 +46,7 @@ export function PhoneInput({ value, onChange, onBlur, allowLandline, className, 
           if (normalised) onChange(formatPhone(normalised));
           onBlur?.();
         }}
-        className="pl-9"
+        className="ps-9"
       />
     </div>
   );

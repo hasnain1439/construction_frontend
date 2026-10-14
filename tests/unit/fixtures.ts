@@ -41,7 +41,7 @@ export function meFixture(
       phone: "+923001234567",
       email: null,
       role,
-      language: "ENGLISH",
+      language: "en",
       photoUrl: null,
       canSeeFinancials: Boolean(financial),
     },

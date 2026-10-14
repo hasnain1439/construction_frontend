@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TopupRequestSlideOver } from "@/features/cashbook/components/CashSlideOvers";
 import { useT } from "@/i18n/useT";
-import { formatDate, formatRelative } from "@/lib/dates";
+import { formatDate } from "@/lib/dates";
+import { useRelativeTime } from "@/components/common/useRelativeTime";
 import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
 
@@ -27,6 +28,7 @@ const lines = (items: SiteDashboard["incoming"][number]["items"]) => items.map((
  */
 export function SiteDashboardView() {
   const t = useT();
+  const rel = useRelativeTime();
   const me = useMe();
   const dispatch = useAppDispatch();
   const current = useAppSelector((s) => s.project.currentProjectId);
@@ -103,7 +105,7 @@ export function SiteDashboardView() {
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {d.myCash.pendingAckPaisa !== "0" ? <>{t("dashboard.notReceivedYet")} <MoneyText paisa={d.myCash.pendingAckPaisa} /> · </> : null}
-                            {d.myCash.openTopup ? <>{t("dashboard.topupAsked")} <MoneyText paisa={d.myCash.openTopup.amountPaisa} /> {formatRelative(d.myCash.openTopup.requestedAt)}</> : t("dashboard.inHand")}
+                            {d.myCash.openTopup ? <>{t("dashboard.topupAsked")} <MoneyText paisa={d.myCash.openTopup.amountPaisa} /> {rel(d.myCash.openTopup.requestedAt)}</> : t("dashboard.inHand")}
                           </p>
                         </div>
                         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">

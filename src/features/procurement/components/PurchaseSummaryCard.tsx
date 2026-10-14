@@ -1,5 +1,8 @@
+"use client";
+
 import { MoneyText } from "@/components/common/MoneyText";
 import { SectionCard } from "@/components/common/SectionCard";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 function Row({ label, value, strong, className }: { label: string; value: React.ReactNode; strong?: boolean; className?: string }) {
@@ -27,17 +30,18 @@ export function PurchaseSummaryCard({
   supplierBalancePaisa?: string;
   lines: number;
 }) {
+  const t = useT();
   const total = BigInt(totalPaisa || "0");
   const paid = BigInt(paidNowPaisa || "0");
   const added = total - paid;
   const after = supplierBalancePaisa !== undefined ? BigInt(supplierBalancePaisa) + added : undefined;
   return (
-    <SectionCard title="Summary" className="lg:sticky lg:top-4">
-      <Row label="Materials" value={lines} />
-      <Row label="Bill total" value={<MoneyText paisa={total.toString()} />} />
-      <Row label="Paid now" value={<MoneyText paisa={paid.toString()} />} />
-      <Row label="Added to udhaar" value={<MoneyText paisa={added.toString()} />} className={added > BigInt(0) ? "text-warning" : undefined} />
-      <Row label="Supplier balance after" strong value={after === undefined ? "—" : <MoneyText paisa={after.toString()} />} />
+    <SectionCard title={t("procurement.summary.title")} className="lg:sticky lg:top-4">
+      <Row label={t("field.materials")} value={lines} />
+      <Row label={t("procurement.common.billTotal")} value={<MoneyText paisa={total.toString()} />} />
+      <Row label={t("procurement.common.paidNow")} value={<MoneyText paisa={paid.toString()} />} />
+      <Row label={t("procurement.common.addedToUdhaar")} value={<MoneyText paisa={added.toString()} />} className={added > BigInt(0) ? "text-warning" : undefined} />
+      <Row label={t("procurement.summary.balanceAfter")} strong value={after === undefined ? "—" : <MoneyText paisa={after.toString()} />} />
     </SectionCard>
   );
 }

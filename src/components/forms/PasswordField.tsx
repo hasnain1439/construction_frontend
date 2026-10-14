@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { passwordStrength } from "@/lib/validation";
 import { FormField, useFieldError, type BaseFieldProps } from "./FormField";
@@ -12,6 +13,7 @@ const STRENGTH_COLORS = ["bg-danger", "bg-danger", "bg-warning", "bg-success"] a
 
 function StrengthMeter({ name }: { name: string }) {
   const value = useWatch({ name }) as string | undefined;
+  const t = useT();
   const { score, label } = passwordStrength(value ?? "");
   if (!value) return null;
   return (
@@ -21,7 +23,7 @@ function StrengthMeter({ name }: { name: string }) {
           <span key={step} className={cn("h-1.5 flex-1 rounded-full", score >= step ? STRENGTH_COLORS[score] : "bg-muted")} />
         ))}
       </div>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground">{label ? t(label) : null}</span>
     </div>
   );
 }
@@ -37,6 +39,7 @@ export function PasswordField({
   autoComplete = "current-password",
   showStrength,
 }: BaseFieldProps & { autoComplete?: "current-password" | "new-password"; showStrength?: boolean }) {
+  const t = useT();
   const { register } = useFormContext();
   const error = useFieldError(name);
   const [visible, setVisible] = useState(false);
@@ -53,14 +56,14 @@ export function PasswordField({
               aria-required={required || undefined}
               aria-invalid={invalid || undefined}
               aria-describedby={describedBy}
-              className="pr-10"
+              className="pe-10"
               {...register(name)}
             />
             <button
               type="button"
               onClick={() => setVisible((v) => !v)}
-              className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label={visible ? "Hide password" : "Show password"}
+              className="absolute top-1/2 end-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label={visible ? t("app.components.forms.hidePassword") : t("app.components.forms.showPassword")}
               aria-pressed={visible}
             >
               {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

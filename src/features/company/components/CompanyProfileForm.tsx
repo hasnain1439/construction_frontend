@@ -19,13 +19,16 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
-import { MARLA_OPTIONS, REGION_OPTIONS } from "@/lib/options";
+import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatPhone } from "@/lib/phone";
 import { companyProfileSchema } from "../schemas";
 
 type Values = z.input<typeof companyProfileSchema>;
 
-const defaults = (company: Company): Values => ({
+const REGIONS = ["PUNJAB_KP", "KARACHI_SINDH"] as const;
+const MARLAS = ["225", "272.25"] as const;
+
+const defaults = (company: Company, t: (key: TranslationKey) => string): Values => ({
   name: company.name,
   ntn: company.ntn ?? "",
   address: company.address ?? "",
@@ -34,12 +37,13 @@ const defaults = (company: Company): Values => ({
   region: company.region,
   marlaStandard: company.marlaStandard === 272.25 ? "272.25" : "225",
   logo: company.logoAttachmentId
-    ? { id: company.logoAttachmentId, url: company.logoUrl, fileName: "Current logo", mimeType: "image/png" }
+    ? { id: company.logoAttachmentId, url: company.logoUrl, fileName: t("teamCompany.profile.currentLogo"), mimeType: "image/png" }
     : null,
 });
 
 /** How the company appears on PDFs (quotes, receipts) — updates live while typing. */
 function LetterheadPreview() {
+  const t = useT();
   const [name, address, phone, email, ntn, logo] = useWatch({ name: ["name", "address", "phone", "email", "ntn", "logo"] }) as [
     string,
     string,
@@ -49,7 +53,7 @@ function LetterheadPreview() {
     Values["logo"],
   ];
   return (
-    <SectionCard title="Letterhead preview" description="As it appears on PDFs sent to clients.">
+    <SectionCard title={t("teamCompany.profile.preview")} description={t("teamCompany.profile.previewDesc")}>
       <div className="rounded-2xl border bg-popover p-5 text-popover-foreground shadow-card">
         <div className="flex items-start gap-4 border-b-2 border-sand pb-4">
           {logo?.url ? (
@@ -61,7 +65,7 @@ function LetterheadPreview() {
             </span>
           )}
           <div className="min-w-0 space-y-1">
-            <p className="text-lg leading-tight font-bold">{name || "Company name"}</p>
+            <p className="text-lg leading-tight font-bold">{name || t("teamCompany.profile.companyName")}</p>
             {address ? (
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="size-3" aria-hidden /> {address}
@@ -70,7 +74,7 @@ function LetterheadPreview() {
             <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
               {phone ? (
                 <span className="flex items-center gap-1">
-                  <Phone className="size-3" aria-hidden /> {phone}
+                  <Phone className="size-3" aria-hidden /> <bdi dir="ltr">{phone}</bdi>
                 </span>
               ) : null}
               {email ? (
@@ -79,7 +83,7 @@ function LetterheadPreview() {
                 </span>
               ) : null}
             </p>
-            {ntn ? <p className="text-xs text-muted-foreground">NTN {ntn}</p> : null}
+            {ntn ? <p className="text-xs text-muted-foreground">{t("field.ntn")} <bdi dir="ltr">{ntn}</bdi></p> : null}
           </div>
         </div>
         <div className="space-y-2 pt-4" aria-hidden>
@@ -93,12 +97,14 @@ function LetterheadPreview() {
 }
 
 export function CompanyProfileForm({ company }: { company: Company }) {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const [update, { isLoading }] = useUpdateCompanyMutation();
   const run = useMutationToast();
   const form = useForm<Values, unknown, z.output<typeof companyProfileSchema>>({
     resolver: zodResolver(companyProfileSchema),
-    defaultValues: defaults(company),
+    defaultValues: defaults(company, t),
   });
 
   const onSubmit = async (values: z.output<typeof companyProfileSchema>) => {
@@ -114,47 +120,56 @@ export function CompanyProfileForm({ company }: { company: Company }) {
           marlaStandard: Number(values.marlaStandard) as 225 | 272.25,
           logoAttachmentId: values.logo?.id ?? null,
         }).unwrap(),
-      { success: "Company profile saved", setError: form.setError },
+      { success: t("teamCompany.profile.saved"), setError: form.setError },
     );
-    if (result) form.reset(defaults(result));
+    if (result) form.reset(defaults(result, t));
   };
 
   return (
     <Form form={form} onSubmit={onSubmit}>
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        <SectionCard title="Company details">
+        <SectionCard title={t("teamCompany.profile.details")}>
           <div className="space-y-6">
-            <FormSection title="Identity">
+            <FormSection title={t("teamCompany.profile.identity")}>
               <FieldGrid>
-                <TextField name="name" label="Company name" required />
-                <TextField name="ntn" label="NTN" placeholder="1234567-8" />
+                <TextField name="name" label={t("teamCompany.profile.companyName")} required />
+                <TextField name="ntn" label={t("field.ntn")} placeholder="1234567-8" dir="ltr" />
               </FieldGrid>
-              <FormField label="Logo" hint="JPEG, PNG or WebP · max 10 MB">
+              <FormField label={t("teamCompany.profile.logo")} hint={t("teamCompany.profile.logoHint")}>
                 {() => (
                   <Controller
                     name="logo"
                     control={form.control}
                     render={({ field }) => (
-                      <FileUpload kind="LOGO" value={field.value} onChange={field.onChange} disabled={readOnly} label="Upload your logo" />
+                      <FileUpload kind="LOGO" value={field.value} onChange={field.onChange} disabled={readOnly} label={t("teamCompany.profile.uploadLogo")} />
                     )}
                   />
                 )}
               </FormField>
             </FormSection>
-            <FormSection title="Contact">
-              <TextareaField name="address" label="Address" rows={2} />
+            <FormSection title={t("teamCompany.profile.contact")}>
+              <TextareaField name="address" label={t("field.address")} rows={2} />
               <FieldGrid>
-                <PhoneField name="phone" label="Office phone" allowLandline />
-                <TextField name="email" label="Email" type="email" />
+                <PhoneField name="phone" label={t("teamCompany.profile.officePhone")} allowLandline />
+                <TextField name="email" label={t("field.email")} type="email" />
               </FieldGrid>
             </FormSection>
-            <FormSection title="Construction defaults">
-              <InlineAlert tone="info">Region and Marla changes apply to new projects only.</InlineAlert>
-              <RadioCards name="region" label="Region" required options={REGION_OPTIONS} />
-              <SegmentedField name="marlaStandard" label="Marla standard" options={MARLA_OPTIONS} />
+            <FormSection title={t("teamCompany.profile.defaults")}>
+              <InlineAlert tone="info">{t("teamCompany.profile.defaultsNote")}</InlineAlert>
+              <RadioCards
+                name="region"
+                label={t("teamCompany.profile.region")}
+                required
+                options={REGIONS.map((value) => ({ value, title: te("region", value), description: te("regionDesc", value) }))}
+              />
+              <SegmentedField
+                name="marlaStandard"
+                label={t("teamCompany.profile.marla")}
+                options={MARLAS.map((value) => ({ value, label: `${value} ${t("field.sqft")}` }))}
+              />
             </FormSection>
             <FormActions
-              submitLabel="Save changes"
+              submitLabel={t("common.saveChanges")}
               loading={isLoading}
               disabled={readOnly || !form.formState.isDirty}
               onCancel={form.formState.isDirty ? () => form.reset() : undefined}

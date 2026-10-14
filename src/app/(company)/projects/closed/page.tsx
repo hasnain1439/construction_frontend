@@ -5,8 +5,7 @@ export default function ClosedProjectsPage() {
   return (
     <Suspense>
       <ProjectsBrowser
-        title="Closed & Archived"
-        crumb="Closed & Archived"
+        titleKey="projects.list.closedTitle"
         statuses={["HANDED_OVER", "CLOSED"]}
         defaultStatus="HANDED_OVER"
         allowAllStatuses={false}

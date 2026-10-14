@@ -12,6 +12,7 @@ import { NumberField } from "@/components/forms/NumberField";
 import { SelectField } from "@/components/forms/SelectField";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { bulkPercentSchema } from "../schemas";
 
 /** Raise or lower every rate in a category (or one group) by a percentage. */
@@ -26,6 +27,7 @@ export function BulkPercentDialog({
   category: QualityCategory;
   groups: MaterialGroup[];
 }) {
+  const t = useT();
   const [bulk, { isLoading }] = useBulkPercentMutation();
   const run = useMutationToast();
   const form = useForm<z.input<typeof bulkPercentSchema>, unknown, z.output<typeof bulkPercentSchema>>({
@@ -36,7 +38,11 @@ export function BulkPercentDialog({
   const onSubmit = async (values: z.output<typeof bulkPercentSchema>) => {
     const result = await run(
       () => bulk({ categoryId: category.id, percent: values.percent, ...(values.groupId ? { groupId: values.groupId } : {}) }).unwrap(),
-      { success: (r) => `${r.changed} rate${r.changed === 1 ? "" : "s"} updated by ${values.percent > 0 ? "+" : ""}${values.percent}%`, setError: form.setError },
+      { success: (r) => {
+          const percent = `${values.percent > 0 ? "+" : ""}${values.percent}`;
+          return r.changed === 1 ? t("masterData.bulk.oneUpdated", { percent }) : t("masterData.bulk.nUpdated", { n: r.changed, percent });
+        },
+         setError: form.setError },
     );
     if (result) {
       form.reset();
@@ -48,14 +54,14 @@ export function BulkPercentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold">Bulk update — {category.name}</DialogTitle>
-          <DialogDescription>New rates are rounded to the nearest rupee. History keeps the old rates.</DialogDescription>
+          <DialogTitle className="text-base font-semibold">{t("masterData.bulk.title", { name: category.name })}</DialogTitle>
+          <DialogDescription>{t("masterData.bulk.description")}</DialogDescription>
         </DialogHeader>
         <Form form={form} onSubmit={onSubmit}>
-          <NumberField name="percent" label="Change by" required unit="%" decimals={2} allowNegative hint="Use a minus sign to lower rates (−50 to +100)." />
-          <SelectField name="groupId" label="Apply to" options={groups.map((g) => ({ value: g.id, label: g.name }))} placeholder="Whole category" />
-          <InlineAlert tone="warning">This saves immediately. Unsaved edits in the table are not included.</InlineAlert>
-          <FormActions submitLabel="Apply change" loading={isLoading} onCancel={() => onOpenChange(false)} />
+          <NumberField name="percent" label={t("masterData.bulk.changeBy")} required unit="%" decimals={2} allowNegative hint={t("masterData.bulk.changeHint")} />
+          <SelectField name="groupId" label={t("masterData.bulk.applyTo")} options={groups.map((g) => ({ value: g.id, label: g.name }))} placeholder={t("masterData.bulk.wholeCategory")} />
+          <InlineAlert tone="warning">{t("masterData.bulk.warning")}</InlineAlert>
+          <FormActions submitLabel={t("masterData.bulk.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />
         </Form>
       </DialogContent>
     </Dialog>

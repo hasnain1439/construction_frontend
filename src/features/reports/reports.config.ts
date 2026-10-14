@@ -1,16 +1,17 @@
 import type { ReportName } from "@/api/types";
+import type { TranslationKey } from "@/i18n/useT";
 import type { AccessRule } from "@/lib/permissions";
 
 /** The seven reports: title, who may open them and which filters apply (shared by the page and the view). */
 export interface ReportDef {
   name: ReportName;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
   access: AccessRule;
   /** Which filters apply. */
   project: boolean;
   dates: boolean;
-  dateLabel?: string;
+  dateLabelKey?: TranslationKey;
 }
 
 /** Company-wide money reports (supplier ageing, receivables ageing, stock valuation). */
@@ -18,13 +19,13 @@ const OWNER: AccessRule = { allPermissions: ["finance.reports.view", "finance.co
 const OFFICE: AccessRule = { permission: "finance.reports.view" };
 
 export const REPORTS: Record<ReportName, ReportDef> = {
-  "project-summary": { name: "project-summary", title: "Project Summary", description: "Contract, billed, received, cost by bucket and own money per project.", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: false },
-  "material-audit": { name: "material-audit", title: "Material Audit", description: "Delivered, used, sent away, adjusted and lost material per site — and what is in stock.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },
-  "labor-peshgi": { name: "labor-peshgi", title: "Labor & Peshgi", description: "Days, wages, peshgi and balances per worker and sub-contractor.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },
-  "cash-book": { name: "cash-book", title: "Cash Book", description: "Floats, kharcha by category and balances per holder and site.", access: OFFICE, project: true, dates: true, dateLabel: "All time" },
-  "supplier-ageing": { name: "supplier-ageing", title: "Supplier Ageing", description: "Udhaar per supplier by age (oldest purchases are paid first).", access: OWNER, project: false, dates: false },
-  "receivables-ageing": { name: "receivables-ageing", title: "Receivables Ageing", description: "What owners owe, by days since the invoice was issued.", access: OWNER, project: true, dates: false },
-  "stock-valuation": { name: "stock-valuation", title: "Stock Valuation", description: "Store, sites and transit at weighted-average cost.", access: OWNER, project: true, dates: false },
+  "project-summary": { name: "project-summary", titleKey: "billing.reports.projectSummary", descriptionKey: "billing.reports.projectSummaryDesc", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: false },
+  "material-audit": { name: "material-audit", titleKey: "billing.reports.materialAudit", descriptionKey: "billing.reports.materialAuditDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
+  "labor-peshgi": { name: "labor-peshgi", titleKey: "billing.reports.laborPeshgi", descriptionKey: "billing.reports.laborPeshgiDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
+  "cash-book": { name: "cash-book", titleKey: "billing.reports.cashBook", descriptionKey: "billing.reports.cashBookDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
+  "supplier-ageing": { name: "supplier-ageing", titleKey: "billing.reports.supplierAgeing", descriptionKey: "billing.reports.supplierAgeingDesc", access: OWNER, project: false, dates: false },
+  "receivables-ageing": { name: "receivables-ageing", titleKey: "billing.reports.receivablesAgeing", descriptionKey: "billing.reports.receivablesAgeingDesc", access: OWNER, project: true, dates: false },
+  "stock-valuation": { name: "stock-valuation", titleKey: "billing.reports.stockValuation", descriptionKey: "billing.reports.stockValuationDesc", access: OWNER, project: true, dates: false },
 };
 
 export const isReportName = (v: string): v is ReportName => v in REPORTS;

@@ -3,6 +3,7 @@
 import { useId, type ReactNode } from "react";
 import { useFormContext, type FieldError, type FieldErrors } from "react-hook-form";
 import { Label } from "@/components/ui/label";
+import { useMessageT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 export interface FieldIds {
@@ -31,13 +32,14 @@ function getError(errors: FieldErrors, name: string): FieldError | undefined {
   return node as FieldError | undefined;
 }
 
-/** Error message for a (possibly nested) field name, from form context. */
+/** Error message for a (possibly nested) field name, from form context, in the current language (see `msg()`). */
 export function useFieldError(name: string): string | undefined {
   const { formState } = useFormContext();
+  const messageT = useMessageT();
   const error = getError(formState.errors, name) as (FieldError & { root?: FieldError }) | undefined;
-  if (typeof error?.message === "string") return error.message;
+  if (typeof error?.message === "string") return messageT(error.message);
   // Field arrays keep list-level errors (e.g. "must total 100 %") under `root`.
-  return typeof error?.root?.message === "string" ? error.root.message : undefined;
+  return typeof error?.root?.message === "string" ? messageT(error.root.message) : undefined;
 }
 
 /**

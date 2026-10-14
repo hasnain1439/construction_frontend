@@ -2,6 +2,7 @@
 
 import { Pencil } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 /**
@@ -36,6 +37,7 @@ export function InlineEditCell({
   className?: string;
   align?: "left" | "right";
 }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export function InlineEditCell({
     return (
       <div className={cn("relative", className)}>
         {prefix ? (
-          <span className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-xs text-muted-foreground">{prefix}</span>
+          <span className="pointer-events-none absolute top-1/2 start-2 -translate-y-1/2 text-xs text-muted-foreground">{prefix}</span>
         ) : null}
         <input
           ref={inputRef}
@@ -92,12 +94,12 @@ export function InlineEditCell({
           }}
           className={cn(
             "h-8 w-full min-w-24 rounded-md border border-ring bg-card px-2 text-sm ring-3 ring-ring/30 outline-none",
-            prefix && "pl-7",
-            align === "right" && "text-right",
+            prefix && "ps-7",
+            align === "right" && "text-end",
             error && "border-destructive ring-destructive/20",
           )}
         />
-        {error ? <p className="absolute top-full left-0 z-10 mt-1 rounded bg-popover px-2 py-1 text-xs text-destructive shadow">{error}</p> : null}
+        {error ? <p className="absolute top-full start-0 z-10 mt-1 rounded bg-popover px-2 py-1 text-xs text-destructive shadow">{error}</p> : null}
       </div>
     );
   }
@@ -107,12 +109,12 @@ export function InlineEditCell({
       type="button"
       onClick={start}
       disabled={disabled}
-      aria-label={`${ariaLabel}: ${value || "empty"}. Click to edit`}
+      aria-label={t("app.components.inlineEdit.label", { label: ariaLabel, value: value || t("app.components.inlineEdit.empty") })}
       className={cn(
         "group/cell flex h-8 w-full min-w-24 items-center gap-1.5 rounded-md border border-transparent px-2 text-sm transition-colors",
         !disabled && "hover:border-border hover:bg-muted/50",
         dirty && "border-amber/60 bg-amber-soft",
-        align === "right" && "justify-end text-right",
+        align === "right" && "justify-end text-end",
         className,
       )}
     >

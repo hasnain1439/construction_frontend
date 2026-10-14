@@ -224,6 +224,21 @@ const MESSAGES: Record<string, Message> = {
   TOPUP_DECIDED: { en: "This request is already decided.", ur: "Is darkhwast ka faisla ho chuka hai." },
   NO_CASH_ACCOUNT: { en: "You hold no site cash yet — the office sends a float first.", ur: "Aap ke paas abhi site cash nahi — pehle office raqam bheje." },
   INVALID_HOLDER: { en: "Choose an active munshi or project manager.", ur: "Koi active munshi ya PM chunein." },
+
+  // Onboarding: imports, opening balances, demo data
+  FILE_REQUIRED: { en: "Choose the filled template (.xlsx or .csv).", ur: "Bhara hua template (.xlsx ya .csv) chunein.", urdu: "بھرا ہوا ٹیمپلیٹ (.xlsx یا .csv) چنیں۔" },
+  INVALID_FILE: { en: "This Excel file could not be read — save it as .xlsx and try again.", ur: "Yeh Excel file parhi nahi ja saki — .xlsx mein save kar ke dobara koshish karein.", urdu: "یہ ایکسل فائل پڑھی نہیں جا سکی — .xlsx میں محفوظ کر کے دوبارہ کوشش کریں۔" },
+  EMPTY_FILE: { en: "The file is empty.", ur: "File khaali hai.", urdu: "فائل خالی ہے۔" },
+  TOO_MANY_ROWS: { en: "At most 1000 rows per file — split it into smaller files.", ur: "Ek file mein zyada se zyada 1000 lines — choti files banayein.", urdu: "ایک فائل میں زیادہ سے زیادہ 1000 لائنیں — چھوٹی فائلیں بنائیں۔" },
+  MISSING_COLUMNS: { en: "Some required columns are missing — download the template and use its headers.", ur: "Kuch zaroori columns ghayab hain — template download kar ke us ke headers istemal karein.", urdu: "کچھ ضروری کالم موجود نہیں — ٹیمپلیٹ ڈاؤن لوڈ کر کے اس کے ہیڈر استعمال کریں۔" },
+  IMPORT_HAS_ERRORS: { en: "Some rows have errors — fix them or import only the valid rows.", ur: "Kuch lines mein ghaltiyan hain — theek karein ya sirf sahi lines import karein.", urdu: "کچھ لائنوں میں غلطیاں ہیں — درست کریں یا صرف درست لائنیں امپورٹ کریں۔" },
+  NOTHING_TO_IMPORT: { en: "The file has no rows to import.", ur: "File mein import karne ko koi line nahi.", urdu: "فائل میں امپورٹ کرنے کو کوئی لائن نہیں۔" },
+  IMPORT_CONFLICT: { en: "Someone added one of these records meanwhile — preview the file again.", ur: "Isi dauran kisi ne in mein se koi record shamil kar diya — file dobara check karein.", urdu: "اسی دوران کسی نے ان میں سے کوئی ریکارڈ شامل کر دیا — فائل دوبارہ چیک کریں۔" },
+  OPENING_LOCKED: { en: "The opening balance of this item is already saved and locked.", ur: "Is ka opening balance pehle hi save aur lock ho chuka hai.", urdu: "اس کا ابتدائی بیلنس پہلے ہی محفوظ اور لاک ہو چکا ہے۔" },
+  DATE_IN_FUTURE: { en: "The date can't be in the future.", ur: "Aane wali tareekh nahi ho sakti.", urdu: "آنے والی تاریخ نہیں ہو سکتی۔" },
+  DEMO_EXISTS: { en: "Demo data is already in your company.", ur: "Demo data pehle se aap ki company mein hai.", urdu: "ڈیمو ڈیٹا پہلے سے آپ کی کمپنی میں ہے۔" },
+  DEMO_NOT_FOUND: { en: "There is no demo data to remove.", ur: "Hatane ke liye koi demo data nahi.", urdu: "ہٹانے کے لیے کوئی ڈیمو ڈیٹا نہیں۔" },
+  DEMO_IN_USE: { en: "Some of your real data uses the demo records (for example a demo worker on a real project) — undo that first.", ur: "Aap ka asal data demo records istemal kar raha hai (maslan demo mazdoor asal project par) — pehle usay hatayein.", urdu: "آپ کا اصل ڈیٹا ڈیمو ریکارڈز استعمال کر رہا ہے (مثلاً ڈیمو مزدور اصل پراجیکٹ پر) — پہلے اسے ہٹائیں۔" },
 };
 
 export function isApiError(value: unknown): value is ApiError {

@@ -20,10 +20,9 @@ import { useProjectOptions } from "@/features/projects/hooks/useProjectOptions";
 import { useListState } from "@/hooks/useListState";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
-import { useLanguage, useT } from "@/i18n/useT";
+import { useLanguage, useStatusT, useT } from "@/i18n/useT";
 import { formatRelative } from "@/lib/dates";
 import { roleName } from "@/lib/permissionCatalog";
-import { ROLE_LABEL } from "@/lib/options";
 import { formatPhone } from "@/lib/phone";
 import { EditMemberSlideOver } from "../components/EditMemberSlideOver";
 import { InviteMemberSlideOver } from "../components/InviteMemberSlideOver";
@@ -32,6 +31,7 @@ import { ProjectChips, RoleBadge } from "../components/TeamBits";
 export function MembersView() {
   const canManage = useCan("team.member.manage");
   const t = useT();
+  const ts = useStatusT();
   const language = useLanguage();
   // Role names in the UI language (the list itself only carries the English name).
   const roles = useGetRolesQuery(undefined, { skip: !canManage });
@@ -47,13 +47,13 @@ export function MembersView() {
   const columns: Column<TeamUser>[] = [
     {
       id: "name",
-      header: "Name",
+      header: t("field.name"),
       cell: (u) => <AvatarName name={u.name} subtitle={u.email ?? undefined} />,
       sortValue: (u) => u.name,
     },
-    { id: "phone", header: "Phone", cell: (u) => <span className="tabular">{formatPhone(u.phone)}</span> },
-    { id: "role", header: "Role", cell: (u) => <RoleBadge role={u.role} />, sortValue: (u) => u.role },
-    { id: "projects", header: "Projects", cell: (u) => <ProjectChips projects={u.projects} all={u.allProjects} /> },
+    { id: "phone", header: t("field.phone"), cell: (u) => <bdi dir="ltr" className="tabular">{formatPhone(u.phone)}</bdi> },
+    { id: "role", header: t("field.role"), cell: (u) => <RoleBadge role={u.role} />, sortValue: (u) => u.role },
+    { id: "projects", header: t("field.projects"), cell: (u) => <ProjectChips projects={u.projects} all={u.allProjects} /> },
     {
       id: "permissionRole",
       header: t("roles.inviteRole"),
@@ -66,11 +66,11 @@ export function MembersView() {
           <span className="text-muted-foreground">—</span>
         ),
     },
-    { id: "status", header: "Status", cell: (u) => <StatusBadge domain="user" value={u.status} />, sortValue: (u) => u.status },
+    { id: "status", header: t("field.status"), cell: (u) => <StatusBadge domain="user" value={u.status} />, sortValue: (u) => u.status },
     {
       id: "lastActive",
-      header: "Last active",
-      cell: (u) => <span className="text-muted-foreground">{formatRelative(u.lastActiveAt, "Never")}</span>,
+      header: t("teamCompany.edit.lastActive"),
+      cell: (u) => <span className="text-muted-foreground">{formatRelative(u.lastActiveAt, t("teamCompany.edit.never"))}</span>,
       sortValue: (u) => u.lastActiveAt ?? "",
     },
   ];
@@ -78,13 +78,13 @@ export function MembersView() {
   return (
     <>
       <PageHeader
-        title="Members"
-        breadcrumbs={[{ label: "Team" }, { label: "Members" }]}
+        title={t("teamCompany.members.title")}
+        breadcrumbs={[{ label: t("crumb.team") }, { label: t("teamCompany.members.title") }]}
         actions={
           canManage && !readOnly ? (
             <Button onClick={() => setInviteOpen(true)}>
               <UserPlus data-icon="inline-start" />
-              Invite member
+              {t("teamCompany.invite.title")}
             </Button>
           ) : null
         }
@@ -92,28 +92,28 @@ export function MembersView() {
       {usage ? (
         <SectionCard>
           <UsageBar
-            label="Office users"
+            label={t("teamCompany.members.officeUsers")}
             used={usage.officeUsers}
             limit={usage.maxOfficeUsers}
-            hint={`${usage.officeUsers} of ${usage.maxOfficeUsers ?? "unlimited"} office users (Munshis don't count; pending PM invites hold a seat).`}
+            hint={t("teamCompany.members.usageHint", { used: usage.officeUsers, limit: usage.maxOfficeUsers ?? t("teamCompany.plan.unlimited") })}
           />
         </SectionCard>
       ) : null}
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name or phone…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("teamCompany.members.search")} />
         <FilterSelect
-          label="Role"
+          label={t("field.role")}
           value={list.filters.role}
           onChange={(v) => list.setFilter("role", v)}
-          options={Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label }))}
+          options={(["THEKEDAR", "PM", "MUNSHI"] as const).map((value) => ({ value, label: t(`role.${value}`) }))}
         />
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.status}
           onChange={(v) => list.setFilter("status", v)}
           options={[
-            { value: "ACTIVE", label: "Active" },
-            { value: "INACTIVE", label: "Inactive" },
+            { value: "ACTIVE", label: ts("user", "ACTIVE") },
+            { value: "INACTIVE", label: ts("user", "INACTIVE") },
           ]}
         />
         <div className="w-60">
@@ -121,7 +121,7 @@ export function MembersView() {
             value={list.filters.projectId || null}
             onChange={(v) => list.setFilter("projectId", (v as string | null) ?? "")}
             options={projectOptions}
-            placeholder="Project: All"
+            placeholder={t("teamCompany.members.projectAll")}
           />
         </div>
       </FilterBar>
@@ -134,7 +134,7 @@ export function MembersView() {
           error={error}
           onRetry={refetch}
           onRowClick={canManage ? (u) => setEditing(u.id) : undefined}
-          empty={{ title: "No members found", description: "Try another filter, or invite your PMs and Munshis.", icon: Users }}
+          empty={{ title: t("teamCompany.members.empty"), description: t("teamCompany.members.emptyDesc"), icon: Users }}
           pagination={
             data
               ? {

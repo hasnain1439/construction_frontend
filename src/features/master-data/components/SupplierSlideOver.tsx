@@ -12,6 +12,7 @@ import { PhoneField } from "@/components/forms/PhoneInput";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { formatPhone } from "@/lib/phone";
 import { supplierSchema } from "../schemas";
 
@@ -39,6 +40,7 @@ export function SupplierSlideOver({
   onOpenChange: (open: boolean) => void;
   onSaved?: (supplier: Supplier) => void;
 }) {
+  const t = useT();
   const [create, { isLoading: creating }] = useCreateSupplierMutation();
   const [update, { isLoading: updating }] = useUpdateSupplierMutation();
   const run = useMutationToast();
@@ -61,7 +63,7 @@ export function SupplierSlideOver({
                 notes: v.notes || null,
               },
             }).unwrap(),
-          { ...options, success: `${v.name} saved` },
+          { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
           () =>
@@ -74,7 +76,7 @@ export function SupplierSlideOver({
               ...(v.ntn ? { ntn: v.ntn } : {}),
               ...(v.notes ? { notes: v.notes } : {}),
             }).unwrap(),
-          { ...options, success: `${v.name} added` },
+          { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) {
       onOpenChange(false);
@@ -86,22 +88,22 @@ export function SupplierSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={supplier ? `Edit ${supplier.name}` : "Add supplier"}
+      title={supplier ? t("masterData.common.editTitle", { name: supplier.name }) : t("masterData.suppliers.add")}
       busy={creating || updating}
-      footer={<FormActions formId={FORM_ID} submitLabel={supplier ? "Save supplier" : "Add supplier"} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={supplier ? t("masterData.suppliers.save") : t("masterData.suppliers.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Supplier name" required placeholder="Al-Madina Cement Agency" />
+        <TextField name="name" label={t("masterData.suppliers.name")} required placeholder={t("masterData.suppliers.namePlaceholder")} />
         <FieldGrid>
-          <TextField name="category" label="Category" required placeholder="Cement" />
-          <PhoneField name="phone" label="Phone" allowLandline />
+          <TextField name="category" label={t("field.category")} required placeholder={t("masterData.suppliers.categoryPlaceholder")} />
+          <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
         <FieldGrid>
-          <TextField name="city" label="City" placeholder="Lahore" />
-          <TextField name="ntn" label="NTN" placeholder="1234567-8" />
+          <TextField name="city" label={t("field.city")} placeholder={t("masterData.suppliers.cityPlaceholder")} />
+          <TextField name="ntn" label={t("field.ntn")} placeholder="1234567-8" dir="ltr" />
         </FieldGrid>
-        <TextareaField name="address" label="Address" rows={2} />
-        <TextareaField name="notes" label="Notes" rows={2} />
+        <TextareaField name="address" label={t("field.address")} rows={2} />
+        <TextareaField name="notes" label={t("field.notes")} rows={2} />
       </Form>
     </SlideOver>
   );

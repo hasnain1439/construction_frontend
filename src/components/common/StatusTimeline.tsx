@@ -1,4 +1,7 @@
+"use client";
+
 import { Check, CircleDashed, Clock, Undo2, X } from "lucide-react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/dates";
 
@@ -21,13 +24,14 @@ const TONE = {
 
 /** Vertical steps (Created → Submitted → Approved → Paid) with who / when. */
 export function StatusTimeline({ steps, className }: { steps: TimelineStep[]; className?: string }) {
+  const t = useT();
   return (
-    <ol className={cn("space-y-0", className)} aria-label="Status history">
+    <ol className={cn("space-y-0", className)} aria-label={t("app.components.statusHistory")}>
       {steps.map((s, i) => {
         const Icon = ICON[s.state];
         return (
           <li key={`${s.label}-${i}`} className="relative flex gap-3 pb-5 last:pb-0">
-            {i < steps.length - 1 ? <span className="absolute top-7 left-3.5 h-[calc(100%-1.5rem)] w-px bg-border" aria-hidden /> : null}
+            {i < steps.length - 1 ? <span className="absolute top-7 start-3.5 h-[calc(100%-1.5rem)] w-px bg-border" aria-hidden /> : null}
             <span className={cn("relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full", TONE[s.state])}>
               <Icon className="size-4" aria-hidden />
             </span>

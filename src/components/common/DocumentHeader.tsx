@@ -1,5 +1,8 @@
+"use client";
+
 import { Lock } from "lucide-react";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 export interface DocumentMeta {
@@ -32,6 +35,7 @@ export function DocumentHeader({
   locked?: boolean;
   className?: string;
 }) {
+  const t = useT();
   return (
     <section className={cn("rounded-3xl border border-transparent bg-card p-6 shadow-card", className)}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -41,9 +45,9 @@ export function DocumentHeader({
             <h2 className="text-xl font-semibold tabular">{number}</h2>
             {status}
             {locked ? (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title="Saved documents are locked. Use a return or a correction to fix them.">
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title={t("app.components.document.lockedHint")}>
                 <Lock className="size-3.5" aria-hidden />
-                Locked
+                {t("app.components.document.locked")}
               </span>
             ) : null}
           </div>

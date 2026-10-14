@@ -1,10 +1,11 @@
 "use client";
 
 import { Power, PowerOff } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import type { RowAction } from "@/components/common/RowActions";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/useT";
 
 /** Activate (instant) / Deactivate (with confirm) for suppliers, workers and sub-contractors. */
 export function ActiveToggle({
@@ -22,10 +23,12 @@ export function ActiveToggle({
   loading?: boolean;
   consequence: string;
   size?: "sm" | "default";
-  /** Translated button / dialog texts (English by default). */
+  /** Button / dialog texts; the shared Activate / Deactivate texts by default. */
   labels?: { activate: string; deactivate: string; title: string };
 }) {
+  const t = useT();
   const [confirm, setConfirm] = useState(false);
+  const text = labels ?? { activate: t("action.activate"), deactivate: t("action.deactivate"), title: t("masterData.common.deactivateTitle", { name }) };
   return (
     <>
       {isActive ? (
@@ -39,7 +42,7 @@ export function ActiveToggle({
           }}
         >
           <PowerOff data-icon="inline-start" />
-          {labels?.deactivate ?? "Deactivate"}
+          {text.deactivate}
         </Button>
       ) : (
         <Button
@@ -52,15 +55,15 @@ export function ActiveToggle({
           }}
         >
           <Power data-icon="inline-start" />
-          {labels?.activate ?? "Activate"}
+          {text.activate}
         </Button>
       )}
       <ConfirmDialog
         open={confirm}
         onOpenChange={setConfirm}
-        title={labels?.title ?? `Deactivate ${name}?`}
+        title={text.title}
         description={consequence}
-        confirmLabel={labels?.deactivate ?? "Deactivate"}
+        confirmLabel={text.deactivate}
         loading={loading}
         onConfirm={async () => {
           await onToggle(false);
@@ -71,37 +74,45 @@ export function ActiveToggle({
   );
 }
 
-/** The same Activate / Deactivate (with confirm) as a `RowActions` menu item. */
+/** The same Activate / Deactivate (with confirm) as a `RowActions` menu item (`labels` from `useActiveToggleLabels`). */
 export function activeToggleAction({
-  name,
   isActive,
   onToggle,
   loading,
   consequence,
   labels,
 }: {
-  name: string;
+  name?: string;
   isActive: boolean;
   onToggle: (active: boolean) => Promise<unknown>;
   loading?: boolean;
   consequence: string;
-  labels?: { activate: string; deactivate: string; title: string };
+  labels: { activate: string; deactivate: string; title: string };
 }): RowAction {
   if (!isActive) {
-    return { label: labels?.activate ?? "Activate", icon: Power, disabled: loading, onSelect: () => void onToggle(true) };
+    return { label: labels.activate, icon: Power, disabled: loading, onSelect: () => void onToggle(true) };
   }
   return {
-    label: labels?.deactivate ?? "Deactivate",
+    label: labels.deactivate,
     icon: PowerOff,
     destructive: true,
     confirm: {
-      title: labels?.title ?? `Deactivate ${name}?`,
+      title: labels.title,
       description: consequence,
-      confirmLabel: labels?.deactivate ?? "Deactivate",
+      confirmLabel: labels.deactivate,
       loading,
       onConfirm: async () => {
         await onToggle(false);
       },
     },
   };
+}
+
+/** Shared Activate / Deactivate texts for `activeToggleAction`: `labels(name)`. */
+export function useActiveToggleLabels() {
+  const t = useT();
+  return useCallback(
+    (name: string) => ({ activate: t("action.activate"), deactivate: t("action.deactivate"), title: t("masterData.common.deactivateTitle", { name }) }),
+    [t],
+  );
 }

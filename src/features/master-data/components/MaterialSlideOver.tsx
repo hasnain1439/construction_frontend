@@ -13,6 +13,7 @@ import { SegmentedField } from "@/components/forms/SegmentedField";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { materialSchema } from "../schemas";
 import { AltUnitsEditor } from "./AltUnitsEditor";
 
@@ -40,6 +41,8 @@ export function MaterialSlideOver({
   material: Material | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
+  const te = useEnumT();
   const groups = useGetMaterialGroupsQuery(undefined, { skip: !open });
   const [create, { isLoading: creating }] = useCreateMaterialMutation();
   const [update, { isLoading: updating }] = useUpdateMaterialMutation();
@@ -66,7 +69,7 @@ export function MaterialSlideOver({
                 supplyCategory: values.supplyCategory,
               },
             }).unwrap(),
-          { success: `${values.name} saved`, setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", UNIT_LOCKED: "unit" } },
+          { success: t("masterData.common.saved", { name: values.name }), setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", UNIT_LOCKED: "unit" } },
         )
       : await run(
           () =>
@@ -78,7 +81,7 @@ export function MaterialSlideOver({
               altUnits,
               supplyCategory: values.supplyCategory,
             }).unwrap(),
-          { success: `${values.name} added`, setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", INVALID_GROUP: "groupId" } },
+          { success: t("masterData.common.added", { name: values.name }), setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", INVALID_GROUP: "groupId" } },
         );
     if (result) onOpenChange(false);
   };
@@ -87,29 +90,29 @@ export function MaterialSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={material ? `Edit ${material.name}` : "Add material"}
-      description={material?.source === "PLATFORM" ? "From the platform catalog — your changes apply to your company only." : undefined}
+      title={material ? t("masterData.common.editTitle", { name: material.name }) : t("masterData.materials.add")}
+      description={material?.source === "PLATFORM" ? t("masterData.materials.platformDesc") : undefined}
       busy={creating || updating}
-      footer={<FormActions formId={FORM_ID} submitLabel={material ? "Save material" : "Add material"} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={material ? t("masterData.materials.save") : t("masterData.materials.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Name" required placeholder="Cement Fauji 40 kg" />
-        <SelectField name="groupId" label="Group" required options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
-        <FormSection title="Units">
-          {unitLocked ? <InlineAlert tone="info">The unit of a catalog material can&apos;t change.</InlineAlert> : null}
+        <TextField name="name" label={t("field.name")} required placeholder={t("masterData.materials.namePlaceholder")} />
+        <SelectField name="groupId" label={t("masterData.common.group")} required options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
+        <FormSection title={t("masterData.materials.units")}>
+          {unitLocked ? <InlineAlert tone="info">{t("masterData.materials.unitLocked")}</InlineAlert> : null}
           <FieldGrid>
-            <TextField name="unit" label="Unit" required placeholder="bag" disabled={unitLocked} />
-            <TextField name="unitDetail" label="Unit detail" placeholder="1 bag = 50 kg" />
+            <TextField name="unit" label={t("field.unit")} required placeholder={t("masterData.materials.unitPlaceholder")} disabled={unitLocked} />
+            <TextField name="unitDetail" label={t("masterData.materials.unitDetail")} placeholder={t("masterData.materials.unitDetailPlaceholder")} />
           </FieldGrid>
           <AltUnitsEditor />
         </FormSection>
         <SegmentedField
           name="supplyCategory"
-          label="Supply category"
+          label={t("masterData.materials.supplyCategory")}
           required
           options={[
-            { value: "GREY_STRUCTURE", label: "Grey structure" },
-            { value: "FINISHING", label: "Finishing" },
+            { value: "GREY_STRUCTURE", label: te("supplyCategory", "GREY_STRUCTURE") },
+            { value: "FINISHING", label: te("supplyCategory", "FINISHING") },
           ]}
         />
       </Form>

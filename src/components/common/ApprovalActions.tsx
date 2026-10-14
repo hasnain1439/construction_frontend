@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 const MIN_COMMENT = 3;
@@ -18,7 +19,7 @@ export function ApprovalActions({
   onApprove,
   onDecline,
   decline = "return",
-  approveLabel = "Approve",
+  approveLabel,
   declineLabel,
   approving,
   declining,
@@ -40,9 +41,10 @@ export function ApprovalActions({
   size?: "default" | "sm";
   className?: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState("");
-  const label = declineLabel ?? (decline === "return" ? "Return" : "Reject");
+  const label = declineLabel ?? (decline === "return" ? t("app.components.approval.return") : t("action.reject"));
   const tooShort = comment.trim().length < MIN_COMMENT;
   const busy = approving || declining;
 
@@ -67,7 +69,7 @@ export function ApprovalActions({
         title={approveBlockedReason}
       >
         {approving ? <Loader2 className="animate-spin" aria-hidden /> : <Check aria-hidden />}
-        {approveLabel}
+        {approveLabel ?? t("action.approve")}
       </Button>
       <Button type="button" size={size} variant="outline" onClick={() => setOpen(true)} disabled={disabled || busy}>
         {decline === "return" ? <Undo2 aria-hidden /> : <X aria-hidden />}
@@ -77,16 +79,16 @@ export function ApprovalActions({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{label}</DialogTitle>
-            <DialogDescription>{decline === "return" ? "Say what needs fixing — it goes back to whoever submitted it." : "Say why — the person who entered it will see this."}</DialogDescription>
+            <DialogDescription>{decline === "return" ? t("app.components.approval.returnDesc") : t("app.components.approval.rejectDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">
-            <Label htmlFor="approval-comment">Comment</Label>
+            <Label htmlFor="approval-comment">{t("app.components.approval.comment")}</Label>
             <Textarea id="approval-comment" value={comment} onChange={(e) => setComment(e.target.value)} rows={3} maxLength={500} aria-invalid={comment.length > 0 && tooShort} />
-            {comment.length > 0 && tooShort ? <p className="text-xs text-danger">Write at least {MIN_COMMENT} characters.</p> : null}
+            {comment.length > 0 && tooShort ? <p className="text-xs text-danger">{t("app.components.approval.minChars", { n: MIN_COMMENT })}</p> : null}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={declining}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="button" variant={decline === "reject" ? "destructive" : "default"} onClick={() => void submit()} disabled={tooShort || declining}>
               {declining ? <Loader2 className="animate-spin" aria-hidden /> : null}

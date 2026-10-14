@@ -23,10 +23,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useLanguage } from "@/i18n/useT";
+import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
-import { OPENING_LABEL, ROOM_TYPE_LABEL } from "../constants";
+import { OPENING_TYPES, ROOM_TYPES } from "../constants";
 import { formatArea, isWetType, roomCalc } from "../utils/calc";
 import { roomSchema } from "./schemas";
 
@@ -72,19 +72,20 @@ function LiveCalc() {
     Values["openings"],
   ];
   const c = roomCalc({ lengthFt, widthFt, heightFt, openings: openings ?? [] });
+  const t = useT();
   return (
     <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground tabular" aria-live="polite">
       <span>
-        Floor <strong className="text-foreground">{formatArea(c.floorAreaSqft)}</strong> sq ft
+        {t("projects.room.floor")} <strong className="text-foreground">{formatArea(c.floorAreaSqft)}</strong> {t("projects.unit.sqft")}
       </span>
       <span>
-        Wall <strong className="text-foreground">{formatArea(c.grossWallAreaSqft)}</strong>
+        {t("projects.room.wall")} <strong className="text-foreground">{formatArea(c.grossWallAreaSqft)}</strong>
       </span>
       <span>
-        Openings <strong className="text-foreground">−{formatArea(c.openingsAreaSqft)}</strong>
+        {t("projects.mode.openings")} <strong className="text-foreground">−{formatArea(c.openingsAreaSqft)}</strong>
       </span>
       <span>
-        Net wall <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong>
+        {t("projects.mode.netWall")} <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong>
       </span>
     </p>
   );
@@ -93,7 +94,9 @@ function LiveCalc() {
 function WetBadge() {
   const [type, wetMode] = useWatch({ name: ["type", "wetMode"] }) as [string, Values["wetMode"]];
   const wet = wetMode === "auto" ? isWetType(type) : wetMode === "wet";
-  return <StatusBadge tone={wet ? "info" : "neutral"} icon={wet ? Droplets : undefined} label={`${wet ? "Wet" : "Dry"}${wetMode === "auto" ? " (auto)" : ""}`} />;
+  const t = useT();
+  const label = wetMode === "auto" ? t(wet ? "projects.room.wetAuto" : "projects.room.dryAuto") : t(wet ? "projects.mode.wet" : "projects.mode.dry");
+  return <StatusBadge tone={wet ? "info" : "neutral"} icon={wet ? Droplets : undefined} label={label} />;
 }
 
 /**
@@ -114,6 +117,8 @@ export function RoomCard({
   onCancelNew?: () => void;
 }) {
   const language = useLanguage();
+  const t = useT();
+  const te = useEnumT();
   const run = useMutationToast();
   const [createRoom] = useCreateRoomMutation();
   const [updateRoom] = useUpdateRoomMutation();
@@ -147,7 +152,7 @@ export function RoomCard({
             openings: v.openings.map((o) => ({ type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity })),
           },
         }).unwrap();
-        toast.success(`${v.name || ROOM_TYPE_LABEL[v.type]} added`);
+        toast.success(t("projects.room.added", { name: v.name || te("projectRoomType", v.type) }));
         onCancelNew?.();
         return;
       }
@@ -180,7 +185,7 @@ export function RoomCard({
           }
         }
       }
-      toast.success(`${v.name || ROOM_TYPE_LABEL[v.type]} saved`);
+      toast.success(t("projects.room.saved", { name: v.name || te("projectRoomType", v.type) }));
     } catch (err) {
       setFormError(getErrorMessage(err, language));
     } finally {
@@ -196,7 +201,7 @@ export function RoomCard({
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn("space-y-4 rounded-xl border bg-card p-4 shadow-card", isNew && "border-primary/50 ring-1 ring-primary/30")}
-        aria-label={isNew ? "New room" : `Room ${room.name}`}
+        aria-label={isNew ? t("projects.room.newRoom") : t("projects.room.roomAria", { name: room.name })}
       >
         <div className="flex flex-wrap items-start gap-3">
           <div className="grid flex-1 gap-3 sm:grid-cols-2">
@@ -205,51 +210,51 @@ export function RoomCard({
               control={form.control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange} disabled={disabled}>
-                  <SelectTrigger aria-label="Room type" className="w-full">
+                  <SelectTrigger aria-label={t("projects.room.roomType")} className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(ROOM_TYPE_LABEL).map(([value, label]) => (
+                    {ROOM_TYPES.map((value) => (
                       <SelectItem key={value} value={value}>
-                        {label}
+                        {te("projectRoomType", value)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            <Input aria-label="Room name" placeholder="Name (optional, e.g. Bedroom 2)" disabled={disabled} {...form.register("name")} />
+            <Input aria-label={t("projects.room.roomName")} placeholder={t("projects.room.namePlaceholder")} disabled={disabled} {...form.register("name")} />
           </div>
           <WetBadge />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
-            Length<span className="text-destructive">*</span>
-            <NumberCell name="lengthFt" label="Length" unit="ft" disabled={disabled} />
+            {t("projects.room.length")}<span className="text-destructive">*</span>
+            <NumberCell name="lengthFt" label={t("projects.room.length")} unit={t("projects.unit.ft")} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
-            Width<span className="text-destructive">*</span>
-            <NumberCell name="widthFt" label="Width" unit="ft" disabled={disabled} />
+            {t("projects.room.width")}<span className="text-destructive">*</span>
+            <NumberCell name="widthFt" label={t("projects.room.width")} unit={t("projects.unit.ft")} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
-            Height<span className="text-destructive">*</span>
-            <NumberCell name="heightFt" label="Height" unit="ft" disabled={disabled} />
+            {t("projects.room.height")}<span className="text-destructive">*</span>
+            <NumberCell name="heightFt" label={t("projects.room.height")} unit={t("projects.unit.ft")} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
-            Wet / dry
+            {t("projects.room.wetDry")}
             <Controller
               name="wetMode"
               control={form.control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange} disabled={disabled}>
-                  <SelectTrigger aria-label="Wet or dry" className="w-full">
+                  <SelectTrigger aria-label={t("projects.room.wetOrDry")} className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Automatic</SelectItem>
-                    <SelectItem value="wet">Wet</SelectItem>
-                    <SelectItem value="dry">Dry</SelectItem>
+                    <SelectItem value="auto">{t("projects.room.automatic")}</SelectItem>
+                    <SelectItem value="wet">{t("projects.mode.wet")}</SelectItem>
+                    <SelectItem value="dry">{t("projects.mode.dry")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -258,7 +263,7 @@ export function RoomCard({
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase">Openings</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase">{t("projects.mode.openings")}</p>
           {fields.length ? (
             <div className="space-y-2">
               {fields.map((field, index) => (
@@ -268,30 +273,30 @@ export function RoomCard({
                     control={form.control}
                     render={({ field: f }) => (
                       <Select value={f.value} onValueChange={f.onChange} disabled={disabled}>
-                        <SelectTrigger size="sm" aria-label={`Opening ${index + 1} type`} className="w-full">
+                        <SelectTrigger size="sm" aria-label={t("projects.room.openingType", { n: index + 1 })} className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(OPENING_LABEL).map(([value, label]) => (
+                          {OPENING_TYPES.map((value) => (
                             <SelectItem key={value} value={value}>
-                              {label}
+                              {te("projectOpeningType", value)}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     )}
                   />
-                  <NumberCell name={`openings.${index}.widthFt`} label={`Opening ${index + 1} width`} unit="w" disabled={disabled} />
-                  <NumberCell name={`openings.${index}.heightFt`} label={`Opening ${index + 1} height`} unit="h" disabled={disabled} />
-                  <NumberCell name={`openings.${index}.quantity`} label={`Opening ${index + 1} quantity`} unit="×" decimals={0} disabled={disabled} />
-                  <Button type="button" variant="ghost" size="icon-sm" disabled={disabled} onClick={() => remove(index)} aria-label={`Remove opening ${index + 1}`}>
+                  <NumberCell name={`openings.${index}.widthFt`} label={t("projects.room.openingWidth", { n: index + 1 })} unit={t("projects.unit.width")} disabled={disabled} />
+                  <NumberCell name={`openings.${index}.heightFt`} label={t("projects.room.openingHeight", { n: index + 1 })} unit={t("projects.unit.height")} disabled={disabled} />
+                  <NumberCell name={`openings.${index}.quantity`} label={t("projects.room.openingQty", { n: index + 1 })} unit="×" decimals={0} disabled={disabled} />
+                  <Button type="button" variant="ghost" size="icon-sm" disabled={disabled} onClick={() => remove(index)} aria-label={t("projects.room.removeOpening", { n: index + 1 })}>
                     <X />
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">No doors or windows yet.</p>
+            <p className="text-xs text-muted-foreground">{t("projects.room.noOpenings")}</p>
           )}
           <Button
             type="button"
@@ -301,7 +306,7 @@ export function RoomCard({
             onClick={() => append({ type: "DOOR", widthFt: 3.5, heightFt: 7, quantity: 1 })}
           >
             <Plus data-icon="inline-start" />
-            Add opening
+            {t("projects.room.addOpening")}
           </Button>
         </div>
 
@@ -313,16 +318,16 @@ export function RoomCard({
             <div className="flex items-center gap-2">
               {isNew ? (
                 <Button type="button" variant="ghost" size="sm" onClick={onCancelNew}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
               ) : (
-                <Button type="button" variant="ghost" size="icon-sm" className="text-danger" aria-label="Delete room" onClick={() => setConfirmDelete(true)}>
+                <Button type="button" variant="ghost" size="icon-sm" className="text-danger" aria-label={t("projects.room.deleteRoom")} onClick={() => setConfirmDelete(true)}>
                   <Trash2 />
                 </Button>
               )}
               <Button type="submit" size="sm" disabled={saving || (!isNew && !dirty)}>
                 {saving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
-                {isNew ? "Add room" : "Save"}
+                {isNew ? t("projects.rooms.addRoom") : t("common.save")}
               </Button>
             </div>
           )}
@@ -332,12 +337,12 @@ export function RoomCard({
         <ConfirmDialog
           open={confirmDelete}
           onOpenChange={setConfirmDelete}
-          title={`Delete ${room.name}?`}
-          description="Its doors and windows are removed too."
-          confirmLabel="Delete room"
+          title={t("projects.room.deleteTitle", { name: room.name })}
+          description={t("projects.room.deleteDesc")}
+          confirmLabel={t("projects.room.deleteRoom")}
           loading={deleting}
           onConfirm={async () => {
-            const ok = await run(() => deleteRoom({ projectId, roomId: room.id }).unwrap(), { success: `${room.name} deleted` });
+            const ok = await run(() => deleteRoom({ projectId, roomId: room.id }).unwrap(), { success: t("projects.room.deleted", { name: room.name }) });
             if (ok !== undefined) setConfirmDelete(false);
           }}
         />

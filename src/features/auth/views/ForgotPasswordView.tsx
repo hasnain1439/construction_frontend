@@ -12,12 +12,13 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { TextField } from "@/components/forms/TextField";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { applyFieldErrors, getErrorMessage } from "@/lib/apiErrors";
 import { AuthCard } from "../components/AuthLayout";
 import { forgotSchema } from "../schemas";
 
 export function ForgotPasswordView() {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const [forgot, { isLoading }] = useForgotPasswordMutation();
@@ -39,8 +40,8 @@ export function ForgotPasswordView() {
 
   return (
     <AuthCard
-      title="Forgot password"
-      description="Enter your phone or email. We'll send a 6-digit reset code by SMS (and email if we have it)."
+      title={t("app.auth.forgotTitle")}
+      description={t("app.auth.forgotDesc")}
       icon={
         <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
           <KeyRound className="size-6" aria-hidden />
@@ -48,14 +49,14 @@ export function ForgotPasswordView() {
       }
       footer={
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Back to sign in
+          {t("app.auth.backToSignIn")}
         </Link>
       }
     >
       <Form form={form} onSubmit={onSubmit}>
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-        <TextField name="login" label="Email or phone" required autoComplete="username" autoFocus />
-        <FormActions submitLabel="Send reset code" loading={isLoading} fullWidth />
+        <TextField name="login" label={t("app.auth.emailOrPhone")} required autoComplete="username" autoFocus />
+        <FormActions submitLabel={t("app.auth.sendResetCode")} loading={isLoading} fullWidth />
       </Form>
     </AuthCard>
   );

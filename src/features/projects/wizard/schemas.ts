@@ -1,50 +1,54 @@
 import { z } from "zod";
 import { stagesSchema } from "@/features/master-data/schemas";
+import { msg } from "@/i18n/message";
+import type { TranslationKey } from "@/i18n/useT";
 import { normaliseAnyPhone, ANY_PHONE_ERROR } from "@/lib/phone";
 import { requiredText } from "@/lib/validation";
 
-const isoDate = (label: string) => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, `${label} is required`);
-const positive = (label: string, max: number) =>
+/** `label` is a dictionary key ("projects.basic.startDate"). */
+const required = (label: TranslationKey) => msg("validation.required", { label });
+const isoDate = (label: TranslationKey) => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, required(label));
+const positive = (label: TranslationKey, max: number) =>
   z
-    .number({ error: `${label} is required` })
+    .number({ error: required(label) })
     .nullable()
-    .refine((v): v is number => v !== null, `${label} is required`)
-    .refine((v) => v === null || (v > 0 && v <= max), `${label} must be between 0 and ${max.toLocaleString("en-PK")}`);
+    .refine((v): v is number => v !== null, required(label))
+    .refine((v) => v === null || (v > 0 && v <= max), msg("projects.v.between", { label, max: max.toLocaleString("en-PK") }));
 const nonNegative = (max: number) =>
   z
     .number()
     .nullable()
-    .refine((v) => v === null || (v >= 0 && v <= max), "Enter 0 or more");
+    .refine((v) => v === null || (v >= 0 && v <= max), msg("projects.v.zeroOrMore"));
 
 // ─── Tab 1 ──────────────────────────────────────────────────────────────────
 
 export const basicSchema = z
   .object({
-    name: requiredText("Project name", 3, 120),
+    name: requiredText("projects.basic.projectName", 3, 120),
     code: z
       .string()
       .trim()
       .toUpperCase()
-      .refine((v) => v === "" || /^[A-Z0-9][A-Z0-9-]{1,29}$/.test(v), "Letters, numbers and dashes, e.g. MSB-2026-014"),
+      .refine((v) => v === "" || /^[A-Z0-9][A-Z0-9-]{1,29}$/.test(v), msg("projects.v.codeFormat")),
     clientMode: z.enum(["existing", "new"]),
     clientId: z.string(),
     newClientName: z.string().trim(),
     newClientPhone: z.string().trim(),
-    siteAddress: requiredText("Site address", 3, 300),
-    city: requiredText("City", 2, 60),
-    startDate: isoDate("Start date"),
-    endDate: isoDate("End date"),
+    siteAddress: requiredText("projects.basic.siteAddress", 3, 300),
+    city: requiredText("field.city", 2, 60),
+    startDate: isoDate("projects.basic.startDate"),
+    endDate: isoDate("projects.basic.endDate"),
     pmId: z.string().nullable(),
     munshiIds: z.array(z.string()),
   })
   .superRefine((v, ctx) => {
-    if (v.clientMode === "existing" && !v.clientId) ctx.addIssue({ code: "custom", path: ["clientId"], message: "Choose a client or add a new one" });
+    if (v.clientMode === "existing" && !v.clientId) ctx.addIssue({ code: "custom", path: ["clientId"], message: msg("projects.v.chooseClient") });
     if (v.clientMode === "new") {
-      if (v.newClientName.length < 2) ctx.addIssue({ code: "custom", path: ["newClientName"], message: "Client name is required" });
+      if (v.newClientName.length < 2) ctx.addIssue({ code: "custom", path: ["newClientName"], message: required("projects.basic.clientName") });
       if (!normaliseAnyPhone(v.newClientPhone)) ctx.addIssue({ code: "custom", path: ["newClientPhone"], message: ANY_PHONE_ERROR });
     }
     if (v.startDate && v.endDate && v.endDate < v.startDate) {
-      ctx.addIssue({ code: "custom", path: ["endDate"], message: "End date can't be before the start date" });
+      ctx.addIssue({ code: "custom", path: ["endDate"], message: msg("projects.v.endBeforeStart") });
     }
   });
 
@@ -61,31 +65,31 @@ export const supplyRuleSchema = z.object({
 export function contractSchema(seesMoney: boolean) {
   return z
     .object({
-      contractType: z.enum(["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"], { error: "Choose a contract type" }),
+      contractType: z.enum(["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"], { error: msg("projects.v.chooseContractType") }),
       billingModel: z.enum(["STAGE_SCHEDULE", "RUNNING_BILLS"]),
       contractValuePaisa: z.string().nullable(),
       ratePerSqftPaisa: z.string().nullable(),
       retentionPercent: z
-        .number({ error: "Enter retention %" })
+        .number({ error: msg("projects.v.enterRetention") })
         .nullable()
-        .refine((v): v is number => v !== null && v >= 0 && v <= 10, "Between 0 and 10 %"),
+        .refine((v): v is number => v !== null && v >= 0 && v <= 10, msg("projects.v.retentionRange")),
       defectPeriodMonths: z
-        .number({ error: "Enter months" })
+        .number({ error: msg("projects.v.enterMonths") })
         .nullable()
-        .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 24, "Between 0 and 24 months"),
+        .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 24, msg("projects.v.monthsRange")),
       supplyRules: z.array(supplyRuleSchema),
       stages: stagesSchema,
     })
     .superRefine((v, ctx) => {
       if (seesMoney && v.contractType !== "LABOR_ONLY" && !v.contractValuePaisa) {
-        ctx.addIssue({ code: "custom", path: ["contractValuePaisa"], message: "Contract value is required" });
+        ctx.addIssue({ code: "custom", path: ["contractValuePaisa"], message: required("projects.section.contractValue") });
       }
       if (seesMoney && v.contractType === "LABOR_ONLY" && !v.ratePerSqftPaisa) {
-        ctx.addIssue({ code: "custom", path: ["ratePerSqftPaisa"], message: "Rate per sq ft is required" });
+        ctx.addIssue({ code: "custom", path: ["ratePerSqftPaisa"], message: required("projects.section.ratePerSqft") });
       }
       v.supplyRules.forEach((rule, index) => {
         if (rule.suppliedBy === "CONTRACTOR" && !rule.qualityCategoryId && !rule.locked) {
-          ctx.addIssue({ code: "custom", path: ["supplyRules", index, "qualityCategoryId"], message: "Choose a quality" });
+          ctx.addIssue({ code: "custom", path: ["supplyRules", index, "qualityCategoryId"], message: msg("projects.v.chooseQuality") });
         }
       });
     });
@@ -95,26 +99,26 @@ export function contractSchema(seesMoney: boolean) {
 
 export const floorRowSchema = z.object({
   level: z.enum(["BASEMENT", "GROUND", "FIRST", "SECOND", "THIRD", "MUMTY"]),
-  ceilingHeightFt: positive("Height", 30),
+  ceilingHeightFt: positive("projects.room.height", 30),
 });
 
 export const plotStructureSchema = z
   .object({
     plotUnit: z.enum(["MARLA", "KANAL", "SQFT"]),
-    plotSize: positive("Plot size", 100000),
+    plotSize: positive("projects.plot.plotSize", 100000),
     marlaStandard: z.enum(["225", "272.25"]),
-    frontFt: positive("Front", 1000),
-    depthFt: positive("Depth", 1000),
+    frontFt: positive("projects.plot.front", 1000),
+    depthFt: positive("projects.plot.depth", 1000),
     cornerPlot: z.boolean(),
-    structureType: z.enum(["FRAMED", "LOAD_BEARING"], { error: "Choose a structure type" }),
+    structureType: z.enum(["FRAMED", "LOAD_BEARING"], { error: msg("projects.v.chooseStructure") }),
     hasBasement: z.boolean(),
     basementHeightFt: z.number().nullable(),
-    floors: z.array(floorRowSchema).min(1, "Add at least the ground floor"),
+    floors: z.array(floorRowSchema).min(1, msg("projects.v.addGroundFloor")),
   })
   .superRefine((v, ctx) => {
-    if (!v.floors.some((f) => f.level === "GROUND")) ctx.addIssue({ code: "custom", path: ["floors"], message: "The ground floor is required" });
+    if (!v.floors.some((f) => f.level === "GROUND")) ctx.addIssue({ code: "custom", path: ["floors"], message: msg("projects.v.groundRequired") });
     if (v.hasBasement && !(v.basementHeightFt && v.basementHeightFt > 0 && v.basementHeightFt <= 30)) {
-      ctx.addIssue({ code: "custom", path: ["basementHeightFt"], message: "Basement height is required (up to 30 ft)" });
+      ctx.addIssue({ code: "custom", path: ["basementHeightFt"], message: msg("projects.v.basementHeight") });
     }
   });
 
@@ -122,7 +126,7 @@ export const plotStructureSchema = z
 
 export const coverageSchema = z
   .object({
-    coveredAreaSqft: positive("Covered area", 1_000_000),
+    coveredAreaSqft: positive("projects.coverage.coveredArea", 1_000_000),
     semiCoveredSqft: nonNegative(1_000_000),
     openAreaSqft: nonNegative(1_000_000),
     boundaryWall: z.boolean(),
@@ -133,12 +137,12 @@ export const coverageSchema = z
   })
   .superRefine((v, ctx) => {
     if (!v.boundaryWall) return;
-    if (!(v.boundaryLengthFt && v.boundaryLengthFt > 0)) ctx.addIssue({ code: "custom", path: ["boundaryLengthFt"], message: "Length is required" });
+    if (!(v.boundaryLengthFt && v.boundaryLengthFt > 0)) ctx.addIssue({ code: "custom", path: ["boundaryLengthFt"], message: required("projects.coverage.length") });
     if (!(v.boundaryHeightFt && v.boundaryHeightFt > 0 && v.boundaryHeightFt <= 30)) {
-      ctx.addIssue({ code: "custom", path: ["boundaryHeightFt"], message: "Height is required (up to 30 ft)" });
+      ctx.addIssue({ code: "custom", path: ["boundaryHeightFt"], message: msg("projects.v.heightUpTo30") });
     }
-    if (!v.boundaryThickness) ctx.addIssue({ code: "custom", path: ["boundaryThickness"], message: "Choose a thickness" });
-    if (!v.boundaryPlasterSides) ctx.addIssue({ code: "custom", path: ["boundaryPlasterSides"], message: "Choose plaster sides" });
+    if (!v.boundaryThickness) ctx.addIssue({ code: "custom", path: ["boundaryThickness"], message: msg("projects.v.chooseThickness") });
+    if (!v.boundaryPlasterSides) ctx.addIssue({ code: "custom", path: ["boundaryPlasterSides"], message: msg("projects.v.choosePlasterSides") });
   });
 
 // ─── Tab 5 (one room card) ──────────────────────────────────────────────────
@@ -146,10 +150,10 @@ export const coverageSchema = z
 export const openingRowSchema = z.object({
   id: z.string().optional(),
   type: z.enum(["DOOR", "WINDOW", "VENTILATOR"]),
-  widthFt: positive("Width", 50),
-  heightFt: positive("Height", 30),
+  widthFt: positive("projects.room.width", 50),
+  heightFt: positive("projects.room.height", 30),
   quantity: z
-    .number({ error: "Qty" })
+    .number({ error: msg("projects.v.enterQty") })
     .nullable()
     .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 1 && v <= 50, "1–50"),
 });
@@ -170,10 +174,10 @@ export const roomSchema = z.object({
     "GARAGE",
     "OTHER",
   ]),
-  name: z.string().trim().max(60, "Up to 60 characters"),
-  lengthFt: positive("Length", 200),
-  widthFt: positive("Width", 200),
-  heightFt: positive("Height", 30),
+  name: z.string().trim().max(60, msg("projects.v.upTo60")),
+  lengthFt: positive("projects.room.length", 200),
+  widthFt: positive("projects.room.width", 200),
+  heightFt: positive("projects.room.height", 30),
   wetMode: z.enum(["auto", "wet", "dry"]),
-  openings: z.array(openingRowSchema).max(30, "Up to 30 openings"),
+  openings: z.array(openingRowSchema).max(30, msg("projects.v.upTo30Openings")),
 });

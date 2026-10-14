@@ -12,7 +12,7 @@ import { QuantityInput } from "@/components/forms/QuantityInput";
 import type { UploadedFile } from "@/components/common/FileUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
 import { formatPKR } from "@/lib/money";
@@ -77,6 +77,7 @@ function PhotoCell({
   const [upload, { isLoading }] = useUploadAttachmentMutation();
   const [error, setError] = useState<string | null>(null);
   const language = useLanguage();
+  const t = useT();
   if (value) {
     return (
       <span className="flex items-center gap-1 text-xs">
@@ -89,7 +90,7 @@ function PhotoCell({
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label={`Remove ${label}`}
+            aria-label={t("app.components.removeItem", { name: label })}
             onClick={() => onChange(null)}
           >
             <Trash2 />
@@ -111,7 +112,7 @@ function PhotoCell({
         ) : (
           <Camera className="size-3.5" aria-hidden />
         )}
-        {isLoading ? "Uploading…" : "Photo"}
+        {isLoading ? t("app.components.uploading") : t("field.photo")}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -165,10 +166,11 @@ export function LineItemsEditor({
   amount,
   rowError,
   emptyRow = () => ({ materialId: null }),
-  addLabel = "Add material",
+  addLabel,
   maxRows = 50,
   disabled,
 }: LineItemsEditorProps) {
+  const t = useT();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
   const rows = (useWatch({ control, name }) as LineRow[] | undefined) ?? [];
@@ -189,10 +191,10 @@ export function LineItemsEditor({
     <div className="space-y-3">
       <div className="@container rounded-xl border">
         <table className="block w-full text-sm @2xl:table">
-          <thead className="hidden bg-muted/40 text-left text-xs font-semibold text-muted-foreground uppercase @2xl:table-header-group">
+          <thead className="hidden bg-muted/40 text-start text-xs font-semibold text-muted-foreground uppercase @2xl:table-header-group">
             <tr>
               <th scope="col" className="px-3 py-2">
-                Material
+                {t("field.material")}
               </th>
               {columns.map((c) => (
                 <th
@@ -201,7 +203,7 @@ export function LineItemsEditor({
                   className={cn(
                     "px-3 py-2",
                     c.width,
-                    c.kind !== "text" && c.kind !== "photo" && "text-right",
+                    c.kind !== "text" && c.kind !== "photo" && "text-end",
                   )}
                 >
                   {c.label}
@@ -209,8 +211,8 @@ export function LineItemsEditor({
                 </th>
               ))}
               {amount ? (
-                <th scope="col" className="w-36 px-3 py-2 text-right">
-                  {amount.label ?? "Amount"}
+                <th scope="col" className="w-36 px-3 py-2 text-end">
+                  {amount.label ?? t("field.amount")}
                 </th>
               ) : null}
             </tr>
@@ -222,7 +224,7 @@ export function LineItemsEditor({
                   colSpan={columns.length + 3}
                   className="block px-3 py-6 text-center text-sm text-muted-foreground @2xl:table-cell"
                 >
-                  No materials yet.
+                  {t("app.components.lineItems.noMaterials")}
                 </td>
               </tr>
             ) : null}
@@ -232,7 +234,7 @@ export function LineItemsEditor({
               const label =
                 row?.material?.name ??
                 (row?.materialId ? units.get(row.materialId)?.name : undefined) ??
-                `Line ${index + 1}`;
+                t("app.components.lineItems.lineN", { n: index + 1 });
               const externalError = row ? rowError?.(row, index) : undefined;
               const lineAmount = amountOf(row);
               return (
@@ -262,7 +264,7 @@ export function LineItemsEditor({
                                 describe={describeMaterial}
                                 disabled={disabled}
                                 invalid={Boolean(externalError)}
-                                ariaLabel={`${label} material`}
+                                ariaLabel={t("app.components.lineItems.materialOf", { name: label })}
                               />
                             )}
                           />
@@ -285,7 +287,7 @@ export function LineItemsEditor({
                           className="shrink-0"
                           disabled={disabled || fields.length <= 1}
                           onClick={() => remove(index)}
-                          aria-label={`Remove ${label}`}
+                          aria-label={t("app.components.removeItem", { name: label })}
                         >
                           <Trash2 />
                         </Button>
@@ -357,9 +359,9 @@ export function LineItemsEditor({
                     );
                   })}
                   {amount ? (
-                    <td className="tabular col-span-2 flex items-baseline justify-between @2xl:table-cell @2xl:px-3 @2xl:py-2 @2xl:pt-4 @2xl:text-right">
+                    <td className="tabular col-span-2 flex items-baseline justify-between @2xl:table-cell @2xl:px-3 @2xl:py-2 @2xl:pt-4 @2xl:text-end">
                       <span className="text-xs font-semibold text-muted-foreground uppercase @2xl:hidden">
-                        {amount?.label ?? "Amount"}
+                        {amount?.label ?? t("field.amount")}
                       </span>
                       <span data-testid="line-amount">{lineAmount ? formatPKR(lineAmount) : "—"}</span>
                     </td>
@@ -371,11 +373,11 @@ export function LineItemsEditor({
           <tfoot className="block border-t bg-muted/20 text-sm @2xl:table-footer-group">
             <tr className="flex justify-between @2xl:table-row">
               <td className="block px-3 py-2 font-medium @2xl:table-cell" colSpan={columns.length + 1}>
-                {fields.length} {fields.length === 1 ? "material" : "materials"}
+                {t(fields.length === 1 ? "app.components.lineItems.oneMaterial" : "app.components.lineItems.nMaterials", { n: fields.length })}
               </td>
               {amount ? (
                 <td
-                  className="tabular block px-3 py-2 text-right font-semibold @2xl:table-cell"
+                  className="tabular block px-3 py-2 text-end font-semibold @2xl:table-cell"
                   data-testid="lines-total"
                 >
                   {formatPKR((total ?? BigInt(0)).toString())}
@@ -394,7 +396,7 @@ export function LineItemsEditor({
           onClick={() => append(emptyRow())}
         >
           <Plus data-icon="inline-start" />
-          {addLabel}
+          {addLabel ?? t("app.components.lineItems.addMaterial")}
         </Button>
       ) : null}
       {listError ? (

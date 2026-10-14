@@ -2,7 +2,7 @@
 
 import { useRef, type KeyboardEvent } from "react";
 import { StepperInput } from "@/components/forms/StepperInput";
-import { LATE_SYNC_HINT } from "@/components/common/LateSyncBadge";
+import { useT, type TranslationKey } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDayHeader, weekdayOf, type WeekDayName } from "@/lib/weeks";
 
@@ -33,11 +33,11 @@ export function daysWorked(days: Record<string, HazriMark | undefined>) {
   return Object.values(days).reduce((sum, d) => sum + (d?.status === "FULL" ? 1 : d?.status === "HALF" ? 0.5 : 0), 0);
 }
 
-const CELL: Record<HazriStatus | "NONE", { text: string; label: string; className: string }> = {
-  FULL: { text: "P", label: "Full day", className: "bg-success-soft text-success border-success/30" },
-  HALF: { text: "½", label: "Half day", className: "bg-warning-soft text-warning border-warning/30" },
-  ABSENT: { text: "A", label: "Absent", className: "bg-danger-soft text-danger border-danger/30" },
-  NONE: { text: "–", label: "Not marked", className: "bg-card text-muted-foreground border-dashed" },
+const CELL: Record<HazriStatus | "NONE", { text: TranslationKey | null; symbol?: string; labelKey: TranslationKey; className: string }> = {
+  FULL: { text: "app.components.hazri.fullShort", labelKey: "app.components.hazri.fullDay", className: "bg-success-soft text-success border-success/30" },
+  HALF: { text: null, symbol: "½", labelKey: "app.components.hazri.halfDay", className: "bg-warning-soft text-warning border-warning/30" },
+  ABSENT: { text: "app.components.hazri.absentShort", labelKey: "app.components.hazri.absent", className: "bg-danger-soft text-danger border-danger/30" },
+  NONE: { text: null, symbol: "–", labelKey: "app.components.hazri.notMarked", className: "bg-card text-muted-foreground border-dashed" },
 };
 
 const KEY_STATUS: Record<string, HazriStatus> = { f: "FULL", p: "FULL", h: "HALF", a: "ABSENT" };
@@ -68,6 +68,7 @@ export function AttendanceGrid({
   today?: string;
   className?: string;
 }) {
+  const t = useT();
   const cells = useRef(new Map<string, HTMLButtonElement | null>());
   const editable = (date: string) => !!onChange && canEdit(date);
 
@@ -83,7 +84,9 @@ export function AttendanceGrid({
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, r: number, c: number) => {
-    const moves: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    // Right-to-left (Urdu): the next day is on the left.
+    const side = getComputedStyle(e.currentTarget).direction === "rtl" ? -1 : 1;
+    const moves: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -side], ArrowRight: [0, side] };
     const move = moves[e.key];
     if (move) {
       e.preventDefault();
@@ -101,11 +104,11 @@ export function AttendanceGrid({
 
   return (
     <div className={cn("max-h-[70dvh] overflow-auto overscroll-x-contain rounded-xl border bg-card scrollbar-slim", className)}>
-      <table className="w-full border-separate border-spacing-0 text-sm" aria-label="Hazri register">
+      <table className="w-full border-separate border-spacing-0 text-sm" aria-label={t("app.components.hazri.register")}>
         <thead className="sticky top-0 z-20 bg-muted/95 backdrop-blur">
           <tr>
-            <th scope="col" className="sticky left-0 z-30 min-w-40 border-b bg-muted px-3 py-2 text-left font-medium">
-              Worker
+            <th scope="col" className="sticky start-0 z-30 min-w-40 border-b bg-muted px-3 py-2 text-start font-medium">
+              {t("field.worker")}
             </th>
             {dates.map((d) => {
               const off = workingDays ? !workingDays.includes(weekdayOf(d)) : false;
@@ -116,15 +119,15 @@ export function AttendanceGrid({
                   className={cn("min-w-14 border-b px-1 py-2 text-center text-xs font-medium whitespace-nowrap", off && "text-muted-foreground", d === today && "text-primary")}
                 >
                   {formatDayHeader(d)}
-                  {d === today ? <span className="block text-[10px] font-normal">Today</span> : null}
+                  {d === today ? <span className="block text-[10px] font-normal">{t("common.today")}</span> : null}
                 </th>
               );
             })}
-            <th scope="col" className="min-w-16 border-b px-2 py-2 text-right text-xs font-medium">
-              Days
+            <th scope="col" className="min-w-16 border-b px-2 py-2 text-end text-xs font-medium">
+              {t("app.components.hazri.days")}
             </th>
-            <th scope="col" className="min-w-14 border-b px-2 py-2 text-right text-xs font-medium">
-              OT h
+            <th scope="col" className="min-w-14 border-b px-2 py-2 text-end text-xs font-medium">
+              {t("app.components.hazri.otHours")}
             </th>
           </tr>
         </thead>
@@ -133,7 +136,7 @@ export function AttendanceGrid({
             const ot = Object.values(row.days).reduce((s, d) => s + (d?.overtimeHours ?? 0), 0);
             return (
               <tr key={row.id} className="group">
-                <th scope="row" className="sticky left-0 z-10 border-b bg-card px-3 py-2 text-left font-normal group-hover:bg-muted/40">
+                <th scope="row" className="sticky start-0 z-10 border-b bg-card px-3 py-2 text-start font-normal group-hover:bg-muted/40">
                   <span className="block font-medium">{row.name}</span>
                   {row.subtitle ? <span className="block text-xs text-muted-foreground">{row.subtitle}</span> : null}
                 </th>
@@ -149,7 +152,7 @@ export function AttendanceGrid({
                           ref={(el) => {
                             cells.current.set(`${r}:${c}`, el);
                           }}
-                          aria-label={`${row.name}, ${formatDayHeader(date)}: ${meta.label}`}
+                          aria-label={t("app.components.hazri.cellLabel", { name: row.name, day: formatDayHeader(date), status: t(meta.labelKey) })}
                           aria-disabled={!canChange || undefined}
                           onClick={() => (canChange ? set(row, date, nextStatus(mark?.status)) : undefined)}
                           onKeyDown={(e) => onKeyDown(e, r, c)}
@@ -159,7 +162,7 @@ export function AttendanceGrid({
                             canChange ? "cursor-pointer hover:brightness-95" : "cursor-default opacity-80",
                           )}
                         >
-                          {meta.text}
+                          {meta.text ? t(meta.text) : meta.symbol}
                         </button>
                         {overtimeMode && mark && mark.status !== "ABSENT" && canChange ? (
                           <StepperInput
@@ -168,13 +171,13 @@ export function AttendanceGrid({
                             max={12}
                             value={mark.overtimeHours}
                             onChange={(v) => onChange?.(row.id, date, { ...mark, overtimeHours: v })}
-                            aria-label={`overtime ${row.name} ${formatDayHeader(date)}`}
+                            aria-label={t("app.components.hazri.overtimeFor", { name: row.name, day: formatDayHeader(date) })}
                           />
                         ) : mark?.overtimeHours ? (
-                          <span className="text-[10px] font-medium text-primary tabular">+{mark.overtimeHours}h</span>
+                          <span className="text-[10px] font-medium text-primary tabular">{t("app.components.hazri.overtimeShort", { n: mark.overtimeHours })}</span>
                         ) : null}
                         {mark?.lateSync ? (
-                          <span className="text-[10px]" title={LATE_SYNC_HINT} aria-label="late sync" data-testid={`late-${row.id}-${date}`}>
+                          <span className="text-[10px]" title={t("app.components.lateSync.hint")} aria-label={t("app.components.lateSync.label")} data-testid={`late-${row.id}-${date}`}>
                             📱
                           </span>
                         ) : null}
@@ -182,26 +185,26 @@ export function AttendanceGrid({
                     </td>
                   );
                 })}
-                <td className="border-b px-2 py-2 text-right font-medium tabular" data-testid={`days-${row.id}`}>
+                <td className="border-b px-2 py-2 text-end font-medium tabular" data-testid={`days-${row.id}`}>
                   {daysWorked(row.days)}
                 </td>
-                <td className="border-b px-2 py-2 text-right tabular text-muted-foreground">{ot || "–"}</td>
+                <td className="border-b px-2 py-2 text-end tabular text-muted-foreground">{ot || "–"}</td>
               </tr>
             );
           })}
         </tbody>
         <tfoot className="sticky bottom-0 z-20 bg-muted/95 backdrop-blur">
           <tr>
-            <th scope="row" className="sticky left-0 z-30 bg-muted px-3 py-2 text-left text-xs font-medium">
-              On site
+            <th scope="row" className="sticky start-0 z-30 bg-muted px-3 py-2 text-start text-xs font-medium">
+              {t("app.components.hazri.onSite")}
             </th>
             {dates.map((d) => (
               <td key={d} className="px-1 py-2 text-center text-xs font-medium tabular">
                 {dayTotal(d)}
               </td>
             ))}
-            <td className="px-2 py-2 text-right text-xs font-semibold tabular">{rows.reduce((s, r) => s + daysWorked(r.days), 0)}</td>
-            <td className="px-2 py-2 text-right text-xs tabular">
+            <td className="px-2 py-2 text-end text-xs font-semibold tabular">{rows.reduce((s, r) => s + daysWorked(r.days), 0)}</td>
+            <td className="px-2 py-2 text-end text-xs tabular">
               {rows.reduce((s, r) => s + Object.values(r.days).reduce((x, d) => x + (d?.overtimeHours ?? 0), 0), 0) || "–"}
             </td>
           </tr>

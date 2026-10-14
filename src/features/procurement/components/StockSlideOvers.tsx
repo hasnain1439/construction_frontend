@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCreateStockCountMutation, useGetStockMovementsQuery, useSetLowStockLevelsMutation } from "@/api/services/inventory.api";
-import type { CountReason, MaterialRef, MovementType, StockMovement } from "@/api/types";
+import type { CountReason, MaterialRef, StockMovement } from "@/api/types";
 import { LedgerTable, type LedgerRow } from "@/components/common/LedgerTable";
 import { LineItemsEditor, type LineRow } from "@/components/common/LineItemsEditor";
 import { SlideOver } from "@/components/common/SlideOver";
@@ -15,22 +15,10 @@ import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { formatQty, qtyDiff } from "@/lib/quantity";
 import { applyLineError } from "../lineErrors";
 import { countSchema, type CountValues } from "../schemas";
-
-export const MOVEMENT_LABEL: Record<MovementType, string> = {
-  PURCHASE_IN: "Purchased",
-  PURCHASE_RETURN_OUT: "Returned to supplier",
-  DISPATCH_OUT: "Dispatched",
-  TRANSIT_IN: "Into transit",
-  TRANSIT_OUT: "Out of transit",
-  RECEIPT_IN: "Received",
-  OWNER_DELIVERY_IN: "Owner delivered",
-  USAGE_OUT: "Used",
-  COUNT_ADJUSTMENT: "Count adjustment",
-  CORRECTION: "Correction",
-};
 
 /** Movement history of one material at one location, newest first, with the running balance. */
 export function MovementHistorySlideOver({
@@ -47,6 +35,8 @@ export function MovementHistorySlideOver({
   /** Today's balance — the running balance is worked out backwards from it. */
   currentQty: number;
 }) {
+  const t = useT();
+  const te = useEnumT();
   const query = useGetStockMovementsQuery({ locationId, materialId: material?.id, limit: 100 }, { skip: !open || !material });
   const rows = useMemo<LedgerRow[] | undefined>(() => {
     if (!query.data) return undefined;
@@ -55,7 +45,7 @@ export function MovementHistorySlideOver({
       const row: LedgerRow = {
         id: m.id,
         date: m.occurredAt,
-        title: MOVEMENT_LABEL[m.type] + (m.ownerSupplied ? " (owner)" : ""),
+        title: m.ownerSupplied ? t("procurement.stock.ownerSupplied", { label: te("procMovement", m.type) }) : te("procMovement", m.type),
         detail: [m.note, m.createdBy?.name].filter(Boolean).join(" · ") || undefined,
         amount: m.quantity,
         balance: Math.round(balance * 1000) / 1000,
@@ -63,9 +53,9 @@ export function MovementHistorySlideOver({
       balance -= m.quantity;
       return row;
     });
-  }, [query.data, currentQty]);
+  }, [query.data, currentQty, t, te]);
   return (
-    <SlideOver open={open} onOpenChange={onOpenChange} size="lg" title={material ? `${material.name} — history` : "History"} description="Every stock change, newest first (last 100).">
+    <SlideOver open={open} onOpenChange={onOpenChange} size="lg" title={material ? t("procurement.stock.historyTitle", { name: material.name }) : t("procurement.stock.history")} description={t("procurement.stock.historyDesc")}>
       <LedgerTable kind="quantity" unit={material?.unit} rows={rows} loading={query.isLoading} error={query.error} onRetry={query.refetch} />
     </SlideOver>
   );
@@ -86,6 +76,7 @@ export function LowStockLevelsSlideOver({
   locationId: string;
   current: Array<{ material: MaterialRef; minQty: number | null }>;
 }) {
+  const t = useT();
   const [save, { isLoading }] = useSetLowStockLevelsMutation();
   const run = useMutationToast();
   const form = useForm<LevelsValues>({
@@ -95,7 +86,7 @@ export function LowStockLevelsSlideOver({
   const onSubmit = async (v: LevelsValues) => {
     const body = v.items.filter((i) => i.materialId).map((i) => ({ materialId: i.materialId as string, minQty: i.minQty ?? "0" }));
     if (!body.length) return onOpenChange(false);
-    const ok = await run(() => save({ locationId, body }).unwrap(), { success: "Low-stock levels saved" });
+    const ok = await run(() => save({ locationId, body }).unwrap(), { success: t("procurement.stock.levelsSaved") });
     if (ok) onOpenChange(false);
   };
   return (
@@ -103,28 +94,25 @@ export function LowStockLevelsSlideOver({
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Low-stock levels"
-      description="When the store has less than this, the material shows as low stock on the dashboard. Leave empty or 0 to remove a level."
+      title={t("procurement.stock.levelsTitle")}
+      description={t("procurement.stock.levelsDesc")}
       busy={isLoading}
-      footer={<FormActions formId="low-stock-form" submitLabel="Save levels" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="low-stock-form" submitLabel={t("procurement.stock.saveLevels")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="low-stock-form">
-        <LineItemsEditor name="items" columns={[{ key: "minQty", label: "Minimum", kind: "quantity", width: "w-40" }]} emptyRow={() => ({ materialId: null, minQty: null })} addLabel="Add a material" />
+        <LineItemsEditor name="items" columns={[{ key: "minQty", label: t("procurement.stock.minimum"), kind: "quantity", width: "w-40" }]} emptyRow={() => ({ materialId: null, minQty: null })} addLabel={t("procurement.stock.addMaterial")} />
       </Form>
     </SlideOver>
   );
 }
 
-export const COUNT_REASONS: Array<{ value: CountReason; label: string }> = [
-  { value: "HARDENED_IN_RAIN", label: "Hardened in rain" },
-  { value: "BREAKAGE", label: "Breakage" },
-  { value: "THEFT_SUSPECTED", label: "Theft suspected" },
-  { value: "MEASUREMENT", label: "Measurement" },
-  { value: "OTHER", label: "Other" },
-];
+const COUNT_REASONS: CountReason[] = ["HARDENED_IN_RAIN", "BREAKAGE", "THEFT_SUSPECTED", "MEASUREMENT", "OTHER"];
 
 /** Reason select per counted line — only needed when the count differs (known after saving). */
 function CountReasons({ system }: { system?: Map<string, number> }) {
+  const t = useT();
+  const te = useEnumT();
+  const reasonOptions = COUNT_REASONS.map((value) => ({ value, label: te("procCountReason", value) }));
   const { control } = useFormContext<CountValues>();
   const { fields } = useFieldArray({ control, name: "items" });
   const items = useWatch({ control, name: "items" }) ?? [];
@@ -138,10 +126,10 @@ function CountReasons({ system }: { system?: Map<string, number> }) {
   if (!lines.length) return null;
   return (
     <div className="space-y-3 rounded-xl border p-4">
-      <p className="text-sm font-medium">Reason for a difference</p>
-      <p className="text-xs text-muted-foreground">{system ? "These counts differ from the system." : "Needed when your count differs from the system (blind count: the system quantity is shown after saving)."}</p>
+      <p className="text-sm font-medium">{t("procurement.stock.reasonForDiff")}</p>
+      <p className="text-xs text-muted-foreground">{system ? t("procurement.stock.diffSystem") : t("procurement.stock.diffBlind")}</p>
       {lines.map(({ f, i, row }) => (
-        <SelectField key={f.id} name={`items.${i}.reason`} label={(row as LineRow & { material?: MaterialRef }).material?.name ?? `Line ${i + 1}`} options={COUNT_REASONS} noneLabel="No difference" />
+        <SelectField key={f.id} name={`items.${i}.reason`} label={(row as LineRow & { material?: MaterialRef }).material?.name ?? t("procurement.stock.lineN", { n: i + 1 })} options={reasonOptions} noneLabel={t("procurement.stock.noDifference")} />
       ))}
     </div>
   );
@@ -173,6 +161,7 @@ export function StockCountSlideOver({
   blind?: boolean;
   onCounted?: (number: string) => void;
 }) {
+  const t = useT();
   const [save, { isLoading }] = useCreateStockCountMutation();
   const run = useMutationToast();
   const form = useForm<CountValues, unknown, z.output<typeof countSchema>>({
@@ -191,7 +180,10 @@ export function StockCountSlideOver({
           items: v.items.map((i) => ({ materialId: i.materialId, countedQty: i.countedQty, ...(i.reason ? { reason: i.reason as CountReason } : {}), ...(i.note ? { note: i.note } : {}) })),
         }).unwrap(),
       {
-        success: (c) => `${c.number} saved — ${c.summary.withDifference} difference${c.summary.withDifference === 1 ? "" : "s"}`,
+        success: (c) =>
+          c.summary.withDifference === 1
+            ? t("procurement.stock.countSavedOne", { number: c.number })
+            : t("procurement.stock.countSavedMany", { number: c.number, n: c.summary.withDifference }),
         setError: form.setError,
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { REASON_REQUIRED: "reason" }),
       },
@@ -206,32 +198,34 @@ export function StockCountSlideOver({
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={`Stock count — ${locationName}`}
-      description="Count what is physically there. Differences are adjusted with your reason."
+      title={t("procurement.stock.countTitle", { location: locationName })}
+      description={t("procurement.stock.countDesc")}
       busy={isLoading}
-      footer={<FormActions formId="count-form" submitLabel="Save count" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="count-form" submitLabel={t("procurement.stock.saveCount")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="count-form">
         <LineItemsEditor
           name="items"
           columns={[
-            { key: "countedQty", label: "Counted", kind: "quantity", required: true, width: "w-40" },
-            { key: "note", label: "Note", kind: "text", width: "w-48" },
+            { key: "countedQty", label: t("field.counted"), kind: "quantity", required: true, width: "w-40" },
+            { key: "note", label: t("field.note"), kind: "text", width: "w-48" },
           ]}
           info={(row) => {
             if (!system || !row.materialId || !system.has(row.materialId)) return null;
             const counted = row.countedQty as string | null;
-            if (blind && counted === null) return "Enter your count to see the system quantity";
+            if (blind && counted === null) return t("procurement.stock.seeSystem");
             const sys = system.get(row.materialId)!;
             const diff = counted === null ? null : qtyDiff(counted, String(sys));
             const unit = (row as LineRow).material?.unit;
-            return `System: ${formatQty(sys, unit)}${diff ? ` · difference ${diff > 0 ? "+" : ""}${formatQty(diff, unit)}` : ""}`;
+            return diff
+              ? t("procurement.stock.systemDiff", { qty: formatQty(sys, unit), diff: `${diff > 0 ? "+" : ""}${formatQty(diff, unit)}` })
+              : t("procurement.stock.system", { qty: formatQty(sys, unit) });
           }}
           emptyRow={() => ({ materialId: null, countedQty: null, reason: null, note: "" })}
-          addLabel="Count another material"
+          addLabel={t("procurement.stock.countAnother")}
         />
         <CountReasons system={system} />
-        <TextareaField name="note" label="Note" rows={2} />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );

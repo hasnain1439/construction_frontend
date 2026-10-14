@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useRef, type KeyboardEvent } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 export interface Step {
@@ -20,7 +21,7 @@ export function StepTabs({
   steps,
   current,
   onSelect,
-  ariaLabel = "Steps",
+  ariaLabel,
   className,
 }: {
   steps: Step[];
@@ -29,6 +30,7 @@ export function StepTabs({
   ariaLabel?: string;
   className?: string;
 }) {
+  const t = useT();
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -45,7 +47,7 @@ export function StepTabs({
   };
 
   return (
-    <div role="tablist" aria-label={ariaLabel} className={cn("flex gap-1 overflow-x-auto rounded-2xl border border-transparent bg-card p-1.5 shadow-card", className)}>
+    <div role="tablist" aria-label={ariaLabel ?? t("app.components.steps.label")} className={cn("flex gap-1 overflow-x-auto rounded-2xl border border-transparent bg-card p-1.5 shadow-card", className)}>
       {steps.map((step, index) => {
         const active = step.id === current;
         return (
@@ -81,11 +83,11 @@ export function StepTabs({
                     : "border-border bg-card",
               )}
             >
-              {step.completed ? <Check className="size-4" aria-label="Completed" /> : step.id}
+              {step.completed ? <Check className="size-4" aria-label={t("app.components.steps.completed")} /> : step.id}
             </span>
             <span>{step.label}</span>
             {step.hasError ? (
-              <span className="absolute top-2 right-2 size-2 rounded-full bg-danger" aria-label="Has errors" role="img" />
+              <span className="absolute top-2 end-2 size-2 rounded-full bg-danger" aria-label={t("app.components.steps.hasErrors")} role="img" />
             ) : null}
           </button>
         );

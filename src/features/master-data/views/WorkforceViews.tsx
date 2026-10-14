@@ -1,5 +1,6 @@
 "use client";
 
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { HardHat, Pencil, Plus, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -26,17 +27,21 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatPhone } from "@/lib/phone";
-import { useT } from "@/i18n/useT";
-import { toOptions, TRADE_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
+import { TRADE_LABEL } from "@/lib/options";
 import { namesFromWorker } from "@/lib/workerTypes";
-import { activeToggleAction } from "../components/ActiveToggle";
+import { activeToggleAction, useActiveToggleLabels } from "../components/ActiveToggle";
 import { SubcontractorSlideOver, WorkerSlideOver } from "../components/WorkforceSlideOvers";
 import { useWorkerTypeName, useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
 
-const STATUS_OPTIONS = [
-  { value: "true", label: "Active" },
-  { value: "false", label: "Inactive" },
-];
+/** Active / Inactive filter options. */
+function useStatusOptions() {
+  const t = useT();
+  return [
+    { value: "true", label: t("common.active") },
+    { value: "false", label: t("common.inactive") },
+  ];
+}
 
 export function WorkersView() {
   const readOnly = useReadOnly();
@@ -53,13 +58,15 @@ export function WorkersView() {
   const [editing, setEditing] = useState<Worker | null>(null);
   const run = useMutationToast();
   const t = useT();
+  const toggleLabels = useActiveToggleLabels();
+  const statusOptions = useStatusOptions();
   const typeName = useWorkerTypeName();
   const { options: typeOptions } = useWorkerTypeOptions({ all: true });
 
   const columns: Column<Worker>[] = [
     {
       id: "name",
-      header: "Name",
+      header: t("field.name"),
       cell: (w) =>
         office ? (
           <Link href={`/workforce/workers/${w.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
@@ -76,15 +83,15 @@ export function WorkersView() {
       cell: (w) => <bdi>{typeName(w.type, namesFromWorker(w))}</bdi>,
       sortValue: (w) => typeName(w.type, namesFromWorker(w)),
     },
-    { id: "phone", header: "Phone", cell: (w) => <span className="tabular">{formatPhone(w.phone)}</span> },
+    { id: "phone", header: t("field.phone"), cell: (w) => <span className="tabular" dir="ltr">{formatPhone(w.phone)}</span> },
     {
       id: "rate",
-      header: "Daily rate",
+      header: t("workerTypes.dailyRate"),
       align: "right",
       cell: (w) => (canSeeRates ? <MoneyText paisa={w.dailyRatePaisa} /> : <HiddenForRole compact />),
       sortValue: (w) => Number(w.dailyRatePaisa),
     },
-    { id: "status", header: "Status", cell: (w) => <StatusBadge domain="active" value={w.isActive} /> },
+    { id: "status", header: t("field.status"), cell: (w) => <StatusBadge domain="active" value={w.isActive} /> },
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit,
@@ -92,13 +99,14 @@ export function WorkersView() {
         <RowActions
           name={w.name}
           actions={[
-            { label: "Edit", icon: Pencil, onSelect: () => setEditing(w) },
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(w) },
             activeToggleAction({
               name: w.name,
               isActive: w.isActive,
               loading: toggling,
-              consequence: "They can't be marked present on new hazri. Past records are kept.",
-              onToggle: (active) => run(() => setActive({ id: w.id, active }).unwrap(), { success: `${w.name} ${active ? "activated" : "deactivated"}` }),
+              labels: toggleLabels(w.name),
+              consequence: t("masterData.workers.consequence"),
+              onToggle: (active) => run(() => setActive({ id: w.id, active }).unwrap(), { success: t(active ? "masterData.common.activated" : "masterData.common.deactivated", { name: w.name }) }),
             }),
           ]}
         />
@@ -109,22 +117,25 @@ export function WorkersView() {
   return (
     <>
       <PageHeader
-        title="Workers Directory"
-        description="Daily-wage mistris and mazdoors."
-        breadcrumbs={[{ label: "Workforce" }, { label: "Workers Directory" }]}
+        title={t("masterData.workers.title")}
+        description={t("masterData.workers.description")}
+        breadcrumbs={[{ label: t("crumb.workforce") }, { label: t("masterData.workers.title") }]}
         actions={
-          canAdd ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus data-icon="inline-start" />
-              Add worker
-            </Button>
-          ) : null
+          <>
+            <ImportButton entity="workers" />
+            {canAdd ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.workers.add")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name or phone…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("masterData.workers.search")} />
         <FilterSelect label={t("common.type")} value={list.filters.type} onChange={(v) => list.setFilter("type", v)} options={typeOptions} />
-        <FilterSelect label="Status" value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={STATUS_OPTIONS} />
+        <FilterSelect label={t("field.status")} value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={statusOptions} />
       </FilterBar>
       <SectionCard flush>
         <DataTable
@@ -134,7 +145,7 @@ export function WorkersView() {
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          empty={{ title: "No workers found", description: "Add your mistris and mazdoors to mark hazri.", icon: HardHat }}
+          empty={{ title: t("masterData.workers.emptyTitle"), description: t("masterData.workers.emptyDesc"), icon: HardHat }}
           pagination={
             data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined
           }
@@ -154,6 +165,10 @@ export function WorkersView() {
 }
 
 export function SubcontractorsView() {
+  const t = useT();
+  const te = useEnumT();
+  const toggleLabels = useActiveToggleLabels();
+  const statusOptions = useStatusOptions();
   const readOnly = useReadOnly();
   const canCreate = useCan("masterdata.subcontractor.create") && !readOnly;
   const canEdit = useCan("masterdata.subcontractor.edit") && !readOnly;
@@ -168,7 +183,7 @@ export function SubcontractorsView() {
   const columns: Column<Subcontractor>[] = [
     {
       id: "name",
-      header: "Name",
+      header: t("field.name"),
       cell: (s) =>
         canOpen ? (
           <Link href={`/workforce/subcontractors/${s.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
@@ -179,10 +194,10 @@ export function SubcontractorsView() {
         ),
       sortValue: (s) => s.name,
     },
-    { id: "trade", header: "Trade", cell: (s) => TRADE_LABEL[s.trade] ?? s.trade, sortValue: (s) => s.trade },
-    { id: "phone", header: "Phone", cell: (s) => <span className="tabular">{formatPhone(s.phone)}</span> },
-    { id: "notes", header: "Notes", cell: (s) => <span className="line-clamp-1 text-muted-foreground">{s.notes ?? "—"}</span> },
-    { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
+    { id: "trade", header: t("masterData.common.trade"), cell: (s) => te("trade", s.trade), sortValue: (s) => s.trade },
+    { id: "phone", header: t("field.phone"), cell: (s) => <span className="tabular" dir="ltr">{formatPhone(s.phone)}</span> },
+    { id: "notes", header: t("field.notes"), cell: (s) => <span className="line-clamp-1 text-muted-foreground">{s.notes ?? "—"}</span> },
+    { id: "status", header: t("field.status"), cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit,
@@ -190,13 +205,14 @@ export function SubcontractorsView() {
         <RowActions
           name={s.name}
           actions={[
-            { label: "Edit", icon: Pencil, onSelect: () => setEditing(s) },
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(s) },
             activeToggleAction({
               name: s.name,
               isActive: s.isActive,
               loading: toggling,
-              consequence: "They won't be offered for new work measurements. Past accounts are kept.",
-              onToggle: (active) => run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` }),
+              labels: toggleLabels(s.name),
+              consequence: t("masterData.subcontractors.consequence"),
+              onToggle: (active) => run(() => setActive({ id: s.id, active }).unwrap(), { success: t(active ? "masterData.common.activated" : "masterData.common.deactivated", { name: s.name }) }),
             }),
           ]}
         />
@@ -207,22 +223,30 @@ export function SubcontractorsView() {
   return (
     <>
       <PageHeader
-        title="Sub-contractors"
-        description="Teams paid by measured work — shuttering, steel fixing, plaster …"
-        breadcrumbs={[{ label: "Workforce" }, { label: "Sub-contractors" }]}
+        title={t("masterData.subcontractors.title")}
+        description={t("masterData.subcontractors.description")}
+        breadcrumbs={[{ label: t("crumb.workforce") }, { label: t("masterData.subcontractors.title") }]}
         actions={
-          canCreate ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus data-icon="inline-start" />
-              Add sub-contractor
-            </Button>
-          ) : null
+          <>
+            <ImportButton entity="subcontractors" />
+            {canCreate ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.subcontractors.add")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name…" />
-        <FilterSelect label="Trade" value={list.filters.trade} onChange={(v) => list.setFilter("trade", v)} options={toOptions(TRADE_LABEL)} />
-        <FilterSelect label="Status" value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={STATUS_OPTIONS} />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("masterData.subcontractors.search")} />
+        <FilterSelect
+          label={t("masterData.common.trade")}
+          value={list.filters.trade}
+          onChange={(v) => list.setFilter("trade", v)}
+          options={Object.keys(TRADE_LABEL).map((value) => ({ value, label: te("trade", value) }))}
+        />
+        <FilterSelect label={t("field.status")} value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={statusOptions} />
       </FilterBar>
       <SectionCard flush>
         <DataTable
@@ -232,7 +256,7 @@ export function SubcontractorsView() {
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          empty={{ title: "No sub-contractors found", description: "Add the teams you give piece-rate work to.", icon: UsersRound }}
+          empty={{ title: t("masterData.subcontractors.emptyTitle"), description: t("masterData.subcontractors.emptyDesc"), icon: UsersRound }}
           pagination={
             data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined
           }

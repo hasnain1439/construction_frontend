@@ -17,20 +17,21 @@ import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
+import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate, formatDateTime, todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
-import { ROLE_LABEL } from "@/lib/options";
 import { addDays } from "@/lib/weeks";
 
-export const CONDITION_LABEL: Record<SiteCondition, { label: string; icon: string }> = {
-  NORMAL: { label: "Normal", icon: "☀️" },
-  RAIN: { label: "Rain", icon: "🌧️" },
-  POWER_CUT: { label: "Power cut", icon: "🔌" },
-  WATER_SHORTAGE: { label: "No water", icon: "🚱" },
-  CURING: { label: "Curing", icon: "💧" },
-  LABOUR_SHORT: { label: "Labour short", icon: "👷" },
-  MATERIAL_SHORT: { label: "Material short", icon: "🧱" },
-  OTHER: { label: "Other", icon: "•" },
+/** Icon shown before each site condition; the label is `enum.siteCondition.*`. */
+export const CONDITION_ICON: Record<SiteCondition, string> = {
+  NORMAL: "☀️",
+  RAIN: "🌧️",
+  POWER_CUT: "🔌",
+  WATER_SHORTAGE: "🚱",
+  CURING: "💧",
+  LABOUR_SHORT: "👷",
+  MATERIAL_SHORT: "🧱",
+  OTHER: "•",
 };
 
 /** Logs grouped by day, newest first. */
@@ -42,6 +43,7 @@ export function groupByDay(logs: DailyLog[]): Array<[string, DailyLog[]]> {
 
 /** Project → Site → Daily Logs & Photos: what the munshi wrote each day, with photos and voice notes. */
 export function DailyLogsView({ projectId }: { projectId: string }) {
+  const t = useT();
   const today = todayPK();
   const [range, setRange] = useState<DateRange>({ from: addDays(today, -13), to: today });
   const logs = useGetDailyLogsQuery({
@@ -57,8 +59,8 @@ export function DailyLogsView({ projectId }: { projectId: string }) {
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Daily Logs & Photos"
-      actions={() => <DateRangePicker value={range} onChange={setRange} label="Any date" />}
+      crumb={t("cashSite.site.crumbDailyLogs")}
+      actions={() => <DateRangePicker value={range} onChange={setRange} label={t("common.anyDate")} />}
     >
       {() => (
         <>
@@ -68,18 +70,14 @@ export function DailyLogsView({ projectId }: { projectId: string }) {
             <ErrorState error={logs.error} onRetry={logs.refetch} />
           ) : groups.length === 0 ? (
             <SectionCard>
-              <EmptyState
-                icon={NotebookPen}
-                title="No daily logs in these dates"
-                description="The munshi writes the daily log from the phone app — conditions, work done, photos and a voice note."
-              />
+              <EmptyState icon={NotebookPen} title={t("cashSite.site.noLogs")} description={t("cashSite.site.noLogsDesc")} />
             </SectionCard>
           ) : (
             groups.map(([day, entries]) => (
               <SectionCard
                 key={day}
                 title={formatDate(day)}
-                description={`${entries.length} log${entries.length > 1 ? "s" : ""}`}
+                description={t(entries.length === 1 ? "cashSite.site.oneLog" : "cashSite.site.nLogs", { n: entries.length })}
                 flush
               >
                 <ul className="divide-y">
@@ -112,28 +110,30 @@ function DailyLogItem({
   onSummary: () => void;
   onPhoto: (index: number) => void;
 }) {
+  const t = useT();
+  const te = useEnumT();
   return (
     <li className="space-y-3 px-5 py-4" data-testid={`log-${log.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <AvatarName
           name={log.author.name}
-          subtitle={`${ROLE_LABEL[log.author.role]} · ${formatDateTime(log.updatedAt)}`}
+          subtitle={`${t(`role.${log.author.role}`)} · ${formatDateTime(log.updatedAt)}`}
         />
         <div className="flex flex-wrap items-center gap-1.5">
           {log.lateSync ? <LateSyncBadge /> : null}
           <Button size="sm" variant="outline" onClick={onSummary}>
             <ClipboardList data-icon="inline-start" />
-            Day summary
+            {t("cashSite.site.daySummary")}
           </Button>
         </div>
       </div>
       {log.conditions.length ? (
-        <div className="flex flex-wrap gap-1.5" aria-label="Site conditions">
+        <div className="flex flex-wrap gap-1.5" aria-label={t("cashSite.site.siteConditions")}>
           {log.conditions.map((c) => (
             <StatusBadge
               key={c}
               tone={c === "NORMAL" ? "success" : "warning"}
-              label={`${CONDITION_LABEL[c].icon} ${CONDITION_LABEL[c].label}`}
+              label={`${CONDITION_ICON[c] ?? "•"} ${te("siteCondition", c)}`}
             />
           ))}
         </div>
@@ -141,14 +141,14 @@ function DailyLogItem({
       {log.workDone ? <p className="text-sm whitespace-pre-line">{log.workDone}</p> : null}
       {log.note ? <p className="text-sm whitespace-pre-line text-muted-foreground">{log.note}</p> : null}
       {log.photos.length ? (
-        <div className="flex flex-wrap gap-2" aria-label="Photos">
+        <div className="flex flex-wrap gap-2" aria-label={t("cashSite.site.photos")}>
           {log.photos.map((p, i) => (
             <button
               key={p.id}
               type="button"
               onClick={() => onPhoto(i)}
               className="size-24 overflow-hidden rounded-lg border bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-              aria-label={`Open photo ${i + 1} of ${log.photos.length}`}
+              aria-label={t("cashSite.site.openPhoto", { n: i + 1, total: log.photos.length })}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- signed, short-lived storage URLs */}
               <img src={p.thumbUrl ?? p.url} alt="" className="size-full object-cover" loading="lazy" />
@@ -157,7 +157,7 @@ function DailyLogItem({
         </div>
       ) : null}
       {log.voiceNotes.length ? (
-        <div className="space-y-2" aria-label="Voice notes">
+        <div className="space-y-2" aria-label={t("cashSite.site.voiceNotes")}>
           {log.voiceNotes.map((v, i) => (
             <div key={v.id} className="flex items-center gap-2">
               <Mic className="size-4 text-muted-foreground" aria-hidden />
@@ -166,7 +166,7 @@ function DailyLogItem({
                 preload="none"
                 src={v.url}
                 className="h-9 max-w-full"
-                aria-label={`Voice note ${i + 1}`}
+                aria-label={t("cashSite.site.voiceNote", { n: i + 1 })}
               />
             </div>
           ))}
@@ -174,8 +174,7 @@ function DailyLogItem({
       ) : null}
       {log.deviceCreatedAt && log.lateSync ? (
         <p className="text-xs text-muted-foreground">
-          Written on the phone {formatDateTime(log.deviceCreatedAt)} · reached the office{" "}
-          {formatDateTime(log.createdAt)}
+          {t("cashSite.site.writtenOnPhone", { device: formatDateTime(log.deviceCreatedAt), created: formatDateTime(log.createdAt) })}
         </p>
       ) : null}
     </li>
@@ -183,13 +182,14 @@ function DailyLogItem({
 }
 
 function DaySummarySlideOver({ logId, onClose }: { logId: string | null; onClose: () => void }) {
+  const t = useT();
   const detail = useGetDailyLogQuery(logId ?? "", { skip: !logId });
   const d = detail.data;
   return (
     <SlideOver
       open={Boolean(logId)}
       onOpenChange={(o) => (!o ? onClose() : undefined)}
-      title={d ? `Day summary · ${formatDate(d.logDate)}` : "Day summary"}
+      title={d ? t("cashSite.site.daySummaryOn", { date: formatDate(d.logDate) }) : t("cashSite.site.daySummary")}
       description={d?.project.name}
     >
       {detail.isFetching && !d ? (
@@ -197,15 +197,15 @@ function DaySummarySlideOver({ logId, onClose }: { logId: string | null; onClose
       ) : d ? (
         <div className="space-y-6">
           <section className="space-y-2">
-            <h3 className="text-sm font-semibold">Hazri</h3>
+            <h3 className="text-sm font-semibold">{t("cashSite.site.hazri")}</h3>
             <div className="grid grid-cols-3 gap-2 text-center">
-              <Stat label="Present" value={d.summary.hazri.present} />
-              <Stat label="Half day" value={d.summary.hazri.half} />
-              <Stat label="Absent" value={d.summary.hazri.absent} />
+              <Stat label={t("cashSite.site.present")} value={d.summary.hazri.present} />
+              <Stat label={t("cashSite.site.halfDay")} value={d.summary.hazri.half} />
+              <Stat label={t("cashSite.site.absent")} value={d.summary.hazri.absent} />
             </div>
           </section>
           <section className="space-y-2">
-            <h3 className="text-sm font-semibold">Material used</h3>
+            <h3 className="text-sm font-semibold">{t("cashSite.site.materialUsed")}</h3>
             {d.summary.usage.length ? (
               <ul className="divide-y rounded-lg border text-sm">
                 {d.summary.usage.map((u) => (
@@ -216,23 +216,23 @@ function DaySummarySlideOver({ logId, onClose }: { logId: string | null; onClose
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">No usage recorded this day.</p>
+              <p className="text-sm text-muted-foreground">{t("cashSite.site.noUsageThisDay")}</p>
             )}
           </section>
           <section className="space-y-2">
-            <h3 className="text-sm font-semibold">
-              Kharcha {d.summary.kharcha.scope === "MINE" ? "(mine)" : ""}
-            </h3>
+            <h3 className="text-sm font-semibold">{d.summary.kharcha.scope === "MINE" ? t("cashSite.site.kharchaMine") : t("cashSite.site.kharcha")}</h3>
             <p className="flex items-baseline justify-between text-sm">
-              <span className="text-muted-foreground">{d.summary.kharcha.entries} entries</span>
+              <span className="text-muted-foreground">
+                {t(d.summary.kharcha.entries === 1 ? "cashSite.site.oneEntry" : "cashSite.site.nEntries", { n: d.summary.kharcha.entries })}
+              </span>
               <MoneyText paisa={d.summary.kharcha.totalPaisa} />
             </p>
           </section>
           {d.photos.length ? (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Images className="size-3.5" aria-hidden /> {d.photos.length} photo
-              {d.photos.length > 1 ? "s" : ""} · {d.voiceNotes.length} voice note
-              {d.voiceNotes.length === 1 ? "" : "s"}
+              <Images className="size-3.5" aria-hidden />
+              {t(d.photos.length === 1 ? "cashSite.site.onePhoto" : "cashSite.site.nPhotos", { n: d.photos.length })} ·{" "}
+              {t(d.voiceNotes.length === 1 ? "cashSite.site.oneVoiceNote" : "cashSite.site.nVoiceNotes", { n: d.voiceNotes.length })}
             </p>
           ) : null}
         </div>
@@ -259,6 +259,7 @@ function PhotoLightbox({
   gallery: { photos: DailyLogFile[]; index: number } | null;
   onChange: (g: { photos: DailyLogFile[]; index: number } | null) => void;
 }) {
+  const t = useT();
   const photo = gallery ? gallery.photos[gallery.index] : undefined;
   const step = (by: number) =>
     gallery &&
@@ -266,26 +267,26 @@ function PhotoLightbox({
   return (
     <Dialog open={Boolean(photo)} onOpenChange={(o) => (!o ? onChange(null) : undefined)}>
       <DialogContent className="max-w-3xl p-2">
-        <DialogTitle className="sr-only">Site photo</DialogTitle>
+        <DialogTitle className="sr-only">{t("cashSite.site.sitePhoto")}</DialogTitle>
         {photo ? (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element -- signed, short-lived storage URLs */}
             <img
               src={photo.url}
-              alt={`Site photo ${gallery!.index + 1}`}
+              alt={t("cashSite.site.sitePhotoN", { n: gallery!.index + 1 })}
               className="max-h-[80vh] w-full rounded-md object-contain"
             />
             {gallery!.photos.length > 1 ? (
               <div className="absolute inset-x-2 top-1/2 flex -translate-y-1/2 justify-between">
-                <Button size="icon" variant="secondary" aria-label="Previous photo" onClick={() => step(-1)}>
-                  <ChevronLeft />
+                <Button size="icon" variant="secondary" aria-label={t("cashSite.site.previousPhoto")} onClick={() => step(-1)}>
+                  <ChevronLeft className="rtl:-scale-x-100" />
                 </Button>
-                <Button size="icon" variant="secondary" aria-label="Next photo" onClick={() => step(1)}>
-                  <ChevronRight />
+                <Button size="icon" variant="secondary" aria-label={t("cashSite.site.nextPhoto")} onClick={() => step(1)}>
+                  <ChevronRight className="rtl:-scale-x-100" />
                 </Button>
               </div>
             ) : null}
-            <p className="pt-2 text-center text-xs text-muted-foreground">
+            <p className="pt-2 text-center text-xs text-muted-foreground" dir="ltr">
               {gallery!.index + 1} / {gallery!.photos.length}
             </p>
           </div>

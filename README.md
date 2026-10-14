@@ -114,15 +114,44 @@ tests/unit/ · e2e/
 
 ## Languages (English · Roman Urdu · Urdu)
 
-- Picked with `LanguageMenu` (top bar; user menu on phones). Stored with the other UI prefs in localStorage;
-  Urdu sets `dir="rtl"` on `<html>`, so the shell uses logical spacing (`ms-` / `me-` / `start-` / `end-`).
-- **Dictionaries** — `src/i18n/en.ts` (source of keys), `roman-ur.ts`, `ur.ts`; both must have every key of `en` (typed).
-- **Adding a string** — add the key to all three files, then `const t = useT(); t("dashboard.atRisk", { n })`.
-  Enum values (project status, payment method, worker type, notifications) use `useEnumT()` with `enum.*` keys.
-  A missing key falls back to English, then to the key itself.
-- **Navigation labels** — in `src/lib/navigation.ts` with `L(en, romanUrdu, urdu)`.
-- **Translated so far:** the shell (rail, flyouts, top bar, footer, menus), the dashboard, Worker Types and the invite
-  share panel. **Not yet:** most other pages (lists, forms, project screens, reports) are still English.
+The whole company app is in three languages; the platform admin console (`/admin`) stays English.
+
+- **Picking** — `LanguageMenu` (top bar; user menu on phones). The choice is kept in this browser (`cw.ui` +
+  `cw.languageChosen` in localStorage) and saved on the account with `PATCH /auth/me/preferences { language }`
+  (`useChangeLanguage`). After sign-in, the account's language (`/auth/me` → `language`, else `user.language`)
+  is used only when this browser has no choice of its own (`useAfterLogin`). API codes `en` / `roman` / `ur` map to
+  the UI codes `en` / `roman-ur` / `ur` in `src/lib/languagePreference.ts`. An API without the endpoint (404/405)
+  is skipped for the rest of the tab — nothing breaks.
+- **Right-to-left** — Urdu sets `dir="rtl"` and `lang` on `<html>` and switches to Noto Nastaliq Urdu. Use logical
+  classes only (`ms-` / `me-` / `ps-` / `pe-` / `start-` / `end-` / `text-start` / `border-s`); directional icons
+  (chevrons, arrows) get `rtl:-scale-x-100`; amounts (`MoneyText` is `dir="ltr"`), phone numbers, codes and
+  "12 × 30 ft" sizes are isolated with `dir="ltr"` / `<bdi>` so they don't reorder. `formatDate` / `formatDateTime` / `formatMonth` and the week helpers wrap their text in invisible left-to-right isolates (`isolateLtr`, only while the page is RTL), so "7 Oct 2026" never shows as "Oct 2026 7".
+- **Dictionaries** — `src/i18n/en.ts` is the source of keys; `roman-ur.ts` and `ur.ts` must have the same keys
+  (typed). Each area has its own files in `src/i18n/areas/<area>/{en,roman-ur,ur}.ts` (`shared`, `app` — auth,
+  dashboard, shared components —, `projects`, `procurement`, `labor`, `masterData`, `billing`, `cashSite`,
+  `teamCompany`), merged into the three main files. Area `strings` are read as `t("<area>.…")`, area `enums` join
+  `enum.*`.
+- **Shared words** (`areas/shared`): `field.*` (Amount, Date, Note …), `action.*`, `crumb.*` (breadcrumb sections),
+  `validation.*`, `passwordStrength.*`, `status.<domain>.<VALUE>` for every status badge, and enum groups such as
+  `trade`, `region`, `laborUnit`, `billingModel`, `holidayType`, `platform`, `walletMethod`.
+- **Using them** — `const t = useT(); t("dashboard.atRisk", { n })` (`{name}` placeholders);
+  `useEnumT()` → `te("projectStatus", value)` for enum values from the API; `useStatusT()` → `ts("purchase", status)`
+  (`<StatusBadge domain value />` translates itself). Module-level config stores keys (`TranslationKey`) and calls
+  `t()` where it renders. Navigation labels stay in `src/lib/navigation.ts` with `L(en, romanUrdu, urdu)`.
+- **Form messages** — zod schemas can't call hooks: `msg("validation.required", { label: "field.amount" })`
+  (`src/i18n/message.ts`) encodes a key and its values; `useFieldError` / FormField show it in the current language
+  (values that are keys are translated too). Render other messages with `useMessageT()`. The helpers in
+  `src/lib/validation.ts` take a dictionary key as the field label.
+- **Writing** — Roman Urdu is plain spoken Urdu with the construction words people really use (site, stock, bill,
+  cheque, hazri, peshgi, udhaar, kharcha). Urdu is real Urdu script — no Latin words except Rs, PKR, kg, OTP, PDF, SMS,
+  CSV, Excel, WhatsApp, OT, BoQ, IBFT, NTN, CNIC, MB.
+- **Tests that keep it complete** — `tests/unit/i18n/dictionaries.test.ts` fails when roman-ur or ur miss a key of
+  `en`, have extra keys or empty texts, change `{placeholders}`, or when Urdu still has English in it.
+  `tests/unit/i18n/literals.test.ts` scans every `.ts`/`.tsx` file of the company app (`src/features`,
+  `src/components`, `src/app`; the admin console and `components/ui` excluded) for hard-coded text: JSX text, text
+  props (label, title, placeholder, aria-label, header …), toasts and zod messages. Text that is the same in every
+  language on purpose (the language names in LanguageMenu) is marked `// i18n-ignore`.
+- Browser tab titles (`export const metadata`) are rendered on the server and stay English.
 
 ## Responsive layout
 
@@ -245,6 +274,15 @@ Site entries now also come from the **Munshi phone app** (`../construction-mobil
 | Hazri (grid and today), Kharcha entries, Purchases list + detail, Dispatch (gate pass) detail | **📱 late sync** badge / marker (`LateSyncBadge`, title explains it) when the API sends `lateSync: true` — the entry reached the server more than 48 h after it was made on a phone                                                                                                                                                                                                                                                                         | as before               |
 
 New: `components/common/LateSyncBadge.tsx`, `features/site/DailyLogsView.tsx`, `api/services/dailyLogs.api.ts` (`getDailyLogs`, `getDailyLog`, `getSyncStatus`; tags `DailyLogs`, `SyncStatus`), `api/types/sync.ts`, endpoints `ENDPOINTS.dailyLogs.*` and `ENDPOINTS.sync.status`. `lateSync?: boolean` was added to `AttendanceMark`, today's hazri rows, `CashEntry`, `Purchase`, `PurchaseListRow` and `Dispatch`. Navigation: _Daily Logs & Photos_ is now available. API types regenerated (`npm run api:types`).
+
+## Onboarding & data import (Pilot · Part 7)
+
+`src/features/onboarding`, API `src/api/services/onboarding.api.ts`.
+
+- **Setup checklist** (`SetupChecklist`, dashboard, owner only — `company.settings.manage`): progress bar (drawn by width, so it fills from the start side in RTL too), one link per step from `GET /onboarding/checklist` (logo → Settings → Company, rates → Price list + "My rates are fine", team → invite, workers / suppliers → their page with `?new=1` or "or import from Excel" → `?import=1`, first project), a link to Opening balances, demo data controls, and **Hide** (`POST /onboarding/checklist/dismiss`, per company). It replaces the old static "Get started" card. When hidden, only "Remove demo data" stays while a demo exists.
+- **Import wizard** (`ImportWizard` / `ImportButton`): an "Import" button in the header of Workers, Sub-contractors, Suppliers, Materials and Clients (shown with that entity's create permission; also opens from `?import=1`). Steps: download the template → choose an .xlsx / .csv → preview (`POST /imports/:entity/preview`) as a DataTable with the problem cells underlined in red and a Problems column, "Only rows with problems" filter → Import. **All-or-nothing**: the Import button stays at 0 rows while any row has a problem unless "Import only the N good rows" is ticked. The file stays in the browser and is sent again on import (the API keeps nothing between preview and commit). Column names come from the API in all three languages.
+- **Settings → Opening balances** (`/settings/opening-balances`, `company.opening.manage`): list of entered (locked) balances and a SlideOver form — supplier udhaar, cash in hand (munshi / PM), store stock (quantity × rate) or worker peshgi (worker + project); items that already have one are not offered again.
+- **Demo data**: "Try with demo data" / "Remove demo data" (with a confirmation) on the checklist; `DemoBadge` ("DEMO") on the demo project in the projects table / cards, the project header and the rail; `DemoProjectBanner` on the demo project's pages.
 
 ## Roles & permissions
 

@@ -16,20 +16,21 @@ import { FormField, useFieldError } from "@/components/forms/FormField";
 import { OtpInput } from "@/components/forms/OtpInput";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { TextField } from "@/components/forms/TextField";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { applyFieldErrors, companyChoices, errorCode, getErrorMessage } from "@/lib/apiErrors";
 import { AuthCard } from "../components/AuthLayout";
 import { CompanyPicker } from "../components/CompanyPicker";
 import { resetSchema } from "../schemas";
 
 function CodeField() {
+  const t = useT();
   const error = useFieldError("code");
   return (
-    <FormField label="Reset code" required error={error}>
+    <FormField label={t("app.auth.resetCode")} required error={error}>
       {() => (
         <Controller
           name="code"
-          render={({ field }) => <OtpInput value={field.value as string} onChange={field.onChange} invalid={Boolean(error)} label="Reset code" />}
+          render={({ field }) => <OtpInput value={field.value as string} onChange={field.onChange} invalid={Boolean(error)} label={t("app.auth.resetCode")} />}
         />
       )}
     </FormField>
@@ -37,6 +38,7 @@ function CodeField() {
 }
 
 export function ResetPasswordView() {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,7 +57,7 @@ export function ResetPasswordView() {
     setPickedTenant(tenantId ?? null);
     try {
       await reset({ login: input.login, code: input.code, newPassword: input.newPassword, tenantId }).unwrap();
-      toast.success("Password changed. Sign in with your new password.");
+      toast.success(t("app.auth.passwordChanged"));
       router.replace("/login");
     } catch (err) {
       if (errorCode(err) === "MULTIPLE_COMPANIES") {
@@ -72,27 +74,27 @@ export function ResetPasswordView() {
 
   return (
     <AuthCard
-      title="Set a new password"
-      description="Enter the code we sent you and choose a new password. You'll be signed out everywhere."
+      title={t("app.auth.resetTitle")}
+      description={t("app.auth.resetDesc")}
       footer={
         <Link href="/forgot-password" className="font-medium text-primary hover:underline">
-          Didn&apos;t get a code? Send again
+          {t("app.auth.noCodeSendAgain")}
         </Link>
       }
     >
       {companies && values ? (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">This number belongs to more than one company. Which account?</p>
+          <p className="text-sm text-muted-foreground">{t("app.auth.whichAccount")}</p>
           <CompanyPicker companies={companies} onPick={(tenantId) => void send(values, tenantId)} pendingTenantId={isLoading ? pickedTenant : null} />
         </div>
       ) : (
         <Form form={form} onSubmit={(v) => send(v)}>
           {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-          <TextField name="login" label="Email or phone" required autoComplete="username" />
+          <TextField name="login" label={t("app.auth.emailOrPhone")} required autoComplete="username" />
           <CodeField />
-          <PasswordField name="newPassword" label="New password" required autoComplete="new-password" showStrength />
-          <PasswordField name="confirmPassword" label="Confirm new password" required autoComplete="new-password" />
-          <FormActions submitLabel="Change password" loading={isLoading} fullWidth />
+          <PasswordField name="newPassword" label={t("app.auth.newPassword")} required autoComplete="new-password" showStrength />
+          <PasswordField name="confirmPassword" label={t("app.auth.confirmNewPassword")} required autoComplete="new-password" />
+          <FormActions submitLabel={t("app.auth.changePassword")} loading={isLoading} fullWidth />
         </Form>
       )}
     </AuthCard>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/useT";
 import { formatDateTime } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
 import { formatQty } from "@/lib/quantity";
@@ -33,7 +34,7 @@ export function LedgerTable({
   error,
   onRetry,
   pagination,
-  empty = { title: "No entries yet", description: "Entries appear here as they happen." },
+  empty,
   inLabel,
   outLabel,
 }: {
@@ -48,15 +49,16 @@ export function LedgerTable({
   inLabel?: string;
   outLabel?: string;
 }) {
+  const t = useT();
   const isPositive = (v: string | number) => (typeof v === "number" ? v > 0 : !v.startsWith("-") && v !== "0");
   const abs = (v: string | number) => (typeof v === "number" ? Math.abs(v) : v.replace(/^-/, ""));
   const show = (v: string | number | null) => (v === null ? "—" : kind === "money" ? formatPKR(v) : formatQty(v, unit));
 
   const columns: Column<LedgerRow>[] = [
-    { id: "date", header: "Date", cell: (r) => <span className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.date)}</span> },
+    { id: "date", header: t("field.date"), cell: (r) => <span className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.date)}</span> },
     {
       id: "entry",
-      header: "Entry",
+      header: t("field.entry"),
       cell: (r) => (
         <div className="min-w-0">
           <p className="font-medium">{r.title}</p>
@@ -64,15 +66,15 @@ export function LedgerTable({
         </div>
       ),
     },
-    { id: "in", header: inLabel ?? (kind === "money" ? "Debit (udhaar +)" : "In"), align: "right", cell: (r) => (isPositive(r.amount) ? <span className="tabular">{show(abs(r.amount))}</span> : null) },
+    { id: "in", header: inLabel ?? (kind === "money" ? t("app.components.ledger.debit") : t("app.components.ledger.in")), align: "right", cell: (r) => (isPositive(r.amount) ? <span className="tabular">{show(abs(r.amount))}</span> : null) },
     {
       id: "out",
-      header: outLabel ?? (kind === "money" ? "Credit (paid / returned)" : "Out"),
+      header: outLabel ?? (kind === "money" ? t("app.components.ledger.credit") : t("app.components.ledger.out")),
       align: "right",
       cell: (r) => (!isPositive(r.amount) && abs(r.amount) !== "0" && r.amount !== 0 ? <span className="tabular text-success">{show(abs(r.amount))}</span> : null),
     },
-    { id: "balance", header: "Balance", align: "right", cell: (r) => <span className="font-semibold tabular">{show(r.balance)}</span> },
+    { id: "balance", header: t("field.balance"), align: "right", cell: (r) => <span className="font-semibold tabular">{show(r.balance)}</span> },
   ];
 
-  return <DataTable rows={rows} columns={columns} getRowId={(r) => r.id} loading={loading} error={error} onRetry={onRetry} pagination={pagination} clientPageSize={0} empty={empty} />;
+  return <DataTable rows={rows} columns={columns} getRowId={(r) => r.id} loading={loading} error={error} onRetry={onRetry} pagination={pagination} clientPageSize={0} empty={empty ?? { title: t("app.components.ledger.empty"), description: t("app.components.ledger.emptyDesc") }} />;
 }

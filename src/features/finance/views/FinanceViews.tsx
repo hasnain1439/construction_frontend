@@ -20,6 +20,7 @@ import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMonth } from "@/lib/dates";
 import { formatPKRShort, sumPaisa } from "@/lib/money";
@@ -32,48 +33,49 @@ type Horizon = "3" | "6" | "12";
 
 /** Finance → Cash Flow Outlook: an honest estimate with its rules shown, never hidden. */
 export function CashFlowView() {
+  const t = useT();
   const [months, setMonths] = useState<Horizon>("6");
   const q = useGetCashFlowQuery({ months: Number(months) }, { refetchOnMountOrArgChange: 60 });
   const columns: Column<CashFlowMonth>[] = [
-    { id: "month", header: "Month", cell: (m) => <span className="font-medium">{formatMonth(m.month)}</span> },
+    { id: "month", header: t("billing.finance.colMonth"), cell: (m) => <span className="font-medium">{formatMonth(m.month)}</span> },
     {
       id: "in",
-      header: "Expected in",
+      header: t("billing.finance.expectedIn"),
       align: "right",
       cell: (m) => (
         <span>
           <MoneyText paisa={m.expectedReceipts.totalPaisa} className="font-semibold text-success" />
           <span className="block text-xs text-muted-foreground">
-            invoices {formatPKRShort(m.expectedReceipts.invoicesPaisa)} · stages {formatPKRShort(m.expectedReceipts.stagesPaisa)}
+            {t("billing.finance.inBreakdown", { invoices: formatPKRShort(m.expectedReceipts.invoicesPaisa), stages: formatPKRShort(m.expectedReceipts.stagesPaisa) })}
           </span>
         </span>
       ),
     },
     {
       id: "out",
-      header: "Planned out",
+      header: t("billing.finance.plannedOut"),
       align: "right",
       cell: (m) => (
         <span>
           <MoneyText paisa={m.plannedOutflows.totalPaisa} className="font-semibold text-warning" />
           <span className="block text-xs text-muted-foreground">
-            suppliers {formatPKRShort(m.plannedOutflows.suppliersPaisa)} · wages {formatPKRShort(m.plannedOutflows.wagesPaisa)} · sub-contract {formatPKRShort(m.plannedOutflows.subcontractPaisa)} · kharcha {formatPKRShort(m.plannedOutflows.expensesPaisa)}
+            {t("billing.finance.outBreakdown", { suppliers: formatPKRShort(m.plannedOutflows.suppliersPaisa), wages: formatPKRShort(m.plannedOutflows.wagesPaisa), subcontract: formatPKRShort(m.plannedOutflows.subcontractPaisa), kharcha: formatPKRShort(m.plannedOutflows.expensesPaisa) })}
           </span>
         </span>
       ),
     },
-    { id: "net", header: "Net", align: "right", cell: (m) => <MoneyText paisa={m.netPaisa} className={cn("font-semibold", negative(m.netPaisa) ? "text-danger" : "text-success")} /> },
-    { id: "own", header: "Own money after", align: "right", cell: (m) => <MoneyText paisa={m.ownMoneyInvestedAfterPaisa} /> },
+    { id: "net", header: t("billing.finance.net"), align: "right", cell: (m) => <MoneyText paisa={m.netPaisa} className={cn("font-semibold", negative(m.netPaisa) ? "text-danger" : "text-success")} /> },
+    { id: "own", header: t("billing.finance.ownMoneyAfter"), align: "right", cell: (m) => <MoneyText paisa={m.ownMoneyInvestedAfterPaisa} /> },
   ];
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Cash Flow Outlook"
-        description="Estimate — what is expected to come in and go out, from today’s data."
-        breadcrumbs={[{ label: "Finance" }, { label: "Cash Flow Outlook" }]}
-        actions={<SegmentedControl<Horizon> ariaLabel="Months ahead" value={months} onChange={setMonths} options={[{ value: "3", label: "3 months" }, { value: "6", label: "6 months" }, { value: "12", label: "12 months" }]} />}
+        title={t("billing.finance.cashFlowTitle")}
+        description={t("billing.finance.cashFlowDesc")}
+        breadcrumbs={[{ label: t("crumb.finance") }, { label: t("billing.finance.cashFlowTitle") }]}
+        actions={<SegmentedControl<Horizon> ariaLabel={t("billing.finance.monthsAhead")} value={months} onChange={setMonths} options={(["3", "6", "12"] as const).map((n) => ({ value: n, label: t("billing.finance.nMonths", { n }) }))} />}
       />
-      <InlineAlert tone="info">This is an estimate, not a forecast you can bank on — see “How this is estimated” below.</InlineAlert>
+      <InlineAlert tone="info">{t("billing.finance.estimateNote")}</InlineAlert>
       <QueryState query={q} skeleton={<CardsSkeleton count={4} height="h-32" />}>
         {(d) => {
           const totalIn = sumPaisa(d.months.map((m) => m.expectedReceipts.totalPaisa));
@@ -82,14 +84,14 @@ export function CashFlowView() {
           return (
             <>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <KpiCard label="Expected in" icon={ArrowDownRight} tone="success" value={formatPKRShort(totalIn)} hint={`${d.months.length} months`} />
-                <KpiCard label="Planned out" icon={ArrowUpRight} tone="warning" value={formatPKRShort(totalOut)} hint="Suppliers + wages + sub-contract + kharcha" />
-                <KpiCard label="Net" icon={Scale} tone={negative(net) ? "danger" : "success"} value={formatPKRShort(net)} />
-                <KpiCard label="Own money invested" icon={Wallet} value={formatPKRShort(d.openingOwnMoneyInvestedPaisa)} hint={`→ ${formatPKRShort(d.closingOwnMoneyInvestedPaisa)} by ${formatMonth(d.months.at(-1)?.month ?? "")}`} />
+                <KpiCard label={t("billing.finance.expectedIn")} icon={ArrowDownRight} tone="success" value={formatPKRShort(totalIn)} hint={t("billing.finance.nMonths", { n: d.months.length })} />
+                <KpiCard label={t("billing.finance.plannedOut")} icon={ArrowUpRight} tone="warning" value={formatPKRShort(totalOut)} hint={t("billing.finance.plannedOutHint")} />
+                <KpiCard label={t("billing.finance.net")} icon={Scale} tone={negative(net) ? "danger" : "success"} value={formatPKRShort(net)} />
+                <KpiCard label={t("billing.finance.ownMoneyInvested")} icon={Wallet} value={formatPKRShort(d.openingOwnMoneyInvestedPaisa)} hint={t("billing.finance.ownMoneyBy", { amount: formatPKRShort(d.closingOwnMoneyInvestedPaisa), month: formatMonth(d.months.at(-1)?.month ?? "") })} />
               </div>
               <AreaChartCard
-                title="Expected in vs planned out"
-                description="Per month. Own money invested after each month is in the table below (a different scale, so not on this chart)."
+                title={t("billing.finance.inVsOut")}
+                description={t("billing.finance.inVsOutDesc")}
                 xKey="label"
                 data={d.months.map((m) => ({
                   label: formatMonth(m.month),
@@ -97,22 +99,22 @@ export function CashFlowView() {
                   outflows: plotPaisa(m.plannedOutflows.totalPaisa),
                 }))}
                 series={[
-                  { key: "receipts", label: "Expected in", kind: "bar" },
-                  { key: "outflows", label: "Planned out", kind: "bar" },
+                  { key: "receipts", label: t("billing.finance.expectedIn"), kind: "bar" },
+                  { key: "outflows", label: t("billing.finance.plannedOut"), kind: "bar" },
                 ]}
               />
-              <SectionCard flush title="Month by month">
-                <DataTable rows={d.months} columns={columns} getRowId={(m) => m.month} clientPageSize={0} empty={{ title: "Nothing to show" }} />
+              <SectionCard flush title={t("billing.finance.monthByMonth")}>
+                <DataTable rows={d.months} columns={columns} getRowId={(m) => m.month} clientPageSize={0} empty={{ title: t("billing.finance.nothingToShow") }} />
               </SectionCard>
-              <SectionCard title={<span className="flex items-center gap-2"><Info className="size-4 text-primary" aria-hidden />How this is estimated</span>}>
-                <ul className="list-disc space-y-1.5 pl-5 text-sm">
+              <SectionCard title={<span className="flex items-center gap-2"><Info className="size-4 text-primary" aria-hidden />{t("billing.finance.howEstimated")}</span>}>
+                <ul className="list-disc space-y-1.5 ps-5 text-sm">
                   {d.assumptions.map((a) => (
                     <li key={a}>{a}</li>
                   ))}
                 </ul>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Weekly run-rate used: wages {formatPKRShort(d.weeklyRunRate.wagesPaisa)} · sub-contract {formatPKRShort(d.weeklyRunRate.subcontractPaisa)} · kharcha {formatPKRShort(d.weeklyRunRate.expensesPaisa)}.
-                  {d.beyondHorizonReceiptsPaisa !== "0" ? ` ${formatPKRShort(d.beyondHorizonReceiptsPaisa)} is expected after this period.` : ""}
+                  {t("billing.finance.runRate", { wages: formatPKRShort(d.weeklyRunRate.wagesPaisa), subcontract: formatPKRShort(d.weeklyRunRate.subcontractPaisa), kharcha: formatPKRShort(d.weeklyRunRate.expensesPaisa) })}
+                  {d.beyondHorizonReceiptsPaisa !== "0" ? ` ${t("billing.finance.beyondHorizon", { amount: formatPKRShort(d.beyondHorizonReceiptsPaisa) })}` : null}
                 </p>
               </SectionCard>
             </>
@@ -125,40 +127,35 @@ export function CashFlowView() {
 
 // ─── Profit & loss ──────────────────────────────────────────────────────────
 
-export const BUCKET_LABEL: Record<PnlBucket, string> = {
-  MATERIALS: "Materials",
-  LABOR_WAGES: "Labour",
-  SUBCONTRACT: "Sub-contract",
-  SITE_OVERHEAD: "Site overhead",
-  EQUIPMENT: "Equipment",
-  LOSSES: "Losses",
-};
-const BUCKETS = Object.keys(BUCKET_LABEL) as PnlBucket[];
-const PHASE2 = "Available after estimates (Phase 2)";
+/** Cost buckets in display order (labels: `te("pnlBucket", b)`). */
+const BUCKETS: PnlBucket[] = ["MATERIALS", "LABOR_WAGES", "SUBCONTRACT", "SITE_OVERHEAD", "EQUIPMENT", "LOSSES"];
 
 function PnlKpis({ totals }: { totals: { billedToDatePaisa: string; costToDatePaisa: string; grossProfitToDatePaisa: string; marginToDatePercent: number | null } }) {
+  const t = useT();
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <KpiCard label="Billed to date" icon={CircleDollarSign} value={formatPKRShort(totals.billedToDatePaisa)} hint="Before sales tax" />
-      <KpiCard label="Cost to date" icon={Calculator} tone="warning" value={formatPKRShort(totals.costToDatePaisa)} />
-      <KpiCard label="Gross profit to date" icon={TrendingUp} tone={negative(totals.grossProfitToDatePaisa) ? "danger" : "success"} value={formatPKRShort(totals.grossProfitToDatePaisa)} />
-      <KpiCard label="Margin to date" icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={`Projected margin: ${PHASE2}`} />
+      <KpiCard label={t("billing.finance.billedToDate")} icon={CircleDollarSign} value={formatPKRShort(totals.billedToDatePaisa)} hint={t("billing.finance.beforeSalesTax")} />
+      <KpiCard label={t("billing.finance.costToDate")} icon={Calculator} tone="warning" value={formatPKRShort(totals.costToDatePaisa)} />
+      <KpiCard label={t("billing.finance.grossProfitToDate")} icon={TrendingUp} tone={negative(totals.grossProfitToDatePaisa) ? "danger" : "success"} value={formatPKRShort(totals.grossProfitToDatePaisa)} />
+      <KpiCard label={t("billing.finance.marginToDate")} icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={t("billing.finance.projectedMarginHint", { value: t("billing.finance.phase2") })} />
     </div>
   );
 }
 
-const bucketSlices = (cost: CostBuckets) => BUCKETS.map((b) => ({ key: b, label: BUCKET_LABEL[b], paisa: cost[b] }));
+const bucketSlices = (cost: CostBuckets, te: ReturnType<typeof useEnumT>) => BUCKETS.map((b) => ({ key: b, label: te("pnlBucket", b), paisa: cost[b] }));
 
 /** Finance → Profit & Loss: company totals, billed-vs-cost trend and every project. */
 export function ProfitLossView() {
   const router = useRouter();
+  const t = useT();
+  const te = useEnumT();
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
   const { projectId: _project, ...dates } = reportParams(filters);
   const q = useGetProfitAndLossQuery(dates, { refetchOnMountOrArgChange: 60 });
   const columns: Column<PnlProject>[] = [
     {
       id: "project",
-      header: "Project",
+      header: t("field.project"),
       sortValue: (r) => r.project.name,
       cell: (r) => (
         <div>
@@ -167,55 +164,55 @@ export function ProfitLossView() {
         </div>
       ),
     },
-    { id: "billed", header: "Billed", align: "right", sortValue: (r) => Number(r.billedToDatePaisa), cell: (r) => <MoneyText paisa={r.billedToDatePaisa} short /> },
-    ...BUCKETS.map<Column<PnlProject>>((b) => ({ id: b, header: BUCKET_LABEL[b], align: "right", cell: (r) => (r.cost[b] === "0" ? <span className="text-muted-foreground">—</span> : <MoneyText paisa={r.cost[b]} short />) })),
-    { id: "cost", header: "Cost to date", align: "right", sortValue: (r) => Number(r.costToDatePaisa), cell: (r) => <MoneyText paisa={r.costToDatePaisa} short className="font-semibold" /> },
+    { id: "billed", header: t("field.billed"), align: "right", sortValue: (r) => Number(r.billedToDatePaisa), cell: (r) => <MoneyText paisa={r.billedToDatePaisa} short /> },
+    ...BUCKETS.map<Column<PnlProject>>((b) => ({ id: b, header: te("pnlBucket", b), align: "right", cell: (r) => (r.cost[b] === "0" ? <span className="text-muted-foreground">—</span> : <MoneyText paisa={r.cost[b]} short />) })),
+    { id: "cost", header: t("billing.finance.costToDate"), align: "right", sortValue: (r) => Number(r.costToDatePaisa), cell: (r) => <MoneyText paisa={r.costToDatePaisa} short className="font-semibold" /> },
     {
       id: "gp",
-      header: "Gross profit",
+      header: t("billing.finance.grossProfit"),
       align: "right",
       sortValue: (r) => Number(r.grossProfitToDatePaisa),
       cell: (r) => <MoneyText paisa={r.grossProfitToDatePaisa} short className={cn("font-semibold", negative(r.grossProfitToDatePaisa) ? "text-danger" : "text-success")} />,
     },
-    { id: "margin", header: "Margin", align: "right", sortValue: (r) => r.marginToDatePercent ?? -999, cell: (r) => (r.marginToDatePercent === null ? "—" : `${r.marginToDatePercent}%`) },
-    { id: "progress", header: "Billed vs spent", cell: (r) => <ProgressPair billed={r.percentBilled} spent={r.percentCostOfContract} /> },
-    { id: "projected", header: "Projected margin", cell: () => <span className="text-xs text-muted-foreground">{PHASE2}</span> },
+    { id: "margin", header: t("billing.finance.margin"), align: "right", sortValue: (r) => r.marginToDatePercent ?? -999, cell: (r) => (r.marginToDatePercent === null ? "—" : `${r.marginToDatePercent}%`) },
+    { id: "progress", header: t("billing.finance.billedVsSpent"), cell: (r) => <ProgressPair billed={r.percentBilled} spent={r.percentCostOfContract} /> },
+    { id: "projected", header: t("billing.finance.projectedMargin"), cell: () => <span className="text-xs text-muted-foreground">{t("billing.finance.phase2")}</span> },
   ];
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Profit & Loss"
-        description="Billed vs cost to date, per project and for the company."
-        breadcrumbs={[{ label: "Finance" }, { label: "Profit & Loss" }]}
+        title={t("billing.finance.pnlTitle")}
+        description={t("billing.finance.pnlDesc")}
+        breadcrumbs={[{ label: t("crumb.finance") }, { label: t("billing.finance.pnlTitle") }]}
         actions={<ExportMenu name="project-summary" filters={dates} />}
       />
-      <ReportFilterBar value={filters} onChange={(f) => (f.projectId ? router.push(`/finance/profit-loss/${f.projectId}`) : setFilters(f))} dateLabel="All time" />
+      <ReportFilterBar value={filters} onChange={(f) => (f.projectId ? router.push(`/finance/profit-loss/${f.projectId}`) : setFilters(f))} dateLabel={t("field.allTime")} />
       <QueryState query={q} skeleton={<CardsSkeleton count={4} height="h-32" />}>
         {(d) => (
           <>
             <PnlKpis totals={d.totals} />
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
               <BarChartCard
-                title="Billed vs cost by month"
-                description="The last 12 months."
+                title={t("billing.finance.billedVsCost")}
+                description={t("billing.finance.last12Months")}
                 xKey="label"
                 data={d.trend.map((m) => ({ label: formatMonth(m.month), billed: plotPaisa(m.billedPaisa), cost: plotPaisa(m.costPaisa) }))}
                 series={[
-                  { key: "billed", label: "Billed" },
-                  { key: "cost", label: "Cost" },
+                  { key: "billed", label: t("field.billed") },
+                  { key: "cost", label: t("billing.finance.cost") },
                 ]}
                 empty={d.trend.every((m) => m.billedPaisa === "0" && m.costPaisa === "0")}
               />
-              <DonutChartCard title="Where the money went" description="Company cost to date by bucket." slices={bucketSlices(d.totals.cost)} totalLabel="Cost" />
+              <DonutChartCard title={t("billing.finance.whereMoneyWent")} description={t("billing.finance.whereMoneyWentDesc")} slices={bucketSlices(d.totals.cost, te)} totalLabel={t("billing.finance.cost")} />
             </div>
-            <SectionCard flush title="Projects">
+            <SectionCard flush title={t("field.projects")}>
               <DataTable
                 rows={d.projects}
                 columns={columns}
                 getRowId={(r) => r.project.id}
                 clientPageSize={0}
                 onRowClick={(r) => router.push(`/finance/profit-loss/${r.project.id}`)}
-                empty={{ title: "No projects yet" }}
+                empty={{ title: t("billing.finance.noProjects") }}
                 defaultSort={{ id: "gp", direction: "desc" }}
               />
             </SectionCard>
@@ -228,17 +225,19 @@ export function ProfitLossView() {
 
 /** One project's P&L: totals, cost donut and its trend. */
 export function ProjectProfitView({ projectId }: { projectId: string }) {
+  const t = useT();
+  const te = useEnumT();
   const q = useGetProfitAndLossQuery({ projectId }, { refetchOnMountOrArgChange: 60 });
   const row = q.data?.projects[0];
   return (
     <div className="space-y-6">
       <PageHeader
-        title={row ? `P&L — ${row.project.name}` : "Project P&L"}
+        title={row ? t("billing.finance.projectPnlTitle", { name: row.project.name }) : t("billing.finance.projectPnl")}
         description={row ? `${row.project.code}${row.client ? ` · ${row.client.name}` : ""}` : undefined}
-        breadcrumbs={[{ label: "Finance" }, { label: "Profit & Loss", href: "/finance/profit-loss" }, { label: row?.project.code ?? "Project" }]}
+        breadcrumbs={[{ label: t("crumb.finance") }, { label: t("billing.finance.pnlTitle"), href: "/finance/profit-loss" }, { label: row?.project.code ?? t("field.project") }]}
         actions={
           <Button asChild variant="outline">
-            <Link href={`/projects/${projectId}/overview`}>Open project</Link>
+            <Link href={`/projects/${projectId}/overview`}>{t("billing.finance.openProject")}</Link>
           </Button>
         }
       />
@@ -248,43 +247,43 @@ export function ProjectProfitView({ projectId }: { projectId: string }) {
             <>
               <PnlKpis totals={{ billedToDatePaisa: row.billedToDatePaisa, costToDatePaisa: row.costToDatePaisa, grossProfitToDatePaisa: row.grossProfitToDatePaisa, marginToDatePercent: row.marginToDatePercent }} />
               <div className="grid gap-4 xl:grid-cols-2">
-                <DonutChartCard title="Cost by bucket" slices={bucketSlices(row.cost)} totalLabel="Cost to date" />
-                <SectionCard title="Contract">
+                <DonutChartCard title={t("billing.finance.costByBucket")} slices={bucketSlices(row.cost, te)} totalLabel={t("billing.finance.costToDate")} />
+                <SectionCard title={t("field.contract")}>
                   <dl className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <dt className="text-muted-foreground">Revised contract</dt>
+                      <dt className="text-muted-foreground">{t("billing.finance.revisedContract")}</dt>
                       <dd className="text-lg font-semibold"><MoneyText paisa={row.revisedContractPaisa} /></dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">Received to date</dt>
+                      <dt className="text-muted-foreground">{t("billing.finance.receivedToDate")}</dt>
                       <dd className="text-lg font-semibold"><MoneyText paisa={row.receivedToDatePaisa} /></dd>
                     </div>
                     <div className="col-span-2">
-                      <dt className="mb-1 text-muted-foreground">Billed vs spent of the contract</dt>
+                      <dt className="mb-1 text-muted-foreground">{t("billing.finance.billedVsSpentContract")}</dt>
                       <dd><ProgressPair billed={row.percentBilled} spent={row.percentCostOfContract} /></dd>
                     </div>
                     <div className="col-span-2">
-                      <dt className="text-muted-foreground">Projected margin</dt>
-                      <dd className="text-muted-foreground">{PHASE2}</dd>
+                      <dt className="text-muted-foreground">{t("billing.finance.projectedMargin")}</dt>
+                      <dd className="text-muted-foreground">{t("billing.finance.phase2")}</dd>
                     </div>
                   </dl>
                 </SectionCard>
               </div>
               <BarChartCard
-                title="Billed vs cost by month"
+                title={t("billing.finance.billedVsCost")}
                 xKey="label"
                 data={d.trend.map((m) => ({ label: formatMonth(m.month), billed: plotPaisa(m.billedPaisa), cost: plotPaisa(m.costPaisa) }))}
                 series={[
-                  { key: "billed", label: "Billed" },
-                  { key: "cost", label: "Cost" },
+                  { key: "billed", label: t("field.billed") },
+                  { key: "cost", label: t("billing.finance.cost") },
                 ]}
                 empty={d.trend.every((m) => m.billedPaisa === "0" && m.costPaisa === "0")}
               />
-              <p className="text-xs text-muted-foreground">As of {formatDate(d.period.to)}.</p>
+              <p className="text-xs text-muted-foreground">{t("billing.finance.asOf", { date: formatDate(d.period.to) })}</p>
             </>
           ) : (
             <SectionCard>
-              <p className="text-sm text-muted-foreground">No P&L for this project.</p>
+              <p className="text-sm text-muted-foreground">{t("billing.finance.noPnl")}</p>
             </SectionCard>
           )
         }

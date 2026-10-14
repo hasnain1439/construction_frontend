@@ -5,7 +5,7 @@ import { useId, useRef, useState, type DragEvent } from "react";
 import { useUploadAttachmentMutation } from "@/api/services/attachments.api";
 import type { Attachment, AttachmentKind } from "@/api/types";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
 
@@ -50,6 +50,7 @@ export interface FileUploadProps {
  * submits. Validates type and the 10 MB limit before uploading; previews images.
  */
 export function FileUpload({ kind, value, onChange, label, hint, invalid, disabled, id }: FileUploadProps) {
+  const t = useT();
   const language = useLanguage();
   const fallbackId = useId();
   const inputId = id ?? fallbackId;
@@ -63,11 +64,11 @@ export function FileUpload({ kind, value, onChange, label, hint, invalid, disabl
     if (!file) return;
     setError(null);
     if (!accept.split(",").includes(file.type)) {
-      setError(kind === "LOGO" ? "Use a JPEG, PNG or WebP image." : "Use an image (JPEG, PNG, WebP) or a PDF.");
+      setError(kind === "LOGO" ? t("app.components.file.logoType") : t("app.components.file.anyType"));
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("The file is larger than 10 MB.");
+      setError(t("app.components.file.tooBig"));
       return;
     }
     try {
@@ -109,7 +110,7 @@ export function FileUpload({ kind, value, onChange, label, hint, invalid, disabl
             <p className="text-xs text-muted-foreground">{value.mimeType}</p>
           </div>
           {!disabled ? (
-            <Button type="button" variant="ghost" size="icon-sm" aria-label="Remove file" onClick={() => onChange(null)}>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("app.components.file.remove")} onClick={() => onChange(null)}>
               <X />
             </Button>
           ) : null}
@@ -135,8 +136,8 @@ export function FileUpload({ kind, value, onChange, label, hint, invalid, disabl
           ) : (
             <UploadCloud className="size-7 text-muted-foreground" aria-hidden />
           )}
-          <span className="text-sm font-medium">{isLoading ? "Uploading…" : (label ?? "Click to upload or drag a file here")}</span>
-          <span className="text-xs text-muted-foreground">{hint ?? "Max 10 MB"}</span>
+          <span className="text-sm font-medium">{isLoading ? t("app.components.uploading") : (label ?? t("app.components.file.dropHint"))}</span>
+          <span className="text-xs text-muted-foreground">{hint ?? t("app.components.file.maxSize")}</span>
         </label>
       )}
       <input

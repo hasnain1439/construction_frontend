@@ -22,6 +22,18 @@ export type OtpVerifyBody = RequestBody<"/api/v1/auth/otp/verify", "post">;
 export type ForgotPasswordBody = RequestBody<"/api/v1/auth/password/forgot", "post">;
 export type ResetPasswordBody = RequestBody<"/api/v1/auth/password/reset", "post">;
 export type UpdateMeBody = RequestBody<"/api/v1/auth/me", "patch">;
+
+/**
+ * Language codes of the preference API (hand-written until the API types are regenerated):
+ * GET /auth/me → `language`, PATCH /auth/me/preferences { language }. Older APIs only send
+ * `user.language` ("ENGLISH" | "ROMAN_URDU" | "URDU").
+ */
+export type PreferenceLanguage = "en" | "roman" | "ur";
+export interface UpdatePreferencesBody {
+  language: PreferenceLanguage;
+}
+/** /auth/me with the new top-level `language` (optional: absent on older APIs). */
+export type MeWithPreferences = Me & { language?: PreferenceLanguage | null };
 export type AcceptInvitationBody = RequestBody<"/api/v1/invitations/{token}/accept", "post">;
 export type AdminLoginBody = RequestBody<"/api/v1/admin/auth/login", "post">;
 

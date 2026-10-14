@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useStatusT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
@@ -31,9 +32,14 @@ import { NewDispatchSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
 
 const BASE = "/suppliers-stock/dispatches";
-const place = (l: Dispatch["from"]) => (l.type === "STORE" ? "Central Store" : l.name);
+const DISPATCH_STATUSES = ["ON_THE_WAY", "RECEIVED", "RECEIVED_WITH_SHORTAGE", "RECEIVED_WITH_EXCESS", "CANCELLED"] as const;
+
+/** "Central Store" or the site name, in the current language. */
+const place = (t: (key: TranslationKey) => string, l: Dispatch["from"]) => (l.type === "STORE" ? t("field.centralStore") : l.name);
 
 export function DispatchesView() {
+  const t = useT();
+  const ts = useStatusT();
   const router = useRouter();
   const readOnly = useReadOnly();
   const owner = useCan("procurement.dispatch.create") && !readOnly;
@@ -47,45 +53,39 @@ export function DispatchesView() {
   const [newOpen, setNewOpen] = useState(false);
 
   const columns: Column<Dispatch>[] = [
-    { id: "number", header: "Gate pass", cell: (d) => <span className="font-medium tabular">{d.number}</span> },
-    { id: "date", header: "Sent", cell: (d) => formatDateTime(d.dispatchedAt), sortValue: (d) => d.dispatchedAt },
-    { id: "route", header: "From → to", cell: (d) => `${place(d.from)} → ${place(d.to)}` },
-    { id: "items", header: "Materials", cell: (d) => d.items.map((i) => (i.sentQty !== undefined ? `${formatQty(i.sentQty, i.material.unit)} ${i.material.name}` : i.material.name)).join(", ") },
-    { id: "vehicle", header: "Vehicle / driver", cell: (d) => [d.vehicleNo, d.driverName].filter(Boolean).join(" · ") || "—" },
-    { id: "value", header: "Value", align: "right", cell: (d) => <MoneyText paisa={d.totalValuePaisa} /> },
-    { id: "status", header: "Status", cell: (d) => <StatusBadge domain="dispatch" value={d.status} /> },
+    { id: "number", header: t("procurement.common.gatePass"), cell: (d) => <span className="font-medium tabular">{d.number}</span> },
+    { id: "date", header: t("field.sent"), cell: (d) => formatDateTime(d.dispatchedAt), sortValue: (d) => d.dispatchedAt },
+    { id: "route", header: t("procurement.dispatch.colRoute"), cell: (d) => t("procurement.common.route", { from: place(t, d.from), to: place(t, d.to) }) },
+    { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => (i.sentQty !== undefined ? `${formatQty(i.sentQty, i.material.unit)} ${i.material.name}` : i.material.name)).join(", ") },
+    { id: "vehicle", header: t("procurement.dispatch.colVehicleDriver"), cell: (d) => [d.vehicleNo, d.driverName].filter(Boolean).join(" · ") || "—" },
+    { id: "value", header: t("field.value"), align: "right", cell: (d) => <MoneyText paisa={d.totalValuePaisa} /> },
+    { id: "status", header: t("field.status"), cell: (d) => <StatusBadge domain="dispatch" value={d.status} /> },
   ];
 
   return (
     <>
       <PageHeader
-        title="Dispatches (Sent to Sites)"
-        description="Gate passes. Stock is on the way until the site counts it."
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Dispatches" }]}
+        title={t("procurement.dispatch.listTitle")}
+        description={t("procurement.dispatch.listDesc")}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.dispatches") }]}
         actions={
           owner && store ? (
             <Button onClick={() => setNewOpen(true)}>
               <Truck data-icon="inline-start" />
-              New dispatch
+              {t("procurement.dispatch.newDispatch")}
             </Button>
           ) : null
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="GP number or vehicle…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("procurement.dispatch.searchPlaceholder")} />
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.status}
           onChange={(v) => list.setFilter("status", v)}
-          options={[
-            { value: "ON_THE_WAY", label: "On the way" },
-            { value: "RECEIVED", label: "Received" },
-            { value: "RECEIVED_WITH_SHORTAGE", label: "Received — short" },
-            { value: "RECEIVED_WITH_EXCESS", label: "Received — excess" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ]}
+          options={DISPATCH_STATUSES.map((value) => ({ value, label: ts("dispatch", value) }))}
         />
-        <FilterSelect label="Site" value={list.filters.projectId} onChange={(v) => list.setFilter("projectId", v)} options={projects.options.map((o) => ({ value: o.value, label: o.label }))} />
+        <FilterSelect label={t("field.site")} value={list.filters.projectId} onChange={(v) => list.setFilter("projectId", v)} options={projects.options.map((o) => ({ value: o.value, label: o.label }))} />
         <DateRangePicker
           value={{ from: list.filters.from, to: list.filters.to }}
           onChange={(r) => {
@@ -103,12 +103,12 @@ export function DispatchesView() {
           error={error}
           onRetry={refetch}
           onRowClick={(d) => router.push(`${BASE}/${d.id}`)}
-          empty={{ title: "No dispatches yet", description: "Send stock from the store to a site with a gate pass.", icon: Truck }}
+          empty={{ title: t("procurement.dispatch.emptyTitle"), description: t("procurement.dispatch.emptyDesc"), icon: Truck }}
           pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
         />
       </SectionCard>
       {store ? (
-        <NewDispatchSlideOver open={newOpen} onOpenChange={setNewOpen} fromOptions={[{ value: store.id, label: "Central Store" }]} defaultFromId={store.id} available={available} />
+        <NewDispatchSlideOver open={newOpen} onOpenChange={setNewOpen} fromOptions={[{ value: store.id, label: t("field.centralStore") }]} defaultFromId={store.id} available={available} />
       ) : null}
     </>
   );
@@ -116,27 +116,29 @@ export function DispatchesView() {
 
 /** Sent vs received per material (after the count), with the difference badge. */
 export function DispatchItemsTable({ dispatch }: { dispatch: Dispatch }) {
+  const t = useT();
   const counted = dispatch.status !== "ON_THE_WAY" && dispatch.status !== "CANCELLED";
   const columns: Column<DispatchItem>[] = [
-    { id: "material", header: "Material", cell: (i) => <span className="font-medium">{i.material.name}</span> },
-    { id: "sent", header: "Sent", align: "right", hidden: dispatch.blindCount, cell: (i) => formatQty(i.sentQty ?? null, i.material.unit) },
-    { id: "received", header: "Received", align: "right", hidden: !counted, cell: (i) => formatQty(i.receivedQty, i.material.unit) },
-    { id: "damaged", header: "Damaged", align: "right", hidden: !counted, cell: (i) => (i.damagedQty ? formatQty(i.damagedQty, i.material.unit) : "—") },
+    { id: "material", header: t("field.material"), cell: (i) => <span className="font-medium">{i.material.name}</span> },
+    { id: "sent", header: t("field.sent"), align: "right", hidden: dispatch.blindCount, cell: (i) => formatQty(i.sentQty ?? null, i.material.unit) },
+    { id: "received", header: t("field.received"), align: "right", hidden: !counted, cell: (i) => formatQty(i.receivedQty, i.material.unit) },
+    { id: "damaged", header: t("field.damaged"), align: "right", hidden: !counted, cell: (i) => (i.damagedQty ? formatQty(i.damagedQty, i.material.unit) : "—") },
     {
       id: "result",
-      header: "Result",
+      header: t("procurement.dispatch.colResult"),
       hidden: !counted,
       cell: (i) =>
         i.sentQty !== undefined && i.receivedQty !== null ? <DifferenceBadge expected={i.sentQty} counted={i.receivedQty} damaged={i.damagedQty ?? 0} difference={i.differenceQty} unit={i.material.unit} /> : null,
     },
-    { id: "cost", header: "Avg cost", align: "right", cell: (i) => <MoneyText paisa={i.unitCostPaisa} /> },
-    { id: "value", header: "Value", align: "right", cell: (i) => <MoneyText paisa={i.valuePaisa} /> },
-    { id: "note", header: "Note", hidden: !counted, cell: (i) => <span className="text-sm text-muted-foreground">{i.note ?? ""}</span> },
+    { id: "cost", header: t("procurement.dispatch.colAvgCost"), align: "right", cell: (i) => <MoneyText paisa={i.unitCostPaisa} /> },
+    { id: "value", header: t("field.value"), align: "right", cell: (i) => <MoneyText paisa={i.valuePaisa} /> },
+    { id: "note", header: t("field.note"), hidden: !counted, cell: (i) => <span className="text-sm text-muted-foreground">{i.note ?? ""}</span> },
   ];
-  return <DataTable rows={dispatch.items} columns={columns} getRowId={(i) => i.id} clientPageSize={0} empty={{ title: "No materials" }} />;
+  return <DataTable rows={dispatch.items} columns={columns} getRowId={(i) => i.id} clientPageSize={0} empty={{ title: t("procurement.common.noMaterials") }} />;
 }
 
 function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
+  const t = useT();
   const readOnly = useReadOnly();
   const office = useCan("procurement.dispatch.create") && !readOnly;
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -146,18 +148,18 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
     <>
       <PageHeader
         title={dispatch.number}
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Dispatches", href: BASE }, { label: dispatch.number }]}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.dispatches"), href: BASE }, { label: dispatch.number }]}
         actions={
           office && dispatch.status === "ON_THE_WAY" ? (
             <Button variant="outline" onClick={() => setCancelOpen(true)}>
               <XCircle data-icon="inline-start" />
-              Cancel dispatch
+              {t("procurement.dispatch.cancel")}
             </Button>
           ) : null
         }
       />
       <DocumentHeader
-        title="Gate pass"
+        title={t("procurement.common.gatePass")}
         number={dispatch.number}
         status={
           <span className="flex flex-wrap gap-1">
@@ -166,22 +168,22 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
           </span>
         }
         locked={dispatch.status !== "ON_THE_WAY"}
-        party={`${place(dispatch.from)} → ${place(dispatch.to)}`}
+        party={t("procurement.common.route", { from: place(t, dispatch.from), to: place(t, dispatch.to) })}
         meta={[
-          { label: "Sent", value: formatDateTime(dispatch.dispatchedAt) },
-          { label: "Vehicle", value: dispatch.vehicleNo },
-          { label: "Driver", value: [dispatch.driverName, dispatch.driverPhone ? formatPhone(dispatch.driverPhone) : null].filter(Boolean).join(" · ") || null },
-          { label: "Value", value: <MoneyText paisa={dispatch.totalValuePaisa} /> },
-          { label: "Received", value: dispatch.receivedAt ? `${formatDateTime(dispatch.receivedAt)} · ${dispatch.receivedBy?.name ?? ""}` : null },
-          { label: "Sent by", value: dispatch.createdBy?.name },
-          { label: "Note", value: dispatch.note },
+          { label: t("field.sent"), value: formatDateTime(dispatch.dispatchedAt) },
+          { label: t("procurement.common.vehicle"), value: dispatch.vehicleNo },
+          { label: t("procurement.common.driver"), value: [dispatch.driverName, dispatch.driverPhone ? formatPhone(dispatch.driverPhone) : null].filter(Boolean).join(" · ") || null },
+          { label: t("field.value"), value: <MoneyText paisa={dispatch.totalValuePaisa} /> },
+          { label: t("field.received"), value: dispatch.receivedAt ? `${formatDateTime(dispatch.receivedAt)} · ${dispatch.receivedBy?.name ?? ""}` : null },
+          { label: t("procurement.dispatch.sentBy"), value: dispatch.createdBy?.name },
+          { label: t("field.note"), value: dispatch.note },
         ]}
       />
-      <SectionCard title="Materials" flush>
+      <SectionCard title={t("field.materials")} flush>
         <DispatchItemsTable dispatch={dispatch} />
       </SectionCard>
       {dispatch.shortages.length ? (
-        <SectionCard title="Shortages found">
+        <SectionCard title={t("procurement.dispatch.shortagesFound")}>
           <ul className="divide-y text-sm">
             {dispatch.shortages.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
@@ -201,12 +203,12 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
       <ConfirmDialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}
-        title={`Cancel ${dispatch.number}?`}
-        description="The stock comes back to where it was sent from, at the same value. Do this only if the truck did not leave."
-        confirmLabel="Cancel dispatch"
+        title={t("procurement.common.cancelTitle", { number: dispatch.number })}
+        description={t("procurement.dispatch.cancelDesc")}
+        confirmLabel={t("procurement.dispatch.cancel")}
         loading={isLoading}
         onConfirm={async () => {
-          const ok = await run(() => cancel(dispatch.id).unwrap(), { success: `${dispatch.number} cancelled` });
+          const ok = await run(() => cancel(dispatch.id).unwrap(), { success: t("procurement.common.cancelled", { number: dispatch.number }) });
           if (ok) setCancelOpen(false);
         }}
       />

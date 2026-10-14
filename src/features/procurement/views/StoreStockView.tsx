@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { formatQty } from "@/lib/quantity";
@@ -23,6 +24,7 @@ import { NewDispatchSlideOver } from "../components/DispatchSlideOvers";
 import { LowStockLevelsSlideOver, MovementHistorySlideOver, StockCountSlideOver } from "../components/StockSlideOvers";
 
 export function StoreStockView() {
+  const t = useT();
   const readOnly = useReadOnly();
   const owner = useCan("inventory.store.manage") && !readOnly;
   const locations = useGetStockLocationsQuery();
@@ -38,7 +40,7 @@ export function StoreStockView() {
   const columns: Column<StoreStockRow>[] = [
     {
       id: "material",
-      header: "Material",
+      header: t("field.material"),
       sortValue: (r) => r.material.name,
       cell: (r) => (
         <div>
@@ -49,7 +51,7 @@ export function StoreStockView() {
     },
     {
       id: "inStore",
-      header: "In store",
+      header: t("procurement.storeStock.colInStore"),
       align: "right",
       sortValue: (r) => r.inStore,
       cell: (r) => (
@@ -59,52 +61,52 @@ export function StoreStockView() {
         </div>
       ),
     },
-    { id: "transit", header: "On the way", align: "right", cell: (r) => (r.inTransit ? formatQty(r.inTransit, r.material.unit) : "—") },
-    { id: "avg", header: "Avg rate", align: "right", cell: (r) => <MoneyText paisa={r.avgRatePaisa} /> },
-    { id: "value", header: "Value", align: "right", sortValue: (r) => Number(r.valuePaisa ?? 0), cell: (r) => <MoneyText paisa={r.valuePaisa} /> },
-    { id: "min", header: "Low below", align: "right", cell: (r) => (r.minQty !== null ? formatQty(r.minQty, r.material.unit) : "—") },
-    { id: "last", header: "Last purchase", cell: (r) => formatDate(r.lastPurchaseAt) },
+    { id: "transit", header: t("procurement.storeStock.colOnTheWay"), align: "right", cell: (r) => (r.inTransit ? formatQty(r.inTransit, r.material.unit) : "—") },
+    { id: "avg", header: t("procurement.storeStock.colAvgRate"), align: "right", cell: (r) => <MoneyText paisa={r.avgRatePaisa} /> },
+    { id: "value", header: t("field.value"), align: "right", sortValue: (r) => Number(r.valuePaisa ?? 0), cell: (r) => <MoneyText paisa={r.valuePaisa} /> },
+    { id: "min", header: t("procurement.storeStock.colLowBelow"), align: "right", cell: (r) => (r.minQty !== null ? formatQty(r.minQty, r.material.unit) : "—") },
+    { id: "last", header: t("procurement.storeStock.colLastPurchase"), cell: (r) => formatDate(r.lastPurchaseAt) },
   ];
 
   return (
     <>
       <PageHeader
-        title="Store Stock (Godown)"
-        description="What is in the Central Store at weighted-average cost. Click a material for its history."
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Store Stock" }]}
+        title={t("procurement.storeStock.title")}
+        description={t("procurement.storeStock.desc")}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.storeStock") }]}
         actions={
           owner && store ? (
             <>
               <Button onClick={() => setOpen("dispatch")}>
                 <Truck data-icon="inline-start" />
-                Dispatch to site
+                {t("procurement.dispatch.newTitle")}
               </Button>
               <Button variant="outline" onClick={() => setOpen("count")}>
                 <ClipboardCheck data-icon="inline-start" />
-                Stock count
+                {t("procurement.storeStock.stockCount")}
               </Button>
               <Button variant="outline" onClick={() => setOpen("levels")}>
                 <SlidersHorizontal data-icon="inline-start" />
-                Set low-stock levels
+                {t("procurement.storeStock.setLevels")}
               </Button>
             </>
           ) : null
         }
       />
       <div className="grid gap-4 sm:grid-cols-3">
-        <KpiCard label="Stock value" icon={Wallet} loading={!data} value={data ? <span title={data.summary.totalValuePaisa}>{formatPKRShort(data.summary.totalValuePaisa)}</span> : null} hint={data ? `${data.summary.materials} materials in store` : undefined} />
-        <KpiCard label="Low stock" icon={TriangleAlert} tone={data?.summary.lowStockCount ? "warning" : "success"} loading={!data} value={data?.summary.lowStockCount ?? 0} hint="Below the level you set" />
-        <KpiCard label="Dispatches on the way" icon={Truck} loading={!data} value={data?.summary.dispatchesOnTheWay ?? 0} hint="Sent, not yet counted at site" />
+        <KpiCard label={t("procurement.storeStock.kpiValue")} icon={Wallet} loading={!data} value={data ? <span title={data.summary.totalValuePaisa}>{formatPKRShort(data.summary.totalValuePaisa)}</span> : null} hint={data ? t("procurement.storeStock.kpiValueHint", { n: data.summary.materials }) : undefined} />
+        <KpiCard label={t("procurement.storeStock.kpiLow")} icon={TriangleAlert} tone={data?.summary.lowStockCount ? "warning" : "success"} loading={!data} value={data?.summary.lowStockCount ?? 0} hint={t("procurement.storeStock.kpiLowHint")} />
+        <KpiCard label={t("procurement.storeStock.kpiOnWay")} icon={Truck} loading={!data} value={data?.summary.dispatchesOnTheWay ?? 0} hint={t("procurement.storeStock.kpiOnWayHint")} />
       </div>
       <FilterBar
         trailing={
           <label className="flex items-center gap-2 text-sm">
-            <Switch checked={lowOnly} onCheckedChange={setLowOnly} aria-label="Low stock only" />
-            Low stock only
+            <Switch checked={lowOnly} onCheckedChange={setLowOnly} aria-label={t("procurement.storeStock.lowOnly")} />
+            {t("procurement.storeStock.lowOnly")}
           </label>
         }
       >
-        <SearchInput value={search} onChange={setSearch} placeholder="Search material…" />
+        <SearchInput value={search} onChange={setSearch} placeholder={t("procurement.storeStock.searchPlaceholder")} />
       </FilterBar>
       <SectionCard flush>
         <DataTable
@@ -117,7 +119,7 @@ export function StoreStockView() {
           onRowClick={setHistory}
           clientPageSize={25}
           rowClassName={(r) => (r.lowStock ? "bg-warning-soft/40" : undefined)}
-          empty={{ title: lowOnly ? "Nothing is low" : "The store is empty", description: "Purchases into the Central Store show up here.", icon: Package }}
+          empty={{ title: t(lowOnly ? "procurement.storeStock.nothingLow" : "procurement.storeStock.storeEmpty"), description: t("procurement.storeStock.emptyDesc"), icon: Package }}
         />
       </SectionCard>
       {store ? (
@@ -129,12 +131,12 @@ export function StoreStockView() {
             locationId={store.id}
             current={(data?.items ?? []).filter((i) => i.minQty !== null).map((i) => ({ material: i.material, minQty: i.minQty }))}
           />
-          <NewDispatchSlideOver open={open === "dispatch"} onOpenChange={(o) => setOpen(o ? "dispatch" : null)} fromOptions={[{ value: store.id, label: "Central Store" }]} defaultFromId={store.id} available={available} />
+          <NewDispatchSlideOver open={open === "dispatch"} onOpenChange={(o) => setOpen(o ? "dispatch" : null)} fromOptions={[{ value: store.id, label: t("field.centralStore") }]} defaultFromId={store.id} available={available} />
           <StockCountSlideOver
             open={open === "count"}
             onOpenChange={(o) => setOpen(o ? "count" : null)}
             locationId={store.id}
-            locationName="Central Store"
+            locationName={t("field.centralStore")}
             materials={(data?.items ?? []).filter((i) => i.inStore !== 0).map((i) => i.material)}
             system={new Map((data?.items ?? []).map((i) => [i.material.id, i.inStore]))}
           />

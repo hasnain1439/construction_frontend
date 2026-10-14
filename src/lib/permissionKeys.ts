@@ -125,6 +125,7 @@ export const PERMISSION_KEYS = [
   "company.profile.view",
   "company.settings.manage",
   "company.audit.view",
+  "company.opening.manage",
   "company.holiday.manage",
   // subscription
   "subscription.manage",

@@ -2,6 +2,7 @@
 
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 const round = (n: number, step: number) => Math.round(n / step) * step;
@@ -30,6 +31,7 @@ export function StepperInput({
   className?: string;
   "aria-label": string;
 }) {
+  const t = useT();
   const set = (next: number) => onChange(Math.min(max, Math.max(min, Number(round(next, step).toFixed(2)))));
   const btn = size === "sm" ? "size-7" : "size-9";
   return (
@@ -53,14 +55,14 @@ export function StepperInput({
       }}
       className={cn("inline-flex items-center gap-1 rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none", className)}
     >
-      <Button type="button" variant="outline" size="icon" className={btn} tabIndex={-1} aria-label={`Less ${ariaLabel}`} disabled={disabled || value <= min} onClick={() => set(value - step)}>
+      <Button type="button" variant="outline" size="icon" className={btn} tabIndex={-1} aria-label={t("app.components.forms.less", { name: ariaLabel })} disabled={disabled || value <= min} onClick={() => set(value - step)}>
         <Minus aria-hidden />
       </Button>
       <span className={cn("min-w-8 text-center tabular", size === "sm" ? "text-xs" : "text-sm font-medium")}>
         {value}
         {suffix ? <span className="text-muted-foreground">{suffix}</span> : null}
       </span>
-      <Button type="button" variant="outline" size="icon" className={btn} tabIndex={-1} aria-label={`More ${ariaLabel}`} disabled={disabled || value >= max} onClick={() => set(value + step)}>
+      <Button type="button" variant="outline" size="icon" className={btn} tabIndex={-1} aria-label={t("app.components.forms.more", { name: ariaLabel })} disabled={disabled || value >= max} onClick={() => set(value + step)}>
         <Plus aria-hidden />
       </Button>
     </div>

@@ -18,6 +18,7 @@ import type {
   Session,
   SignupBody,
   UpdateMeBody,
+  UpdatePreferencesBody,
 } from "@/api/types";
 
 const web = <T extends object>(body: T) => ({ ...body, client: "web" as const });
@@ -60,6 +61,10 @@ export const authApi = baseApi.injectEndpoints({
       query: () => ENDPOINTS.auth.me,
       providesTags: ["Me"],
     }),
+    /** Saves the UI language on the account (404 on APIs without it — callers ignore that). */
+    updatePreferences: build.mutation<unknown, UpdatePreferencesBody>({
+      query: (body) => ({ url: ENDPOINTS.auth.mePreferences, method: "PATCH", body }),
+    }),
     updateMe: build.mutation<Me, UpdateMeBody>({
       query: (body) => ({ url: ENDPOINTS.auth.me, method: "PATCH", body }),
       invalidatesTags: ["Me", "Sessions"],
@@ -88,6 +93,7 @@ export const {
   useAcceptInvitationMutation,
   useGetMeQuery,
   useUpdateMeMutation,
+  useUpdatePreferencesMutation,
   useGetSessionsQuery,
   useLogoutMutation,
   useLogoutAllMutation,

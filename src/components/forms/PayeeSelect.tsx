@@ -2,6 +2,7 @@
 
 import { useGetProjectWorkersQuery, useGetSubcontractsQuery } from "@/api/services/labor.api";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
+import { useT } from "@/i18n/useT";
 import { formatPKR } from "@/lib/money";
 import { Combobox } from "./ComboboxField";
 
@@ -26,34 +27,35 @@ export function PayeeSelect({
   allowSubcontractor?: boolean;
   invalid?: boolean;
 }) {
+  const t = useT();
   const workers = useGetProjectWorkersQuery({ projectId, active: true });
   const subs = useGetSubcontractsQuery({ projectId, active: true }, { skip: !allowSubcontractor });
   const options =
     value.payeeType === "WORKER"
-      ? (workers.data ?? []).map((w) => ({ value: w.worker.id, label: w.worker.name, description: `${w.worker.type.replace(/_/g, " ").toLowerCase()} · ${formatPKR(w.dailyRatePaisa)}/day` }))
+      ? (workers.data ?? []).map((w) => ({ value: w.worker.id, label: w.worker.name, description: t("app.components.payee.workerDesc", { type: w.worker.type.replace(/_/g, " ").toLowerCase(), rate: formatPKR(w.dailyRatePaisa) }) }))
       : (subs.data ?? []).map((s) => ({ value: s.id, label: s.subcontractor.name, description: s.scope }));
   return (
     <div className="space-y-2">
       {allowSubcontractor ? (
         <SegmentedControl<PayeeType>
-          ariaLabel="Paid to"
+          ariaLabel={t("app.components.payee.paidTo")}
           size="sm"
           value={value.payeeType}
           onChange={(payeeType) => onChange({ payeeType, id: null })}
           options={[
-            { value: "WORKER", label: "Worker" },
-            { value: "SUBCONTRACTOR", label: "Sub-contractor" },
+            { value: "WORKER", label: t("field.worker") },
+            { value: "SUBCONTRACTOR", label: t("field.subcontractor") },
           ]}
         />
       ) : null}
       <Combobox
-        ariaLabel={value.payeeType === "WORKER" ? "Worker" : "Sub-contract"}
+        ariaLabel={value.payeeType === "WORKER" ? t("field.worker") : t("app.components.payee.subContract")}
         value={value.id}
         onChange={(id) => onChange({ ...value, id: (id as string | null) ?? null })}
         options={options}
         loading={workers.isLoading || subs.isLoading}
-        placeholder={value.payeeType === "WORKER" ? "Choose a worker on this site" : "Choose a sub-contract"}
-        emptyText={value.payeeType === "WORKER" ? "No workers on this site yet" : "No sub-contracts on this site"}
+        placeholder={value.payeeType === "WORKER" ? t("app.components.payee.chooseWorker") : t("app.components.payee.chooseSub")}
+        emptyText={value.payeeType === "WORKER" ? t("app.components.payee.noWorkers") : t("app.components.payee.noSubs")}
         invalid={invalid}
       />
     </div>

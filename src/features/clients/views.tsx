@@ -1,5 +1,6 @@
 "use client";
 
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { MessageCircle, Pencil, Plus, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,12 +23,14 @@ import { ClientStatements } from "@/features/billing/components/ClientStatements
 import { useListState } from "@/hooks/useListState";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
+import { useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { BILLING_ACCESS } from "@/lib/navigation";
 import { formatPhone } from "@/lib/phone";
 import { ClientSlideOver } from "./ClientSlideOver";
 
 export function ClientsView() {
+  const t = useT();
   const router = useRouter();
   const readOnly = useReadOnly();
   const canCreate = useCan("clients.client.create");
@@ -36,30 +39,33 @@ export function ClientsView() {
   const [addOpen, setAddOpen] = useSearchFlag();
 
   const columns: Column<Client>[] = [
-    { id: "name", header: "Name", cell: (c) => <AvatarName name={c.name} subtitle={c.email ?? undefined} />, sortValue: (c) => c.name },
-    { id: "phone", header: "Phone", cell: (c) => <span className="tabular">{formatPhone(c.phone)}</span> },
-    { id: "address", header: "Address", cell: (c) => <span className="line-clamp-1 text-muted-foreground">{c.address ?? "—"}</span> },
-    { id: "projects", header: "Projects", align: "right", cell: (c) => <span className="tabular">{c.projectsCount ?? 0}</span>, sortValue: (c) => c.projectsCount ?? 0 },
-    { id: "added", header: "Added", cell: (c) => formatDate(c.createdAt), sortValue: (c) => c.createdAt },
+    { id: "name", header: t("field.name"), cell: (c) => <AvatarName name={c.name} subtitle={c.email ?? undefined} />, sortValue: (c) => c.name },
+    { id: "phone", header: t("field.phone"), cell: (c) => <span className="tabular" dir="ltr">{formatPhone(c.phone)}</span> },
+    { id: "address", header: t("field.address"), cell: (c) => <span className="line-clamp-1 text-muted-foreground">{c.address ?? "—"}</span> },
+    { id: "projects", header: t("field.projects"), align: "right", cell: (c) => <span className="tabular">{c.projectsCount ?? 0}</span>, sortValue: (c) => c.projectsCount ?? 0 },
+    { id: "added", header: t("masterData.common.colAdded"), cell: (c) => formatDate(c.createdAt), sortValue: (c) => c.createdAt },
   ];
 
   return (
     <>
       <PageHeader
-        title="Clients (Owners)"
-        description="Home owners you build for."
-        breadcrumbs={[{ label: "Sales" }, { label: "Clients" }]}
+        title={t("masterData.clients.title")}
+        description={t("masterData.clients.description")}
+        breadcrumbs={[{ label: t("crumb.sales") }, { label: t("masterData.clients.crumb") }]}
         actions={
-          !readOnly && canCreate ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus data-icon="inline-start" />
-              New client
-            </Button>
-          ) : null
+          <>
+            <ImportButton entity="clients" />
+            {!readOnly && canCreate ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.clients.newClient")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name, phone or email…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("masterData.clients.search")} />
       </FilterBar>
       <SectionCard flush>
         <DataTable
@@ -70,7 +76,7 @@ export function ClientsView() {
           error={error}
           onRetry={refetch}
           onRowClick={(c) => router.push(`/sales/clients/${c.id}`)}
-          empty={{ title: "No clients yet", description: "Add an owner, or create one while starting a new project.", icon: UserRound }}
+          empty={{ title: t("masterData.clients.emptyTitle"), description: t("masterData.clients.emptyDesc"), icon: UserRound }}
           pagination={
             data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined
           }
@@ -82,6 +88,7 @@ export function ClientsView() {
 }
 
 function ClientDetailBody({ client }: { client: ClientDetail }) {
+  const t = useT();
   const router = useRouter();
   const readOnly = useReadOnly();
   const seesBilling = useCan(BILLING_ACCESS);
@@ -91,56 +98,56 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
     <>
       <PageHeader
         title={client.name}
-        breadcrumbs={[{ label: "Sales" }, { label: "Clients", href: "/sales/clients" }, { label: client.name }]}
+        breadcrumbs={[{ label: t("crumb.sales") }, { label: t("masterData.clients.crumb"), href: "/sales/clients" }, { label: client.name }]}
         actions={
           !readOnly && canEdit ? (
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil data-icon="inline-start" />
-              Edit
+              {t("common.edit")}
             </Button>
           ) : null
         }
       />
-      <InlineAlert tone="info" title="Receives PDFs on WhatsApp">
-        Owners have no login. Quotes, bills and statements are shared with them as PDFs.
+      <InlineAlert tone="info" title={t("masterData.clients.whatsappTitle")}>
+        {t("masterData.clients.whatsappBody")}
       </InlineAlert>
-      <SectionCard title="Contact">
+      <SectionCard title={t("masterData.clients.contact")}>
         <InfoList
           columns={3}
           items={[
             {
-              label: "Phone",
+              label: t("field.phone"),
               value: (
                 <span className="inline-flex items-center gap-1.5">
                   <MessageCircle className="size-4 text-success" aria-hidden />
-                  {formatPhone(client.phone)}
+                  <bdi dir="ltr">{formatPhone(client.phone)}</bdi>
                 </span>
               ),
             },
-            { label: "Email", value: client.email },
-            { label: "Client since", value: formatDate(client.createdAt) },
-            { label: "Address", value: client.address },
-            { label: "Notes", value: client.notes },
+            { label: t("field.email"), value: client.email },
+            { label: t("masterData.clients.clientSince"), value: formatDate(client.createdAt) },
+            { label: t("field.address"), value: client.address },
+            { label: t("field.notes"), value: client.notes },
           ]}
         />
       </SectionCard>
       <Tabs defaultValue="projects">
         <TabsList>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          {seesBilling ? <TabsTrigger value="statements">Statements</TabsTrigger> : null}
+          <TabsTrigger value="projects">{t("field.projects")}</TabsTrigger>
+          {seesBilling ? <TabsTrigger value="statements">{t("masterData.clients.statements")}</TabsTrigger> : null}
         </TabsList>
         <TabsContent value="projects">
-      <SectionCard title="Projects" flush>
+      <SectionCard title={t("field.projects")} flush>
         <DataTable
           rows={client.projects}
           getRowId={(p) => p.id}
           clientPageSize={10}
           onRowClick={(p) => router.push(p.status === "DRAFT" ? `/projects/${p.id}/edit` : `/projects/${p.id}/overview`)}
-          empty={{ title: "No projects for this client yet" }}
+          empty={{ title: t("masterData.clients.noProjects") }}
           columns={[
             {
               id: "name",
-              header: "Project",
+              header: t("field.project"),
               cell: (p) => (
                 <div>
                   <p className="font-medium">{p.name}</p>
@@ -149,10 +156,10 @@ function ClientDetailBody({ client }: { client: ClientDetail }) {
               ),
               sortValue: (p) => p.name,
             },
-            { id: "city", header: "City", cell: (p) => p.city ?? "—" },
-            { id: "status", header: "Status", cell: (p) => <StatusBadge domain="project" value={p.status} /> },
-            { id: "start", header: "Start", cell: (p) => formatDate(p.startDate), sortValue: (p) => p.startDate ?? "" },
-            { id: "end", header: "End", cell: (p) => formatDate(p.endDate), sortValue: (p) => p.endDate ?? "" },
+            { id: "city", header: t("field.city"), cell: (p) => p.city ?? "—" },
+            { id: "status", header: t("field.status"), cell: (p) => <StatusBadge domain="project" value={p.status} /> },
+            { id: "start", header: t("masterData.clients.start"), cell: (p) => formatDate(p.startDate), sortValue: (p) => p.startDate ?? "" },
+            { id: "end", header: t("masterData.clients.end"), cell: (p) => formatDate(p.endDate), sortValue: (p) => p.endDate ?? "" },
           ]}
         />
       </SectionCard>

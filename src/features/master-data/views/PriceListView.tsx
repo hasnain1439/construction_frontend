@@ -40,7 +40,7 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { formatPKR, paisaToRupees, rupeesToPaisa } from "@/lib/money";
-import { SECTION_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
 import { BulkPercentDialog } from "../components/BulkPercentDialog";
 import { AddCategoryDialog, DuplicateCategoryDialog, RenameCategoryDialog } from "../components/CategoryDialogs";
 import { RateHistorySlideOver } from "../components/RateHistorySlideOver";
@@ -71,43 +71,44 @@ function CategoryTabs({
   onDefault: (c: QualityCategory) => void;
   onArchive: (c: QualityCategory) => void;
 }) {
+  const t = useT();
   return (
-    <div role="tablist" aria-label="Quality categories" className="flex flex-wrap items-center gap-2">
+    <div role="tablist" aria-label={t("masterData.priceList.tabsAria")} className="flex flex-wrap items-center gap-2">
       {categories.map((c) => {
         const active = c.id === selectedId;
         return (
           <div
             key={c.id}
             className={cn(
-              "flex items-center rounded-full border bg-card pr-1 shadow-card transition-colors",
+              "flex items-center rounded-full border bg-card pe-1 shadow-card transition-colors",
               active ? "border-primary bg-accent text-primary" : "hover:bg-muted",
             )}
           >
-            <button type="button" role="tab" aria-selected={active} onClick={() => onSelect(c.id)} className="flex items-center gap-2 py-2 pr-1 pl-4 text-sm font-medium">
+            <button type="button" role="tab" aria-selected={active} onClick={() => onSelect(c.id)} className="flex items-center gap-2 py-2 pe-1 ps-4 text-sm font-medium">
               {c.name}
-              {c.isDefault ? <Star className="size-3.5 fill-current text-amber" aria-label="Default" /> : null}
+              {c.isDefault ? <Star className="size-3.5 fill-current text-amber" aria-label={t("masterData.common.defaultBadge")} /> : null}
               {typeof c.ratedMaterials === "number" ? <span className="text-xs text-muted-foreground tabular">{c.ratedMaterials}</span> : null}
             </button>
             {canManage ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-xs" aria-label={`${c.name} options`}>
+                  <Button variant="ghost" size="icon-xs" aria-label={t("masterData.priceList.optionsAria", { name: c.name })}>
                     <MoreHorizontal />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem onSelect={() => onRename(c)}>
                     <Pencil />
-                    Rename
+                    {t("masterData.priceList.rename")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => onDuplicate(c)}>
                     <Copy />
-                    Duplicate
+                    {t("masterData.categories.duplicate")}
                   </DropdownMenuItem>
                   {!c.isDefault ? (
                     <DropdownMenuItem onSelect={() => onDefault(c)}>
                       <Star />
-                      Set as default
+                      {t("masterData.priceList.setDefault")}
                     </DropdownMenuItem>
                   ) : null}
                   {!c.isDefault ? (
@@ -115,7 +116,7 @@ function CategoryTabs({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem variant="destructive" onSelect={() => onArchive(c)}>
                         <Archive />
-                        Archive
+                        {t("masterData.priceList.archive")}
                       </DropdownMenuItem>
                     </>
                   ) : null}
@@ -128,7 +129,7 @@ function CategoryTabs({
       {canManage ? (
         <Button variant="outline" onClick={onAdd}>
           <Plus data-icon="inline-start" />
-          Add category
+          {t("masterData.categories.add")}
         </Button>
       ) : null}
     </div>
@@ -136,6 +137,8 @@ function CategoryTabs({
 }
 
 export function PriceListView() {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const canEdit = useCan("masterdata.pricelist.manage") && !readOnly;
   const categories = useGetQualityCategoriesQuery();
@@ -202,7 +205,7 @@ export function PriceListView() {
     });
     if (missingRate) {
       const name = items.find((i) => i.material.id === missingRate[0])?.material.name;
-      toast.error(`Set a rate for ${name} before adding a specification.`);
+      toast.error(t("masterData.priceList.missingRate", { name: name ?? "" }));
       return;
     }
     const rates = Object.entries(drafts).map(([materialId, d]) => {
@@ -210,7 +213,9 @@ export function PriceListView() {
       const specification = d.specification !== undefined ? d.specification : (item?.specification ?? null);
       return { materialId, ratePaisa: (d.ratePaisa ?? item?.ratePaisa) as string, specification };
     });
-    const result = await run(() => save({ categoryId, rates }).unwrap(), { success: (r) => `${r.changed} rate${r.changed === 1 ? "" : "s"} saved` });
+    const result = await run(() => save({ categoryId, rates }).unwrap(), {
+      success: (r) => (r.changed === 1 ? t("masterData.common.oneRateSaved") : t("masterData.common.nRatesSaved", { n: r.changed })),
+    });
     if (result) {
       setDrafts({});
       setSavedBanner(result.changed);
@@ -222,7 +227,7 @@ export function PriceListView() {
   const columns: Column<PriceListItem>[] = [
     {
       id: "material",
-      header: "Material",
+      header: t("field.material"),
       cell: (i) => (
         <div className="min-w-0">
           <p className="font-medium">{i.material.name}</p>
@@ -233,29 +238,29 @@ export function PriceListView() {
     },
     {
       id: "spec",
-      header: "Specification",
+      header: t("masterData.common.specification"),
       className: "min-w-56",
       cell: (i) => {
         const d = drafts[i.material.id];
         const value = d?.specification !== undefined ? (d.specification ?? "") : (i.specification ?? "");
         return canEdit ? (
           <InlineEditCell
-            ariaLabel={`${i.material.name} specification`}
+            ariaLabel={t("masterData.priceList.specAria", { name: i.material.name })}
             value={value}
-            placeholder="Add specification"
+            placeholder={t("masterData.priceList.addSpec")}
             dirty={d?.specification !== undefined}
             onCommit={(next) => setDraft(i, { specification: next.trim() || null })}
-            validate={(v) => (v.length > 200 ? "Up to 200 characters" : null)}
+            validate={(v) => (v.length > 200 ? t("masterData.v.specMax") : null)}
           />
         ) : (
           value || <span className="text-muted-foreground">—</span>
         );
       },
     },
-    { id: "unit", header: "Unit", cell: (i) => <span title={i.material.unitDetail ?? undefined}>{i.material.unit}</span> },
+    { id: "unit", header: t("field.unit"), cell: (i) => <span title={i.material.unitDetail ?? undefined}>{i.material.unit}</span> },
     {
       id: "rate",
-      header: "Rate",
+      header: t("field.rate"),
       align: "right",
       className: "w-44",
       sortValue: (i) => Number(drafts[i.material.id]?.ratePaisa ?? i.ratePaisa ?? -1),
@@ -264,15 +269,15 @@ export function PriceListView() {
         const rate = d?.ratePaisa ?? i.ratePaisa;
         return canEdit ? (
           <InlineEditCell
-            ariaLabel={`${i.material.name} rate`}
+            ariaLabel={t("masterData.common.rateAria", { name: i.material.name })}
             value={rate ? paisaToRupees(rate) : ""}
             display={rate ? formatPKR(rate) : undefined}
-            placeholder="Set rate"
+            placeholder={t("masterData.priceList.setRate")}
             prefix="Rs"
             inputMode="decimal"
             align="right"
             dirty={d?.ratePaisa !== undefined}
-            validate={(v) => (rupeesToPaisa(v) === null || v.trim().startsWith("-") ? "Enter an amount in rupees" : null)}
+            validate={(v) => (rupeesToPaisa(v) === null || v.trim().startsWith("-") ? t("masterData.v.rupees") : null)}
             onCommit={(next) => {
               const paisa = rupeesToPaisa(next);
               if (paisa) setDraft(i, { ratePaisa: paisa });
@@ -281,13 +286,13 @@ export function PriceListView() {
         ) : rate ? (
           <span className="tabular">{formatPKR(rate)}</span>
         ) : (
-          <span className="text-muted-foreground">Not set</span>
+          <span className="text-muted-foreground">{t("masterData.priceList.notSet")}</span>
         );
       },
     },
     {
       id: "updated",
-      header: "Last updated",
+      header: t("masterData.priceList.lastUpdated"),
       cell: (i) =>
         i.lastUpdatedAt ? (
           <div className="text-xs">
@@ -300,28 +305,28 @@ export function PriceListView() {
     },
     {
       ...ACTIONS_COLUMN,
-      cell: (i) => <RowActions name={i.material.name} actions={[{ label: "Rate history", icon: History, onSelect: () => setHistoryFor(i.material) }]} />,
+      cell: (i) => <RowActions name={i.material.name} actions={[{ label: t("masterData.common.rateHistory"), icon: History, onSelect: () => setHistoryFor(i.material) }]} />,
     },
   ];
 
   return (
     <>
       <PageHeader
-        title="Price List"
-        description="Your rates per quality category. Quotes and estimates use these rates."
-        breadcrumbs={[{ label: "Settings" }, { label: "Price List" }]}
+        title={t("masterData.priceList.title")}
+        description={t("masterData.priceList.description")}
+        breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.priceList.title") }]}
         actions={
           canEdit ? (
             <>
               {dirtyCount ? (
                 <Button variant="outline" onClick={() => setDrafts({})}>
                   <RotateCcw data-icon="inline-start" />
-                  Discard
+                  {t("action.discard")}
                 </Button>
               ) : null}
               <Button onClick={() => void saveAll()} disabled={!dirtyCount || saving}>
                 <Save data-icon="inline-start" />
-                Save changes{dirtyCount ? ` (${dirtyCount})` : ""}
+                {dirtyCount ? t("masterData.common.saveChangesCount", { n: dirtyCount }) : t("common.saveChanges")}
               </Button>
             </>
           ) : null
@@ -340,14 +345,15 @@ export function PriceListView() {
           onAdd={() => setAdding(true)}
           onRename={setRenaming}
           onDuplicate={setDuplicating}
-          onDefault={(c) => run(() => updateCategory({ id: c.id, body: { isDefault: true } }).unwrap(), { success: `${c.name} is now the default` })}
+          onDefault={(c) => run(() => updateCategory({ id: c.id, body: { isDefault: true } }).unwrap(), { success: t("masterData.common.isNowDefault", { name: c.name }) })}
           onArchive={setArchiving}
         />
       )}
       {savedBanner !== null ? (
-        <InlineAlert tone="success" title="Rates changed">
-          {savedBanner} rate{savedBanner === 1 ? "" : "s"} saved for {category?.name}. New quotes and estimates use the new rates; approved estimates keep
-          their old rates.
+        <InlineAlert tone="success" title={t("masterData.priceList.ratesChanged")}>
+          {savedBanner === 1
+            ? t("masterData.priceList.oneSavedBanner", { category: category?.name ?? "" })
+            : t("masterData.priceList.nSavedBanner", { n: savedBanner, category: category?.name ?? "" })}
         </InlineAlert>
       ) : null}
       <FilterBar
@@ -360,13 +366,13 @@ export function PriceListView() {
           canEdit && category ? (
             <Button variant="outline" onClick={() => setBulkOpen(true)}>
               <Percent data-icon="inline-start" />
-              Bulk update %
+              {t("masterData.priceList.bulk")}
             </Button>
           ) : null
         }
       >
-        <SearchInput value={search} onChange={setSearch} placeholder="Search materials…" />
-        <FilterSelect label="Group" value={groupId} onChange={setGroupId} options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
+        <SearchInput value={search} onChange={setSearch} placeholder={t("masterData.common.searchMaterials")} />
+        <FilterSelect label={t("masterData.common.group")} value={groupId} onChange={setGroupId} options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
         {category ? <StatusBadge tone="info" label={category.code} /> : null}
       </FilterBar>
       <SectionCard flush>
@@ -375,11 +381,11 @@ export function PriceListView() {
         ) : priceList.error && !priceList.data ? (
           <ErrorState error={priceList.error} onRetry={priceList.refetch} compact />
         ) : bySection.length === 0 ? (
-          <EmptyState compact title="No materials match" description="Try another search or group." />
+          <EmptyState compact title={t("masterData.priceList.emptyTitle")} description={t("masterData.priceList.emptyDesc")} />
         ) : (
           bySection.map(([section, rows]) => (
-            <CollapsibleSection key={section} title={SECTION_LABEL[section] ?? section} count={rows.length}>
-              <DataTable rows={rows} columns={columns} getRowId={(i) => i.material.id} clientPageSize={0} empty={{ title: "Empty" }} />
+            <CollapsibleSection key={section} title={te("section", section)} count={rows.length}>
+              <DataTable rows={rows} columns={columns} getRowId={(i) => i.material.id} clientPageSize={0} empty={{ title: t("masterData.common.empty") }} />
             </CollapsibleSection>
           ))
         )}
@@ -393,13 +399,13 @@ export function PriceListView() {
       <ConfirmDialog
         open={Boolean(archiving_)}
         onOpenChange={(o) => !o && setArchiving(null)}
-        title={`Archive ${archiving_?.name ?? "category"}?`}
-        description="It disappears from new quotes and projects. Existing projects keep it."
-        confirmLabel="Archive"
+        title={t("masterData.priceList.archiveTitle", { name: archiving_?.name ?? t("masterData.priceList.thisCategory") })}
+        description={t("masterData.priceList.archiveDesc")}
+        confirmLabel={t("masterData.priceList.archive")}
         loading={archiving}
         onConfirm={async () => {
           if (!archiving_) return;
-          const ok = await run(() => archive(archiving_.id).unwrap(), { success: `${archiving_.name} archived` });
+          const ok = await run(() => archive(archiving_.id).unwrap(), { success: t("masterData.priceList.archived", { name: archiving_.name }) });
           if (ok) {
             if (selected === archiving_.id) setSelected(undefined);
             setArchiving(null);
@@ -409,9 +415,13 @@ export function PriceListView() {
       <ConfirmDialog
         open={pendingTab !== null}
         onOpenChange={(o) => !o && setPendingTab(null)}
-        title="Discard unsaved rates?"
-        description={`You have ${dirtyCount} unsaved change${dirtyCount === 1 ? "" : "s"} in ${category?.name}.`}
-        confirmLabel="Discard and switch"
+        title={t("masterData.priceList.discardTitle")}
+        description={
+          dirtyCount === 1
+            ? t("masterData.priceList.oneUnsaved", { category: category?.name ?? "" })
+            : t("masterData.priceList.nUnsaved", { n: dirtyCount, category: category?.name ?? "" })
+        }
+        confirmLabel={t("masterData.priceList.discardSwitch")}
         onConfirm={() => {
           setDrafts({});
           setSelected(pendingTab ?? undefined);
