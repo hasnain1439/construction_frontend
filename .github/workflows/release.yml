@@ -80,7 +80,24 @@ jobs:
           cache-from: type=gha,scope=web-staging
           cache-to: type=gha,mode=max,scope=web-staging
 
+      # No staging server yet (secrets empty) → skip the SSH steps instead of failing the run.
+      - name: Staging server configured?
+        id: staging
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          if [ -n "$SSH_HOST" ] && [ -n "$SSH_USER" ] && [ -n "$SSH_PRIVATE_KEY" ] && [ -n "$SSH_KNOWN_HOSTS" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Staging deploy skipped::Set SSH_HOST, SSH_USER, SSH_PRIVATE_KEY and SSH_KNOWN_HOSTS in Settings → Environments → staging to deploy (see docs/DEPLOYMENT.md)."
+          fi
+
       - name: SSH key
+        if: steps.staging.outputs.ready == 'true'
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
@@ -92,6 +109,7 @@ jobs:
 
       # deploy.sh and the compose files come from the API repository (its release uploads them).
       - name: Deploy (pull, restart, readiness)
+        if: steps.staging.outputs.ready == 'true'
         env:
           TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
           TAG: ${{ steps.vars.outputs.tag }}
