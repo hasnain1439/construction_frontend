@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 /** Six one-digit boxes; typing advances, Backspace goes back, paste fills all. */
@@ -11,7 +12,7 @@ export function OtpInput({
   invalid,
   disabled,
   autoFocus,
-  label = "Verification code",
+  label: labelProp,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -21,6 +22,8 @@ export function OtpInput({
   autoFocus?: boolean;
   label?: string;
 }) {
+  const t = useT();
+  const label = labelProp ?? t("app.components.forms.verificationCode");
   const refs = useRef<Array<HTMLInputElement | null>>([]);
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
 
@@ -64,7 +67,7 @@ export function OtpInput({
           maxLength={1}
           disabled={disabled}
           autoFocus={autoFocus && index === 0}
-          aria-label={`Digit ${index + 1}`}
+          aria-label={t("app.components.forms.digitN", { n: index + 1 })}
           aria-invalid={invalid || undefined}
           onPaste={onPaste}
           onKeyDown={(e) => onKeyDown(e, index)}

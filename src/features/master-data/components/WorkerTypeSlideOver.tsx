@@ -22,6 +22,8 @@ type Values = z.input<WorkerTypeFormSchema>;
 type Output = z.output<WorkerTypeFormSchema>;
 
 const DEFAULT_OVERTIME = 1.5;
+/** Sample names typed into each language's own field (the same in every UI language). */
+const SAMPLE_NAME = { en: "Electrician", roman: "Bijli wala", urdu: "بجلی والا" } as const;
 
 /** Add / edit a company worker type (names in three languages, daily rate, overtime, active). */
 export function WorkerTypeSlideOver({
@@ -103,10 +105,10 @@ export function WorkerTypeSlideOver({
       }
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="label" label={t("workerTypes.nameEn")} required placeholder="Electrician" maxLength={60} dir="ltr" />
+        <TextField name="label" label={t("workerTypes.nameEn")} required placeholder={SAMPLE_NAME.en} maxLength={60} dir="ltr" />
         <FieldGrid>
-          <TextField name="labelRoman" label={t("workerTypes.nameRoman")} placeholder="Bijli wala" maxLength={60} dir="ltr" />
-          <TextField name="labelUrdu" label={t("workerTypes.nameUrdu")} placeholder="بجلی والا" maxLength={60} dir="rtl" />
+          <TextField name="labelRoman" label={t("workerTypes.nameRoman")} placeholder={SAMPLE_NAME.roman} maxLength={60} dir="ltr" />
+          <TextField name="labelUrdu" label={t("workerTypes.nameUrdu")} placeholder={SAMPLE_NAME.urdu} maxLength={60} dir="rtl" />
         </FieldGrid>
         <p className="-mt-2 text-xs text-muted-foreground">{t("workerTypes.nameHint")}</p>
         <FieldGrid>

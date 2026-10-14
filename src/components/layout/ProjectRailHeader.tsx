@@ -1,5 +1,6 @@
 "use client";
 
+import { DemoBadge } from "@/features/onboarding/components/DemoBadge";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useGetProjectQuery } from "@/api/services/projects.api";
@@ -34,6 +35,7 @@ export function ProjectRailHeader({ projectId, collapsed }: { projectId: string;
             {project.name}
           </p>
           <StatusBadge domain="project" value={project.status} label={te("projectStatus", project.status)} className="h-5 px-2 text-[11px]" />
+          {project.isDemo ? <DemoBadge isDemo className="justify-center" /> : null}
         </div>
       ) : null}
     </div>

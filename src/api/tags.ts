@@ -76,6 +76,8 @@ export const COMPANY_TAGS = [
   "Dashboard",
   "Finance",
   "Reports",
+  "Onboarding",
+  "OpeningBalances",
 ] as const;
 
 export const ADMIN_TAGS = [

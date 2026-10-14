@@ -5,6 +5,8 @@
  *   042-35761234 (landline, office numbers only)                    → +924235761234
  */
 
+import { msg } from "@/i18n/message";
+
 const E164_PK_MOBILE = /^\+923\d{9}$/;
 
 function digitsOf(input: string): string | null {
@@ -64,5 +66,5 @@ export function toLocalPhone(phone: string | null | undefined): string {
   return national.startsWith("3") ? `0${national.slice(0, 3)} ${national.slice(3)}` : `0${national}`;
 }
 
-export const PHONE_ERROR = "Enter a valid Pakistani mobile number, e.g. 0300 1234567";
-export const ANY_PHONE_ERROR = "Enter a valid mobile or landline number, e.g. 042 35761234";
+export const PHONE_ERROR = msg("validation.phoneInvalid");
+export const ANY_PHONE_ERROR = msg("validation.anyPhoneInvalid");

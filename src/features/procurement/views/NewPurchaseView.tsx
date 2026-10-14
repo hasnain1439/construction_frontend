@@ -20,6 +20,7 @@ import { SegmentedField } from "@/components/forms/SegmentedField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { qtyTimesRate } from "@/lib/quantity";
 import { useMe } from "@/store/hooks";
@@ -45,6 +46,8 @@ function linesFromOrder(po: PurchaseOrder): Line[] {
  * (the office prices it later). `fixedProjectId` locks the site (project-mode entry).
  */
 export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/purchases" }: { fixedProjectId?: string; backHref?: string }) {
+  const t = useT();
+  const te = useEnumT();
   const router = useRouter();
   const params = useSearchParams();
   const me = useMe();
@@ -87,7 +90,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
   const orders = useGetPurchaseOrdersQuery({ supplierId: supplierId ?? undefined, limit: 50 }, { skip: !supplierId || munshi });
   const orderOptions = (orders.data?.items ?? [])
     .filter((o) => o.status === "OPEN" || o.status === "PARTLY_RECEIVED")
-    .map((o) => ({ value: o.id, label: o.number, description: `${o.items.length} materials · ${o.deliverTo === "STORE" ? "store" : (o.project?.name ?? "site")}` }));
+    .map((o) => ({ value: o.id, label: o.number, description: t("procurement.newPurchase.orderDesc", { n: o.items.length, place: o.deliverTo === "STORE" ? t("procurement.common.store") : (o.project?.name ?? t("procurement.common.site")) }) }));
 
   // A linked order fills in the supplier, destination and lines once.
   const po = useGetPurchaseOrderQuery(purchaseOrderId ?? "", { skip: !purchaseOrderId });
@@ -105,15 +108,15 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
 
   const storeCount = deliverTo === "STORE" || munshi;
   const columns: LineColumn[] = [
-    { key: "challanQty", label: "Challan qty", kind: "quantity", required: true, width: "w-36" },
+    { key: "challanQty", label: t("procurement.newPurchase.challanQty"), kind: "quantity", required: true, width: "w-36" },
     ...(storeCount
       ? ([
-          { key: "countedQty", label: "Counted", kind: "quantity", placeholder: "= challan", width: "w-32" },
-          { key: "damagedQty", label: "Damaged", kind: "quantity", width: "w-28" },
+          { key: "countedQty", label: t("field.counted"), kind: "quantity", placeholder: t("procurement.newPurchase.countedPlaceholder"), width: "w-32" },
+          { key: "damagedQty", label: t("field.damaged"), kind: "quantity", width: "w-28" },
         ] as LineColumn[])
       : []),
-    ...(withRates ? ([{ key: "ratePaisa", label: "Rate", kind: "money", required: true, width: "w-36" }] as LineColumn[]) : []),
-    { key: "note", label: "Note", kind: "text", placeholder: storeCount ? "Needed if short / damaged" : "Optional", width: "w-48" },
+    ...(withRates ? ([{ key: "ratePaisa", label: t("field.rate"), kind: "money", required: true, width: "w-36" }] as LineColumn[]) : []),
+    { key: "note", label: t("field.note"), kind: "text", placeholder: storeCount ? t("procurement.newPurchase.notePlaceholderStore") : t("common.optional"), width: "w-48" },
   ];
 
   const onSubmit = async (v: z.output<typeof purchaseSchema>) => {
@@ -145,7 +148,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
       })),
     };
     const result = await run(() => create(body).unwrap(), {
-      success: (p) => `${p.number} saved`,
+      success: (p) => t("procurement.common.saved", { number: p.number }),
       setError: form.setError,
       codeFields: { INVALID_PAID_AMOUNT: "paidNowPaisa", CHALLAN_REQUIRED: "challan", PO_SUPPLIER_MISMATCH: "purchaseOrderId", SUPPLIER_INACTIVE: "supplierId" },
       onError: (_code, error) =>
@@ -162,24 +165,24 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
   return (
     <>
       <PageHeader
-        title={munshi ? "Record site purchase" : "New purchase"}
-        description={munshi ? "Count what arrived. The office adds the rates." : "Enter the supplier's challan. Store purchases are counted now; site deliveries are counted at the site."}
-        breadcrumbs={fixedProjectId ? undefined : [{ label: "Suppliers & Stock" }, { label: "Purchases", href: "/suppliers-stock/purchases" }, { label: "New" }]}
+        title={munshi ? t("procurement.newPurchase.titleMunshi") : t("procurement.newPurchase.title")}
+        description={munshi ? t("procurement.newPurchase.descMunshi") : t("procurement.newPurchase.desc")}
+        breadcrumbs={fixedProjectId ? undefined : [{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchases"), href: "/suppliers-stock/purchases" }, { label: t("procurement.common.new") }]}
       />
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-5">
-            <SectionCard title="Supplier & delivery">
+            <SectionCard title={t("procurement.common.supplierAndDelivery")}>
               <div className="space-y-4">
                 <FieldGrid>
-                  <ComboboxField name="supplierId" label="Supplier" required options={suppliers.options} loading={suppliers.loading} placeholder="Choose supplier" />
+                  <ComboboxField name="supplierId" label={t("field.supplier")} required options={suppliers.options} loading={suppliers.loading} placeholder={t("procurement.newPurchase.chooseSupplier")} />
                   {withRates ? (
                     <ComboboxField
                       name="purchaseOrderId"
-                      label="Purchase order"
+                      label={t("procurement.common.purchaseOrder")}
                       options={orderOptions}
                       loading={orders.isLoading}
-                      placeholder={supplierId ? (orderOptions.length ? "Link an open order (optional)" : "No open orders") : "Choose the supplier first"}
+                      placeholder={supplierId ? (orderOptions.length ? t("procurement.newPurchase.linkOrder") : t("procurement.newPurchase.noOpenOrders")) : t("procurement.newPurchase.supplierFirst")}
                       disabled={!supplierId}
                     />
                   ) : null}
@@ -187,58 +190,51 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
                 {!munshi && !fixedProjectId ? (
                   <SegmentedField<DeliverTo>
                     name="deliverTo"
-                    label="Deliver to"
-                    options={[
-                      { value: "STORE", label: "Central Store" },
-                      { value: "SITE", label: "Directly to site" },
-                    ]}
+                    label={t("procurement.common.deliverTo")}
+                    options={(["STORE", "SITE"] as const).map((value) => ({ value, label: te("procDeliverTo", value) }))}
                   />
                 ) : null}
                 {deliverTo === "SITE" && !fixedProjectId ? (
-                  <ComboboxField name="projectId" label="Project site" required options={projects.options} loading={projects.loading} placeholder="Choose the site" />
+                  <ComboboxField name="projectId" label={t("procurement.common.projectSite")} required options={projects.options} loading={projects.loading} placeholder={t("procurement.newPurchase.chooseSite")} />
                 ) : null}
                 <FieldGrid columns={3}>
-                  <DateField name="purchaseDate" label="Date" required max={todayPK()} />
-                  <TextField name="challanNo" label="Challan no." required placeholder="CH-2231" />
-                  <TextField name="vehicleNo" label="Vehicle no." placeholder="LES-4521" />
+                  <DateField name="purchaseDate" label={t("field.date")} required max={todayPK()} />
+                  <TextField name="challanNo" label={t("procurement.common.challanNo")} required placeholder={t("procurement.common.challanPlaceholder")} />
+                  <TextField name="vehicleNo" label={t("procurement.common.vehicleNo")} placeholder={t("procurement.common.vehiclePlaceholder")} />
                 </FieldGrid>
               </div>
             </SectionCard>
 
             <SectionCard
-              title="Materials"
-              description={
-                storeCount
-                  ? "Count what arrived. If the good quantity is less than the challan, add a note — a shortage is recorded."
-                  : "The site counts these when the truck arrives (blind count)."
-              }
+              title={t("field.materials")}
+              description={storeCount ? t("procurement.newPurchase.materialsDescStore") : t("procurement.newPurchase.materialsDescSite")}
             >
               <LineItemsEditor
                 name="items"
                 columns={columns}
                 emptyRow={emptyLine}
-                amount={withRates ? { qtyKey: "challanQty", rateKey: "ratePaisa", label: "Amount" } : undefined}
+                amount={withRates ? { qtyKey: "challanQty", rateKey: "ratePaisa", label: t("field.amount") } : undefined}
                 onMaterialChange={(index, material) => {
                   const rate = material ? agreed.get(material.id) : undefined;
                   if (withRates && rate && !form.getValues(`items.${index}.ratePaisa`)) form.setValue(`items.${index}.ratePaisa`, rate);
                 }}
-                info={(row) => (withRates && row.materialId && agreed.has(row.materialId) ? "Agreed rate filled in" : null)}
+                info={(row) => (withRates && row.materialId && agreed.has(row.materialId) ? t("procurement.newPurchase.agreedRate") : null)}
               />
             </SectionCard>
 
             {withRates ? (
-              <SectionCard title="Payment">
+              <SectionCard title={t("field.payment")}>
                 <PaymentFields />
               </SectionCard>
             ) : null}
 
-            <SectionCard title="Challan & bill">
+            <SectionCard title={t("procurement.common.challanAndBill")}>
               <div className="space-y-4">
                 <FieldGrid>
-                  <AttachmentField name="challan" label="Challan photo" required kind="CHALLAN" uploadLabel="Upload the challan photo" />
-                  {withRates ? <AttachmentField name="bill" label="Bill (optional)" kind="RECEIPT" uploadLabel="Upload the bill" /> : null}
+                  <AttachmentField name="challan" label={t("procurement.newPurchase.challanPhoto")} required kind="CHALLAN" uploadLabel={t("procurement.newPurchase.uploadChallan")} />
+                  {withRates ? <AttachmentField name="bill" label={t("procurement.newPurchase.billOptional")} kind="RECEIPT" uploadLabel={t("procurement.newPurchase.uploadBill")} /> : null}
                 </FieldGrid>
-                <TextareaField name="note" label="Note" rows={2} />
+                <TextareaField name="note" label={t("field.note")} rows={2} />
               </div>
             </SectionCard>
           </div>
@@ -249,7 +245,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
             <div />
           )}
         </div>
-        <FormActions formId={FORM_ID} submitLabel={munshi ? "Save delivery" : "Save purchase"} loading={isLoading} onCancel={() => router.push(backHref)} className="sticky bottom-0 rounded-xl border bg-card p-3 shadow-card" />
+        <FormActions formId={FORM_ID} submitLabel={munshi ? t("procurement.newPurchase.saveDelivery") : t("procurement.newPurchase.savePurchase")} loading={isLoading} onCancel={() => router.push(backHref)} className="sticky bottom-0 rounded-xl border bg-card p-3 shadow-card" />
       </Form>
     </>
   );

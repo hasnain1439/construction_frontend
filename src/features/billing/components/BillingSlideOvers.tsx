@@ -37,6 +37,7 @@ import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { formatPKR, sumPaisa, toPaisaBigInt } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
@@ -52,12 +53,13 @@ interface Open {
 // ─── Mark ready ─────────────────────────────────────────────────────────────
 
 export function MarkReadySlideOver({ open, onOpenChange, stage, onWarning }: Open & { stage: ScheduleStage; onWarning: (w: UnpaidStageWarning | null) => void }) {
+  const t = useT();
   const [mark, { isLoading }] = useMarkStageReadyMutation();
   const run = useMutationToast();
   const form = useForm<MarkReadyValues, unknown, z.output<typeof markReadySchema>>({ resolver: zodResolver(markReadySchema), values: { photo: null, photo2: null, note: "" } });
   const onSubmit = async (v: z.output<typeof markReadySchema>) => {
     const r = await run(() => mark({ id: stage.id, body: { proofAttachmentIds: [v.photo.id, ...(v.photo2 ? [v.photo2.id] : [])], ...(v.note ? { note: v.note } : {}) } }).unwrap(), {
-      success: `${stage.label} is ready to bill`,
+      success: t("billing.forms.stageReady", { stage: stage.label }),
       setError: form.setError,
     });
     if (r) {
@@ -69,15 +71,15 @@ export function MarkReadySlideOver({ open, onOpenChange, stage, onWarning }: Ope
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={`Mark ready — ${stage.label}`}
-      description={`${stage.percent}% · ${formatPKR(stage.amountPaisa)}. Attach photos of the finished work; the owner sees them with the invoice.`}
+      title={t("billing.forms.markReadyTitle", { stage: stage.label })}
+      description={t("billing.forms.markReadyDesc", { percent: stage.percent, amount: formatPKR(stage.amountPaisa) })}
       busy={isLoading}
-      footer={<FormActions formId="mark-ready" submitLabel="Mark ready" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="mark-ready" submitLabel={t("billing.schedule.markReady")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="mark-ready">
-        <AttachmentField name="photo" label="Photo" kind="SITE_PHOTO" required />
-        <AttachmentField name="photo2" label="Another photo (optional)" kind="SITE_PHOTO" />
-        <TextareaField name="note" label="Note" rows={2} placeholder="Slab cast 25 Aug, curing done" />
+        <AttachmentField name="photo" label={t("field.photo")} kind="SITE_PHOTO" required />
+        <AttachmentField name="photo2" label={t("billing.forms.anotherPhoto")} kind="SITE_PHOTO" />
+        <TextareaField name="note" label={t("field.note")} rows={2} placeholder={t("billing.forms.markReadyNotePh")} />
       </Form>
     </SlideOver>
   );
@@ -86,12 +88,13 @@ export function MarkReadySlideOver({ open, onOpenChange, stage, onWarning }: Ope
 // ─── Running-bill progress ──────────────────────────────────────────────────
 
 export function ProgressSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
+  const t = useT();
   const [add, { isLoading }] = useAddBillingProgressMutation();
   const run = useMutationToast();
   const form = useForm<ProgressValues, unknown, z.output<typeof progressSchema>>({ resolver: zodResolver(progressSchema), values: { date: todayPK(), quantity: null, description: "", photo: null } });
   const onSubmit = async (v: z.output<typeof progressSchema>) => {
     const ok = await run(() => add({ projectId, body: { date: v.date, quantity: v.quantity, description: v.description, ...(v.photo ? { attachmentIds: [v.photo.id] } : {}) } }).unwrap(), {
-      success: "Progress added",
+      success: t("billing.forms.progressAdded"),
       setError: form.setError,
       codeFields: { FUTURE_DATE: "date" },
     });
@@ -101,18 +104,18 @@ export function ProgressSlideOver({ open, onOpenChange, projectId }: Open & { pr
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Add progress"
-      description="Sq ft done for the next running bill."
+      title={t("billing.schedule.addProgress")}
+      description={t("billing.forms.progressDesc")}
       busy={isLoading}
-      footer={<FormActions formId="progress-form" submitLabel="Add progress" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="progress-form" submitLabel={t("billing.schedule.addProgress")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="progress-form">
         <FieldGrid>
-          <QuantityField name="quantity" label="Done" unit="sq ft" required />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <QuantityField name="quantity" label={t("billing.forms.done")} unit={t("field.sqft")} required />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <TextField name="description" label="What was done" required placeholder="Ground floor — brickwork & plaster" />
-        <AttachmentField name="photo" label="Photo (optional)" kind="SITE_PHOTO" />
+        <TextField name="description" label={t("billing.forms.whatWasDone")} required placeholder={t("billing.forms.whatWasDonePh")} />
+        <AttachmentField name="photo" label={t("billing.forms.photoOptional")} kind="SITE_PHOTO" />
       </Form>
     </SlideOver>
   );
@@ -120,16 +123,13 @@ export function ProgressSlideOver({ open, onOpenChange, projectId }: Open & { pr
 
 // ─── New invoice ────────────────────────────────────────────────────────────
 
-const TYPES = [
-  { value: "STAGE", label: "Stage" },
-  { value: "RUNNING_BILL", label: "Running bill" },
-  { value: "RECOVERABLE", label: "Recoverable" },
-  { value: "RETENTION", label: "Retention" },
-  { value: "OTHER", label: "Other" },
-] as const;
+/** Invoice types in menu order (labels: `te("invoiceType", v)`). */
+const TYPES = ["STAGE", "RUNNING_BILL", "RECOVERABLE", "RETENTION", "OTHER"] as const;
 
 export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingModel, stageId }: Open & { projectId: string; billingModel: string | null; stageId?: string }) {
   const router = useRouter();
+  const t = useT();
+  const te = useEnumT();
   // "Other" invoices (free amounts) only for those who may issue invoices.
   const owner = useCan("billing.invoice.approve");
   const stages = useGetBillingStagesQuery(projectId);
@@ -189,7 +189,7 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
                   })),
                 };
     const inv = await run(() => create({ projectId, body: { ...body, ...(v.notes ? { notes: v.notes } : {}) } as never }).unwrap(), {
-      success: "Draft invoice created — check it and issue",
+      success: t("billing.forms.draftCreated"),
       setError: form.setError,
       codeFields: { STAGE_NOT_READY: "billingStageId", STAGE_ALREADY_INVOICED: "billingStageId", NOTHING_TO_BILL: "from", RETENTION_NOT_DUE: "type", SOURCE_ALREADY_BILLED: "cashEntryIds" },
     });
@@ -205,59 +205,59 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="New invoice"
-      description="Saved as a draft; you issue it from the invoice page."
+      title={t("billing.invoices.newInvoice")}
+      description={t("billing.forms.newInvoiceDesc")}
       busy={isLoading}
-      footer={<FormActions formId="invoice-form" submitLabel="Create draft" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="invoice-form" submitLabel={t("billing.forms.createDraft")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="invoice-form">
-        <SelectField name="type" label="Type" required options={TYPES.filter((t) => t.value !== "OTHER" || owner).map((t) => ({ value: t.value, label: t.label }))} />
+        <SelectField name="type" label={t("field.type")} required options={TYPES.filter((v) => v !== "OTHER" || owner).map((v) => ({ value: v, label: te("invoiceType", v) }))} />
         {type === "STAGE" ? (
           <>
             <SelectField
               name="billingStageId"
-              label="Stage"
+              label={t("field.stage")}
               required
-              placeholder={billable.length ? "Choose a stage" : "No stage is ready yet"}
-              options={billable.map((s) => ({ value: s.id, label: `${s.label} — ${s.percent}% · ${formatPKR(s.amountPaisa)}${s.status === "UPCOMING" ? " (not ready)" : ""}` }))}
+              placeholder={billable.length ? t("billing.forms.chooseStage") : t("billing.forms.noStageReady")}
+              options={billable.map((s) => ({ value: s.id, label: t(s.status === "UPCOMING" ? "billing.forms.stageOptionNotReady" : "billing.forms.stageOption", { stage: s.label, percent: s.percent, amount: formatPKR(s.amountPaisa) }) }))}
             />
-            <ToggleField name="force" label="Bill a stage that is not marked ready" />
-            {force ? <TextareaField name="forceNote" label="Why" rows={2} required /> : null}
-            {recoverableOptions.length ? <ComboboxField name="cashEntryIds" label="Also bill owner purchases (optional)" options={recoverableOptions} multiple /> : null}
+            <ToggleField name="force" label={t("billing.forms.forceBill")} />
+            {force ? <TextareaField name="forceNote" label={t("billing.forms.why")} rows={2} required /> : null}
+            {recoverableOptions.length ? <ComboboxField name="cashEntryIds" label={t("billing.forms.alsoBillPurchases")} options={recoverableOptions} multiple /> : null}
           </>
         ) : null}
         {type === "RUNNING_BILL" ? (
           running ? (
             <FieldGrid>
-              <DateField name="from" label="From" required />
-              <DateField name="to" label="To" required />
+              <DateField name="from" label={t("field.from")} required />
+              <DateField name="to" label={t("field.to")} required />
             </FieldGrid>
           ) : (
-            <InlineAlert tone="info">This project is billed by stages.</InlineAlert>
+            <InlineAlert tone="info">{t("billing.forms.billedByStages")}</InlineAlert>
           )
         ) : null}
         {type === "RECOVERABLE" ? (
           recoverableOptions.length ? (
-            <ComboboxField name="cashEntryIds" label="Owner purchases to recover" required options={recoverableOptions} multiple />
+            <ComboboxField name="cashEntryIds" label={t("billing.forms.purchasesToRecover")} required options={recoverableOptions} multiple />
           ) : (
-            <InlineAlert tone="info">No unbilled owner purchases on this project.</InlineAlert>
+            <InlineAlert tone="info">{t("billing.forms.noUnbilledPurchases")}</InlineAlert>
           )
         ) : null}
-        {type === "RETENTION" ? <InlineAlert tone="info">The retention is billed after handover (closeout / handed over).</InlineAlert> : null}
+        {type === "RETENTION" ? <InlineAlert tone="info">{t("billing.forms.retentionInfo")}</InlineAlert> : null}
         {type === "OTHER" ? (
           <div className="space-y-3">
             {lines.fields.map((f, i) => (
               <div key={f.id} className="grid gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_auto]">
                 <div className="space-y-2">
-                  <TextField name={`lines.${i}.description`} label={`Line ${i + 1}`} required placeholder="Boundary wall raised" />
+                  <TextField name={`lines.${i}.description`} label={t("billing.forms.lineN", { n: i + 1 })} required placeholder={t("billing.forms.linePh")} />
                   <FieldGrid columns={3}>
-                    <QuantityField name={`lines.${i}.quantity`} label="Qty" />
-                    <MoneyField name={`lines.${i}.ratePaisa`} label="Rate" />
-                    <MoneyField name={`lines.${i}.amountPaisa`} label="Amount" hint="Or qty × rate" />
+                    <QuantityField name={`lines.${i}.quantity`} label={t("billing.invoices.colQty")} />
+                    <MoneyField name={`lines.${i}.ratePaisa`} label={t("field.rate")} />
+                    <MoneyField name={`lines.${i}.amountPaisa`} label={t("field.amount")} hint={t("billing.forms.orQtyRate")} />
                   </FieldGrid>
                 </div>
                 {lines.fields.length > 1 ? (
-                  <Button type="button" size="icon" variant="ghost" aria-label={`Remove line ${i + 1}`} onClick={() => lines.remove(i)}>
+                  <Button type="button" size="icon" variant="ghost" aria-label={t("billing.forms.removeLine", { n: i + 1 })} onClick={() => lines.remove(i)}>
                     <Trash2 aria-hidden />
                   </Button>
                 ) : null}
@@ -265,13 +265,13 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
             ))}
             <Button type="button" size="sm" variant="outline" onClick={() => lines.append({ description: "", quantity: null, unit: "", ratePaisa: null, amountPaisa: null })}>
               <Plus data-icon="inline-start" />
-              Add line
+              {t("billing.forms.addLine")}
             </Button>
           </div>
         ) : null}
-        <TextareaField name="notes" label="Notes on the invoice" rows={2} />
+        <TextareaField name="notes" label={t("billing.invoices.notesOnInvoice")} rows={2} />
         <div className="flex items-center justify-between rounded-lg bg-muted p-3 text-sm" data-testid="invoice-preview">
-          <span className="text-muted-foreground">Subtotal (tax added on the draft if switched on)</span>
+          <span className="text-muted-foreground">{t("billing.forms.subtotalPreview")}</span>
           <MoneyText paisa={preview} className="font-semibold" />
         </div>
       </Form>
@@ -282,6 +282,8 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 // ─── Record payment ─────────────────────────────────────────────────────────
 
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
+  const t = useT();
+  const te = useEnumT();
   // Company settings (tax) are readable with company.settings.manage only.
   const owner = useCan("company.settings.manage");
   const settings = useGetCompanySettingsQuery(undefined, { skip: !owner });
@@ -332,7 +334,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
           },
         }).unwrap(),
       {
-        success: (p) => (p.status === "PENDING" ? `${p.number} saved — cheque pending` : `${p.number} saved`),
+        success: (p) => t(p.status === "PENDING" ? "billing.forms.paymentSavedPending" : "billing.forms.paymentSaved", { number: p.number }),
         setError: form.setError,
         codeFields: { FUTURE_DATE: "receivedOn", WHT_NOT_ENABLED: "whtDeductedPaisa" },
       },
@@ -344,29 +346,29 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Record payment"
-      description="Money received from the owner. Cheques stay pending until you mark them cleared."
+      title={t("action.recordPayment")}
+      description={t("billing.forms.recordPaymentDesc")}
       busy={isLoading}
-      footer={<FormActions formId="payment-form" submitLabel="Save payment" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="payment-form" submitLabel={t("billing.forms.savePayment")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="payment-form">
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="receivedOn" label="Received on" required max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="receivedOn" label={t("billing.forms.receivedOn")} required max={todayPK()} />
         </FieldGrid>
-        <SelectField name="method" label="Method" required options={PAYMENT_METHODS.map((m) => ({ value: m.value, label: m.label }))} />
+        <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} />
         <FieldGrid>
-          <TextField name="bankName" label="Bank" placeholder="MCB" />
-          <TextField name="reference" label="Reference" placeholder="FT26165" />
+          <TextField name="bankName" label={t("field.bank")} placeholder={t("billing.forms.bankPh")} />
+          <TextField name="reference" label={t("field.reference")} placeholder={t("billing.forms.referencePh")} />
         </FieldGrid>
         {method === "CHEQUE" ? (
           <FieldGrid>
-            <TextField name="chequeNo" label="Cheque no." required />
-            <DateField name="chequeDate" label="Cheque date" />
+            <TextField name="chequeNo" label={t("billing.forms.chequeNo")} required />
+            <DateField name="chequeDate" label={t("billing.forms.chequeDate")} />
           </FieldGrid>
         ) : null}
-        {taxOn ? <MoneyField name="whtDeductedPaisa" label="Tax withheld (WHT)" hint="Counts towards the invoices" /> : null}
-        <AttachmentField name="slip" label="Slip / cheque photo (optional)" kind="PAYMENT_SLIP" />
+        {taxOn ? <MoneyField name="whtDeductedPaisa" label={t("billing.forms.wht")} hint={t("billing.forms.whtHint")} /> : null}
+        <AttachmentField name="slip" label={t("billing.forms.slipOptional")} kind="PAYMENT_SLIP" />
         <AllocationEditor
           invoices={open_}
           totalPaisa={total}
@@ -376,8 +378,8 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             setAlloc(v);
           }}
         />
-        {!touched ? <p className="text-xs text-muted-foreground">Leave the amounts empty to settle the oldest due invoices first.</p> : null}
-        <TextareaField name="note" label="Note" rows={2} />
+        {!touched ? <p className="text-xs text-muted-foreground">{t("billing.forms.autoSettleHint")}</p> : null}
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { DemoBadge } from "@/features/onboarding/components/DemoBadge";
 import { FolderKanban, LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,9 +24,9 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useListState } from "@/hooks/useListState";
 import { formatDate } from "@/lib/dates";
-import { statusMeta } from "@/lib/status";
+import { useEnumT, useStatusT, useT, type TranslationKey } from "@/i18n/useT";
 import { ProjectCard } from "../components/ProjectCard";
-import { CONTRACT_TYPE_LABEL } from "../constants";
+import { CONTRACT_TYPE_VALUES } from "../constants";
 import { projectLanding } from "../utils/links";
 
 type View = "cards" | "table";
@@ -35,18 +36,19 @@ type View = "cards" | "table";
  * contract type and PM filters, server pagination.
  */
 export function ProjectsBrowser({
-  title,
-  crumb,
+  titleKey,
   statuses,
   defaultStatus = "",
   allowAllStatuses = true,
 }: {
-  title: string;
-  crumb: string;
+  titleKey: TranslationKey;
   statuses: ProjectStatus[];
   defaultStatus?: ProjectStatus | "";
   allowAllStatuses?: boolean;
 }) {
+  const t = useT();
+  const te = useEnumT();
+  const ts = useStatusT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const canCreate = useCan("projects.project.create");
@@ -60,28 +62,31 @@ export function ProjectsBrowser({
   const query = { ...list.query, ...(list.filters.status ? {} : allowAllStatuses ? {} : { status: defaultStatus }) } as ProjectsQuery;
   const { data, isLoading, isFetching, error, refetch } = useGetProjectsQuery(query);
 
-  const statusOptions: FilterOption[] = statuses.map((s) => ({ value: s, label: statusMeta("project", s).label }));
+  const statusOptions: FilterOption[] = statuses.map((s) => ({ value: s, label: ts("project", s) }));
   const pmOptions: FilterOption[] = (pms.data?.items ?? []).map((u) => ({ value: u.id, label: u.name }));
 
   const columns: Column<ProjectListItem>[] = [
     {
       id: "name",
-      header: "Project",
+      header: t("field.project"),
       sortValue: (p) => p.name,
       cell: (p) => (
         <div className="min-w-0">
-          <p className="font-medium">{p.name}</p>
+          <p className="flex flex-wrap items-center gap-2 font-medium">
+            {p.name}
+            <DemoBadge isDemo={p.isDemo} />
+          </p>
           <p className="text-xs text-muted-foreground">{p.code}</p>
         </div>
       ),
     },
-    { id: "client", header: "Client", cell: (p) => p.client?.name ?? "—", sortValue: (p) => p.client?.name ?? "" },
-    { id: "city", header: "City", cell: (p) => p.city ?? "—" },
-    { id: "type", header: "Contract", cell: (p) => (p.contractType ? CONTRACT_TYPE_LABEL[p.contractType] : "—") },
-    { id: "value", header: "Value", align: "right", hidden: !showMoney, cell: (p) => <MoneyText paisa={p.contractValuePaisa} short /> },
-    { id: "pm", header: "PM", cell: (p) => p.pm?.name ?? <span className="text-muted-foreground">—</span> },
-    { id: "end", header: "End date", cell: (p) => formatDate(p.endDate), sortValue: (p) => p.endDate ?? "" },
-    { id: "status", header: "Status", cell: (p) => <StatusBadge domain="project" value={p.status} />, sortValue: (p) => p.status },
+    { id: "client", header: t("field.client"), cell: (p) => p.client?.name ?? "—", sortValue: (p) => p.client?.name ?? "" },
+    { id: "city", header: t("field.city"), cell: (p) => p.city ?? "—" },
+    { id: "type", header: t("field.contract"), cell: (p) => (p.contractType ? te("projectContractType", p.contractType) : "—") },
+    { id: "value", header: t("field.value"), align: "right", hidden: !showMoney, cell: (p) => <MoneyText paisa={p.contractValuePaisa} short /> },
+    { id: "pm", header: t("projects.list.pm"), cell: (p) => p.pm?.name ?? <span className="text-muted-foreground">—</span> },
+    { id: "end", header: t("projects.list.endDate"), cell: (p) => formatDate(p.endDate), sortValue: (p) => p.endDate ?? "" },
+    { id: "status", header: t("field.status"), cell: (p) => <StatusBadge domain="project" value={p.status} />, sortValue: (p) => p.status },
   ];
 
   const pagination = data
@@ -91,14 +96,14 @@ export function ProjectsBrowser({
   return (
     <>
       <PageHeader
-        title={title}
-        breadcrumbs={[{ label: "Projects", href: "/projects" }, { label: crumb }]}
+        title={t(titleKey)}
+        breadcrumbs={[{ label: t("crumb.projects"), href: "/projects" }, { label: t(titleKey) }]}
         actions={
           canCreate ? (
             <Button asChild>
               <Link href="/projects/new">
                 <Plus data-icon="inline-start" />
-                New project
+                {t("projects.list.newProject")}
               </Link>
             </Button>
           ) : null
@@ -109,32 +114,32 @@ export function ProjectsBrowser({
         canClear={list.isFiltered}
         trailing={
           <SegmentedControl<View>
-            ariaLabel="View"
+            ariaLabel={t("projects.list.view")}
             value={view}
             onChange={setView}
             size="sm"
             options={[
-              { value: "cards", label: "Cards", icon: LayoutGrid, iconOnly: true },
-              { value: "table", label: "Table", icon: List, iconOnly: true },
+              { value: "cards", label: t("projects.list.cards"), icon: LayoutGrid, iconOnly: true },
+              { value: "table", label: t("projects.list.table"), icon: List, iconOnly: true },
             ]}
           />
         }
       >
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name, code or client…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("projects.list.searchPlaceholder")} />
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.status}
           onChange={(v) => list.setFilter("status", v as ProjectStatus | "")}
           options={statusOptions}
-          allLabel={allowAllStatuses ? undefined : statusMeta("project", defaultStatus).label}
+          allLabel={allowAllStatuses ? undefined : ts("project", defaultStatus)}
         />
         <FilterSelect
-          label="Contract"
+          label={t("field.contract")}
           value={list.filters.contractType}
           onChange={(v) => list.setFilter("contractType", v)}
-          options={Object.entries(CONTRACT_TYPE_LABEL).map(([value, label]) => ({ value, label }))}
+          options={CONTRACT_TYPE_VALUES.map((value) => ({ value, label: te("projectContractType", value) }))}
         />
-        {isOffice ? <FilterSelect label="PM" value={list.filters.pmId} onChange={(v) => list.setFilter("pmId", v)} options={pmOptions} /> : null}
+        {isOffice ? <FilterSelect label={t("projects.list.pm")} value={list.filters.pmId} onChange={(v) => list.setFilter("pmId", v)} options={pmOptions} /> : null}
       </FilterBar>
       {view === "table" ? (
         <SectionCard flush>
@@ -146,7 +151,7 @@ export function ProjectsBrowser({
             error={error}
             onRetry={refetch}
             onRowClick={(p) => router.push(projectLanding(p))}
-            empty={{ title: "No projects found", description: "Try another filter.", icon: FolderKanban }}
+            empty={{ title: t("projects.list.noProjectsFound"), description: t("projects.list.tryAnotherFilter"), icon: FolderKanban }}
             pagination={pagination}
           />
         </SectionCard>
@@ -160,12 +165,12 @@ export function ProjectsBrowser({
         <SectionCard>
           <EmptyState
             icon={FolderKanban}
-            title={list.isFiltered ? "No projects match" : "No projects yet"}
-            description={list.isFiltered ? "Try another filter." : "Create your first project with the 6-step setup."}
+            title={list.isFiltered ? t("projects.list.noProjectsMatch") : t("projects.list.noProjectsYet")}
+            description={list.isFiltered ? t("projects.list.tryAnotherFilter") : t("projects.list.createFirst")}
             action={
               canCreate && !list.isFiltered ? (
                 <Button asChild>
-                  <Link href="/projects/new">New project</Link>
+                  <Link href="/projects/new">{t("projects.list.newProject")}</Link>
                 </Button>
               ) : undefined
             }

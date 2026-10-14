@@ -37,11 +37,11 @@ import { MemberPermissions } from "./MemberPermissions";
 import { MunshiSignIn } from "./MunshiSignIn";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { formatDateTime, formatRelative } from "@/lib/dates";
-import { LANGUAGE_LABEL } from "@/lib/options";
 import { formatPhone } from "@/lib/phone";
 import { useMe } from "@/store/hooks";
 import { editMemberSchema } from "../schemas";
-import { ROLE_CARDS } from "./InviteMemberSlideOver";
+import { useRoleCards } from "./InviteMemberSlideOver";
+import { useEnumT, useT } from "@/i18n/useT";
 import { RoleBadge } from "./TeamBits";
 
 const FORM_ID = "edit-member-form";
@@ -56,15 +56,19 @@ const defaults = (u: TeamUserDetail): Values => ({
 });
 
 function RoleWarnings({ user }: { user: TeamUserDetail }) {
+  const t = useT();
   const role = useWatch({ name: "role" });
   if (user.role === "MUNSHI" && role === "PM") {
-    return <InlineAlert tone="warning">Making a Munshi a PM uses an office seat on your plan.</InlineAlert>;
+    return <InlineAlert tone="warning">{t("teamCompany.edit.munshiToPm")}</InlineAlert>;
   }
   // Financial access is now a set of extra permissions (Role & permissions below).
   return null;
 }
 
 function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void }) {
+  const t = useT();
+  const te = useEnumT();
+  const roleCards = useRoleCards();
   const me = useMe();
   const readOnly = useReadOnly();
   const isSelf = me?.user.id === user.id;
@@ -103,25 +107,25 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
       });
       if (!ok) return;
     }
-    toast.success(`${values.name} updated`);
+    toast.success(t("teamCompany.edit.updated", { name: values.name }));
     onDone();
   };
 
   const toggleActive = async () => {
     if (confirm === "deactivate") {
       const ok = await run(() => deactivate(user.id).unwrap(), {
-        success: `${user.name} deactivated`,
+        success: t("teamCompany.edit.deactivated", { name: user.name }),
         onError: (code, error) => {
           if (code !== "CASH_BALANCE_OPEN") return false;
           const balance = isApiError(error) ? (error.details as { balancePaisa?: string } | undefined)?.balancePaisa : undefined;
-          setBlocked(`${user.name} still holds ${balance ? formatPKR(balance) : "site cash"}. Record a cash handover (or a count) first, then deactivate.`);
+          setBlocked(t("teamCompany.edit.holdsCash", { name: user.name, amount: balance ? formatPKR(balance) : t("teamCompany.edit.siteCash") }));
           setConfirm(null);
           return true;
         },
       });
       if (ok) setConfirm(null);
     } else if (confirm === "reactivate") {
-      const ok = await run(() => reactivate(user.id).unwrap(), { success: `${user.name} reactivated` });
+      const ok = await run(() => reactivate(user.id).unwrap(), { success: t("teamCompany.edit.reactivated", { name: user.name }) });
       if (ok) setConfirm(null);
     }
   };
@@ -132,21 +136,21 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
     <div className="space-y-6">
       <InfoList
         items={[
-          { label: "Status", value: <StatusBadge domain="user" value={user.status} /> },
-          { label: "Role", value: <RoleBadge role={user.role} /> },
-          { label: "Last active", value: formatRelative(user.lastActiveAt, "Never") },
-          { label: "Last sign-in", value: formatDateTime(user.lastLoginAt, "Never") },
-          { label: "Active devices", value: user.activeDeviceCount },
-          { label: "Language", value: LANGUAGE_LABEL[user.language] ?? user.language },
+          { label: t("field.status"), value: <StatusBadge domain="user" value={user.status} /> },
+          { label: t("field.role"), value: <RoleBadge role={user.role} /> },
+          { label: t("teamCompany.edit.lastActive"), value: formatRelative(user.lastActiveAt, t("teamCompany.edit.never")) },
+          { label: t("teamCompany.edit.lastSignIn"), value: formatDateTime(user.lastLoginAt, t("teamCompany.edit.never")) },
+          { label: t("teamCompany.edit.activeDevices"), value: user.activeDeviceCount },
+          { label: t("shell.language"), value: te("userLanguage", user.language, user.language) },
         ]}
       />
       {blocked ? (
         <InlineAlert
           tone="warning"
-          title="Cash balance open"
+          title={t("teamCompany.edit.cashOpen")}
           action={
             <Button asChild size="sm" variant="outline">
-              <Link href="/finance/cash-floats">Open cash floats</Link>
+              <Link href="/finance/cash-floats">{t("teamCompany.edit.openFloats")}</Link>
             </Button>
           }
         >
@@ -155,48 +159,48 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
       ) : null}
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         {!isOwner ? (
-          <FormSection title="Where they work">
+          <FormSection title={t("teamCompany.edit.whereWork")}>
             <ComboboxField
               name="projectIds"
-              label="Projects"
+              label={t("field.projects")}
               multiple
               options={options}
               loading={loadingProjects}
-              hint="This replaces their full project list."
+              hint={t("teamCompany.edit.projectsHint")}
               disabled={readOnly}
             />
           </FormSection>
         ) : null}
         {!isOwner && !isSelf ? (
-          <FormSection title="What they can do">
-            <RadioCards name="role" label="Role" options={ROLE_CARDS} disabled={readOnly} />
+          <FormSection title={t("teamCompany.edit.whatCanDo")}>
+            <RadioCards name="role" label={t("field.role")} options={roleCards} disabled={readOnly} />
             <RoleWarnings user={user} />
           </FormSection>
         ) : null}
-        <FormSection title="Details">
+        <FormSection title={t("roles.details")}>
           <FieldGrid>
-            <TextField name="name" label="Name" required disabled={readOnly} />
-            <PhoneField name="phone" label="Phone" required disabled={readOnly} />
+            <TextField name="name" label={t("field.name")} required disabled={readOnly} />
+            <PhoneField name="phone" label={t("field.phone")} required disabled={readOnly} />
           </FieldGrid>
         </FormSection>
         {!readOnly ? (
-          <FormActions formId={FORM_ID} submitLabel="Save changes" loading={saving || savingProjects} disabled={!form.formState.isDirty} />
+          <FormActions formId={FORM_ID} submitLabel={t("common.saveChanges")} loading={saving || savingProjects} disabled={!form.formState.isDirty} />
         ) : null}
       </Form>
       <MemberPermissions user={user} isSelf={isSelf} readOnly={readOnly || inactive} />
       {user.role === "MUNSHI" && !inactive && !readOnly ? <MunshiSignIn userId={user.id} name={user.name} /> : null}
       {!isSelf && !isOwner && !readOnly ? (
         <section className="space-y-3 rounded-xl border border-danger/30 p-4">
-          <p className="text-sm font-semibold text-danger">Danger zone</p>
+          <p className="text-sm font-semibold text-danger">{t("teamCompany.edit.dangerZone")}</p>
           {inactive ? (
             <Button variant="outline" onClick={() => setConfirm("reactivate")}>
               <UserCheck data-icon="inline-start" />
-              Reactivate member
+              {t("teamCompany.edit.reactivateMember")}
             </Button>
           ) : (
             <Button variant="destructive-soft" onClick={() => setConfirm("deactivate")}>
               <UserX data-icon="inline-start" />
-              Deactivate member
+              {t("teamCompany.edit.deactivateMember")}
             </Button>
           )}
         </section>
@@ -205,15 +209,15 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
         open={confirm !== null}
         onOpenChange={(o) => !o && setConfirm(null)}
         tone={confirm === "reactivate" ? "default" : "danger"}
-        title={confirm === "reactivate" ? `Reactivate ${user.name}?` : `Deactivate ${user.name}?`}
+        title={confirm === "reactivate" ? t("teamCompany.edit.reactivateTitle", { name: user.name }) : t("teamCompany.edit.deactivateTitle", { name: user.name })}
         description={
           confirm === "reactivate"
             ? user.role === "PM"
-              ? "A PM uses an office seat on your plan."
-              : "They can sign in again with their phone."
-            : "Their devices are logged out at once. Past entries are kept."
+              ? t("teamCompany.edit.reactivatePmBody")
+              : t("teamCompany.edit.reactivateBody")
+            : t("teamCompany.edit.deactivateBody")
         }
-        confirmLabel={confirm === "reactivate" ? "Reactivate" : "Deactivate"}
+        confirmLabel={confirm === "reactivate" ? t("teamCompany.edit.reactivate") : t("action.deactivate")}
         loading={deactivating || reactivating}
         onConfirm={toggleActive}
       />
@@ -223,9 +227,10 @@ function MemberForm({ user, onDone }: { user: TeamUserDetail; onDone: () => void
 
 /** Edit member slide-over: projects, account type, role & permissions, details, (de)activation. */
 export function EditMemberSlideOver({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+  const t = useT();
   const { data, isLoading, error, refetch } = useGetUserQuery(userId ?? "", { skip: !userId });
   return (
-    <SlideOver open={Boolean(userId)} onOpenChange={(o) => !o && onClose()} title={data?.name ?? "Member"} description={data ? formatPhone(data.phone) : undefined}>
+    <SlideOver open={Boolean(userId)} onOpenChange={(o) => !o && onClose()} title={data?.name ?? t("teamCompany.edit.member")} description={data ? formatPhone(data.phone) : undefined}>
       {isLoading || (!data && !error) ? (
         <CardsSkeleton count={2} height="h-32" />
       ) : error ? (

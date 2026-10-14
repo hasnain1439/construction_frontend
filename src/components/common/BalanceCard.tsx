@@ -1,6 +1,9 @@
+"use client";
+
 import { Clock, Hourglass, TriangleAlert, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/dates";
 import { toPaisaBigInt } from "@/lib/money";
@@ -21,7 +24,7 @@ export function BalanceCard({
   loading,
   actions,
   className,
-  title = "Cash in hand",
+  title: titleProp,
 }: {
   account: BalanceCardAccount | undefined;
   loading?: boolean;
@@ -29,6 +32,8 @@ export function BalanceCard({
   className?: string;
   title?: string;
 }) {
+  const t = useT();
+  const title = titleProp ?? t("app.components.balance.cashInHand");
   const positive = (v?: string) => (toPaisaBigInt(v) ?? BigInt(0)) > BigInt(0);
   const low = account ? (toPaisaBigInt(account.balancePaisa) ?? BigInt(0)) < BigInt(0) : false;
   return (
@@ -54,20 +59,20 @@ export function BalanceCard({
             <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               {positive(account.pendingAckPaisa) ? (
                 <li className="inline-flex items-center gap-1 text-primary">
-                  <Clock className="size-3.5" aria-hidden /> <MoneyText paisa={account.pendingAckPaisa} /> float to acknowledge
+                  <Clock className="size-3.5" aria-hidden /> <MoneyText paisa={account.pendingAckPaisa} /> {t("app.components.balance.floatToAck")}
                 </li>
               ) : null}
               {positive(account.pendingApprovalPaisa) ? (
                 <li className="inline-flex items-center gap-1 text-warning">
-                  <Hourglass className="size-3.5" aria-hidden /> <MoneyText paisa={account.pendingApprovalPaisa} /> waiting for approval
+                  <Hourglass className="size-3.5" aria-hidden /> <MoneyText paisa={account.pendingApprovalPaisa} /> {t("app.components.balance.waitingApproval")}
                 </li>
               ) : null}
               {positive(account.recoverablePaisa) ? (
                 <li className="inline-flex items-center gap-1 text-danger">
-                  <TriangleAlert className="size-3.5" aria-hidden /> <MoneyText paisa={account.recoverablePaisa} /> to pay back
+                  <TriangleAlert className="size-3.5" aria-hidden /> <MoneyText paisa={account.recoverablePaisa} /> {t("app.components.balance.toPayBack")}
                 </li>
               ) : null}
-              <li>Last count: {account.lastCountAt ? formatDateTime(account.lastCountAt) : "never"}</li>
+              <li>{t("app.components.balance.lastCount", { when: account.lastCountAt ? formatDateTime(account.lastCountAt) : t("app.components.balance.never") })}</li>
             </ul>
           ) : null}
         </div>

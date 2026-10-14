@@ -1843,6 +1843,22 @@
    "field": false
   },
   {
+   "key": "company.opening.manage",
+   "module": "company",
+   "resource": "opening",
+   "action": "manage",
+   "label": {
+    "en": "Opening balances",
+    "roman": "Opening balance (pehle ka hisaab)",
+    "urdu": "ابتدائی بیلنس"
+   },
+   "description": "Enter the opening balances (supplier udhaar, cash in hand, store stock, worker peshgi) once per item; they lock after saving.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "company.holiday.manage",
    "module": "company",
    "resource": "holiday",

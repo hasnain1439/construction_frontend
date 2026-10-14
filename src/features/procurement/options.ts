@@ -5,32 +5,29 @@ import { useGetSuppliersQuery } from "@/api/services/masterData.api";
 import { useGetProjectsQuery } from "@/api/services/projects.api";
 import type { PaidFrom, PaymentMode, ProjectsQuery, SupplierPaymentMethod, SuppliersQuery } from "@/api/types";
 import type { ComboboxOption } from "@/components/forms/ComboboxField";
+import { useEnumT } from "@/i18n/useT";
 
-export const PAYMENT_MODE_OPTIONS: Array<{ value: PaymentMode; label: string }> = [
-  { value: "UDHAAR", label: "Udhaar" },
-  { value: "CASH", label: "Cash now" },
-  { value: "PARTIAL", label: "Part now" },
-];
+const PAYMENT_MODES: PaymentMode[] = ["UDHAAR", "CASH", "PARTIAL"];
+const PAID_FROM: PaidFrom[] = ["OFFICE_CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA", "SITE_CASH"];
+const PAYMENT_METHODS: SupplierPaymentMethod[] = ["CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA"];
 
-export const PAID_FROM_OPTIONS: Array<{ value: PaidFrom; label: string }> = [
-  { value: "OFFICE_CASH", label: "Office cash" },
-  { value: "BANK", label: "Bank transfer" },
-  { value: "CHEQUE", label: "Cheque" },
-  { value: "JAZZCASH", label: "JazzCash" },
-  { value: "EASYPAISA", label: "Easypaisa" },
-  { value: "SITE_CASH", label: "Site cash" },
-];
+/** Udhaar / Cash now / Part now, in the current language. */
+export function usePaymentModeOptions(): Array<{ value: PaymentMode; label: string }> {
+  const te = useEnumT();
+  return PAYMENT_MODES.map((value) => ({ value, label: te("procPaymentMode", value) }));
+}
 
-export const PAYMENT_METHOD_OPTIONS: Array<{ value: SupplierPaymentMethod; label: string }> = [
-  { value: "CASH", label: "Cash" },
-  { value: "BANK", label: "Bank transfer" },
-  { value: "CHEQUE", label: "Cheque" },
-  { value: "JAZZCASH", label: "JazzCash" },
-  { value: "EASYPAISA", label: "Easypaisa" },
-];
+/** Where a purchase was paid from, in the current language. */
+export function usePaidFromOptions(): Array<{ value: PaidFrom; label: string }> {
+  const te = useEnumT();
+  return PAID_FROM.map((value) => ({ value, label: te("procPaidFrom", value) }));
+}
 
-export const label = <V extends string>(options: Array<{ value: V; label: string }>, value: V | null | undefined) =>
-  options.find((o) => o.value === value)?.label ?? value ?? "—";
+/** How a supplier was paid, in the current language. */
+export function usePaymentMethodOptions(): Array<{ value: SupplierPaymentMethod; label: string }> {
+  const te = useEnumT();
+  return PAYMENT_METHODS.map((value) => ({ value, label: te("procPaymentMethod", value) }));
+}
 
 /** Active suppliers for pickers (with their udhaar when the caller can see it). */
 export function useSupplierOptions(): { options: ComboboxOption[]; loading: boolean } {

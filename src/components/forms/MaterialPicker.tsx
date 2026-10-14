@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useGetMaterialsQuery } from "@/api/services/masterData.api";
 import type { Material } from "@/api/types";
+import { useT } from "@/i18n/useT";
 import { Combobox } from "./ComboboxField";
 import { FormField, useFieldError, type BaseFieldProps } from "./FormField";
 
@@ -25,7 +26,8 @@ export interface MaterialPickerProps {
 }
 
 /** Searchable material list from GET /materials, showing the unit and group. */
-export function MaterialPicker({ value, onChange, onlyIds, excludeIds, describe, placeholder = "Choose material", ...rest }: MaterialPickerProps) {
+export function MaterialPicker({ value, onChange, onlyIds, excludeIds, describe, placeholder, ...rest }: MaterialPickerProps) {
+  const t = useT();
   const { data: materials, isLoading } = useGetMaterialsQuery();
   const options = useMemo(() => {
     const only = onlyIds ? new Set(onlyIds) : null;
@@ -41,9 +43,9 @@ export function MaterialPicker({ value, onChange, onlyIds, excludeIds, describe,
       value={value}
       options={options}
       loading={isLoading}
-      placeholder={placeholder}
-      searchPlaceholder="Search materials…"
-      emptyText="No material found"
+      placeholder={placeholder ?? t("app.components.forms.chooseMaterial")}
+      searchPlaceholder={t("app.components.forms.searchMaterials")}
+      emptyText={t("app.components.forms.noMaterial")}
       onChange={(next) => {
         const materialId = (next as string | null) ?? null;
         onChange(materialId, materials?.find((m) => m.id === materialId));

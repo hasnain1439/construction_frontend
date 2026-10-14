@@ -1,8 +1,8 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppNotification, ApprovalItem as Item } from "@/api/types";
-import { renderWithStore } from "../render";
+import { renderWithStore, renderWithStore as render } from "../render";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/dashboard" }));

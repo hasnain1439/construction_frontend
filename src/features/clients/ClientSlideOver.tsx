@@ -12,15 +12,17 @@ import { PhoneField } from "@/components/forms/PhoneInput";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { msg } from "@/i18n/message";
+import { useT } from "@/i18n/useT";
 import { formatPhone } from "@/lib/phone";
 import { anyPhoneSchema, optionalEmailSchema, requiredText } from "@/lib/validation";
 
 export const clientSchema = z.object({
-  name: requiredText("Name", 2, 80),
+  name: requiredText("field.name", 2, 80),
   phone: anyPhoneSchema,
   email: optionalEmailSchema,
-  address: z.string().trim().max(300, "Too long"),
-  notes: z.string().trim().max(1000, "Too long"),
+  address: z.string().trim().max(300, msg("validation.tooLongPlain")),
+  notes: z.string().trim().max(1000, msg("validation.tooLongPlain")),
 });
 
 const FORM_ID = "client-form";
@@ -37,6 +39,7 @@ export function ClientSlideOver({
   onOpenChange: (open: boolean) => void;
   onSaved?: (client: Client) => void;
 }) {
+  const t = useT();
   const [create, { isLoading: creating }] = useCreateClientMutation();
   const [update, { isLoading: updating }] = useUpdateClientMutation();
   const run = useMutationToast();
@@ -60,7 +63,7 @@ export function ClientSlideOver({
               id: client.id,
               body: { name: v.name, phone: v.phone, email: v.email ?? null, address: v.address || null, notes: v.notes || null },
             }).unwrap(),
-          { ...options, success: `${v.name} saved` },
+          { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
           () =>
@@ -71,7 +74,7 @@ export function ClientSlideOver({
               ...(v.address ? { address: v.address } : {}),
               ...(v.notes ? { notes: v.notes } : {}),
             }).unwrap(),
-          { ...options, success: `${v.name} added` },
+          { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) {
       onOpenChange(false);
@@ -83,19 +86,19 @@ export function ClientSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={client ? `Edit ${client.name}` : "New client"}
-      description="Home owners don't log in — they receive quotes and statements as PDFs on WhatsApp."
+      title={client ? t("masterData.common.editTitle", { name: client.name }) : t("masterData.clients.newClient")}
+      description={t("masterData.clients.formDesc")}
       busy={creating || updating}
-      footer={<FormActions formId={FORM_ID} submitLabel={client ? "Save client" : "Add client"} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={client ? t("masterData.clients.save") : t("masterData.clients.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <FieldGrid>
-          <TextField name="name" label="Name" required placeholder="Ahmed Raza" />
-          <PhoneField name="phone" label="Phone" required allowLandline />
+          <TextField name="name" label={t("field.name")} required placeholder={t("masterData.clients.namePlaceholder")} />
+          <PhoneField name="phone" label={t("field.phone")} required allowLandline />
         </FieldGrid>
-        <TextField name="email" label="Email" type="email" />
-        <TextareaField name="address" label="Address" rows={2} />
-        <TextareaField name="notes" label="Notes" rows={3} />
+        <TextField name="email" label={t("field.email")} type="email" />
+        <TextareaField name="address" label={t("field.address")} rows={2} />
+        <TextareaField name="notes" label={t("field.notes")} rows={3} />
       </Form>
     </SlideOver>
   );

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { formatDate } from "@/lib/dates";
 import { formatPKR, toPaisaBigInt } from "@/lib/money";
@@ -32,6 +32,7 @@ export function ChangePlanDialog({
   onClose: () => void;
   onUpgradeNeedsPayment: (planId: string) => void;
 }) {
+  const t = useT();
   const language = useLanguage();
   const [change, { isLoading }] = useChangePlanMutation();
   const run = useMutationToast();
@@ -60,7 +61,7 @@ export function ChangePlanDialog({
     if (!target) return;
     setError(null);
     if (needsPick && keep.length === 0) {
-      setError(`Choose up to ${limit} projects to keep active.`);
+      setError(t("teamCompany.changePlan.chooseUpTo", { n: limit ?? 0 }));
       return;
     }
     const result: PlanChange | undefined = await run(
@@ -91,29 +92,29 @@ export function ChangePlanDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-                {isUpgrade ? <ArrowUpRight className="size-5 text-success" aria-hidden /> : <ArrowDownRight className="size-5 text-warning" aria-hidden />}
-                Switch to {target.name}
+                {isUpgrade ? <ArrowUpRight className="size-5 text-success rtl:-scale-x-100" aria-hidden /> : <ArrowDownRight className="size-5 text-warning rtl:-scale-x-100" aria-hidden />}
+                {t("teamCompany.changePlan.switchTo", { name: target.name })}
               </DialogTitle>
               <DialogDescription>
                 {isUpgrade
-                  ? `Upgrades start once your payment of ${formatPKR(target.pricePaisa)} is approved. You'll upload the slip next.`
+                  ? t("teamCompany.changePlan.upgradeDesc", { amount: formatPKR(target.pricePaisa) })
                   : subscription.status === "ACTIVE" && subscription.currentPeriodEnd
-                    ? `The change takes effect at the end of your current period (${formatDate(subscription.currentPeriodEnd)}).`
-                    : "The change takes effect once its payment is approved."}
+                    ? t("teamCompany.changePlan.downgradeAtEnd", { date: formatDate(subscription.currentPeriodEnd) })
+                    : t("teamCompany.changePlan.afterPayment")}
               </DialogDescription>
             </DialogHeader>
             {usersOver ? (
               <InlineAlert tone="warning">
-                You have {subscription.usage.officeUsers.used} office users; {target.name} allows {target.maxOfficeUsers}. Deactivate some PMs first.
+                {t("teamCompany.changePlan.usersOver", { used: subscription.usage.officeUsers.used, name: target.name, max: target.maxOfficeUsers ?? 0 })}
               </InlineAlert>
             ) : null}
             {needsPick ? (
               <div className="space-y-3">
                 <InlineAlert tone="warning">
-                  {target.name} allows {limit} active projects and you have {used}. Choose which stay active — the others become read-only.
+                  {t("teamCompany.changePlan.projectsOver", { name: target.name, max: limit ?? 0, used })}
                 </InlineAlert>
                 {active.isLoading || closeout.isLoading ? (
-                  <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="Loading projects" />
+                  <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label={t("teamCompany.changePlan.loadingProjects")} />
                 ) : (
                   <ul className="max-h-64 space-y-1 overflow-y-auto rounded-xl border p-2">
                     {countedProjects.map((p) => {
@@ -135,18 +136,18 @@ export function ChangePlanDialog({
                   </ul>
                 )}
                 <p className="text-xs text-muted-foreground" aria-live="polite">
-                  {keep.length} of {limit} selected
+                  {t("teamCompany.changePlan.selected", { n: keep.length, max: limit ?? 0 })}
                 </p>
               </div>
             ) : null}
             {error ? <InlineAlert>{error}</InlineAlert> : null}
             <DialogFooter>
               <Button variant="outline" onClick={onClose} disabled={isLoading}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={() => void submit()} disabled={isLoading || usersOver}>
                 {isLoading ? <Loader2 className="animate-spin" data-icon="inline-start" /> : null}
-                {isUpgrade ? "Continue to payment" : "Confirm change"}
+                {isUpgrade ? t("teamCompany.changePlan.toPayment") : t("teamCompany.changePlan.confirm")}
               </Button>
             </DialogFooter>
           </>

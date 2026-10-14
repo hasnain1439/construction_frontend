@@ -16,11 +16,14 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { todayPK } from "@/lib/dates";
-import { PAYMENT_METHOD_OPTIONS, useSupplierOptions } from "../options";
+import { useT } from "@/i18n/useT";
+import { usePaymentMethodOptions, useSupplierOptions } from "../options";
 import { paymentSchema, type PaymentValues } from "../schemas";
 
 /** Pay a supplier (credits the udhaar). Cheques start "pending" until cleared or bounced. */
 export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boolean; onOpenChange: (open: boolean) => void; supplierId?: string }) {
+  const t = useT();
+  const methodOptions = usePaymentMethodOptions();
   const [create, { isLoading }] = useCreateSupplierPaymentMutation();
   const run = useMutationToast();
   const suppliers = useSupplierOptions();
@@ -42,7 +45,7 @@ export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boo
           ...(v.method === "CHEQUE" ? { chequeNo: v.chequeNo, ...(v.chequeDate ? { chequeDate: v.chequeDate } : {}) } : {}),
           ...(v.note ? { note: v.note } : {}),
         }).unwrap(),
-      { success: (p) => (p.status === "PENDING" ? "Cheque recorded — pending until it clears" : "Payment recorded"), setError: form.setError },
+      { success: (p) => (p.status === "PENDING" ? t("procurement.payment.chequeRecorded") : t("procurement.payment.recorded")), setError: form.setError },
     );
     if (result) onOpenChange(false);
   };
@@ -51,27 +54,27 @@ export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boo
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Record payment"
-      description="Reduces what you owe this supplier."
+      title={t("action.recordPayment")}
+      description={t("procurement.payment.desc")}
       busy={isLoading}
-      footer={<FormActions formId="payment-form" submitLabel="Save payment" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="payment-form" submitLabel={t("procurement.payment.save")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="payment-form">
-        <ComboboxField name="supplierId" label="Supplier" required options={suppliers.options} loading={suppliers.loading} disabled={Boolean(supplierId)} />
+        <ComboboxField name="supplierId" label={t("field.supplier")} required options={suppliers.options} loading={suppliers.loading} disabled={Boolean(supplierId)} />
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="paidOn" label="Paid on" required max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="paidOn" label={t("procurement.payment.paidOn")} required max={todayPK()} />
         </FieldGrid>
-        <SelectField name="method" label="Method" required options={PAYMENT_METHOD_OPTIONS} />
+        <SelectField name="method" label={t("field.method")} required options={methodOptions} />
         {method === "CHEQUE" ? (
           <FieldGrid>
-            <TextField name="chequeNo" label="Cheque no." required />
-            <DateField name="chequeDate" label="Cheque date" />
+            <TextField name="chequeNo" label={t("procurement.payment.chequeNo")} required />
+            <DateField name="chequeDate" label={t("procurement.payment.chequeDate")} />
           </FieldGrid>
         ) : (
-          <TextField name="reference" label="Reference" placeholder="Transaction ID / receipt no." />
+          <TextField name="reference" label={t("field.reference")} placeholder={t("procurement.payment.refPlaceholder")} />
         )}
-        <TextareaField name="note" label="Note" rows={2} />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );

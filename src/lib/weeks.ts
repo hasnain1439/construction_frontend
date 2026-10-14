@@ -2,7 +2,7 @@
  * Settlement weeks. Dates are calendar strings ("YYYY-MM-DD") worked on in UTC so a
  * date never shifts with the browser's time zone.
  */
-import { todayPK } from "./dates";
+import { isolateLtr, todayPK } from "./dates";
 
 export const WEEKDAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"] as const;
 export type WeekDayName = (typeof WEEKDAYS)[number];
@@ -34,9 +34,9 @@ export function formatWeekRange(weekStart: string, days = 7): string {
   const end = addDays(weekStart, days - 1);
   const sameMonth = weekStart.slice(0, 7) === end.slice(0, 7);
   const from = sameMonth ? String(Number(weekStart.slice(8, 10))) : SHORT.format(parse(weekStart));
-  return `${from} – ${LONG.format(parse(end))}`;
+  return isolateLtr(`${from} – ${LONG.format(parse(end))}`);
 }
 
 /** "Mon 21" */
-export const formatDayHeader = (date: string) => `${DOW.format(parse(date))} ${Number(date.slice(8, 10))}`;
+export const formatDayHeader = (date: string) => isolateLtr(`${DOW.format(parse(date))} ${Number(date.slice(8, 10))}`);
 export const formatShortDate = (date: string) => SHORT.format(parse(date));

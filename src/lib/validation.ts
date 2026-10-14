@@ -3,20 +3,25 @@
  * mistakes are caught before a request is sent.
  */
 import { z } from "zod";
+import { msg } from "@/i18n/message";
+import type { TranslationKey } from "@/i18n/useT";
 import { ANY_PHONE_ERROR, normaliseAnyPhone, normalisePhone, PHONE_ERROR } from "@/lib/phone";
 
-export const requiredText = (label: string, min = 1, max = 200) =>
+/** Field name used inside a message: a dictionary key ("field.amount"), translated when shown (plain text is shown as it is — admin console only). */
+export type FieldLabel = TranslationKey | (string & {});
+
+export const requiredText = (label: FieldLabel, min = 1, max = 200) =>
   z
     .string()
     .trim()
-    .min(min, min <= 1 ? `${label} is required` : `${label} is too short`)
-    .max(max, `${label} is too long`);
+    .min(min, min <= 1 ? msg("validation.required", { label }) : msg("validation.tooShort", { label }))
+    .max(max, msg("validation.tooLong", { label }));
 
 export const optionalText = (max = 500) =>
   z
     .string()
     .trim()
-    .max(max, "Too long")
+    .max(max, msg("validation.tooLongPlain"))
     .transform((v) => (v === "" ? undefined : v))
     .optional();
 
@@ -24,7 +29,7 @@ export const optionalText = (max = 500) =>
 export const phoneSchema = z
   .string()
   .trim()
-  .min(1, "Phone number is required")
+  .min(1, msg("validation.phoneRequired"))
   .refine((v) => normalisePhone(v) !== null, PHONE_ERROR)
   .transform((v) => normalisePhone(v) as string);
 
@@ -39,7 +44,7 @@ export const optionalPhoneSchema = z
 export const anyPhoneSchema = z
   .string()
   .trim()
-  .min(1, "Phone number is required")
+  .min(1, msg("validation.phoneRequired"))
   .refine((v) => normaliseAnyPhone(v) !== null, ANY_PHONE_ERROR)
   .transform((v) => normaliseAnyPhone(v) as string);
 
@@ -53,60 +58,60 @@ export const optionalAnyPhoneSchema = z
 export const optionalEmailSchema = z
   .string()
   .trim()
-  .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address")
+  .refine((v) => v === "" || z.email().safeParse(v).success, msg("validation.validEmail"))
   .transform((v) => (v === "" ? undefined : v.toLowerCase()))
   .optional();
 
 /** Same rule as the backend: 8–72 chars with a letter and a number. */
 export const passwordSchema = z
   .string()
-  .min(8, "Password must be at least 8 characters")
-  .max(72, "Password must be at most 72 characters")
-  .regex(/[A-Za-z]/, "Password must contain at least one letter")
-  .regex(/\d/, "Password must contain at least one number");
+  .min(8, msg("validation.passwordMin"))
+  .max(72, msg("validation.passwordMax"))
+  .regex(/[A-Za-z]/, msg("validation.passwordLetter"))
+  .regex(/\d/, msg("validation.passwordNumber"));
 
 /** Paisa string from MoneyInput (null when empty). */
-export const paisaSchema = (label: string) =>
+export const paisaSchema = (label: FieldLabel) =>
   z
-    .string({ error: `${label} is required` })
+    .string({ error: msg("validation.required", { label }) })
     .nullable()
-    .refine((v): v is string => v !== null && v !== "", `${label} is required`)
-    .refine((v) => v === null || /^\d+$/.test(v), `${label} must be a positive amount`);
+    .refine((v): v is string => v !== null && v !== "", msg("validation.required", { label }))
+    .refine((v) => v === null || /^\d+$/.test(v), msg("validation.positiveAmount", { label }));
 
 export const optionalPaisaSchema = z
   .string()
   .nullable()
   .optional()
-  .refine((v) => v === null || v === undefined || /^\d+$/.test(v), "Enter a valid amount");
+  .refine((v) => v === null || v === undefined || /^\d+$/.test(v), msg("validation.validAmount"));
 
 /** NumberInput value (number | null). */
-export const requiredNumber = (label: string, options: { min?: number; max?: number; positive?: boolean } = {}) =>
+export const requiredNumber = (label: FieldLabel, options: { min?: number; max?: number; positive?: boolean } = {}) =>
   z
-    .number({ error: `${label} is required` })
+    .number({ error: msg("validation.required", { label }) })
     .nullable()
-    .refine((v): v is number => v !== null, `${label} is required`)
-    .refine((v) => v === null || !options.positive || v > 0, `${label} must be more than 0`)
-    .refine((v) => v === null || options.min === undefined || v >= options.min, `${label} must be at least ${options.min}`)
-    .refine((v) => v === null || options.max === undefined || v <= options.max, `${label} must be at most ${options.max}`);
+    .refine((v): v is number => v !== null, msg("validation.required", { label }))
+    .refine((v) => v === null || !options.positive || v > 0, msg("validation.moreThanZero", { label }))
+    .refine((v) => v === null || options.min === undefined || v >= options.min, msg("validation.atLeast", { label, n: options.min ?? 0 }))
+    .refine((v) => v === null || options.max === undefined || v <= options.max, msg("validation.atMost", { label, n: options.max ?? 0 }));
 
 export const optionalNumber = (options: { min?: number; max?: number } = {}) =>
   z
     .number()
     .nullable()
     .optional()
-    .refine((v) => v === null || v === undefined || options.min === undefined || v >= options.min, `Must be at least ${options.min}`)
-    .refine((v) => v === null || v === undefined || options.max === undefined || v <= options.max, `Must be at most ${options.max}`);
+    .refine((v) => v === null || v === undefined || options.min === undefined || v >= options.min, msg("validation.mustBeAtLeast", { n: options.min ?? 0 }))
+    .refine((v) => v === null || v === undefined || options.max === undefined || v <= options.max, msg("validation.mustBeAtMost", { n: options.max ?? 0 }));
 
-export const isoDateSchema = (label: string) =>
-  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, `${label} is required`);
+export const isoDateSchema = (label: FieldLabel) =>
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, msg("validation.required", { label }));
 
 /** Password strength hint for signup / reset forms. */
-export function passwordStrength(password: string): { score: 0 | 1 | 2 | 3; label: string } {
-  if (!password) return { score: 0, label: "" };
+export function passwordStrength(password: string): { score: 0 | 1 | 2 | 3; label: TranslationKey | null } {
+  if (!password) return { score: 0, label: null };
   let score = 0;
   if (password.length >= 8) score += 1;
   if (/[A-Za-z]/.test(password) && /\d/.test(password)) score += 1;
   if (password.length >= 12 || /[^A-Za-z0-9]/.test(password)) score += 1;
-  const labels = ["Too weak", "Weak", "Good", "Strong"] as const;
+  const labels = ["passwordStrength.tooWeak", "passwordStrength.weak", "passwordStrength.good", "passwordStrength.strong"] as const;
   return { score: score as 0 | 1 | 2 | 3, label: labels[score] };
 }

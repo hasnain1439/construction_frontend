@@ -16,7 +16,7 @@ import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
-import { LANGUAGE_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
 import { companySettingsSchema } from "../schemas";
 
 type Values = z.input<typeof companySettingsSchema>;
@@ -50,7 +50,11 @@ function SettingCard({ title, help, children }: { title: string; help: string; c
   );
 }
 
+const LANGUAGES = ["ENGLISH", "ROMAN_URDU", "URDU"] as const;
+
 export function CompanySettingsForm({ settings }: { settings: CompanySettings }) {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const [update, { isLoading }] = useUpdateCompanySettingsMutation();
   const run = useMutationToast();
@@ -60,64 +64,64 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
   });
 
   const onSubmit = async (values: z.output<typeof companySettingsSchema>) => {
-    const result = await run(() => update({ ...values, taxLabel: values.taxLabel || null }).unwrap(), { success: "Settings saved", setError: form.setError });
+    const result = await run(() => update({ ...values, taxLabel: values.taxLabel || null }).unwrap(), { success: t("teamCompany.settings.saved"), setError: form.setError });
     if (result) form.reset(defaults(result));
   };
 
   return (
     <Form form={form} onSubmit={onSubmit} className="space-y-4">
       <SettingCard
-        title="Site kharcha approval limit"
-        help="Site expenses above this amount need your approval before they count."
+        title={t("teamCompany.settings.kharchaTitle")}
+        help={t("teamCompany.settings.kharchaHelp")}
       >
-        <MoneyField name="kharchaApprovalLimitPaisa" label="Approval limit" hideLabel required />
+        <MoneyField name="kharchaApprovalLimitPaisa" label={t("teamCompany.settings.kharchaLabel")} hideLabel required />
       </SettingCard>
       <SettingCard
-        title="Material overuse alert"
-        help="Warn when a site uses more material than the estimate by this percentage (1–20 %)."
+        title={t("teamCompany.settings.overuseTitle")}
+        help={t("teamCompany.settings.overuseHelp")}
       >
-        <NumberField name="overuseAlertPercent" label="Overuse alert" hideLabel unit="%" decimals={0} required />
+        <NumberField name="overuseAlertPercent" label={t("teamCompany.settings.overuseLabel")} hideLabel unit="%" decimals={0} required />
       </SettingCard>
-      <SettingCard title="Missing daily log alert" help="If no daily log is entered by this time, the PM and you get a reminder.">
-        <TextField name="missingLogAlertTime" label="Alert time" hideLabel type="time" required />
+      <SettingCard title={t("teamCompany.settings.logTitle")} help={t("teamCompany.settings.logHelp")}>
+        <TextField name="missingLogAlertTime" label={t("teamCompany.settings.logLabel")} hideLabel type="time" required />
       </SettingCard>
-      <SettingCard title="Quote validity" help="How many days a quotation stays valid by default (1–90).">
-        <NumberField name="quoteValidityDays" label="Quote validity" hideLabel unit="days" decimals={0} required />
+      <SettingCard title={t("teamCompany.settings.quoteTitle")} help={t("teamCompany.settings.quoteHelp")}>
+        <NumberField name="quoteValidityDays" label={t("teamCompany.settings.quoteTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
       </SettingCard>
-      <SettingCard title="Payment terms" help="An invoice is due this many days after it is issued (0–90).">
-        <NumberField name="paymentTermsDays" label="Payment terms" hideLabel unit="days" decimals={0} required />
+      <SettingCard title={t("teamCompany.settings.termsTitle")} help={t("teamCompany.settings.termsHelp")}>
+        <NumberField name="paymentTermsDays" label={t("teamCompany.settings.termsTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
       </SettingCard>
-      <SettingCard title="Tax rate on invoices" help="Used only when tax is switched on below, e.g. 16 % PRA or 15 % SRB.">
+      <SettingCard title={t("teamCompany.settings.taxRateTitle")} help={t("teamCompany.settings.taxRateHelp")}>
         <div className="grid grid-cols-2 gap-2">
-          <NumberField name="taxRatePercent" label="Tax rate" hideLabel unit="%" decimals={2} required />
-          <TextField name="taxLabel" label="Tax name" hideLabel placeholder="PRA" />
+          <NumberField name="taxRatePercent" label={t("teamCompany.settings.taxRate")} hideLabel unit="%" decimals={2} required />
+          <TextField name="taxLabel" label={t("teamCompany.settings.taxName")} hideLabel placeholder={t("teamCompany.settings.taxNameExample")} />
         </div>
       </SettingCard>
-      <SettingCard title="Default language" help="Language for SMS and new team members.">
+      <SettingCard title={t("teamCompany.settings.langTitle")} help={t("teamCompany.settings.langHelp")}>
         <SelectField
           name="defaultLanguage"
-          label="Default language"
+          label={t("teamCompany.settings.langTitle")}
           hideLabel
-          options={Object.entries(LANGUAGE_LABEL).map(([value, label]) => ({ value, label }))}
+          options={LANGUAGES.map((value) => ({ value, label: te("userLanguage", value) }))}
         />
       </SettingCard>
       <ToggleField
         name="pmCanSeeFinancials"
-        label="New PMs can see financials"
-        description="Default for new PM invitations: contract value, billing and profit. You can change it per person."
+        label={t("teamCompany.settings.pmFinancials")}
+        description={t("teamCompany.settings.pmFinancialsDesc")}
       />
       <ToggleField
         name="pmCanRecordPayments"
-        label="PMs can record owner payments"
-        description="Project managers who see financials may record payments received from owners (only you mark cheques cleared / bounced)."
+        label={t("teamCompany.settings.pmPayments")}
+        description={t("teamCompany.settings.pmPaymentsDesc")}
       />
       <ToggleField
         name="taxEnabled"
-        label="Tax on invoices"
-        description="Off by default. When on, invoices and quotes will include tax (used by the billing module)."
+        label={t("teamCompany.settings.taxOn")}
+        description={t("teamCompany.settings.taxOnDesc")}
       />
       <FormActions
-        submitLabel="Save settings"
+        submitLabel={t("teamCompany.settings.save")}
         loading={isLoading}
         disabled={readOnly || !form.formState.isDirty}
         onCancel={form.formState.isDirty ? () => form.reset() : undefined}

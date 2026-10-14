@@ -46,6 +46,13 @@ vi.mock("@/api/services/projects.api", () => ({
   useGetProjectsQuery: () => ({ data: { items: [{ id: "p1", name: "DHA Phase 6 · 10 Marla", code: "MSB-2026-012", status: "ACTIVE" }], meta: { total: 1 } }, isLoading: false }),
 }));
 vi.mock("@/api/services/team.api", () => ({ useGetUsersQuery: () => ({ data: undefined }) }));
+vi.mock("@/api/services/onboarding.api", () => ({
+  useGetSetupChecklistQuery: () => ({ data: undefined }),
+  useDismissSetupChecklistMutation: () => [vi.fn(), { isLoading: false }],
+  useMarkRatesReviewedMutation: () => [vi.fn(), { isLoading: false }],
+  useCreateDemoMutation: () => [vi.fn(), { isLoading: false }],
+  useDeleteDemoMutation: () => [vi.fn(), { isLoading: false }],
+}));
 
 const { DashboardView } = await import("@/features/dashboard/views/DashboardView");
 

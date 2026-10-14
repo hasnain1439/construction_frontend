@@ -1,8 +1,11 @@
+"use client";
+
 import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { cn } from "@/lib/cn";
 import { formatPKR } from "@/lib/money";
+import { useT } from "@/i18n/useT";
 
 export interface PlanCardData {
   code: string;
@@ -27,6 +30,7 @@ export function PlanCard({
   action?: ReactNode;
   className?: string;
 }) {
+  const t = useT();
   return (
     <div
       className={cn(
@@ -40,18 +44,18 @@ export function PlanCard({
           <p className="text-base font-semibold">{plan.name}</p>
           <p className="text-xs text-muted-foreground">{plan.code}</p>
         </div>
-        {current ? <StatusBadge tone="info" label="Current plan" /> : badge}
+        {current ? <StatusBadge tone="info" label={t("teamCompany.plan.current")} /> : badge}
       </div>
       <p>
         <span className="text-kpi font-semibold text-primary tabular">{formatPKR(plan.pricePaisa)}</span>
-        <span className="text-sm text-muted-foreground"> / month</span>
+        <span className="text-sm text-muted-foreground"> {t("teamCompany.plan.perMonth")}</span>
       </p>
       <div className="flex flex-wrap gap-2 text-xs font-medium">
         <span className="rounded-full bg-accent px-2.5 py-1 text-primary">
-          {plan.maxActiveProjects === null ? "Unlimited" : plan.maxActiveProjects} active projects
+          {t("teamCompany.plan.activeProjects", { n: plan.maxActiveProjects === null ? t("teamCompany.plan.unlimited") : plan.maxActiveProjects })}
         </span>
         <span className="rounded-full bg-accent px-2.5 py-1 text-primary">
-          {plan.maxOfficeUsers === null ? "Unlimited" : plan.maxOfficeUsers} office users
+          {t("teamCompany.plan.officeUsers", { n: plan.maxOfficeUsers === null ? t("teamCompany.plan.unlimited") : plan.maxOfficeUsers })}
         </span>
       </div>
       <ul className="space-y-1.5 text-sm">

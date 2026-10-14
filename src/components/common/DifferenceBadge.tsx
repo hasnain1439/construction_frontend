@@ -1,5 +1,8 @@
+"use client";
+
 import { CircleCheck, CircleX, PackagePlus, TriangleAlert } from "lucide-react";
 import type { ComparisonResult } from "@/api/types";
+import { useT } from "@/i18n/useT";
 import { formatSignedQty } from "@/lib/quantity";
 import { StatusBadge } from "./StatusBadge";
 
@@ -14,11 +17,11 @@ export function differenceResult(expected: number, counted: number, damaged = 0)
 }
 
 const META = {
-  COMPLETE: { tone: "success", label: "Complete", icon: CircleCheck },
-  SHORT: { tone: "warning", label: "Short", icon: TriangleAlert },
-  DAMAGED: { tone: "danger", label: "Damaged", icon: CircleX },
-  SHORT_AND_DAMAGED: { tone: "danger", label: "Short + damaged", icon: CircleX },
-  EXCESS: { tone: "info", label: "Excess", icon: PackagePlus },
+  COMPLETE: { tone: "success", labelKey: "app.components.difference.complete", icon: CircleCheck },
+  SHORT: { tone: "warning", labelKey: "app.components.difference.short", icon: TriangleAlert },
+  DAMAGED: { tone: "danger", labelKey: "app.components.difference.damaged", icon: CircleX },
+  SHORT_AND_DAMAGED: { tone: "danger", labelKey: "app.components.difference.shortDamaged", icon: CircleX },
+  EXCESS: { tone: "info", labelKey: "app.components.difference.excess", icon: PackagePlus },
 } as const;
 
 /**
@@ -43,9 +46,10 @@ export function DifferenceBadge({
   unit?: string;
   className?: string;
 }) {
+  const t = useT();
   const r = result ?? (expected !== undefined && counted !== undefined ? differenceResult(expected, counted, damaged) : "COMPLETE");
   const meta = META[r];
   const diff = difference ?? (expected !== undefined && counted !== undefined ? counted - damaged - expected : null);
-  const label = r === "COMPLETE" || diff === null || diff === 0 ? meta.label : `${meta.label} · ${formatSignedQty(diff, unit)}`;
+  const label = r === "COMPLETE" || diff === null || diff === 0 ? t(meta.labelKey) : `${t(meta.labelKey)} · ${formatSignedQty(diff, unit)}`;
   return <StatusBadge tone={meta.tone} label={label} icon={meta.icon} className={className} />;
 }

@@ -18,6 +18,7 @@ import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { normaliseAnyPhone } from "@/lib/phone";
 import { basicSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
@@ -43,6 +44,7 @@ const toValues = (p: ProjectDetail | null): Values => ({
 const useWizardForm = () => useFormContext<Values>();
 
 function ClientPicker({ disabled }: { disabled: boolean }) {
+  const t = useT();
   const mode = useWatch({ name: "clientMode" }) as Values["clientMode"];
   const clients = useGetClientsQuery({ limit: 100 });
   const options = (clients.data?.items ?? []).map((c) => ({ value: c.id, label: c.name, description: c.phone }));
@@ -51,15 +53,15 @@ function ClientPicker({ disabled }: { disabled: boolean }) {
     return (
       <div className="space-y-3 rounded-xl border border-dashed p-4 sm:col-span-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">New client</p>
+          <p className="text-sm font-semibold">{t("projects.basic.newClient")}</p>
           <Button type="button" variant="ghost" size="sm" onClick={() => setValue("clientMode", "existing", { shouldDirty: true })} disabled={disabled}>
             <X data-icon="inline-start" />
-            Pick existing
+            {t("projects.basic.pickExisting")}
           </Button>
         </div>
         <FieldGrid>
-          <TextField name="newClientName" label="Client name" required disabled={disabled} />
-          <PhoneField name="newClientPhone" label="Client phone" required allowLandline disabled={disabled} />
+          <TextField name="newClientName" label={t("projects.basic.clientName")} required disabled={disabled} />
+          <PhoneField name="newClientPhone" label={t("projects.basic.clientPhone")} required allowLandline disabled={disabled} />
         </FieldGrid>
       </div>
     );
@@ -67,12 +69,12 @@ function ClientPicker({ disabled }: { disabled: boolean }) {
   return (
     <ComboboxField
       name="clientId"
-      label="Client"
+      label={t("field.client")}
       required
       options={options}
       loading={clients.isLoading}
-      placeholder="Search clients…"
-      createLabel="New client"
+      placeholder={t("projects.basic.searchClients")}
+      createLabel={t("projects.basic.newClient")}
       onCreate={() => setValue("clientMode", "new", { shouldDirty: true })}
       disabled={disabled}
     />
@@ -82,6 +84,7 @@ function ClientPicker({ disabled }: { disabled: boolean }) {
 
 /** Tab 1 — creates the draft (POST /projects) or updates it (PATCH basic + PUT team). */
 export function BasicTab() {
+  const t = useT();
   const { projectId, project, locked, onSaved } = useWizard();
   // Picking the PM / munshis needs the team permission and the member list.
   const isOwner = useCan({ allPermissions: ["projects.team.manage", "team.member.view"] });
@@ -115,7 +118,7 @@ export function BasicTab() {
             ...(isOwner && v.pmId ? { pmId: v.pmId } : {}),
             ...(isOwner && v.munshiIds[0] ? { munshiId: v.munshiIds[0] } : {}),
           }).unwrap(),
-        { success: (p) => `Draft ${p.code} created`, setError: form.setError, codeFields: { ...codeFields, INVALID_PM: "pmId", INVALID_MUNSHI: "munshiIds" } },
+        { success: (p) => t("projects.basic.draftCreated", { code: p.code }), setError: form.setError, codeFields: { ...codeFields, INVALID_PM: "pmId", INVALID_MUNSHI: "munshiIds" } },
       );
       if (!created) return;
       if (isOwner && v.munshiIds.length > 1) {
@@ -161,55 +164,55 @@ export function BasicTab() {
 
   return (
     <Form form={form} onSubmit={onSubmit} id={WIZARD_FORM_ID}>
-      <SectionCard title="Project">
+      <SectionCard title={t("field.project")}>
         <div className="space-y-5">
           <FieldGrid columns={3}>
-            <TextField name="name" label="Project name" required placeholder="DHA Phase 6 · 10 Marla" className="lg:col-span-2" disabled={locked} />
-            <TextField name="code" label="Contract reference" uppercase placeholder="Auto, e.g. MSB-2026-014" hint={projectId ? undefined : "Leave empty to number it automatically."} disabled={locked} />
+            <TextField name="name" label={t("projects.basic.projectName")} required placeholder={t("projects.basic.namePlaceholder")} className="lg:col-span-2" disabled={locked} />
+            <TextField name="code" label={t("projects.basic.contractRef")} uppercase placeholder={t("projects.basic.codePlaceholder")} hint={projectId ? undefined : t("projects.basic.codeHint")} disabled={locked} />
           </FieldGrid>
           <FieldGrid>
             <ClientPicker disabled={locked} />
           </FieldGrid>
         </div>
       </SectionCard>
-      <SectionCard title="Site & dates">
+      <SectionCard title={t("projects.basic.siteDates")}>
         <div className="space-y-4">
           <FieldGrid columns={3}>
-            <TextField name="siteAddress" label="Site address" required className="lg:col-span-2" disabled={locked} />
-            <TextField name="city" label="City" required placeholder="Lahore" disabled={locked} />
+            <TextField name="siteAddress" label={t("projects.basic.siteAddress")} required className="lg:col-span-2" disabled={locked} />
+            <TextField name="city" label={t("field.city")} required placeholder={t("projects.basic.cityPlaceholder")} disabled={locked} />
           </FieldGrid>
           <FieldGrid columns={3}>
-            <DateField name="startDate" label="Start date" required disabled={locked} />
-            <DateField name="endDate" label="End date" required disabled={locked} />
+            <DateField name="startDate" label={t("projects.basic.startDate")} required disabled={locked} />
+            <DateField name="endDate" label={t("projects.basic.endDate")} required disabled={locked} />
           </FieldGrid>
         </div>
       </SectionCard>
       {isOwner ? (
-        <SectionCard title="Team" description="Who runs this site. You can change this later.">
-          <FormSection title="People">
+        <SectionCard title={t("field.team")} description={t("projects.basic.teamDesc")}>
+          <FormSection title={t("projects.basic.people")}>
             <FieldGrid>
               <SelectField
                 name="pmId"
-                label="Project Manager"
+                label={t("field.projectManager")}
                 options={(pms.data?.items ?? []).map((u) => ({ value: u.id, label: u.name }))}
-                noneLabel="No PM yet"
-                placeholder="No PM yet"
+                noneLabel={t("projects.list.noPmYet")}
+                placeholder={t("projects.list.noPmYet")}
                 disabled={locked && project?.status !== "CLOSEOUT"}
               />
               <ComboboxField
                 name="munshiIds"
-                label="Munshi"
+                label={t("field.munshi")}
                 multiple
                 options={(munshis.data?.items ?? []).map((u) => ({ value: u.id, label: u.name, description: u.phone }))}
                 loading={munshis.isLoading}
-                placeholder="Choose munshis"
+                placeholder={t("projects.basic.chooseMunshis")}
                 disabled={locked && project?.status !== "CLOSEOUT"}
               />
             </FieldGrid>
             {!(pms.data?.items.length || munshis.data?.items.length) && !pms.isLoading ? (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <UserPlus className="size-3.5" aria-hidden />
-                Invite PMs and Munshis from Team → Invitations.
+                {t("projects.basic.inviteHint")}
               </p>
             ) : null}
           </FormSection>

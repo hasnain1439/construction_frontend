@@ -15,7 +15,7 @@ import { PhoneField } from "@/components/forms/PhoneInput";
 import { RadioCards } from "@/components/forms/RadioCards";
 import { SegmentedField } from "@/components/forms/SegmentedField";
 import { TextField } from "@/components/forms/TextField";
-import { useLanguage } from "@/i18n/useT";
+import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { applyFieldErrors, getErrorMessage } from "@/lib/apiErrors";
 import { MARLA_OPTIONS, REGION_OPTIONS } from "@/lib/options";
 import { AuthCard } from "../components/AuthLayout";
@@ -23,6 +23,8 @@ import { useAfterLogin } from "../hooks/useAfterLogin";
 import { signupSchema } from "../schemas";
 
 export function SignupView() {
+  const t = useT();
+  const te = useEnumT();
   const language = useLanguage();
   const afterLogin = useAfterLogin();
   const [signup, { isLoading }] = useSignupMutation();
@@ -36,7 +38,7 @@ export function SignupView() {
     setFormError(null);
     try {
       await signup({ ...values, marlaStandard: Number(values.marlaStandard) as 225 | 272.25 }).unwrap();
-      toast.success("Welcome! Your 14-day free trial has started.");
+      toast.success(t("app.auth.trialStarted"));
       await afterLogin("/dashboard", "signup");
     } catch (err) {
       const applied = applyFieldErrors(err, form.setError, {
@@ -47,31 +49,34 @@ export function SignupView() {
     }
   };
 
+  const regionOptions = REGION_OPTIONS.map((o) => ({ ...o, title: te("region", o.value), description: te("regionDesc", o.value) }));
+  const marlaOptions = MARLA_OPTIONS.map((o) => ({ ...o, label: t("app.auth.marlaOption", { n: o.value }) }));
+
   return (
     <AuthCard
-      title="Create your company"
-      description="14-day free trial, 1 project, no card needed."
+      title={t("app.auth.createCompanyTitle")}
+      description={t("app.auth.createCompanyDesc")}
       footer={
         <>
-          Already registered?{" "}
+          {t("app.auth.alreadyRegistered")}{" "}
           <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign in
+            {t("app.auth.signIn")}
           </Link>
         </>
       }
     >
       <Form form={form} onSubmit={onSubmit}>
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-        <TextField name="companyName" label="Company name" required placeholder="Malik & Sons Builders" autoFocus />
+        <TextField name="companyName" label={t("app.auth.companyName")} required placeholder={t("app.auth.companyNamePlaceholder")} autoFocus />
         <FieldGrid>
-          <TextField name="ownerName" label="Your name" required autoComplete="name" />
-          <PhoneField name="phone" label="Phone" required />
+          <TextField name="ownerName" label={t("app.auth.yourName")} required autoComplete="name" />
+          <PhoneField name="phone" label={t("field.phone")} required />
         </FieldGrid>
-        <TextField name="email" label="Email" type="email" autoComplete="email" hint="Optional — for password resets." />
-        <PasswordField name="password" label="Password" required autoComplete="new-password" showStrength hint="At least 8 characters with a letter and a number." />
-        <RadioCards name="region" label="Region" required options={REGION_OPTIONS} />
-        <SegmentedField name="marlaStandard" label="Marla standard" options={MARLA_OPTIONS} hint="Square feet in one marla in your area." />
-        <FormActions submitLabel="Start free trial" loading={isLoading} fullWidth />
+        <TextField name="email" label={t("field.email")} type="email" autoComplete="email" hint={t("app.auth.emailHint")} />
+        <PasswordField name="password" label={t("field.password")} required autoComplete="new-password" showStrength hint={t("app.auth.passwordHint")} />
+        <RadioCards name="region" label={t("app.auth.region")} required options={regionOptions} />
+        <SegmentedField name="marlaStandard" label={t("app.auth.marlaStandard")} options={marlaOptions} hint={t("app.auth.marlaHint")} />
+        <FormActions submitLabel={t("app.auth.startFreeTrial")} loading={isLoading} fullWidth />
       </Form>
     </AuthCard>
   );

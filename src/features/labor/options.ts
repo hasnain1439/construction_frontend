@@ -1,46 +1,36 @@
-/** Labels shared by the labour and cash-book screens. */
+/** Option lists and labels shared by the labour and cash-book screens (translated with `useEnumT`). */
+import { useCallback, useMemo } from "react";
 import type { LaborPaidFrom, RateType } from "@/api/types";
-import { TRADE_LABEL } from "@/lib/options";
+import { enums as laborEnums } from "@/i18n/areas/labor/en";
+import { useEnumT } from "@/i18n/useT";
 import { humanize } from "@/lib/status";
 
-export const PAID_FROM_OPTIONS: Array<{ value: LaborPaidFrom; label: string }> = [
-  { value: "SITE_CASH", label: "Site cash" },
-  { value: "OFFICE_CASH", label: "Office cash" },
-  { value: "BANK", label: "Bank" },
-  { value: "JAZZCASH", label: "JazzCash" },
-  { value: "EASYPAISA", label: "Easypaisa" },
+export const PAID_FROM_VALUES: LaborPaidFrom[] = ["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA"];
+
+export const RATE_TYPE_OPTIONS: Array<{ value: RateType; unit: string }> = [
+  { value: "PER_SQFT", unit: "sqft" },
+  { value: "PER_TON", unit: "ton" },
+  { value: "PER_BRICK", unit: "brick" },
+  { value: "PER_RFT", unit: "rft" },
+  { value: "PER_CFT", unit: "cft" },
+  { value: "LUMPSUM", unit: "%" },
 ];
-export const paidFromLabel = (v: string | null | undefined) => PAID_FROM_OPTIONS.find((o) => o.value === v)?.label ?? (v ? humanize(v) : "—");
 
-export const RATE_TYPE_OPTIONS: Array<{ value: RateType; label: string; unit: string }> = [
-  { value: "PER_SQFT", label: "Per sq ft", unit: "sqft" },
-  { value: "PER_TON", label: "Per ton", unit: "ton" },
-  { value: "PER_BRICK", label: "Per brick", unit: "brick" },
-  { value: "PER_RFT", label: "Per running ft", unit: "rft" },
-  { value: "PER_CFT", label: "Per cu ft", unit: "cft" },
-  { value: "LUMPSUM", label: "Lump sum (theka)", unit: "%" },
-];
-export const rateTypeLabel = (v: string) => RATE_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? humanize(v);
+/** English labels (kept for the cash book until it reads `te("laborFloatMethod", v)`). */
+export const FLOAT_METHOD_OPTIONS = (["CASH", "BANK", "JAZZCASH", "EASYPAISA"] as const).map((value) => ({ value, label: laborEnums.laborFloatMethod[value] }));
 
-export const FLOAT_METHOD_OPTIONS = [
-  { value: "CASH", label: "Cash" },
-  { value: "BANK", label: "Bank" },
-  { value: "JAZZCASH", label: "JazzCash" },
-  { value: "EASYPAISA", label: "Easypaisa" },
-] as const;
+/** English labels (kept for the cash book until it reads `te("laborCashEntry", type)`). */
+export const CASH_ENTRY_LABELS: Record<string, string> = laborEnums.laborCashEntry;
 
-export const CASH_ENTRY_LABELS: Record<string, string> = {
-  FLOAT_IN: "Float received",
-  EXPENSE: "Kharcha",
-  PESHGI: "Peshgi",
-  WAGE_PAYMENT: "Wages",
-  SUBCONTRACT_PAYMENT: "Sub-contractor payment",
-  PURCHASE: "Purchase",
-  HANDOVER_OUT: "Handed over",
-  HANDOVER_IN: "Received (handover)",
-  COUNT_ADJUSTMENT: "Count difference",
-  REFUND_IN: "Refund",
-};
-
-/** Sub-contract trade (SHUTTERING …). Worker types come from the API — see `useWorkerTypeName`. */
-export const tradeLabel = (trade: string) => TRADE_LABEL[trade] ?? humanize(trade);
+/** Labels in the current UI language: paid-from, rate type, unit, trade, ledger entry. */
+export function useLaborLabels() {
+  const te = useEnumT();
+  const paidFrom = useCallback((v: string | null | undefined) => (v ? te("laborPaidFrom", v, humanize(v)) : "—"), [te]);
+  const rateType = useCallback((v: string) => te("laborRateType", v, humanize(v)), [te]);
+  const unit = useCallback((u: string | null | undefined) => (u ? te("laborRateUnit", u, u) : ""), [te]);
+  const trade = useCallback((v: string) => te("trade", v, humanize(v)), [te]);
+  const ledgerEntry = useCallback((v: string) => te("laborLedgerEntry", v, humanize(v)), [te]);
+  const paidFromOptions = useMemo(() => PAID_FROM_VALUES.map((value) => ({ value, label: te("laborPaidFrom", value) })), [te]);
+  const rateTypeOptions = useMemo(() => RATE_TYPE_OPTIONS.map((o) => ({ value: o.value, label: te("laborRateType", o.value) })), [te]);
+  return { paidFrom, rateType, unit, trade, ledgerEntry, paidFromOptions, rateTypeOptions };
+}

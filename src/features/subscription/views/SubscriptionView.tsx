@@ -23,38 +23,41 @@ import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatDate } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
-import { PAYMENT_METHOD_LABEL } from "@/lib/options";
+import { useEnumT, useT, type TranslationKey, type TranslationVars } from "@/i18n/useT";
 import { ChangePlanDialog } from "../components/ChangePlanDialog";
 import { PlanCard } from "../components/PlanCard";
 import { UploadSlipSlideOver } from "../components/UploadSlipSlideOver";
 
-function renewalText(s: SubscriptionDetail) {
+function renewalText(s: SubscriptionDetail, t: (key: TranslationKey, vars?: TranslationVars) => string) {
+  const one = s.daysLeft === 1;
   switch (s.status) {
     case "TRIAL":
-      return `Trial ends ${formatDate(s.trialEndsAt)} · ${s.daysLeft} day${s.daysLeft === 1 ? "" : "s"} left`;
+      return t(one ? "teamCompany.subscription.trialEndsOne" : "teamCompany.subscription.trialEnds", { date: formatDate(s.trialEndsAt), n: s.daysLeft });
     case "ACTIVE":
-      return `Renews ${formatDate(s.currentPeriodEnd)} · ${s.daysLeft} day${s.daysLeft === 1 ? "" : "s"} left`;
+      return t(one ? "teamCompany.subscription.renewsOne" : "teamCompany.subscription.renews", { date: formatDate(s.currentPeriodEnd), n: s.daysLeft });
     case "GRACE":
-      return `Period ended — renew by ${formatDate(s.graceEndsAt)} (${s.daysLeft} day${s.daysLeft === 1 ? "" : "s"} left)`;
+      return t(one ? "teamCompany.subscription.graceOne" : "teamCompany.subscription.grace", { date: formatDate(s.graceEndsAt), n: s.daysLeft });
     case "LAPSED":
-      return "Expired — records are read-only until a payment is approved";
+      return t("teamCompany.subscription.lapsed");
     default:
-      return "Cancelled";
+      return t("teamCompany.subscription.cancelled");
   }
 }
 
 function PaymentHistory() {
+  const t = useT();
+  const te = useEnumT();
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, error, refetch } = useGetPaymentsQuery({ page, limit: 10 });
   const columns: Column<SubscriptionPayment>[] = [
-    { id: "submitted", header: "Submitted", cell: (p) => formatDate(p.createdAt), sortValue: (p) => p.createdAt },
-    { id: "plan", header: "Plan", cell: (p) => p.plan.name },
-    { id: "amount", header: "Amount", align: "right", cell: (p) => <MoneyText paisa={p.amountPaisa} /> },
-    { id: "method", header: "Method", cell: (p) => PAYMENT_METHOD_LABEL[p.method] ?? p.method },
-    { id: "txn", header: "Transaction ID", cell: (p) => <span className="font-mono text-xs">{p.transactionId}</span> },
+    { id: "submitted", header: t("teamCompany.subscription.colSubmitted"), cell: (p) => formatDate(p.createdAt), sortValue: (p) => p.createdAt },
+    { id: "plan", header: t("teamCompany.slip.plan"), cell: (p) => p.plan.name },
+    { id: "amount", header: t("field.amount"), align: "right", cell: (p) => <MoneyText paisa={p.amountPaisa} /> },
+    { id: "method", header: t("field.method"), cell: (p) => te("walletMethod", p.method) },
+    { id: "txn", header: t("teamCompany.slip.transactionId"), cell: (p) => <span className="font-mono text-xs">{p.transactionId}</span> },
     {
       id: "status",
-      header: "Status",
+      header: t("field.status"),
       cell: (p) => (
         <div className="space-y-1">
           <StatusBadge domain="payment" value={p.status} />
@@ -64,13 +67,13 @@ function PaymentHistory() {
     },
     {
       id: "period",
-      header: "Period",
-      cell: (p) => (p.periodStart ? `${formatDate(p.periodStart)} – ${formatDate(p.periodEnd)}` : <span className="text-muted-foreground">—</span>),
+      header: t("teamCompany.subscription.colPeriod"),
+      cell: (p) => (p.periodStart ? t("teamCompany.holidays.range", { from: formatDate(p.periodStart), to: formatDate(p.periodEnd) }) : <span className="text-muted-foreground">—</span>),
     },
-    { id: "receipt", header: "Receipt", cell: (p) => p.receiptNo ?? <span className="text-muted-foreground">—</span> },
+    { id: "receipt", header: t("teamCompany.subscription.colReceipt"), cell: (p) => p.receiptNo ?? <span className="text-muted-foreground">—</span> },
   ];
   return (
-    <SectionCard title="Payment history" flush>
+    <SectionCard title={t("teamCompany.subscription.history")} flush>
       <DataTable
         rows={data?.items}
         columns={columns}
@@ -78,7 +81,7 @@ function PaymentHistory() {
         loading={isLoading || isFetching}
         error={error}
         onRetry={refetch}
-        empty={{ title: "No payments yet", icon: Receipt }}
+        empty={{ title: t("teamCompany.subscription.noPayments"), icon: Receipt }}
         pagination={data ? { page, pageSize: 10, total: data.meta.total, onPageChange: setPage } : undefined}
       />
     </SectionCard>
@@ -86,6 +89,7 @@ function PaymentHistory() {
 }
 
 function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }) {
+  const t = useT();
   const plans = useGetPlansQuery();
   const [slipFor, setSlipFor] = useState<string | null>(null);
   const [target, setTarget] = useState<PlanOption | null>(null);
@@ -100,17 +104,17 @@ function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }
   return (
     <>
       {subscription.status === "GRACE" ? (
-        <InlineAlert tone="warning" title="Renew within the grace period">
-          Your paid period has ended. Upload a payment slip by {formatDate(subscription.graceEndsAt)} to avoid read-only mode.
+        <InlineAlert tone="warning" title={t("teamCompany.subscription.graceTitle")}>
+          {t("teamCompany.subscription.graceBody", { date: formatDate(subscription.graceEndsAt) })}
         </InlineAlert>
       ) : null}
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <SectionCard
-          title="Current plan"
+          title={t("teamCompany.plan.current")}
           actions={
             <Button onClick={() => setSlipFor(defaultSlipPlan)}>
               <Upload data-icon="inline-start" />
-              Upload payment slip
+              {t("teamCompany.slip.title")}
             </Button>
           }
         >
@@ -121,38 +125,38 @@ function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }
             </div>
             <p className="text-sm">
               <span className="text-kpi font-semibold text-primary tabular">{formatPKR(subscription.plan.pricePaisa)}</span>
-              <span className="text-muted-foreground"> / month</span>
+              <span className="text-muted-foreground"> {t("teamCompany.plan.perMonth")}</span>
             </p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarClock className="size-4" aria-hidden />
-              {renewalText(subscription)}
+              {renewalText(subscription, t)}
             </p>
             {pending ? (
               <InlineAlert
                 tone="info"
-                title={`Changing to ${pending.plan.name}`}
+                title={t("teamCompany.subscription.changingTo", { name: pending.plan.name })}
                 action={
                   <Button size="sm" variant="outline" onClick={() => setConfirmCancel(true)}>
-                    Cancel change
+                    {t("teamCompany.subscription.cancelChange")}
                   </Button>
                 }
               >
                 {pending.effectiveOn
-                  ? `Takes effect ${formatDate(pending.effectiveOn)}.`
-                  : `Takes effect when your payment of ${formatPKR(pending.plan.pricePaisa)} is approved.`}
+                  ? t("teamCompany.subscription.takesEffect", { date: formatDate(pending.effectiveOn) })
+                  : t("teamCompany.subscription.takesEffectPayment", { amount: formatPKR(pending.plan.pricePaisa) })}
               </InlineAlert>
             ) : null}
           </div>
         </SectionCard>
-        <SectionCard title="Usage">
+        <SectionCard title={t("teamCompany.subscription.usage")}>
           <div className="space-y-5">
-            <UsageBar label="Active projects" used={subscription.usage.activeProjects.used} limit={subscription.usage.activeProjects.limit} hint="Active and closeout projects count. Drafts are free." />
-            <UsageBar label="Office users" used={subscription.usage.officeUsers.used} limit={subscription.usage.officeUsers.limit} hint="Thekedar and PMs (and pending PM invites). Munshis are free." />
+            <UsageBar label={t("dashboard.activeProjects")} used={subscription.usage.activeProjects.used} limit={subscription.usage.activeProjects.limit} hint={t("teamCompany.subscription.projectsHint")} />
+            <UsageBar label={t("teamCompany.members.officeUsers")} used={subscription.usage.officeUsers.used} limit={subscription.usage.officeUsers.limit} hint={t("teamCompany.subscription.usersHint")} />
           </div>
         </SectionCard>
       </div>
 
-      <SectionCard title="Plans" description="Prices are per month. Pay by JazzCash, Easypaisa, Raast or bank transfer.">
+      <SectionCard title={t("teamCompany.subscription.plans")} description={t("teamCompany.subscription.plansDesc")}>
         {plans.isLoading ? (
           <CardsSkeleton count={3} height="h-72" />
         ) : (
@@ -170,7 +174,7 @@ function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }
                       disabled={pending?.plan.id === plan.id}
                       onClick={() => setTarget(plan)}
                     >
-                      {pending?.plan.id === plan.id ? "Change pending" : `Switch to ${plan.name}`}
+                      {pending?.plan.id === plan.id ? t("teamCompany.subscription.changePending") : t("teamCompany.changePlan.switchTo", { name: plan.name })}
                     </Button>
                   )
                 }
@@ -198,12 +202,12 @@ function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }
         open={confirmCancel}
         onOpenChange={setConfirmCancel}
         tone="default"
-        title="Cancel the pending plan change?"
-        description={`You stay on ${subscription.plan.name}.`}
-        confirmLabel="Cancel change"
+        title={t("teamCompany.subscription.cancelTitle")}
+        description={t("teamCompany.subscription.cancelBody", { name: subscription.plan.name })}
+        confirmLabel={t("teamCompany.subscription.cancelChange")}
         loading={cancelling}
         onConfirm={async () => {
-          const ok = await run(() => cancelChange().unwrap(), { success: "Plan change cancelled" });
+          const ok = await run(() => cancelChange().unwrap(), { success: t("teamCompany.subscription.changeCancelled") });
           if (ok) setConfirmCancel(false);
         }}
       />
@@ -212,13 +216,14 @@ function SubscriptionBody({ subscription }: { subscription: SubscriptionDetail }
 }
 
 export function SubscriptionView() {
+  const t = useT();
   const query = useGetSubscriptionQuery();
   return (
     <>
       <PageHeader
-        title="Subscription"
-        description="Your plan, usage and payments."
-        breadcrumbs={[{ label: "Settings" }, { label: "Subscription" }]}
+        title={t("teamCompany.subscription.title")}
+        description={t("teamCompany.subscription.desc")}
+        breadcrumbs={[{ label: t("crumb.settings") }, { label: t("teamCompany.subscription.title") }]}
       />
       <QueryState query={query}>{(subscription) => <SubscriptionBody subscription={subscription} />}</QueryState>
     </>

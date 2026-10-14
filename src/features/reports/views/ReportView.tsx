@@ -11,6 +11,7 @@ import { MoneyText } from "@/components/common/MoneyText";
 import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
 import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { REPORTS } from "../reports.config";
@@ -40,7 +41,9 @@ type Row = ReportTable["rows"][number] & { __id: string };
  * columns, totals, notes and CSV / Excel / PDF export with the same filters.
  */
 export function ReportView({ name }: { name: ReportName }) {
+  const t = useT();
   const def = REPORTS[name];
+  const title = t(def.titleKey);
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
   const params = reportParams({ projectId: def.project ? filters.projectId : "", from: def.dates ? filters.from : "", to: def.dates ? filters.to : "" });
   const q = useGetReportQuery({ name, ...params }, { refetchOnMountOrArgChange: true });
@@ -57,8 +60,8 @@ export function ReportView({ name }: { name: ReportName }) {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={def.title} description={def.description} breadcrumbs={[{ label: "Reports" }, { label: def.title }]} actions={<ExportMenu name={name} filters={params} disabled={!report} />} />
-      {def.project || def.dates ? <ReportFilterBar value={filters} onChange={setFilters} showProject={def.project} showDates={def.dates} dateLabel={def.dateLabel} /> : null}
+      <PageHeader title={title} description={t(def.descriptionKey)} breadcrumbs={[{ label: t("crumb.reports") }, { label: title }]} actions={<ExportMenu name={name} filters={params} disabled={!report} />} />
+      {def.project || def.dates ? <ReportFilterBar value={filters} onChange={setFilters} showProject={def.project} showDates={def.dates} dateLabel={def.dateLabelKey ? t(def.dateLabelKey) : undefined} /> : null}
       {report?.notes?.length ? (
         <InlineAlert tone="info">
           <ul className="space-y-0.5">
@@ -69,7 +72,7 @@ export function ReportView({ name }: { name: ReportName }) {
         </InlineAlert>
       ) : null}
       {totals.length ? (
-        <SectionCard title="Totals" description={report?.subtitle}>
+        <SectionCard title={t("billing.reports.totals")} description={report?.subtitle}>
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {totals.map((c) => (
               <div key={c.key}>
@@ -82,7 +85,7 @@ export function ReportView({ name }: { name: ReportName }) {
           </dl>
         </SectionCard>
       ) : null}
-      <SectionCard flush title={report ? `${report.rows.length} row${report.rows.length === 1 ? "" : "s"}` : def.title}>
+      <SectionCard flush title={report ? (report.rows.length === 1 ? t("billing.reports.oneRow") : t("billing.reports.nRows", { n: report.rows.length })) : title}>
         <DataTable
           rows={rows}
           columns={columns}
@@ -91,7 +94,7 @@ export function ReportView({ name }: { name: ReportName }) {
           error={q.error}
           onRetry={q.refetch}
           clientPageSize={25}
-          empty={{ title: "Nothing to report", description: "Try another project or date range.", icon: FileBarChart }}
+          empty={{ title: t("billing.reports.nothingToReport"), description: t("billing.reports.nothingToReportDesc"), icon: FileBarChart }}
         />
       </SectionCard>
     </div>

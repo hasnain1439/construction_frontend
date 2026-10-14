@@ -68,7 +68,8 @@ export type MovementType =
   | "OWNER_DELIVERY_IN"
   | "USAGE_OUT"
   | "COUNT_ADJUSTMENT"
-  | "CORRECTION";
+  | "CORRECTION"
+  | "OPENING_IN";
 
 export interface StockMovement {
   id: Id;

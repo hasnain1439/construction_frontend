@@ -1,9 +1,11 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithStore as render } from "../render";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 import { BalanceCard } from "@/components/common/BalanceCard";
-import { categoryLabel, CategoryChips, type KharchaCategory } from "@/components/common/CategoryChips";
+import { CategoryChips, type KharchaCategory } from "@/components/common/CategoryChips";
+import { translateEnum } from "@/i18n/useT";
 import { StatusTimeline } from "@/components/common/StatusTimeline";
 import { StepperInput } from "@/components/forms/StepperInput";
 
@@ -47,8 +49,8 @@ describe("CategoryChips", () => {
     expect(screen.getByTestId("v")).toHaveTextContent("URGENT_MATERIAL");
     await user.click(screen.getByRole("radio", { name: "All" }));
     expect(screen.getByTestId("v")).toHaveTextContent("ALL");
-    expect(categoryLabel("OWNER_PURCHASE")).toBe("For the owner");
-    expect(categoryLabel(null)).toBe("—");
+    expect(translateEnum("en", "cashKharchaCategory", "OWNER_PURCHASE")).toBe("For the owner");
+    expect(translateEnum("ur", "cashKharchaCategory", "OWNER_PURCHASE")).not.toBe("For the owner");
   });
 });
 

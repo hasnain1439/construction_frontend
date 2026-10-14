@@ -2,6 +2,7 @@
 
 import { useId, type ReactNode } from "react";
 import { Area, Bar, CartesianGrid, Cell, ComposedChart, LabelList, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useT } from "@/i18n/useT";
 import { formatPKR, formatPKRShort, toPaisaBigInt } from "@/lib/money";
 import { ChartCard, ChartLegend, SERIES_COLORS, type LegendItem } from "./ChartCard";
 
@@ -55,7 +56,8 @@ function MoneyTooltip({ active, label, payload, series }: { active?: boolean; la
  * (one bar series: only its highest bar carries a value label), soft gradient areas or 2px
  * smooth lines, dashed recessive grid; hover card with exact rupees; legend for ≥ 2 series.
  */
-function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { data: Array<Record<string, string | number>>; xKey: string; series: Series[]; height?: number; stacked?: boolean; label: string }) {
+function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { data: Array<Record<string, string | number>>; xKey: string; series: Series[]; height?: number; stacked?: boolean; label?: string }) {
+  const t = useT();
   const uid = useId().replace(/:/g, "");
   const colored = withColors(series);
   const bars = colored.filter((s) => s.kind !== "area" && s.kind !== "line");
@@ -64,7 +66,7 @@ function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { d
   const topIndex = singleBar ? data.reduce((best, row, i) => (Number(row[singleBar.key]) > Number(data[best]?.[singleBar.key] ?? 0) ? i : best), 0) : -1;
   const topValue = singleBar ? Number(data[topIndex]?.[singleBar.key] ?? 0) : 0;
   return (
-    <div className="w-full" style={{ height }} role="img" aria-label={label}>
+    <div className="w-full" style={{ height }} role="img" aria-label={label ?? t("app.components.chart.chart")}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: singleBar ? 22 : 8, right: 4, bottom: 0, left: 4 }} barGap={3} barCategoryGap="30%">
           <defs>
@@ -147,7 +149,7 @@ export function BarChartCard({
   const colored = withColors(series.map((s) => ({ ...s, kind: s.kind ?? "bar" })));
   return (
     <ChartCard title={title} description={description} actions={actions} empty={empty ?? !data.length} legend={colored.map((s) => ({ label: s.label, color: s.color }))}>
-      <MoneyComposed data={data} xKey={xKey} series={colored} stacked={stacked} label={typeof title === "string" ? title : "Chart"} />
+      <MoneyComposed data={data} xKey={xKey} series={colored} stacked={stacked} label={typeof title === "string" ? title : undefined} />
     </ChartCard>
   );
 }
@@ -175,7 +177,7 @@ export function AreaChartCard({
   const colored = withColors(series.map((s) => ({ ...s, kind: s.kind ?? "area" })));
   return (
     <ChartCard title={title} description={description} actions={actions} empty={empty ?? !data.length} legend={colored.map((s) => ({ label: s.label, color: s.color }))}>
-      <MoneyComposed data={data} xKey={xKey} series={colored} label={typeof title === "string" ? title : "Chart"} />
+      <MoneyComposed data={data} xKey={xKey} series={colored} label={typeof title === "string" ? title : undefined} />
       {footer}
     </ChartCard>
   );
@@ -192,7 +194,8 @@ export interface DonutSlice {
  * Parts of a whole (≤ 6 slices, fixed colour order): 2px surface gaps between slices, the
  * total in the middle and a legend with every value and share (identity never by colour alone).
  */
-export function DonutChartCard({ title, description, slices, totalLabel = "Total", actions }: { title: ReactNode; description?: ReactNode; slices: DonutSlice[]; totalLabel?: string; actions?: ReactNode }) {
+export function DonutChartCard({ title, description, slices, totalLabel, actions }: { title: ReactNode; description?: ReactNode; slices: DonutSlice[]; totalLabel?: string; actions?: ReactNode }) {
+  const t = useT();
   const colored = slices.map((s, i) => ({ ...s, color: s.color ?? SERIES_COLORS[i % SERIES_COLORS.length]!, value: plotPaisa(s.paisa) }));
   const total = colored.reduce((s, x) => s + x.value, 0);
   const legend: LegendItem[] = colored.map((s) => ({
@@ -217,7 +220,7 @@ export function DonutChartCard({ title, description, slices, totalLabel = "Total
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-xs text-muted-foreground">{totalLabel}</span>
+            <span className="text-xs text-muted-foreground">{totalLabel ?? t("common.total")}</span>
             <span className="text-base font-semibold tabular">{formatPKRShort(Math.round(total))}</span>
           </div>
         </div>

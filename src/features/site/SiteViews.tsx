@@ -36,6 +36,7 @@ import { receiveSchema, type ReceiveValues } from "@/features/procurement/schema
 import { DispatchItemsTable } from "@/features/procurement/views/DispatchViews";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
@@ -48,25 +49,26 @@ const editable = (p: ProjectDetail) => p.status === "ACTIVE" || p.status === "CL
 // ─── Incoming ───────────────────────────────────────────────────────────────
 
 export function IncomingView({ projectId }: { projectId: string }) {
+  const t = useT();
   const incoming = useGetIncomingQuery(projectId);
   return (
-    <ProjectPageShell projectId={projectId} crumb="Incoming Material">
+    <ProjectPageShell projectId={projectId} crumb={t("cashSite.site.crumbIncoming")}>
       {(project) =>
         incoming.isLoading ? (
           <CardsSkeleton count={2} height="h-32" />
         ) : !incoming.data ? (
           <SectionCard>
-            <EmptyState title="Couldn't load incoming material" />
+            <EmptyState title={t("cashSite.site.incomingLoadFailed")} />
           </SectionCard>
         ) : incoming.data.count === 0 ? (
           <SectionCard>
-            <EmptyState icon={Inbox} title="Nothing on the way" description="Gate passes and direct deliveries to this site show up here until they are counted." />
+            <EmptyState icon={Inbox} title={t("cashSite.site.nothingOnWay")} description={t("cashSite.site.nothingOnWayDesc")} />
           </SectionCard>
         ) : (
           <div className="space-y-4">
             {incoming.data.blindCount ? (
-              <InlineAlert tone="info" title="Blind count">
-                Count what really arrived. The sent quantities are shown after you save.
+              <InlineAlert tone="info" title={t("cashSite.site.blindCount")}>
+                {t("cashSite.site.blindCountBody")}
               </InlineAlert>
             ) : null}
             {[...incoming.data.dispatches, ...incoming.data.purchases].map((doc) => {
@@ -78,20 +80,20 @@ export function IncomingView({ projectId }: { projectId: string }) {
                     <span className="flex flex-wrap items-center gap-2">
                       {doc.type === "DISPATCH" ? <Truck className="size-4 text-primary" aria-hidden /> : <ReceiptText className="size-4 text-primary" aria-hidden />}
                       {doc.number}
-                      <StatusBadge tone="info" label={doc.type === "DISPATCH" ? "From store" : "Direct from supplier"} />
+                      <StatusBadge tone="info" label={doc.type === "DISPATCH" ? t("cashSite.site.fromStore") : t("cashSite.site.directFromSupplier")} />
                     </span>
                   }
                   description={
                     doc.type === "DISPATCH"
-                      ? `${doc.from.type === "STORE" ? "Central Store" : doc.from.name} · sent ${formatDateTime(doc.dispatchedAt)}`
-                      : `${doc.supplier.name} · challan ${doc.challanNo} · ${formatDate(doc.purchaseDate)}`
+                      ? t("cashSite.site.dispatchDesc", { from: doc.from.type === "STORE" ? t("field.centralStore") : doc.from.name, date: formatDateTime(doc.dispatchedAt) })
+                      : t("cashSite.site.purchaseDesc", { supplier: doc.supplier.name, challan: doc.challanNo, date: formatDate(doc.purchaseDate) })
                   }
                   actions={
                     editable(project) ? (
                       <Button asChild>
                         <Link href={href}>
                           <PackageCheck data-icon="inline-start" />
-                          Receive
+                          {t("cashSite.site.receive")}
                         </Link>
                       </Button>
                     ) : null
@@ -99,17 +101,17 @@ export function IncomingView({ projectId }: { projectId: string }) {
                 >
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                     <span>
-                      <span className="text-muted-foreground">Vehicle: </span>
-                      {doc.vehicleNo ?? "—"}
+                      <span className="text-muted-foreground">{t("cashSite.site.vehicle")}: </span>
+                      <bdi>{doc.vehicleNo ?? "—"}</bdi>
                     </span>
                     {doc.type === "DISPATCH" ? (
                       <span>
-                        <span className="text-muted-foreground">Driver: </span>
-                        {[doc.driverName, doc.driverPhone ? formatPhone(doc.driverPhone) : null].filter(Boolean).join(" · ") || "—"}
+                        <span className="text-muted-foreground">{t("cashSite.site.driver")}: </span>
+                        <bdi>{[doc.driverName, doc.driverPhone ? formatPhone(doc.driverPhone) : null].filter(Boolean).join(" · ") || "—"}</bdi>
                       </span>
                     ) : null}
                     <span>
-                      <span className="text-muted-foreground">Materials: </span>
+                      <span className="text-muted-foreground">{t("field.materials")}: </span>
                       {doc.items
                         .map((i) => {
                           const q = "sentQty" in i ? i.sentQty : "challanQty" in i ? i.challanQty : undefined;
@@ -131,15 +133,16 @@ export function IncomingView({ projectId }: { projectId: string }) {
 // ─── Receive (blind count) ──────────────────────────────────────────────────
 
 function Comparison({ rows, onDone }: { rows: ComparisonRow[]; onDone: () => void }) {
+  const t = useT();
   const columns: Column<ComparisonRow>[] = [
-    { id: "material", header: "Material", cell: (r) => <span className="font-medium">{r.material.name}</span> },
-    { id: "sent", header: "Sent", align: "right", cell: (r) => formatQty(r.expectedQty, r.material.unit) },
-    { id: "counted", header: "Counted", align: "right", cell: (r) => formatQty(r.countedQty, r.material.unit) },
-    { id: "damaged", header: "Damaged", align: "right", cell: (r) => (r.damagedQty ? formatQty(r.damagedQty, r.material.unit) : "—") },
-    { id: "result", header: "Result", cell: (r) => <DifferenceBadge result={r.result} difference={r.differenceQty} unit={r.material.unit} /> },
+    { id: "material", header: t("field.material"), cell: (r) => <span className="font-medium">{r.material.name}</span> },
+    { id: "sent", header: t("field.sent"), align: "right", cell: (r) => formatQty(r.expectedQty, r.material.unit) },
+    { id: "counted", header: t("field.counted"), align: "right", cell: (r) => formatQty(r.countedQty, r.material.unit) },
+    { id: "damaged", header: t("field.damaged"), align: "right", cell: (r) => (r.damagedQty ? formatQty(r.damagedQty, r.material.unit) : "—") },
+    { id: "result", header: t("cashSite.site.colResult"), cell: (r) => <DifferenceBadge result={r.result} difference={r.differenceQty} unit={r.material.unit} /> },
   ];
   return (
-    <SectionCard title="Count saved — here is what was sent" actions={<Button onClick={onDone}>Back to incoming</Button>} flush>
+    <SectionCard title={t("cashSite.site.countSavedTitle")} actions={<Button onClick={onDone}>{t("cashSite.site.backToIncoming")}</Button>} flush>
       <DataTable rows={rows} columns={columns} getRowId={(r) => r.material.id} clientPageSize={0} empty={{ title: "" }} />
     </SectionCard>
   );
@@ -158,36 +161,38 @@ function ReceiveForm({
   loading: boolean;
   onSubmit: (v: z.output<typeof receiveSchema>, setError: UseFormSetError<ReceiveValues>) => Promise<void>;
 }) {
+  const t = useT();
   const form = useForm<ReceiveValues, unknown, z.output<typeof receiveSchema>>({
     resolver: zodResolver(receiveSchema),
     defaultValues: { note: "", items: lines.map((l) => ({ materialId: l.id, material: { id: l.id, name: l.name, unit: l.unit }, receivedQty: null, damagedQty: null, note: "", photo: null })) },
   });
   const columns: LineColumn[] = [
-    { key: "receivedQty", label: "Counted", kind: "quantity", required: true, width: "w-36" },
-    { key: "damagedQty", label: "Damaged", kind: "quantity", width: "w-32" },
-    { key: "note", label: "Note", kind: "text", placeholder: "Needed if short / damaged", width: "w-56" },
-    ...(withPhoto ? ([{ key: "photo", label: "Photo", kind: "photo", width: "w-32" }] as LineColumn[]) : []),
+    { key: "receivedQty", label: t("field.counted"), kind: "quantity", required: true, width: "w-36" },
+    { key: "damagedQty", label: t("field.damaged"), kind: "quantity", width: "w-32" },
+    { key: "note", label: t("field.note"), kind: "text", placeholder: t("cashSite.site.notePlaceholder"), width: "w-56" },
+    ...(withPhoto ? ([{ key: "photo", label: t("field.photo"), kind: "photo", width: "w-32" }] as LineColumn[]) : []),
   ];
   return (
     <Form form={form} onSubmit={(v) => onSubmit(v, form.setError)} id="receive-form">
-      <SectionCard title="Count what arrived" description={blind ? "Blind count: count every material yourself; the sent quantity appears after saving." : undefined}>
+      <SectionCard title={t("cashSite.site.countWhatArrived")} description={blind ? t("cashSite.site.blindCountDesc") : undefined}>
         <LineItemsEditor
           name="items"
           materialMode="fixed"
           columns={columns}
           info={(row) => {
             const l = lines.find((x) => x.id === row.materialId);
-            return l?.expected !== undefined ? `Sent: ${formatQty(l.expected, l.unit)}` : null;
+            return l?.expected !== undefined ? t("cashSite.site.sentQty", { qty: formatQty(l.expected, l.unit) }) : null;
           }}
         />
       </SectionCard>
-      <TextareaField name="note" label="Note" rows={2} />
-      <FormActions formId="receive-form" submitLabel="Save count" loading={loading} />
+      <TextareaField name="note" label={t("field.note")} rows={2} />
+      <FormActions formId="receive-form" submitLabel={t("cashSite.site.saveCount")} loading={loading} />
     </Form>
   );
 }
 
 export function ReceiveView({ projectId, kind, docId }: { projectId: string; kind: "dispatch" | "purchase"; docId: string }) {
+  const t = useT();
   const dispatch = useGetDispatchQuery(docId, { skip: kind !== "dispatch" });
   const purchase = useGetPurchaseQuery(docId, { skip: kind !== "purchase" });
   const [receiveDispatch, rd] = useReceiveDispatchMutation();
@@ -199,7 +204,7 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
   const query = kind === "dispatch" ? dispatch : purchase;
 
   return (
-    <ProjectPageShell projectId={projectId} crumb="Receive">
+    <ProjectPageShell projectId={projectId} crumb={t("cashSite.site.receive")}>
       {() => (
         <QueryState query={query as { data?: unknown; isLoading: boolean; error?: unknown; refetch?: () => unknown }}>
           {() => {
@@ -213,27 +218,35 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
             return (
               <>
                 <DocumentHeader
-                  title={d ? "Gate pass" : "Direct delivery"}
+                  title={d ? t("cashSite.site.gatePass") : t("cashSite.site.directDelivery")}
                   number={d?.number ?? p!.number}
                   status={d ? <StatusBadge domain="dispatch" value={d.status} /> : <StatusBadge domain="purchase" value={p!.status} />}
-                  party={d ? `From ${d.from.type === "STORE" ? "Central Store" : d.from.name}` : `From ${p!.supplier.name} · challan ${p!.challanNo}`}
+                  party={
+                    d
+                      ? t("cashSite.site.fromParty", { name: d.from.type === "STORE" ? t("field.centralStore") : d.from.name })
+                      : t("cashSite.site.fromSupplierChallan", { name: p!.supplier.name, challan: p!.challanNo })
+                  }
                   meta={[
-                    { label: "Vehicle", value: d?.vehicleNo ?? p?.vehicleNo },
-                    ...(d ? [{ label: "Driver", value: [d.driverName, d.driverPhone ? formatPhone(d.driverPhone) : null].filter(Boolean).join(" · ") || null }] : []),
-                    { label: d ? "Sent" : "Date", value: d ? formatDateTime(d.dispatchedAt) : formatDate(p!.purchaseDate) },
+                    { label: t("cashSite.site.vehicle"), value: d?.vehicleNo ?? p?.vehicleNo },
+                    ...(d ? [{ label: t("cashSite.site.driver"), value: [d.driverName, d.driverPhone ? formatPhone(d.driverPhone) : null].filter(Boolean).join(" · ") || null }] : []),
+                    { label: d ? t("field.sent") : t("field.date"), value: d ? formatDateTime(d.dispatchedAt) : formatDate(p!.purchaseDate) },
                   ]}
                 />
                 {blind && pending ? (
-                  <InlineAlert tone="info" title="Blind count">
-                    <EyeOff className="mr-1 inline size-4" aria-hidden />
-                    Count every bag, brick and bundle yourself. What was sent is shown after you save.
+                  <InlineAlert tone="info" title={t("cashSite.site.blindCount")}>
+                    <EyeOff className="me-1 inline size-4" aria-hidden />
+                    {t("cashSite.site.blindCountReceiveBody")}
                   </InlineAlert>
                 ) : null}
                 {result ? (
                   <Comparison rows={result} onDone={() => router.push(back)} />
                 ) : !pending ? (
-                  <SectionCard title="Already received" flush>
-                    {d ? <DispatchItemsTable dispatch={d} /> : <div className="p-5 text-sm text-muted-foreground">This delivery was counted on {formatDateTime(p!.receivedAt)}.</div>}
+                  <SectionCard title={t("cashSite.site.alreadyReceived")} flush>
+                    {d ? (
+                      <DispatchItemsTable dispatch={d} />
+                    ) : (
+                      <div className="p-5 text-sm text-muted-foreground">{t("cashSite.site.countedOn", { date: formatDateTime(p!.receivedAt) })}</div>
+                    )}
                   </SectionCard>
                 ) : (
                   <ReceiveForm
@@ -263,7 +276,7 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
                               .unwrap()
                               .then((r) => r.comparison);
                       const res = await run(save, {
-                        success: `${d?.number ?? p!.number} received`,
+                        success: t("cashSite.site.docReceived", { number: d?.number ?? p!.number }),
                         onError: (_c, error) => applyLineError(error, v.items, setError, "items", { SHORTAGE_NOTE_REQUIRED: "note", DAMAGED_EXCEEDS_COUNTED: "damagedQty" }),
                       });
                       if (res) setResult(res);
@@ -282,6 +295,7 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
 // ─── Deliveries (history + owner deliveries) ────────────────────────────────
 
 export function DeliveriesView({ projectId }: { projectId: string }) {
+  const t = useT();
   const dispatches = useGetDispatchesQuery({ projectId, limit: 100 });
   const purchases = useGetPurchasesQuery({ projectId, limit: 100 });
   const owner = useGetOwnerDeliveriesQuery({ projectId, limit: 50 });
@@ -290,10 +304,26 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
     const rows = [
       ...(dispatches.data?.items ?? [])
         .filter((d) => d.to.projectId === projectId && d.status !== "ON_THE_WAY" && d.status !== "CANCELLED")
-        .map((d) => ({ id: d.id, number: d.number, kind: "Gate pass", from: d.from.type === "STORE" ? "Central Store" : d.from.name, date: d.receivedAt ?? d.dispatchedAt, status: <StatusBadge domain="dispatch" value={d.status} />, materials: d.items.map((i) => `${formatQty(i.receivedQty, i.material.unit)} ${i.material.name}`).join(", ") })),
+        .map((d) => ({
+          id: d.id,
+          number: d.number,
+          kindKey: "cashSite.site.gatePass" as TranslationKey,
+          from: d.from.type === "STORE" ? null : d.from.name,
+          date: d.receivedAt ?? d.dispatchedAt,
+          status: <StatusBadge domain="dispatch" value={d.status} />,
+          materials: d.items.map((i) => `${formatQty(i.receivedQty, i.material.unit)} ${i.material.name}`).join(", "),
+        })),
       ...(purchases.data?.items ?? [])
         .filter((p) => p.deliverTo === "SITE" && p.status !== "PENDING_RECEIPT")
-        .map((p) => ({ id: p.id, number: p.number, kind: "Direct purchase", from: p.supplier.name, date: p.purchaseDate, status: <StatusBadge domain="purchase" value={p.status} />, materials: p.materials.join(", ") })),
+        .map((p) => ({
+          id: p.id,
+          number: p.number,
+          kindKey: "cashSite.site.directPurchase" as TranslationKey,
+          from: p.supplier.name as string | null,
+          date: p.purchaseDate,
+          status: <StatusBadge domain="purchase" value={p.status} />,
+          materials: p.materials.join(", "),
+        })),
     ];
     return rows.sort((a, b) => b.date.localeCompare(a.date));
   }, [dispatches.data, purchases.data, projectId]);
@@ -301,13 +331,13 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Deliveries"
+      crumb={t("cashSite.site.crumbDeliveries")}
       actions={(project) =>
         editable(project) ? (
           <Button asChild variant="outline">
             <Link href={projectHref(project.id, "/site/deliveries/purchase")}>
               <ReceiptText data-icon="inline-start" />
-              Record site purchase
+              {t("cashSite.site.recordSitePurchase")}
             </Link>
           </Button>
         ) : null
@@ -316,8 +346,8 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
       {(project) => (
         <Tabs defaultValue="received" className="gap-5">
           <TabsList>
-            <TabsTrigger value="received">Maal aaya (received)</TabsTrigger>
-            <TabsTrigger value="owner">Owner deliveries</TabsTrigger>
+            <TabsTrigger value="received">{t("cashSite.site.tabReceived")}</TabsTrigger>
+            <TabsTrigger value="owner">{t("cashSite.site.ownerDeliveries")}</TabsTrigger>
           </TabsList>
           <TabsContent value="received">
             <SectionCard flush>
@@ -327,14 +357,14 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
                 loading={dispatches.isLoading || purchases.isLoading}
                 error={dispatches.error ?? purchases.error}
                 clientPageSize={20}
-                empty={{ title: "Nothing received yet", icon: PackageCheck }}
+                empty={{ title: t("cashSite.site.nothingReceived"), icon: PackageCheck }}
                 columns={[
-                  { id: "number", header: "Document", cell: (r) => <span className="font-medium tabular">{r.number}</span> },
-                  { id: "kind", header: "Type", cell: (r) => r.kind },
-                  { id: "from", header: "From", cell: (r) => r.from },
-                  { id: "date", header: "Date", cell: (r) => formatDate(r.date), sortValue: (r) => r.date },
-                  { id: "materials", header: "Materials", cell: (r) => <span className="text-sm text-muted-foreground">{r.materials}</span> },
-                  { id: "status", header: "Status", cell: (r) => r.status },
+                  { id: "number", header: t("cashSite.site.colDocument"), cell: (r) => <span className="font-medium tabular">{r.number}</span> },
+                  { id: "kind", header: t("field.type"), cell: (r) => t(r.kindKey) },
+                  { id: "from", header: t("field.from"), cell: (r) => r.from ?? t("field.centralStore") },
+                  { id: "date", header: t("field.date"), cell: (r) => formatDate(r.date), sortValue: (r) => r.date },
+                  { id: "materials", header: t("field.materials"), cell: (r) => <span className="text-sm text-muted-foreground">{r.materials}</span> },
+                  { id: "status", header: t("field.status"), cell: (r) => r.status },
                 ]}
               />
             </SectionCard>
@@ -342,13 +372,13 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
           <TabsContent value="owner">
             <SectionCard
               flush
-              title="Owner deliveries"
-              description="Material the owner sent himself (no cost to you)."
+              title={t("cashSite.site.ownerDeliveries")}
+              description={t("cashSite.site.ownerDeliveriesDesc")}
               actions={
                 editable(project) ? (
                   <Button size="sm" onClick={() => setOpen(true)}>
                     <Plus data-icon="inline-start" />
-                    Record owner delivery
+                    {t("cashSite.site.recordOwnerDelivery")}
                   </Button>
                 ) : null
               }
@@ -360,12 +390,12 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
                 error={owner.error}
                 onRetry={owner.refetch}
                 clientPageSize={20}
-                empty={{ title: "No owner deliveries", compact: true }}
+                empty={{ title: t("cashSite.site.noOwnerDeliveries"), compact: true }}
                 columns={[
-                  { id: "date", header: "Date", cell: (d) => formatDate(d.deliveryDate) },
-                  { id: "items", header: "Materials", cell: (d) => d.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}`).join(", ") },
-                  { id: "note", header: "Note", cell: (d) => d.note ?? "" },
-                  { id: "by", header: "Recorded by", cell: (d) => d.createdBy?.name ?? "—" },
+                  { id: "date", header: t("field.date"), cell: (d) => formatDate(d.deliveryDate) },
+                  { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}`).join(", ") },
+                  { id: "note", header: t("field.note"), cell: (d) => d.note ?? "" },
+                  { id: "by", header: t("cashSite.site.recordedBy"), cell: (d) => d.createdBy?.name ?? "—" },
                 ]}
               />
             </SectionCard>
@@ -380,6 +410,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
 // ─── Usage ──────────────────────────────────────────────────────────────────
 
 export function UsageView({ projectId }: { projectId: string }) {
+  const t = useT();
   const usage = useGetUsageQuery({ projectId, limit: 100 });
   const stock = useGetProjectStockQuery(projectId);
   const [open, setOpen] = useState(false);
@@ -388,15 +419,16 @@ export function UsageView({ projectId }: { projectId: string }) {
     for (const u of usage.data?.items ?? []) map.set(u.usageDate, [...(map.get(u.usageDate) ?? []), u]);
     return [...map.entries()];
   }, [usage.data]);
+  const ownerTag = t("cashSite.site.ownerTag");
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Material Usage"
+      crumb={t("cashSite.site.crumbUsage")}
       actions={(project) =>
         editable(project) ? (
           <Button onClick={() => setOpen(true)}>
             <Plus data-icon="inline-start" />
-            Record usage
+            {t("cashSite.site.recordUsage")}
           </Button>
         ) : null
       }
@@ -407,7 +439,7 @@ export function UsageView({ projectId }: { projectId: string }) {
             <CardsSkeleton count={2} height="h-32" />
           ) : groups.length === 0 ? (
             <SectionCard>
-              <EmptyState icon={ClipboardCheck} title="No usage recorded" description="Record what is used each day — maal lag gaya." />
+              <EmptyState icon={ClipboardCheck} title={t("cashSite.site.noUsage")} description={t("cashSite.site.noUsageDesc")} />
             </SectionCard>
           ) : (
             groups.map(([date, entries]) => (
@@ -416,7 +448,7 @@ export function UsageView({ projectId }: { projectId: string }) {
                   {entries.map((u) => (
                     <li key={u.id} className="flex flex-wrap items-start justify-between gap-3 px-5 py-3 text-sm">
                       <div className="space-y-1">
-                        <p className="font-medium">{u.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}${i.ownerSupplied ? " (owner)" : ""}`).join(", ")}</p>
+                        <p className="font-medium">{u.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}${i.ownerSupplied ? ` ${ownerTag}` : ""}`).join(", ")}</p>
                         <p className="text-xs text-muted-foreground">{[u.note, u.createdBy?.name].filter(Boolean).join(" · ")}</p>
                       </div>
                       {u.totalValuePaisa !== undefined ? <MoneyText paisa={u.totalValuePaisa} /> : null}
@@ -436,29 +468,40 @@ export function UsageView({ projectId }: { projectId: string }) {
 // ─── Site stock ─────────────────────────────────────────────────────────────
 
 export function SiteStockView({ projectId }: { projectId: string }) {
+  const t = useT();
   const stock = useGetProjectStockQuery(projectId);
   const seesRates = useCan("fields.rates");
   const columns: Column<SiteStockRow>[] = [
-    { id: "material", header: "Material", sortValue: (r) => r.material.name, cell: (r) => <span className="font-medium">{r.material.name}</span> },
-    { id: "received", header: "Received", align: "right", cell: (r) => formatQty(r.receivedContractor, r.material.unit) },
-    { id: "owner", header: "From owner", align: "right", cell: (r) => (r.receivedOwner ? formatQty(r.receivedOwner, r.material.unit) : "—") },
-    { id: "used", header: "Used", align: "right", cell: (r) => formatQty(r.used, r.material.unit) },
-    { id: "out", header: "Sent out", align: "right", cell: (r) => (r.transferredOut ? formatQty(r.transferredOut, r.material.unit) : "—") },
-    { id: "adj", header: "Adjusted", align: "right", cell: (r) => (r.adjustments ? formatQty(r.adjustments, r.material.unit) : "—") },
-    { id: "stock", header: "In stock", align: "right", sortValue: (r) => r.inStock, cell: (r) => <span className="font-semibold tabular">{formatQty(r.inStock, r.material.unit)}</span> },
-    { id: "count", header: "Last count", cell: (r) => formatDate(r.lastCountAt) },
-    { id: "avg", header: "Avg rate", align: "right", hidden: !seesRates, cell: (r) => <MoneyText paisa={r.avgRatePaisa ?? undefined} /> },
-    { id: "value", header: "Value", align: "right", hidden: !seesRates, cell: (r) => <MoneyText paisa={r.valuePaisa} /> },
+    { id: "material", header: t("field.material"), sortValue: (r) => r.material.name, cell: (r) => <span className="font-medium">{r.material.name}</span> },
+    { id: "received", header: t("field.received"), align: "right", cell: (r) => formatQty(r.receivedContractor, r.material.unit) },
+    { id: "owner", header: t("cashSite.site.colFromOwner"), align: "right", cell: (r) => (r.receivedOwner ? formatQty(r.receivedOwner, r.material.unit) : "—") },
+    { id: "used", header: t("cashSite.site.colUsed"), align: "right", cell: (r) => formatQty(r.used, r.material.unit) },
+    { id: "out", header: t("cashSite.site.colSentOut"), align: "right", cell: (r) => (r.transferredOut ? formatQty(r.transferredOut, r.material.unit) : "—") },
+    { id: "adj", header: t("cashSite.site.colAdjusted"), align: "right", cell: (r) => (r.adjustments ? formatQty(r.adjustments, r.material.unit) : "—") },
+    {
+      id: "stock",
+      header: t("cashSite.site.colInStock"),
+      align: "right",
+      sortValue: (r) => r.inStock,
+      cell: (r) => <span className="font-semibold tabular">{formatQty(r.inStock, r.material.unit)}</span>,
+    },
+    { id: "count", header: t("cashSite.site.colLastCount"), cell: (r) => formatDate(r.lastCountAt) },
+    { id: "avg", header: t("cashSite.site.colAvgRate"), align: "right", hidden: !seesRates, cell: (r) => <MoneyText paisa={r.avgRatePaisa ?? undefined} /> },
+    { id: "value", header: t("field.value"), align: "right", hidden: !seesRates, cell: (r) => <MoneyText paisa={r.valuePaisa} /> },
   ];
   return (
-    <ProjectPageShell projectId={projectId} crumb="Site Stock">
+    <ProjectPageShell projectId={projectId} crumb={t("cashSite.site.crumbStock")}>
       {() => (
         <>
           {stock.data?.summary.totalValuePaisa !== undefined ? (
             <div className="grid gap-4 sm:grid-cols-3">
-              <KpiCard label="Stock value on site" icon={Wallet} value={formatPKRShort(stock.data.summary.totalValuePaisa)} hint="Contractor stock at average cost" />
-              <KpiCard label="Materials in stock" icon={PackageCheck} value={stock.data.summary.materials} />
-              <KpiCard label="Last count" icon={ClipboardCheck} value={stock.data.summary.lastCountAt ? formatDate(stock.data.summary.lastCountAt) : "Never"} />
+              <KpiCard label={t("cashSite.site.kpiStockValue")} icon={Wallet} value={formatPKRShort(stock.data.summary.totalValuePaisa)} hint={t("cashSite.site.kpiStockValueHint")} />
+              <KpiCard label={t("cashSite.site.kpiMaterialsInStock")} icon={PackageCheck} value={stock.data.summary.materials} />
+              <KpiCard
+                label={t("cashSite.site.colLastCount")}
+                icon={ClipboardCheck}
+                value={stock.data.summary.lastCountAt ? formatDate(stock.data.summary.lastCountAt) : t("cashSite.site.never")}
+              />
             </div>
           ) : null}
           <SectionCard flush>
@@ -470,7 +513,7 @@ export function SiteStockView({ projectId }: { projectId: string }) {
               error={stock.error}
               onRetry={stock.refetch}
               clientPageSize={25}
-              empty={{ title: "No stock on this site yet", description: "Dispatches and direct purchases add to it once counted.", icon: PackageCheck }}
+              empty={{ title: t("cashSite.site.noStock"), description: t("cashSite.site.noStockDesc"), icon: PackageCheck }}
             />
           </SectionCard>
         </>
@@ -482,6 +525,7 @@ export function SiteStockView({ projectId }: { projectId: string }) {
 // ─── Stock counts & transfers ───────────────────────────────────────────────
 
 export function CountsView({ projectId }: { projectId: string }) {
+  const t = useT();
   const stock = useGetProjectStockQuery(projectId);
   const counts = useGetStockCountsQuery({ projectId, limit: 50 });
   const incoming = useGetIncomingQuery(projectId);
@@ -494,14 +538,14 @@ export function CountsView({ projectId }: { projectId: string }) {
   const system = new Map(items.map((i) => [i.material.id, i.inStockOwner > 0 && i.inStockContractor === 0 ? i.inStockOwner : i.inStockContractor]));
 
   const columns: Column<StockCount>[] = [
-    { id: "number", header: "Count", cell: (c) => <span className="font-medium tabular">{c.number}</span> },
-    { id: "date", header: "Counted", cell: (c) => formatDateTime(c.countedAt), sortValue: (c) => c.countedAt },
+    { id: "number", header: t("cashSite.site.colCount"), cell: (c) => <span className="font-medium tabular">{c.number}</span> },
+    { id: "date", header: t("field.counted"), cell: (c) => formatDateTime(c.countedAt), sortValue: (c) => c.countedAt },
     {
       id: "diffs",
-      header: "Differences",
+      header: t("cashSite.site.colDifferences"),
       cell: (c) =>
         c.items.filter((i) => i.difference !== 0).length === 0 ? (
-          <StatusBadge tone="success" label="All matched" />
+          <StatusBadge tone="success" label={t("cashSite.site.allMatched")} />
         ) : (
           <span className="text-sm">
             {c.items
@@ -511,27 +555,27 @@ export function CountsView({ projectId }: { projectId: string }) {
           </span>
         ),
     },
-    { id: "value", header: "Value", align: "right", hidden: !seesRates, cell: (c) => <MoneyText paisa={c.summary.differenceValuePaisa} /> },
-    { id: "by", header: "By", cell: (c) => c.createdBy?.name ?? "—" },
+    { id: "value", header: t("field.value"), align: "right", hidden: !seesRates, cell: (c) => <MoneyText paisa={c.summary.differenceValuePaisa} /> },
+    { id: "by", header: t("field.by"), cell: (c) => c.createdBy?.name ?? "—" },
   ];
 
   return (
     <ProjectPageShell
       projectId={projectId}
-      crumb="Stock Counts & Transfers"
+      crumb={t("cashSite.site.crumbCounts")}
       actions={(project) =>
         editable(project) && stock.data?.location ? (
           <>
             {canCount ? (
               <Button onClick={() => setOpen("count")}>
                 <ClipboardCheck data-icon="inline-start" />
-                New count
+                {t("cashSite.site.newCount")}
               </Button>
             ) : null}
             {office ? (
               <Button variant="outline" onClick={() => setOpen("transfer")}>
                 <ArrowRightLeft data-icon="inline-start" />
-                Transfer
+                {t("cashSite.site.transfer")}
               </Button>
             ) : null}
           </>
@@ -540,8 +584,16 @@ export function CountsView({ projectId }: { projectId: string }) {
     >
       {(project) => (
         <>
-          <SectionCard flush title="Counts">
-            <DataTable rows={counts.data?.items} columns={columns} getRowId={(c) => c.id} loading={counts.isLoading} error={counts.error} onRetry={counts.refetch} empty={{ title: "No counts yet", icon: ClipboardCheck }} />
+          <SectionCard flush title={t("cashSite.site.counts")}>
+            <DataTable
+              rows={counts.data?.items}
+              columns={columns}
+              getRowId={(c) => c.id}
+              loading={counts.isLoading}
+              error={counts.error}
+              onRetry={counts.refetch}
+              empty={{ title: t("cashSite.site.noCounts"), icon: ClipboardCheck }}
+            />
           </SectionCard>
           {stock.data?.location ? (
             <>

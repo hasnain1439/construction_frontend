@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -6,7 +6,7 @@ import { AllocationEditor, allocationSummary, autoAllocate, type AllocatableInvo
 import { InvoiceStatusBadge } from "@/components/common/BillingBadges";
 import { whatsappUrl } from "@/components/common/PdfActions";
 import { StageTimeline } from "@/components/common/StageTimeline";
-import { renderWithStore } from "../render";
+import { renderWithStore, renderWithStore as render } from "../render";
 import { PdfActions } from "@/components/common/PdfActions";
 
 const INVOICES: AllocatableInvoice[] = [

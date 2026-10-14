@@ -23,12 +23,27 @@ import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { formatDate, todayPK } from "@/lib/dates";
-import { HOLIDAY_TYPE_LABEL } from "@/lib/options";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { useEnumT, useT } from "@/i18n/useT";
 import { holidaySchema } from "../schemas";
 
 const FORM_ID = "holiday-form";
 
+/** Page header of Settings → Holidays (the page itself is a server component). */
+export function HolidaysPageHeader() {
+  const t = useT();
+  return (
+    <PageHeader
+      title={t("teamCompany.holidays.title")}
+      description={t("teamCompany.holidays.desc")}
+      breadcrumbs={[{ label: t("crumb.settings") }, { label: t("teamCompany.holidays.title") }]}
+    />
+  );
+}
+
 function AddHolidaySlideOver({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useT();
+  const te = useEnumT();
   const [create, { isLoading }] = useCreateHolidayMutation();
   const run = useMutationToast();
   const form = useForm<z.input<typeof holidaySchema>, unknown, z.output<typeof holidaySchema>>({
@@ -40,7 +55,7 @@ function AddHolidaySlideOver({ open, onOpenChange }: { open: boolean; onOpenChan
     const result = await run(
       () => create({ name: values.name, startDate: values.startDate, endDate: values.endDate || values.startDate, type: values.type }).unwrap(),
       {
-        success: (h) => `${h.name} added`,
+        success: (h) => t("teamCompany.holidays.added", { name: h.name }),
         setError: form.setError,
         codeFields: { HOLIDAY_IN_PAST: "startDate", HOLIDAY_EXISTS: "startDate", INVALID_DATES: "endDate" },
       },
@@ -55,24 +70,21 @@ function AddHolidaySlideOver({ open, onOpenChange }: { open: boolean; onOpenChan
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Add company holiday"
-      description="Your own holidays (e.g. a site closed for a wedding). National holidays are added by the platform."
+      title={t("teamCompany.holidays.addTitle")}
+      description={t("teamCompany.holidays.addDesc")}
       busy={isLoading}
-      footer={<FormActions formId={FORM_ID} submitLabel="Add holiday" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={t("teamCompany.holidays.add")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label="Holiday name" required placeholder="Site closed — Basant" />
+        <TextField name="name" label={t("teamCompany.holidays.name")} required placeholder={t("teamCompany.holidays.namePlaceholder")} />
         <FieldGrid>
-          <DateField name="startDate" label="Start date" required min={todayPK()} />
-          <DateField name="endDate" label="End date" hint="Leave empty for one day." min={todayPK()} />
+          <DateField name="startDate" label={t("teamCompany.holidays.startDate")} required min={todayPK()} />
+          <DateField name="endDate" label={t("teamCompany.holidays.endDate")} hint={t("teamCompany.holidays.endHint")} min={todayPK()} />
         </FieldGrid>
         <SegmentedField
           name="type"
-          label="Type"
-          options={[
-            { value: "NON_WORKING", label: "Non-working" },
-            { value: "PARTIAL", label: "Partial day" },
-          ]}
+          label={t("field.type")}
+          options={(["NON_WORKING", "PARTIAL"] as const).map((value) => ({ value, label: te("holidayType", value) }))}
         />
       </Form>
     </SlideOver>
@@ -81,6 +93,8 @@ function AddHolidaySlideOver({ open, onOpenChange }: { open: boolean; onOpenChan
 
 /** Platform + company holidays merged for a year; company ones can be removed. */
 export function HolidaysPanel() {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const thisYear = Number(todayPK().slice(0, 4));
   const [year, setYear] = useState(String(thisYear));
@@ -91,26 +105,26 @@ export function HolidaysPanel() {
   const run = useMutationToast();
 
   const columns: Column<Holiday>[] = [
-    { id: "name", header: "Holiday", cell: (h) => <span className="font-medium">{h.name}</span>, sortValue: (h) => h.name },
+    { id: "name", header: t("teamCompany.holidays.colHoliday"), cell: (h) => <span className="font-medium">{h.name}</span>, sortValue: (h) => h.name },
     {
       id: "dates",
-      header: "Dates",
-      cell: (h) => (h.startDate === h.endDate ? formatDate(h.startDate) : `${formatDate(h.startDate)} – ${formatDate(h.endDate)}`),
+      header: t("teamCompany.holidays.colDates"),
+      cell: (h) => (h.startDate === h.endDate ? formatDate(h.startDate) : t("teamCompany.holidays.range", { from: formatDate(h.startDate), to: formatDate(h.endDate) })),
       sortValue: (h) => h.startDate,
     },
-    { id: "type", header: "Type", cell: (h) => HOLIDAY_TYPE_LABEL[h.type] ?? h.type },
+    { id: "type", header: t("field.type"), cell: (h) => te("holidayType", h.type) },
     {
       id: "source",
-      header: "Source",
+      header: t("teamCompany.holidays.colSource"),
       cell: (h) =>
-        h.source === "platform" ? <StatusBadge tone="neutral" label="National" /> : <StatusBadge tone="info" label="Company" />,
+        h.source === "platform" ? <StatusBadge tone="neutral" label={t("teamCompany.holidays.national")} /> : <StatusBadge tone="info" label={t("teamCompany.holidays.company")} />,
     },
     {
       ...ACTIONS_COLUMN,
       cell: (h) => (
         <RowActions
           name={h.name}
-          actions={[{ label: "Delete", icon: Trash2, destructive: true, hidden: !h.editable || readOnly, onSelect: () => setToDelete(h) }]}
+          actions={[{ label: t("common.delete"), icon: Trash2, destructive: true, hidden: !h.editable || readOnly, onSelect: () => setToDelete(h) }]}
         />
       ),
     },
@@ -123,13 +137,13 @@ export function HolidaysPanel() {
           !readOnly ? (
             <Button onClick={() => setAdding(true)}>
               <CalendarPlus data-icon="inline-start" />
-              Add holiday
+              {t("teamCompany.holidays.add")}
             </Button>
           ) : null
         }
       >
         <FilterSelect
-          label="Year"
+          label={t("teamCompany.holidays.year")}
           value={year}
           onChange={(v) => setYear(v || String(thisYear))}
           options={[thisYear - 1, thisYear, thisYear + 1].map((y) => ({ value: String(y), label: String(y) }))}
@@ -145,20 +159,20 @@ export function HolidaysPanel() {
           error={error}
           onRetry={refetch}
           clientPageSize={25}
-          empty={{ title: `No holidays in ${year}`, description: "Add your own company holidays with the button above." }}
+          empty={{ title: t("teamCompany.holidays.empty", { year }), description: t("teamCompany.holidays.emptyDesc") }}
         />
       </SectionCard>
       <AddHolidaySlideOver open={adding} onOpenChange={setAdding} />
       <ConfirmDialog
         open={Boolean(toDelete)}
         onOpenChange={(open) => !open && setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? "holiday"}?`}
-        description="It will no longer be skipped in schedules."
-        confirmLabel="Delete holiday"
+        title={t("teamCompany.holidays.deleteTitle", { name: toDelete?.name ?? t("teamCompany.holidays.holiday") })}
+        description={t("teamCompany.holidays.deleteBody")}
+        confirmLabel={t("teamCompany.holidays.deleteConfirm")}
         loading={deleting}
         onConfirm={async () => {
           if (!toDelete) return;
-          const ok = await run(() => remove(toDelete.id).unwrap(), { success: "Holiday deleted" });
+          const ok = await run(() => remove(toDelete.id).unwrap(), { success: t("teamCompany.holidays.deleted") });
           if (ok) setToDelete(null);
         }}
       />

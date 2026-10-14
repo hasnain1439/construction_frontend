@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatDateTime, formatRelative } from "@/lib/dates";
-import { PLATFORM_LABEL, ROLE_LABEL } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
 
 export function DevicesView() {
+  const t = useT();
+  const te = useEnumT();
   const { page, setPage, pageSize, setPageSize } = useListState({});
   const { data, isLoading, isFetching, error, refetch } = useGetDevicesQuery({ page, limit: pageSize });
   const [revoke, { isLoading: revoking }] = useRevokeDeviceMutation();
@@ -33,31 +35,31 @@ export function DevicesView() {
   const columns: Column<DeviceRow>[] = [
     {
       id: "user",
-      header: "User",
-      cell: (d) => <AvatarName name={d.user.name} subtitle={ROLE_LABEL[d.user.role]} />,
+      header: t("teamCompany.devices.colUser"),
+      cell: (d) => <AvatarName name={d.user.name} subtitle={t(`role.${d.user.role}`)} />,
       sortValue: (d) => d.user.name,
     },
     {
       id: "platform",
-      header: "Platform",
-      cell: (d) => PLATFORM_LABEL[d.platform] ?? d.platform,
+      header: t("teamCompany.devices.colPlatform"),
+      cell: (d) => te("platform", d.platform),
       sortValue: (d) => d.platform,
     },
     {
       id: "model",
-      header: "Model",
+      header: t("teamCompany.devices.colModel"),
       cell: (d) => d.model ?? <span className="text-muted-foreground">—</span>,
     },
     {
       id: "lastActive",
-      header: "Last active",
-      cell: (d) => formatRelative(d.lastActiveAt, "Never"),
+      header: t("teamCompany.edit.lastActive"),
+      cell: (d) => formatRelative(d.lastActiveAt, t("teamCompany.edit.never")),
       sortValue: (d) => d.lastActiveAt ?? "",
     },
-    { id: "lastSync", header: "Last sync", cell: (d) => formatRelative(d.lastSyncAt, "—") },
+    { id: "lastSync", header: t("teamCompany.devices.colLastSync"), cell: (d) => formatRelative(d.lastSyncAt, "—") },
     {
       id: "pending",
-      header: "Pending uploads",
+      header: t("teamCompany.devices.colPending"),
       align: "right",
       sortValue: (d) => d.pendingUploads,
       cell: (d) => (
@@ -68,7 +70,7 @@ export function DevicesView() {
     },
     {
       id: "rejected",
-      header: "Last rejected",
+      header: t("teamCompany.devices.colRejected"),
       cell: (d) => {
         const items = rejectedOf(d);
         if (!items.length) return <span className="text-muted-foreground">—</span>;
@@ -80,7 +82,7 @@ export function DevicesView() {
             onClick={() => setRejections({ device: d, items })}
           >
             <AlertTriangle data-icon="inline-start" />
-            {items[0]!.code ?? "Rejected"}
+            {items[0]!.code ?? t("teamCompany.devices.rejected")}
             {items.length > 1 ? ` +${items.length - 1}` : ""}
           </Button>
         );
@@ -88,10 +90,10 @@ export function DevicesView() {
     },
     {
       id: "status",
-      header: "Status",
+      header: t("field.status"),
       cell: (d) =>
         d.current ? (
-          <StatusBadge tone="info" label="This device" />
+          <StatusBadge tone="info" label={t("teamCompany.devices.thisDevice")} />
         ) : (
           <StatusBadge domain="device" value={d.revokedAt ? "REVOKED" : "ACTIVE"} />
         ),
@@ -101,7 +103,7 @@ export function DevicesView() {
       cell: (d) => (
         <RowActions
           name={d.user.name}
-          actions={[{ label: "Log out device", icon: LogOut, destructive: true, hidden: d.current || Boolean(d.revokedAt), onSelect: () => setToRevoke(d) }]}
+          actions={[{ label: t("teamCompany.devices.logOutDevice"), icon: LogOut, destructive: true, hidden: d.current || Boolean(d.revokedAt), onSelect: () => setToRevoke(d) }]}
         />
       ),
     },
@@ -110,9 +112,9 @@ export function DevicesView() {
   return (
     <>
       <PageHeader
-        title="Devices"
-        description="Phones and browsers signed in to your company."
-        breadcrumbs={[{ label: "Team" }, { label: "Devices" }]}
+        title={t("teamCompany.devices.title")}
+        description={t("teamCompany.devices.desc")}
+        breadcrumbs={[{ label: t("crumb.team") }, { label: t("teamCompany.devices.title") }]}
       />
       <SectionCard flush>
         <DataTable
@@ -122,7 +124,7 @@ export function DevicesView() {
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          empty={{ title: "No devices yet", icon: Smartphone }}
+          empty={{ title: t("teamCompany.devices.empty"), icon: Smartphone }}
           pagination={
             data
               ? {
@@ -139,19 +141,19 @@ export function DevicesView() {
       <SlideOver
         open={Boolean(rejections)}
         onOpenChange={(o) => (!o ? setRejections(null) : undefined)}
-        title={`Refused entries · ${rejections?.device.user.name ?? ""}`}
-        description="The last entries this phone sent that the server refused. The phone undid them and shows them under Sync problems."
+        title={t("teamCompany.devices.refusedTitle", { name: rejections?.device.user.name ?? "" })}
+        description={t("teamCompany.devices.refusedDesc")}
       >
         <ul className="divide-y rounded-lg border text-sm">
           {(rejections?.items ?? []).map((r) => (
             <li key={r.clientId} className="space-y-1 px-3 py-2.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">{SYNC_TYPE_LABEL[r.type] ?? r.type}</span>
-                <StatusBadge tone="danger" label={r.code ?? "REJECTED"} />
+                <span className="font-medium">{te("syncType", r.type)}</span>
+                <StatusBadge tone="danger" label={r.code ?? t("teamCompany.devices.rejected")} />
               </div>
               {r.message ? <p className="text-muted-foreground">{r.message}</p> : null}
               <p className="text-xs text-muted-foreground">
-                Made {formatDateTime(r.deviceCreatedAt)} · received {formatDateTime(r.at)}
+                {t("teamCompany.devices.madeReceived", { made: formatDateTime(r.deviceCreatedAt), received: formatDateTime(r.at) })}
               </p>
             </li>
           ))}
@@ -160,13 +162,13 @@ export function DevicesView() {
       <ConfirmDialog
         open={Boolean(toRevoke)}
         onOpenChange={(o) => !o && setToRevoke(null)}
-        title={`Log out ${toRevoke?.user.name ?? ""}'s ${toRevoke ? (PLATFORM_LABEL[toRevoke.platform] ?? "device") : "device"}?`}
-        description="Use this if a phone is lost. They must sign in again on that device; nothing they entered is deleted."
-        confirmLabel="Log out device"
+        title={t("teamCompany.devices.revokeTitle", { name: toRevoke?.user.name ?? "", device: toRevoke ? te("platform", toRevoke.platform, t("teamCompany.devices.device")) : t("teamCompany.devices.device") })}
+        description={t("teamCompany.devices.revokeBody")}
+        confirmLabel={t("teamCompany.devices.logOutDevice")}
         loading={revoking}
         onConfirm={async () => {
           if (!toRevoke) return;
-          const ok = await run(() => revoke(toRevoke.id).unwrap(), { success: "Device logged out" });
+          const ok = await run(() => revoke(toRevoke.id).unwrap(), { success: t("teamCompany.devices.loggedOut") });
           if (ok) setToRevoke(null);
         }}
       />
@@ -174,24 +176,3 @@ export function DevicesView() {
   );
 }
 
-/** Phone mutation types in office words. */
-export const SYNC_TYPE_LABEL: Record<string, string> = {
-  WORKER_CREATE: "New worker",
-  PROJECT_WORKER_ASSIGN: "Worker added to site",
-  ATTENDANCE_UPSERT: "Hazri",
-  ADVANCE_CREATE: "Peshgi",
-  WORK_MEASUREMENT_CREATE: "Work measurement",
-  SETTLEMENT_GENERATE: "Weekly wages made",
-  SETTLEMENT_SUBMIT: "Wages sent for approval",
-  SETTLEMENT_PAY: "Wages paid",
-  DISPATCH_RECEIVE: "Gate pass received",
-  PURCHASE_RECEIVE: "Purchase received",
-  OWNER_DELIVERY_CREATE: "Owner delivery",
-  MATERIAL_USAGE_CREATE: "Material usage",
-  STOCK_COUNT_CREATE: "Stock count",
-  CASH_EXPENSE_CREATE: "Kharcha",
-  FLOAT_ACKNOWLEDGE: "Cash float confirmed",
-  TOPUP_REQUEST_CREATE: "Top-up request",
-  DAILY_LOG_UPSERT: "Daily log",
-  SITE_PURCHASE_CREATE: "Site purchase",
-};

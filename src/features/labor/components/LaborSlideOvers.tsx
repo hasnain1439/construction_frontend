@@ -40,8 +40,9 @@ import { todayPK } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
 import { useMe } from "@/store/hooks";
 import { useWorkerTypeName } from "@/hooks/useWorkerTypes";
+import { useT } from "@/i18n/useT";
 import { namesFromWorker } from "@/lib/workerTypes";
-import { PAID_FROM_OPTIONS, RATE_TYPE_OPTIONS, tradeLabel } from "../options";
+import { RATE_TYPE_OPTIONS, useLaborLabels } from "../options";
 import {
   advanceSchema,
   assignSubcontractSchema,
@@ -77,6 +78,7 @@ export const useIsMunshi = () => useMe()?.user.role === "MUNSHI";
 // ─── Team on site ───────────────────────────────────────────────────────────
 
 export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
+  const t = useT();
   const munshi = useIsMunshi();
   const typeName = useWorkerTypeName();
   const workers = useGetWorkersQuery({ isActive: "true", limit: 100 });
@@ -86,7 +88,7 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
   const taken = new Set((onSite.data ?? []).map((w) => w.worker.id));
   const options = (workers.data?.items ?? [])
     .filter((w) => !taken.has(w.id))
-    .map((w) => ({ value: w.id, label: w.name, description: `${typeName(w.type, namesFromWorker(w))} · ${formatPKR(w.dailyRatePaisa)}/day` }));
+    .map((w) => ({ value: w.id, label: w.name, description: t("labor.assignWorker.optionDesc", { type: typeName(w.type, namesFromWorker(w)), rate: formatPKR(w.dailyRatePaisa) }) }));
   const form = useForm<AssignWorkerValues, unknown, z.output<typeof assignWorkerSchema>>({
     resolver: zodResolver(assignWorkerSchema),
     values: { workerId: null, dailyRatePaisa: null, startDate: todayPK() },
@@ -100,7 +102,7 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
           projectId,
           body: { workerId: v.workerId, startDate: v.startDate, ...(!munshi && v.dailyRatePaisa ? { dailyRatePaisa: v.dailyRatePaisa } : {}) },
         }).unwrap(),
-      { success: "Worker added to the site", setError: form.setError, codeFields: { WORKER_ALREADY_ASSIGNED: "workerId", INVALID_WORKER: "workerId" } },
+      { success: t("labor.assignWorker.added"), setError: form.setError, codeFields: { WORKER_ALREADY_ASSIGNED: "workerId", INVALID_WORKER: "workerId" } },
     );
     if (ok) onOpenChange(false);
   };
@@ -108,29 +110,40 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Assign a worker"
-      description="Daily-wage worker on this site. Add new people in Workforce → Workers Directory."
+      title={t("labor.assignWorker.title")}
+      description={t("labor.assignWorker.description")}
       busy={isLoading}
-      footer={<FormActions formId="assign-worker" submitLabel="Add to site" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="assign-worker" submitLabel={t("labor.assignWorker.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="assign-worker">
-        <ComboboxField name="workerId" label="Worker" required options={options} loading={workers.isLoading} placeholder="Search by name" emptyText="Everyone active is already on this site" />
+        <ComboboxField
+          name="workerId"
+          label={t("field.worker")}
+          required
+          options={options}
+          loading={workers.isLoading}
+          placeholder={t("labor.assignWorker.searchByName")}
+          emptyText={t("labor.assignWorker.everyoneAssigned")}
+        />
         {munshi ? (
-          chosen ? (
-            <p className="text-sm text-muted-foreground">
-              Rate: <MoneyText paisa={chosen.dailyRatePaisa} /> / day (the office can change it)
-            </p>
-          ) : null
+          chosen ? <p className="text-sm text-muted-foreground">{t("labor.assignWorker.munshiRate", { rate: formatPKR(chosen.dailyRatePaisa) })}</p> : null
         ) : (
-          <MoneyField name="dailyRatePaisa" label="Rate on this project (per day)" hint={chosen ? `Normal rate ${formatPKR(chosen.dailyRatePaisa)} — leave empty to use it` : "Leave empty for the worker's normal rate"} suffix="/ day" />
+          <MoneyField
+            name="dailyRatePaisa"
+            label={t("labor.assignWorker.rateLabel")}
+            hint={chosen ? t("labor.assignWorker.rateHintNormal", { rate: formatPKR(chosen.dailyRatePaisa) }) : t("labor.assignWorker.rateHintEmpty")}
+            suffix={t("labor.common.perDay")}
+          />
         )}
-        <DateField name="startDate" label="Working here from" required max={todayPK()} />
+        <DateField name="startDate" label={t("labor.assignWorker.workingFrom")} required max={todayPK()} />
       </Form>
     </SlideOver>
   );
 }
 
 export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
+  const t = useT();
+  const labels = useLaborLabels();
   const subs = useGetSubcontractorsQuery({ isActive: "true", limit: 100 });
   const [assign, { isLoading }] = useAssignSubcontractMutation();
   const run = useMutationToast();
@@ -155,7 +168,7 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
             ...(lump ? (v.contractValuePaisa ? { contractValuePaisa: v.contractValuePaisa } : {}) : v.ratePaisa ? { ratePaisa: v.ratePaisa } : {}),
           },
         }).unwrap(),
-      { success: "Sub-contract added", setError: form.setError, codeFields: { RATE_REQUIRED: lump ? "contractValuePaisa" : "ratePaisa", INVALID_SUBCONTRACTOR: "subcontractorId" } },
+      { success: t("labor.assignSub.added"), setError: form.setError, codeFields: { RATE_REQUIRED: lump ? "contractValuePaisa" : "ratePaisa", INVALID_SUBCONTRACTOR: "subcontractorId" } },
     );
     if (ok) onOpenChange(false);
   };
@@ -163,26 +176,30 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Add a sub-contract"
-      description="Piece-rate (per sq ft, ton …) or a lump-sum theka. Empty rate = the company labour rate for the trade."
+      title={t("labor.assignSub.title")}
+      description={t("labor.assignSub.description")}
       busy={isLoading}
-      footer={<FormActions formId="assign-sub" submitLabel="Add sub-contract" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="assign-sub" submitLabel={t("labor.assignSub.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="assign-sub">
         <ComboboxField
           name="subcontractorId"
-          label="Sub-contractor"
+          label={t("field.subcontractor")}
           required
-          options={(subs.data?.items ?? []).map((s) => ({ value: s.id, label: s.name, description: tradeLabel(s.trade) }))}
+          options={(subs.data?.items ?? []).map((s) => ({ value: s.id, label: s.name, description: labels.trade(s.trade) }))}
           loading={subs.isLoading}
         />
-        <TextField name="scope" label="Work" required placeholder="Slab shuttering — ground + first floor" />
-        <SelectField name="rateType" label="Paid" required options={RATE_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} />
+        <TextField name="scope" label={t("labor.assignSub.work")} required placeholder={t("labor.assignSub.workPlaceholder")} />
+        <SelectField name="rateType" label={t("field.paid")} required options={labels.rateTypeOptions} />
         <FieldGrid>
-          {lump ? <MoneyField name="contractValuePaisa" label="Lump-sum value" hint="Empty = company rate" /> : <MoneyField name="ratePaisa" label="Rate" suffix={unit ? `/ ${unit}` : undefined} hint="Empty = company rate" />}
-          <NumberField name="retentionPercent" label="Retention" unit="%" decimals={2} />
+          {lump ? (
+            <MoneyField name="contractValuePaisa" label={t("labor.assignSub.lumpValue")} hint={t("labor.assignSub.emptyCompanyRate")} />
+          ) : (
+            <MoneyField name="ratePaisa" label={t("field.rate")} suffix={unit ? t("labor.common.perUnit", { unit: labels.unit(unit) }) : undefined} hint={t("labor.assignSub.emptyCompanyRate")} />
+          )}
+          <NumberField name="retentionPercent" label={t("field.retention")} unit="%" decimals={2} />
         </FieldGrid>
-        <DateField name="startDate" label="Start" required />
+        <DateField name="startDate" label={t("labor.common.start")} required />
       </Form>
     </SlideOver>
   );
@@ -191,9 +208,10 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
 // ─── Peshgi ─────────────────────────────────────────────────────────────────
 
 function PayeeField({ projectId, allowSubcontractor }: { projectId: string; allowSubcontractor: boolean }) {
+  const t = useT();
   const error = useFieldError("payeeId");
   return (
-    <FormField label="Paid to" required error={error}>
+    <FormField label={t("labor.common.paidTo")} required error={error}>
       {() => (
         <Controller
           name="payeeType"
@@ -221,6 +239,8 @@ function PayeeField({ projectId, allowSubcontractor }: { projectId: string; allo
 }
 
 export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerId }: Open & { projectId: string; defaultWorkerId?: string }) {
+  const t = useT();
+  const { paidFromOptions } = useLaborLabels();
   const munshi = useIsMunshi();
   const [create, { isLoading }] = useCreateAdvanceMutation();
   const run = useMutationToast();
@@ -246,7 +266,7 @@ export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerI
             deviceCreatedAt: new Date().toISOString(),
           },
         }).unwrap(),
-      { success: "Peshgi saved", setError: form.setError, codeFields: { INSUFFICIENT_CASH: "amountPaisa", WORKER_NOT_ASSIGNED: "payeeId", FUTURE_DATE: "date", NO_CASH_ACCOUNT: "paidFrom" } },
+      { success: t("labor.advance.saved"), setError: form.setError, codeFields: { INSUFFICIENT_CASH: "amountPaisa", WORKER_NOT_ASSIGNED: "payeeId", FUTURE_DATE: "date", NO_CASH_ACCOUNT: "paidFrom" } },
     );
     if (ok) onOpenChange(false);
   };
@@ -254,24 +274,24 @@ export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerI
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Give peshgi"
-      description="Advance against wages. A worker's peshgi is cut from the weekly settlement, oldest first."
+      title={t("labor.advance.title")}
+      description={t("labor.advance.description")}
       busy={isLoading}
-      footer={<FormActions formId="advance-form" submitLabel="Save peshgi" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="advance-form" submitLabel={t("labor.advance.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="advance-form">
         <PayeeField projectId={projectId} allowSubcontractor={!munshi} />
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
         {munshi ? (
-          <InlineAlert tone="info">Paid from your site cash.</InlineAlert>
+          <InlineAlert tone="info">{t("labor.advance.fromSiteCash")}</InlineAlert>
         ) : (
-          <SelectField name="paidFrom" label="Paid from" required options={PAID_FROM_OPTIONS} />
+          <SelectField name="paidFrom" label={t("field.paidFrom")} required options={paidFromOptions} />
         )}
-        {!munshi ? <TextField name="reference" label="Reference" placeholder="Transaction / cheque no." /> : null}
-        <TextareaField name="note" label="Note" rows={2} placeholder="Child sick, rent …" />
+        {!munshi ? <TextField name="reference" label={t("field.reference")} placeholder={t("labor.advance.referencePlaceholder")} /> : null}
+        <TextareaField name="note" label={t("field.note")} rows={2} placeholder={t("labor.advance.notePlaceholder")} />
       </Form>
     </SlideOver>
   );
@@ -280,11 +300,15 @@ export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerI
 // ─── Measurements ───────────────────────────────────────────────────────────
 
 export function MeasurementSlideOver({ open, onOpenChange, projectId, defaultAssignmentId }: Open & { projectId: string; defaultAssignmentId?: string }) {
+  const t = useT();
+  const labels = useLaborLabels();
   const subs = useGetSubcontractsQuery({ projectId, active: true });
   const [record, { isLoading }] = useRecordMeasurementMutation();
   const run = useMutationToast();
   const [clientId] = useState(newClientId);
-  const options = (subs.data ?? []).filter((s) => s.rateType !== "LUMPSUM").map((s) => ({ value: s.id, label: s.subcontractor.name, description: `${s.scope} · per ${s.unit}` }));
+  const options = (subs.data ?? [])
+    .filter((s) => s.rateType !== "LUMPSUM")
+    .map((s) => ({ value: s.id, label: s.subcontractor.name, description: t("labor.measureForm.optionDesc", { scope: s.scope, unit: labels.unit(s.unit) }) }));
   const form = useForm<MeasurementValues, unknown, z.output<typeof measurementSchema>>({
     resolver: zodResolver(measurementSchema),
     values: { assignmentId: defaultAssignmentId ?? null, date: todayPK(), description: "", quantity: null, photo: null },
@@ -298,7 +322,7 @@ export function MeasurementSlideOver({ open, onOpenChange, projectId, defaultAss
           projectId,
           body: { assignmentId: v.assignmentId, date: v.date, description: v.description, quantity: v.quantity, ...(v.photo ? { attachmentIds: [v.photo.id] } : {}), clientId, deviceCreatedAt: new Date().toISOString() },
         }).unwrap(),
-      { success: "Measurement saved — the office verifies it", setError: form.setError, codeFields: { LUMPSUM_USES_PROGRESS: "assignmentId", FUTURE_DATE: "date" } },
+      { success: t("labor.measureForm.saved"), setError: form.setError, codeFields: { LUMPSUM_USES_PROGRESS: "assignmentId", FUTURE_DATE: "date" } },
     );
     if (ok) onOpenChange(false);
   };
@@ -306,19 +330,19 @@ export function MeasurementSlideOver({ open, onOpenChange, projectId, defaultAss
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title="Record a measurement"
-      description="Work done by a piece-rate sub-contractor. Its value is added once the office verifies it."
+      title={t("labor.measureForm.title")}
+      description={t("labor.measureForm.description")}
       busy={isLoading}
-      footer={<FormActions formId="measure-form" submitLabel="Save measurement" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="measure-form" submitLabel={t("labor.measureForm.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="measure-form">
-        <ComboboxField name="assignmentId" label="Sub-contract" required options={options} loading={subs.isLoading} emptyText="No piece-rate sub-contracts on this site" />
-        <TextField name="description" label="What was measured" required placeholder="First-floor slab" />
+        <ComboboxField name="assignmentId" label={t("labor.common.subContract")} required options={options} loading={subs.isLoading} emptyText={t("labor.measureForm.noPieceRate")} />
+        <TextField name="description" label={t("labor.measureForm.whatMeasured")} required placeholder={t("labor.measureForm.whatPlaceholder")} />
         <FieldGrid>
-          <QuantityField name="quantity" label="Quantity" required unit={unit} />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <QuantityField name="quantity" label={t("field.quantity")} required unit={unit ? labels.unit(unit) : undefined} />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <AttachmentField name="photo" label="Photo (optional)" kind="SITE_PHOTO" />
+        <AttachmentField name="photo" label={t("labor.measureForm.photoOptional")} kind="SITE_PHOTO" />
       </Form>
     </SlideOver>
   );
@@ -327,6 +351,8 @@ export function MeasurementSlideOver({ open, onOpenChange, projectId, defaultAss
 // ─── Sub-contractor account actions ─────────────────────────────────────────
 
 export function SubPaymentSlideOver({ open, onOpenChange, row }: Open & { row: SubcontractAccountRow | null }) {
+  const t = useT();
+  const { paidFromOptions } = useLaborLabels();
   const [pay, { isLoading }] = usePaySubcontractorMutation();
   const run = useMutationToast();
   const form = useForm<SubPaymentValues, unknown, z.output<typeof subPaymentSchema>>({
@@ -342,7 +368,7 @@ export function SubPaymentSlideOver({ open, onOpenChange, row }: Open & { row: S
           id: row.id,
           body: { type: v.type, amountPaisa: v.amountPaisa, paidFrom: v.paidFrom, date: v.date, ...(v.reference ? { reference: v.reference } : {}), ...(v.note ? { note: v.note } : {}), ...(v.allowAdvance ? { allowAdvance: true } : {}) },
         }).unwrap(),
-      { success: "Payment recorded", setError: form.setError, codeFields: { EXCEEDS_BALANCE: "amountPaisa", EXCEEDS_RETENTION: "amountPaisa", INSUFFICIENT_CASH: "amountPaisa", NO_CASH_ACCOUNT: "paidFrom" } },
+      { success: t("labor.subPay.recorded"), setError: form.setError, codeFields: { EXCEEDS_BALANCE: "amountPaisa", EXCEEDS_RETENTION: "amountPaisa", INSUFFICIENT_CASH: "amountPaisa", NO_CASH_ACCOUNT: "paidFrom" } },
     );
     if (ok) onOpenChange(false);
   };
@@ -350,41 +376,42 @@ export function SubPaymentSlideOver({ open, onOpenChange, row }: Open & { row: S
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={`Pay ${row.subcontractor.name}`}
+      title={t("labor.subPay.title", { name: row.subcontractor.name })}
       description={row.scope}
       busy={isLoading}
-      footer={<FormActions formId="sub-pay" submitLabel="Record payment" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="sub-pay" submitLabel={t("action.recordPayment")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="sub-pay">
         <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-3 text-sm">
-          <span className="text-muted-foreground">Balance due</span>
-          <MoneyText paisa={row.account.balanceDuePaisa} className="text-right font-semibold" />
-          <span className="text-muted-foreground">Retention held</span>
-          <MoneyText paisa={row.account.retentionHeldPaisa} className="text-right" />
+          <span className="text-muted-foreground">{t("field.balanceDue")}</span>
+          <MoneyText paisa={row.account.balanceDuePaisa} className="text-end font-semibold" />
+          <span className="text-muted-foreground">{t("labor.common.retentionHeld")}</span>
+          <MoneyText paisa={row.account.retentionHeldPaisa} className="text-end" />
         </div>
         <SegmentedField
           name="type"
-          label="Payment"
+          label={t("field.payment")}
           options={[
-            { value: "RUNNING", label: "Running" },
-            { value: "FINAL", label: "Final" },
-            { value: "RETENTION_RELEASE", label: "Retention" },
+            { value: "RUNNING", label: t("labor.subPay.running") },
+            { value: "FINAL", label: t("labor.subPay.final") },
+            { value: "RETENTION_RELEASE", label: t("labor.subPay.retention") },
           ]}
         />
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <SelectField name="paidFrom" label="Paid from" required options={PAID_FROM_OPTIONS} />
-        <TextField name="reference" label="Reference" placeholder="Cheque / transaction no." />
-        {!retention ? <ToggleField name="allowAdvance" label="Pay more than the balance (as advance)" /> : null}
-        <TextareaField name="note" label="Note" rows={2} />
+        <SelectField name="paidFrom" label={t("field.paidFrom")} required options={paidFromOptions} />
+        <TextField name="reference" label={t("field.reference")} placeholder={t("labor.subPay.referencePlaceholder")} />
+        {!retention ? <ToggleField name="allowAdvance" label={t("labor.subPay.allowAdvance")} /> : null}
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );
 }
 
 export function DeductionSlideOver({ open, onOpenChange, row }: Open & { row: SubcontractAccountRow | null }) {
+  const t = useT();
   const [deduct, { isLoading }] = useDeductSubcontractorMutation();
   const run = useMutationToast();
   const form = useForm<DeductionValues, unknown, z.output<typeof deductionSchema>>({
@@ -393,30 +420,34 @@ export function DeductionSlideOver({ open, onOpenChange, row }: Open & { row: Su
   });
   if (!row) return null;
   const onSubmit = async (v: z.output<typeof deductionSchema>) => {
-    const ok = await run(() => deduct({ id: row.id, body: { amountPaisa: v.amountPaisa, reason: v.reason, date: v.date } }).unwrap(), { success: "Deduction recorded", setError: form.setError });
+    const ok = await run(() => deduct({ id: row.id, body: { amountPaisa: v.amountPaisa, reason: v.reason, date: v.date } }).unwrap(), {
+      success: t("labor.deduction.recorded"),
+      setError: form.setError,
+    });
     if (ok) onOpenChange(false);
   };
   return (
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={`Deduct from ${row.subcontractor.name}`}
-      description="Wasted material, redone work, damage …"
+      title={t("labor.deduction.title", { name: row.subcontractor.name })}
+      description={t("labor.deduction.description")}
       busy={isLoading}
-      footer={<FormActions formId="sub-deduct" submitLabel="Deduct" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="sub-deduct" submitLabel={t("labor.common.deduct")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="sub-deduct">
         <FieldGrid>
-          <MoneyField name="amountPaisa" label="Amount" required />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <MoneyField name="amountPaisa" label={t("field.amount")} required />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <TextareaField name="reason" label="Reason" required rows={3} />
+        <TextareaField name="reason" label={t("field.reason")} required rows={3} />
       </Form>
     </SlideOver>
   );
 }
 
 export function ProgressSlideOver({ open, onOpenChange, row }: Open & { row: SubcontractAccountRow | null }) {
+  const t = useT();
   const [post, { isLoading }] = usePostProgressMutation();
   const run = useMutationToast();
   const form = useForm<ProgressValues, unknown, z.output<typeof progressSchema>>({
@@ -426,7 +457,7 @@ export function ProgressSlideOver({ open, onOpenChange, row }: Open & { row: Sub
   if (!row) return null;
   const onSubmit = async (v: z.output<typeof progressSchema>) => {
     const ok = await run(() => post({ id: row.id, body: { percent: v.percent, date: v.date, ...(v.note ? { note: v.note } : {}) } }).unwrap(), {
-      success: "Progress posted",
+      success: t("labor.progress.posted"),
       setError: form.setError,
       codeFields: { PROGRESS_NOT_AHEAD: "percent" },
     });
@@ -436,17 +467,21 @@ export function ProgressSlideOver({ open, onOpenChange, row }: Open & { row: Sub
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={`Progress — ${row.subcontractor.name}`}
-      description={`Now ${row.progressPercent}% of ${row.contractValuePaisa ? formatPKR(row.contractValuePaisa) : "the lump sum"}. Enter the new total %.`}
+      title={t("labor.progress.title", { name: row.subcontractor.name })}
+      description={
+        row.contractValuePaisa
+          ? t("labor.progress.descriptionValue", { percent: row.progressPercent, value: formatPKR(row.contractValuePaisa) })
+          : t("labor.progress.descriptionLump", { percent: row.progressPercent })
+      }
       busy={isLoading}
-      footer={<FormActions formId="sub-progress" submitLabel="Post progress" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="sub-progress" submitLabel={t("labor.progress.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="sub-progress">
         <FieldGrid>
-          <NumberField name="percent" label="Done so far" unit="%" decimals={2} required />
-          <DateField name="date" label="Date" required max={todayPK()} />
+          <NumberField name="percent" label={t("labor.progress.doneSoFar")} unit="%" decimals={2} required />
+          <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <TextareaField name="note" label="Note" rows={2} placeholder="Ground floor rough-in complete" />
+        <TextareaField name="note" label={t("field.note")} rows={2} placeholder={t("labor.progress.notePlaceholder")} />
       </Form>
     </SlideOver>
   );

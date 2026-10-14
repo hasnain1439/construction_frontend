@@ -9,7 +9,7 @@ import { useRequestOtpMutation, useVerifyOtpMutation } from "@/api/services/auth
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { OtpInput } from "@/components/forms/OtpInput";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { companyChoices, errorCode, getErrorMessage } from "@/lib/apiErrors";
 import { formatPhone, normalisePhone } from "@/lib/phone";
 import { AuthCard } from "../components/AuthLayout";
@@ -29,6 +29,7 @@ function useCountdown(initial: number) {
 }
 
 export function OtpView() {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,7 +48,7 @@ export function OtpView() {
 
   const submit = async (value: string) => {
     if (value.length !== 6) {
-      setError("Enter the 6-digit code.");
+      setError(t("app.auth.enterCodeSentence"));
       return;
     }
     setError(null);
@@ -77,15 +78,18 @@ export function OtpView() {
       setResendLeft(result.resendAfter);
       setCode("");
       setError(null);
-      toast.success(`A new code was sent to ${formatPhone(phone)}`);
+      toast.success(t("app.auth.newCodeSent", { phone: formatPhone(phone) }));
     } catch (err) {
       setError(getErrorMessage(err, language));
     }
   };
 
+  // The phone number sits inside the sentence: split the translated text around it.
+  const codeSentParts = t("app.auth.codeSentTo", { phone: "\u0000" }).split("\u0000");
+
   return (
     <AuthCard
-      title="Enter the code"
+      title={t("app.auth.enterCodeTitle")}
       icon={
         <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
           <MessageSquareText className="size-6" aria-hidden />
@@ -93,12 +97,16 @@ export function OtpView() {
       }
       description={
         <>
-          We sent a 6-digit code to <span className="font-medium text-foreground">{formatPhone(phone)}</span>.
+          {codeSentParts[0]}
+          <bdi dir="ltr" className="font-medium text-foreground">
+            {formatPhone(phone)}
+          </bdi>
+          {codeSentParts[1]}
         </>
       }
       footer={
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Use a different number
+          {t("app.auth.useDifferentNumber")}
         </Link>
       }
     >
@@ -122,14 +130,14 @@ export function OtpView() {
         />
         <div className="flex items-center justify-between text-sm">
           <span className={codeLeft > 0 ? "text-muted-foreground" : "font-medium text-danger"} aria-live="polite">
-            {codeLeft > 0 ? `Code expires in ${mmss(codeLeft)}` : "Code expired — ask for a new one"}
+            {codeLeft > 0 ? t("app.auth.codeExpiresIn", { time: mmss(codeLeft) }) : t("app.auth.codeExpired")}
           </span>
           <Button type="button" variant="link" className="h-auto p-0" disabled={resendLeft > 0 || resending} onClick={() => void resend()}>
-            {resendLeft > 0 ? `Resend in ${resendLeft}s` : "Resend code"}
+            {resendLeft > 0 ? t("app.auth.resendIn", { n: resendLeft }) : t("app.auth.resendCode")}
           </Button>
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={isLoading || code.length !== 6}>
-          {isLoading ? "Checking…" : "Verify & sign in"}
+          {isLoading ? t("app.auth.checking") : t("app.auth.verifySignIn")}
         </Button>
       </form>
     </AuthCard>

@@ -21,6 +21,9 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useLanguage, useT } from "@/i18n/useT";
 import { roleName } from "@/lib/permissionCatalog";
 
+/** Example names for the per-language name fields (sample values, the same in every UI language). */
+const NAME_EXAMPLE = { en: "Site PM", roman: "Site PM", urdu: "سائٹ پی ایم" };
+
 const FORM_ID = "role-form";
 const EMPTY = "__empty__";
 const BASE_ROLES: RoleBaseRole[] = ["PM", "MUNSHI", "OTHER"];
@@ -142,7 +145,7 @@ export function RoleSlideOver({
           required
           maxLength={60}
           dir="ltr"
-          placeholder="Site PM"
+          placeholder={NAME_EXAMPLE.en}
         />
         <FieldGrid>
           <TextField
@@ -150,14 +153,14 @@ export function RoleSlideOver({
             label={t("roles.nameRoman")}
             maxLength={60}
             dir="ltr"
-            placeholder="Site PM"
+            placeholder={NAME_EXAMPLE.roman}
           />
           <TextField
             name="nameUrdu"
             label={t("roles.nameUrdu")}
             maxLength={60}
             dir="rtl"
-            placeholder="سائٹ پی ایم"
+            placeholder={NAME_EXAMPLE.urdu}
           />
         </FieldGrid>
         <TextareaField name="description" label={t("roles.descriptionLabel")} maxLength={300} rows={2} />

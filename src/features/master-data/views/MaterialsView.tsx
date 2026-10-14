@@ -1,5 +1,6 @@
 "use client";
 
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { Eye, EyeOff, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -28,10 +29,13 @@ import { Switch } from "@/components/ui/switch";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
-import { formatAltUnits, SUPPLY_CATEGORY_LABEL, toOptions } from "@/lib/options";
+import { useEnumT, useT } from "@/i18n/useT";
+import { formatAltUnits, SUPPLY_CATEGORY_LABEL } from "@/lib/options";
 import { MaterialSlideOver } from "../components/MaterialSlideOver";
 
 export function MaterialsView() {
+  const t = useT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const canCreate = useCan("masterdata.material.create") && !readOnly;
   const canEdit = useCan("masterdata.material.edit") && !readOnly;
@@ -63,21 +67,21 @@ export function MaterialsView() {
   }, [data]);
 
   const columns: Column<Material>[] = [
-    { id: "name", header: "Material", cell: (m) => <span className="font-medium">{m.name}</span>, sortValue: (m) => m.name },
-    { id: "unit", header: "Unit", cell: (m) => m.unit },
-    { id: "detail", header: "Unit detail", cell: (m) => m.unitDetail ?? <span className="text-muted-foreground">—</span> },
+    { id: "name", header: t("field.material"), cell: (m) => <span className="font-medium">{m.name}</span>, sortValue: (m) => m.name },
+    { id: "unit", header: t("field.unit"), cell: (m) => m.unit },
+    { id: "detail", header: t("masterData.materials.unitDetail"), cell: (m) => m.unitDetail ?? <span className="text-muted-foreground">—</span> },
     {
       id: "alt",
-      header: "Other units",
-      cell: (m) => (m.altUnits.length ? <span className="text-xs">{formatAltUnits(m.unit, m.altUnits)}</span> : <span className="text-muted-foreground">—</span>),
+      header: t("masterData.altUnits.title"),
+      cell: (m) => (m.altUnits.length ? <bdi dir="ltr" className="text-xs">{formatAltUnits(m.unit, m.altUnits)}</bdi> : <span className="text-muted-foreground">—</span>),
     },
-    { id: "category", header: "Supply category", cell: (m) => SUPPLY_CATEGORY_LABEL[m.supplyCategory] },
+    { id: "category", header: t("masterData.materials.supplyCategory"), cell: (m) => te("supplyCategory", m.supplyCategory) },
     {
       id: "source",
-      header: "Source",
-      cell: (m) => <StatusBadge tone={m.source === "PLATFORM" ? "neutral" : "info"} label={m.source === "PLATFORM" ? "Platform" : "Company"} />,
+      header: t("masterData.materials.source"),
+      cell: (m) => <StatusBadge tone={m.source === "PLATFORM" ? "neutral" : "info"} label={m.source === "PLATFORM" ? t("masterData.materials.platform") : t("masterData.materials.company")} />,
     },
-    { id: "status", header: "Status", cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
+    { id: "status", header: t("field.status"), cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit && !canHide,
@@ -85,25 +89,25 @@ export function MaterialsView() {
         <RowActions
           name={m.name}
           actions={[
-            { label: "Edit", icon: Pencil, onSelect: () => setEditing(m) },
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(m) },
             {
-              label: m.isHidden ? "Show" : "Hide",
+              label: m.isHidden ? t("masterData.materials.show") : t("masterData.materials.hide"),
               icon: m.isHidden ? Eye : EyeOff,
               hidden: !canHide,
               onSelect: () =>
                 void run(() => (m.isHidden ? show(m.id) : hide(m.id)).unwrap(), {
-                  success: m.isHidden ? `${m.name} is visible again` : `${m.name} hidden`,
+                  success: m.isHidden ? t("masterData.materials.visibleAgain", { name: m.name }) : t("masterData.materials.hidden", { name: m.name }),
                 }),
             },
             m.source === "COMPANY"
-              ? { label: "Delete", icon: Trash2, destructive: true, separatorBefore: true, hidden: !canHide, onSelect: () => setToDelete(m) }
+              ? { label: t("common.delete"), icon: Trash2, destructive: true, separatorBefore: true, hidden: !canHide, onSelect: () => setToDelete(m) }
               : {
-                  label: "Delete",
+                  label: t("common.delete"),
                   icon: Trash2,
                   disabled: true,
                   separatorBefore: true,
                   hidden: !canHide,
-                  hint: "Catalog materials can't be deleted. You can hide them instead.",
+                  hint: t("masterData.materials.catalogNoDelete"),
                 },
           ]}
         />
@@ -114,16 +118,19 @@ export function MaterialsView() {
   return (
     <>
       <PageHeader
-        title="Materials"
-        description="Your company's material catalog. Rates are set per quality category in the Price List."
-        breadcrumbs={[{ label: "Settings" }, { label: "Materials" }]}
+        title={t("masterData.materials.title")}
+        description={t("masterData.materials.description")}
+        breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.materials.title") }]}
         actions={
-          canCreate ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus data-icon="inline-start" />
-              Add material
-            </Button>
-          ) : null
+          <>
+            <ImportButton entity="materials" />
+            {canCreate ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.materials.add")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <FilterBar
@@ -136,13 +143,18 @@ export function MaterialsView() {
           <div className="flex items-center gap-2 px-2">
             <Switch id="show-hidden" checked={showHidden} onCheckedChange={setShowHidden} />
             <Label htmlFor="show-hidden" className="text-sm">
-              Show hidden
+              {t("masterData.materials.showHidden")}
             </Label>
           </div>
         }
       >
-        <SearchInput value={search} onChange={setSearch} placeholder="Search materials…" />
-        <FilterSelect label="Supply" value={supplyCategory} onChange={setSupplyCategory} options={toOptions(SUPPLY_CATEGORY_LABEL)} />
+        <SearchInput value={search} onChange={setSearch} placeholder={t("masterData.common.searchMaterials")} />
+        <FilterSelect
+          label={t("masterData.materials.supply")}
+          value={supplyCategory}
+          onChange={setSupplyCategory}
+          options={Object.keys(SUPPLY_CATEGORY_LABEL).map((value) => ({ value, label: te("supplyCategory", value) }))}
+        />
       </FilterBar>
       <SectionCard flush>
         {isLoading ? (
@@ -150,12 +162,12 @@ export function MaterialsView() {
         ) : error && !data ? (
           <ErrorState error={error} onRetry={refetch} compact />
         ) : groups.length === 0 ? (
-          <EmptyState compact icon={Package} title="No materials found" description="Try another search, or add a material." />
+          <EmptyState compact icon={Package} title={t("masterData.materials.emptyTitle")} description={t("masterData.materials.emptyDesc")} />
         ) : (
           <div aria-busy={isFetching || undefined}>
             {groups.map(([groupId, group]) => (
               <CollapsibleSection key={groupId} title={group.name} count={group.rows.length}>
-                <DataTable rows={group.rows} columns={columns} getRowId={(m) => m.id} clientPageSize={0} empty={{ title: "Empty" }} />
+                <DataTable rows={group.rows} columns={columns} getRowId={(m) => m.id} clientPageSize={0} empty={{ title: t("masterData.common.empty") }} />
               </CollapsibleSection>
             ))}
           </div>
@@ -169,14 +181,14 @@ export function MaterialsView() {
       <ConfirmDialog
         open={Boolean(toDelete)}
         onOpenChange={(o) => !o && setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? "material"}?`}
-        description="Only materials without rates or stock can be deleted. Otherwise, hide it."
-        confirmLabel="Delete material"
+        title={t("masterData.common.deleteTitle", { name: toDelete?.name ?? t("masterData.materials.thisMaterial") })}
+        description={t("masterData.materials.deleteDesc")}
+        confirmLabel={t("masterData.materials.deleteConfirm")}
         loading={deleting}
         onConfirm={async () => {
           if (!toDelete) return;
           // MATERIAL_IN_USE explains itself in the error toast ("…you can hide it instead").
-          await run(() => remove(toDelete.id).unwrap(), { success: `${toDelete.name} deleted` });
+          await run(() => remove(toDelete.id).unwrap(), { success: t("masterData.common.deleted", { name: toDelete.name }) });
           setToDelete(null);
         }}
       />

@@ -1,5 +1,7 @@
 "use client";
 
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
+import { DemoBadge } from "@/features/onboarding/components/DemoBadge";
 import { Pencil, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,9 +21,10 @@ import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
+import { useT } from "@/i18n/useT";
 import { formatPhone } from "@/lib/phone";
 import { AgeingText } from "@/features/procurement/views/SupplierMoneyViews";
-import { activeToggleAction } from "../components/ActiveToggle";
+import { activeToggleAction, useActiveToggleLabels } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
 
 export function SuppliersView() {
@@ -37,32 +40,37 @@ export function SuppliersView() {
   const [addOpen, setAddOpen] = useSearchFlag();
   const [editing, setEditing] = useState<Supplier | null>(null);
   const run = useMutationToast();
+  const t = useT();
+  const toggleLabels = useActiveToggleLabels();
 
   const columns: Column<Supplier>[] = [
     {
       id: "name",
-      header: "Supplier",
+      header: t("field.supplier"),
       sortValue: (s) => s.name,
       cell: (s) => (
         <div className="min-w-0">
-          <p className="font-medium">{s.name}</p>
+          <p className="flex flex-wrap items-center gap-2 font-medium">
+            {s.name}
+            <DemoBadge isDemo={s.isDemo} />
+          </p>
           {s.address ? <p className="truncate text-xs text-muted-foreground">{s.address}</p> : null}
         </div>
       ),
     },
-    { id: "category", header: "Category", cell: (s) => s.category ?? "—", sortValue: (s) => s.category ?? "" },
-    { id: "phone", header: "Phone", cell: (s) => <span className="tabular">{formatPhone(s.phone)}</span> },
-    { id: "city", header: "City", cell: (s) => s.city ?? "—", sortValue: (s) => s.city ?? "" },
+    { id: "category", header: t("field.category"), cell: (s) => s.category ?? "—", sortValue: (s) => s.category ?? "" },
+    { id: "phone", header: t("field.phone"), cell: (s) => <span className="tabular" dir="ltr">{formatPhone(s.phone)}</span> },
+    { id: "city", header: t("field.city"), cell: (s) => s.city ?? "—", sortValue: (s) => s.city ?? "" },
     {
       id: "udhaar",
-      header: "Udhaar",
+      header: t("masterData.suppliers.udhaar"),
       align: "right",
       hidden: !seesRates,
       sortValue: (s) => Number(s.udhaarBalancePaisa ?? 0),
       cell: (s) => <MoneyText paisa={s.udhaarBalancePaisa} className="font-medium" />,
     },
-    { id: "age", header: "Oldest unpaid", align: "right", hidden: !seesRates, sortValue: (s) => s.oldestUnpaidDays ?? -1, cell: (s) => <AgeingText days={s.oldestUnpaidDays} /> },
-    { id: "status", header: "Status", cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
+    { id: "age", header: t("masterData.suppliers.oldestUnpaid"), align: "right", hidden: !seesRates, sortValue: (s) => s.oldestUnpaidDays ?? -1, cell: (s) => <AgeingText days={s.oldestUnpaidDays} /> },
+    { id: "status", header: t("field.status"), cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit && !canToggle,
@@ -70,15 +78,16 @@ export function SuppliersView() {
         <RowActions
           name={s.name}
           actions={[
-            { label: "Edit", icon: Pencil, onSelect: () => setEditing(s) },
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(s) },
             {
               ...activeToggleAction({
                 name: s.name,
                 isActive: s.isActive,
                 loading: toggling,
-                consequence: "They won't appear in new purchases. History and balances are kept.",
+                labels: toggleLabels(s.name),
+                consequence: t("masterData.suppliers.consequence"),
                 onToggle: (active) =>
-                  run(() => setActive({ id: s.id, active }).unwrap(), { success: `${s.name} ${active ? "activated" : "deactivated"}` }),
+                  run(() => setActive({ id: s.id, active }).unwrap(), { success: t(active ? "masterData.common.activated" : "masterData.common.deactivated", { name: s.name }) }),
               }),
               hidden: !canToggle,
             },
@@ -91,27 +100,30 @@ export function SuppliersView() {
   return (
     <>
       <PageHeader
-        title="All Suppliers"
-        description="Dealers you buy from, with the rates you've agreed."
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "All Suppliers" }]}
+        title={t("masterData.suppliers.title")}
+        description={t("masterData.suppliers.description")}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("masterData.suppliers.title") }]}
         actions={
-          canCreate ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus data-icon="inline-start" />
-              Add supplier
-            </Button>
-          ) : null
+          <>
+            <ImportButton entity="suppliers" />
+            {canCreate ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.suppliers.add")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <SearchInput value={list.search} onChange={list.setSearch} placeholder="Search name, phone or city…" />
+        <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("masterData.suppliers.search")} />
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.isActive}
           onChange={(v) => list.setFilter("isActive", v)}
           options={[
-            { value: "true", label: "Active" },
-            { value: "false", label: "Inactive" },
+            { value: "true", label: t("common.active") },
+            { value: "false", label: t("common.inactive") },
           ]}
         />
       </FilterBar>
@@ -124,7 +136,7 @@ export function SuppliersView() {
           error={error}
           onRetry={refetch}
           onRowClick={(s) => router.push(`/suppliers-stock/suppliers/${s.id}`)}
-          empty={{ title: "No suppliers yet", description: "Add the dealers you buy cement, steel, bricks and sand from.", icon: Truck }}
+          empty={{ title: t("masterData.suppliers.emptyTitle"), description: t("masterData.suppliers.emptyDesc"), icon: Truck }}
           pagination={
             data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined
           }

@@ -15,7 +15,7 @@ import { PasswordField } from "@/components/forms/PasswordField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { applyFieldErrors, errorCode, getErrorMessage } from "@/lib/apiErrors";
 import { AuthCard } from "../components/AuthLayout";
 import { useAfterLogin } from "../hooks/useAfterLogin";
@@ -24,23 +24,19 @@ import { acceptInviteSchema } from "../schemas";
 const DEAD_LINK = new Set(["INVITE_EXPIRED", "INVITE_CANCELLED", "INVITE_NOT_FOUND"]);
 
 function PasswordFields() {
+  const t = useT();
   const munshi = useWatch({ name: "munshi" }) as boolean;
   return (
     <>
-      {munshi ? (
-        <InlineAlert tone="info">
-          On the mobile app you can sign in two ways: a 6-digit code (sent by SMS, and by email if you have one) or a
-          password. Choose a password below if you want the password option.
-        </InlineAlert>
-      ) : null}
+      {munshi ? <InlineAlert tone="info">{t("app.auth.munshiSignInInfo")}</InlineAlert> : null}
       <PasswordField
         name="password"
-        label={munshi ? "Choose a password (optional)" : "Choose a password"}
+        label={munshi ? t("app.auth.choosePasswordOptional") : t("app.auth.choosePassword")}
         required={!munshi}
         autoComplete="new-password"
         showStrength
       />
-      <PasswordField name="confirmPassword" label="Confirm password" required={!munshi} autoComplete="new-password" />
+      <PasswordField name="confirmPassword" label={t("app.auth.confirmPassword")} required={!munshi} autoComplete="new-password" />
     </>
   );
 }
@@ -51,6 +47,7 @@ function PasswordFields() {
  * invitation" endpoint, so the company / role are shown after accepting.
  */
 export function AcceptInviteView({ token }: { token: string }) {
+  const t = useT();
   const language = useLanguage();
   const afterLogin = useAfterLogin();
   const [accept, { isLoading }] = useAcceptInvitationMutation();
@@ -68,9 +65,9 @@ export function AcceptInviteView({ token }: { token: string }) {
         token,
         body: { ...(values.name ? { name: values.name } : {}), ...(values.password ? { password: values.password } : {}) },
       }).unwrap();
-      toast.success(`Welcome to ${result.tenant.name}!`);
+      toast.success(t("app.auth.welcomeTo", { name: result.tenant.name }));
       if (result.user.role === "MUNSHI") {
-        toast.info(values.password ? "On the mobile app, sign in with your phone and password — or with a code." : "On the mobile app, sign in with your phone and a code.");
+        toast.info(values.password ? t("app.auth.munshiSignInPasswordOrCode") : t("app.auth.munshiSignInCode"));
       }
       await afterLogin("/dashboard", "invite");
     } catch (err) {
@@ -90,16 +87,16 @@ export function AcceptInviteView({ token }: { token: string }) {
   if (deadCode) {
     return (
       <AuthCard
-        title={deadCode === "INVITE_CANCELLED" ? "Invitation cancelled" : deadCode === "INVITE_EXPIRED" ? "Invitation expired" : "Link not valid"}
+        title={deadCode === "INVITE_CANCELLED" ? t("app.auth.inviteCancelled") : deadCode === "INVITE_EXPIRED" ? t("app.auth.inviteExpired") : t("app.auth.linkNotValid")}
         icon={
           <span className="flex size-11 items-center justify-center rounded-xl bg-danger-soft text-danger">
             <CircleX className="size-6" aria-hidden />
           </span>
         }
-        description="Ask your Thekedar for a new link."
+        description={t("app.auth.askNewLink")}
       >
         <Button asChild className="w-full" variant="outline">
-          <Link href="/login">Go to sign in</Link>
+          <Link href="/login">{t("app.auth.goToSignIn")}</Link>
         </Button>
       </AuthCard>
     );
@@ -107,8 +104,8 @@ export function AcceptInviteView({ token }: { token: string }) {
 
   return (
     <AuthCard
-      title="You're invited"
-      description="Your Thekedar invited you to join their company on Construction Platform. Set up your account to continue."
+      title={t("app.auth.invitedTitle")}
+      description={t("app.auth.invitedDesc")}
       icon={
         <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
           <MailOpen className="size-6" aria-hidden />
@@ -116,19 +113,19 @@ export function AcceptInviteView({ token }: { token: string }) {
       }
       footer={
         <>
-          Already have an account?{" "}
+          {t("app.auth.alreadyHaveAccount")}{" "}
           <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign in
+            {t("app.auth.signIn")}
           </Link>
         </>
       }
     >
       <Form form={form} onSubmit={onSubmit}>
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-        <TextField name="name" label="Your name" autoComplete="name" hint="Leave empty to keep the name your Thekedar entered." />
-        <ToggleField name="munshi" label="I'm a Munshi (site supervisor)" description="Munshis sign in on the mobile app with a phone code or a password." />
+        <TextField name="name" label={t("app.auth.yourName")} autoComplete="name" hint={t("app.auth.inviteNameHint")} />
+        <ToggleField name="munshi" label={t("app.auth.iAmMunshi")} description={t("app.auth.iAmMunshiDesc")} />
         <PasswordFields />
-        <FormActions submitLabel="Accept invitation" loading={isLoading} fullWidth />
+        <FormActions submitLabel={t("app.auth.acceptInvitation")} loading={isLoading} fullWidth />
       </Form>
     </AuthCard>
   );

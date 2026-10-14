@@ -14,7 +14,7 @@ import { FormActions } from "@/components/forms/FormActions";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { PhoneField } from "@/components/forms/PhoneInput";
 import { TextField } from "@/components/forms/TextField";
-import { useLanguage } from "@/i18n/useT";
+import { useLanguage, useT } from "@/i18n/useT";
 import { applyFieldErrors, companyChoices, errorCode, getErrorMessage } from "@/lib/apiErrors";
 import { useAfterLogin } from "../hooks/useAfterLogin";
 import { setPendingLogin } from "../pendingLogin";
@@ -31,6 +31,7 @@ export function otpPageHref(phone: string, timers: { expiresIn?: number; resendA
 
 /** Email or phone + password. */
 export function PasswordLoginForm({ onUseOtp }: { onUseOtp: (phone?: string) => void }) {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,21 +77,22 @@ export function PasswordLoginForm({ onUseOtp }: { onUseOtp: (phone?: string) => 
   return (
     <Form form={form} onSubmit={onSubmit}>
       {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-      <TextField name="login" label="Email or phone" required autoComplete="username" placeholder="0300 1234567 or you@company.pk" autoFocus />
-      <PasswordField name="password" label="Password" required />
+      <TextField name="login" label={t("app.auth.emailOrPhone")} required autoComplete="username" placeholder={t("app.auth.loginPlaceholder")} autoFocus />
+      <PasswordField name="password" label={t("field.password")} required />
       <div className="flex items-center justify-between gap-3">
-        <CheckboxField name="rememberMe" label="Remember me" />
+        <CheckboxField name="rememberMe" label={t("app.auth.rememberMe")} />
         <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
-          Forgot password?
+          {t("app.auth.forgotPasswordLink")}
         </Link>
       </div>
-      <FormActions submitLabel="Sign in" loading={isLoading} fullWidth />
+      <FormActions submitLabel={t("app.auth.signIn")} loading={isLoading} fullWidth />
     </Form>
   );
 }
 
 /** Phone → SMS code (Munshis, or anyone who prefers OTP). */
 export function OtpRequestForm({ defaultPhone }: { defaultPhone?: string }) {
+  const t = useT();
   const language = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -121,8 +123,8 @@ export function OtpRequestForm({ defaultPhone }: { defaultPhone?: string }) {
   return (
     <Form form={form} onSubmit={onSubmit}>
       {formError ? <InlineAlert>{formError}</InlineAlert> : null}
-      <PhoneField name="phone" label="Mobile number" required hint="We'll send a 6-digit code by SMS." />
-      <FormActions submitLabel="Send code" loading={isLoading} fullWidth />
+      <PhoneField name="phone" label={t("app.auth.mobileNumber")} required hint={t("app.auth.smsCodeHint")} />
+      <FormActions submitLabel={t("app.auth.sendCode")} loading={isLoading} fullWidth />
     </Form>
   );
 }

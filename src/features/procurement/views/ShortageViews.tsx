@@ -15,18 +15,24 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useListState } from "@/hooks/useListState";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
-import { humanize } from "@/lib/status";
 import { ResolveShortageSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
 
+const SHORTAGE_STATUSES = ["OPEN", "RESOLVED"] as const;
+const SHORTAGE_KINDS = ["DISPATCH_SHORT", "DAMAGED", "EXCESS", "SUPPLIER_SHORT"] as const;
+const SHORTAGE_SOURCES = ["DISPATCH", "PURCHASE"] as const;
+
 function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>[] {
+  const t = useT();
+  const te = useEnumT();
   return [
-    { id: "kind", header: "Type", cell: (s) => <StatusBadge domain="shortageKind" value={s.kind} /> },
+    { id: "kind", header: t("field.type"), cell: (s) => <StatusBadge domain="shortageKind" value={s.kind} /> },
     {
       id: "what",
-      header: "Material",
+      header: t("field.material"),
       cell: (s) => (
         <div>
           <p className="font-medium">
@@ -38,7 +44,7 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
     },
     {
       id: "source",
-      header: "From",
+      header: t("field.from"),
       cell: (s) =>
         s.dispatch ? (
           <Link className="text-primary hover:underline" href={`/suppliers-stock/dispatches/${s.dispatch.id}`} onClick={(e) => e.stopPropagation()}>
@@ -52,12 +58,12 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
           "—"
         ),
     },
-    { id: "site", header: "Site", cell: (s) => s.project?.name ?? s.location.name },
-    { id: "value", header: "Value", align: "right", cell: (s) => <MoneyText paisa={s.valuePaisa} /> },
-    { id: "date", header: "Found", cell: (s) => formatDate(s.createdAt), sortValue: (s) => s.createdAt },
+    { id: "site", header: t("field.site"), cell: (s) => s.project?.name ?? s.location.name },
+    { id: "value", header: t("field.value"), align: "right", cell: (s) => <MoneyText paisa={s.valuePaisa} /> },
+    { id: "date", header: t("procurement.shortages.colFound"), cell: (s) => formatDate(s.createdAt), sortValue: (s) => s.createdAt },
     {
       id: "status",
-      header: "Status",
+      header: t("field.status"),
       cell: (s) =>
         s.status === "OPEN" && onResolve ? (
           <Button
@@ -67,12 +73,12 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
               onResolve(s);
             }}
           >
-            Resolve
+            {t("procurement.shortages.resolve")}
           </Button>
         ) : (
           <div className="space-y-0.5">
             <StatusBadge domain="shortage" value={s.status} />
-            {s.resolution ? <p className="text-xs text-muted-foreground">{humanize(s.resolution)}{s.newDispatch ? ` · ${s.newDispatch.number}` : ""}</p> : null}
+            {s.resolution ? <p className="text-xs text-muted-foreground">{te("procResolution", s.resolution)}{s.newDispatch ? ` · ${s.newDispatch.number}` : ""}</p> : null}
           </div>
         ),
     },
@@ -80,6 +86,9 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
 }
 
 export function ShortagesView() {
+  const t = useT();
+  const ts = useStatusT();
+  const te = useEnumT();
   const readOnly = useReadOnly();
   const owner = useCan("procurement.shortage.approve") && !readOnly;
   const projects = useSiteProjectOptions();
@@ -89,43 +98,32 @@ export function ShortagesView() {
   const columns = useShortageColumns(owner ? setResolving : undefined);
   return (
     <>
-      <PageHeader title="Shortages" description="Differences found when deliveries were counted. Each stays open until you decide." breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Shortages" }]} />
+      <PageHeader title={t("procurement.common.shortages")} description={t("procurement.shortages.desc")} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.shortages") }]} />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.status}
           onChange={(v) => list.setFilter("status", v)}
-          options={[
-            { value: "OPEN", label: "Open" },
-            { value: "RESOLVED", label: "Resolved" },
-          ]}
+          options={SHORTAGE_STATUSES.map((value) => ({ value, label: ts("shortage", value) }))}
         />
         <FilterSelect
-          label="Type"
+          label={t("field.type")}
           value={list.filters.kind}
           onChange={(v) => list.setFilter("kind", v)}
-          options={[
-            { value: "DISPATCH_SHORT", label: "Short" },
-            { value: "DAMAGED", label: "Damaged" },
-            { value: "EXCESS", label: "Excess" },
-            { value: "SUPPLIER_SHORT", label: "Supplier short" },
-          ]}
+          options={SHORTAGE_KINDS.map((value) => ({ value, label: ts("shortageKind", value) }))}
         />
         <FilterSelect
-          label="From"
+          label={t("field.from")}
           value={list.filters.source}
           onChange={(v) => list.setFilter("source", v)}
-          options={[
-            { value: "DISPATCH", label: "Dispatches" },
-            { value: "PURCHASE", label: "Purchases" },
-          ]}
+          options={SHORTAGE_SOURCES.map((value) => ({ value, label: te("procShortageSource", value) }))}
         />
-        <FilterSelect label="Site" value={list.filters.projectId} onChange={(v) => list.setFilter("projectId", v)} options={projects.options.map((o) => ({ value: o.value, label: o.label }))} />
+        <FilterSelect label={t("field.site")} value={list.filters.projectId} onChange={(v) => list.setFilter("projectId", v)} options={projects.options.map((o) => ({ value: o.value, label: o.label }))} />
       </FilterBar>
       <SectionCard
         flush
-        title={data ? `${data.meta.openCount} open` : undefined}
-        description={data?.meta.openValuePaisa !== undefined ? <>Open value <MoneyText paisa={data.meta.openValuePaisa} /></> : undefined}
+        title={data ? t("procurement.shortages.openCount", { n: data.meta.openCount }) : undefined}
+        description={data?.meta.openValuePaisa !== undefined ? <>{t("procurement.shortages.openValue")} <MoneyText paisa={data.meta.openValuePaisa} /></> : undefined}
       >
         <DataTable
           rows={data?.items}
@@ -134,7 +132,7 @@ export function ShortagesView() {
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          empty={{ title: list.filters.status === "OPEN" ? "No open shortages" : "No shortages", description: "Short, damaged or extra material found at a count shows up here.", icon: ClipboardCheck }}
+          empty={{ title: t(list.filters.status === "OPEN" ? "procurement.shortages.noOpen" : "procurement.shortages.none"), description: t("procurement.shortages.emptyDesc"), icon: ClipboardCheck }}
           pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
         />
       </SectionCard>

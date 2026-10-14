@@ -36,3 +36,16 @@ describe("dates in Asia/Karachi", () => {
     expect(isEndBeforeStart("2026-03-15", "2026-03-15")).toBe(false);
   });
 });
+
+describe("dates in right-to-left pages", () => {
+  it("are wrapped in left-to-right isolates only while the page is RTL", () => {
+    expect(formatDate("2026-10-08")).toBe("8 Oct 2026");
+    document.documentElement.dir = "rtl";
+    try {
+      expect(formatDate("2026-10-08")).toBe("⁦8 Oct 2026⁩");
+      expect(formatDate(null)).toBe("—");
+    } finally {
+      document.documentElement.dir = "ltr";
+    }
+  });
+});

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { formatArea } from "../utils/calc";
 import { RoomCard } from "./RoomCard";
 import { useWizard } from "./WizardContext";
@@ -39,49 +40,52 @@ function CopyFloorDialog({
   const [replace, setReplace] = useState(false);
   const target = floors.find((f) => f.id === targetId);
   const targetHasRooms = Boolean(target?.rooms.length);
+  const t = useT();
+  const te = useEnumT();
+  const floorName = (f: FloorWithRooms) => te("projectFloorLevel", f.level, f.name);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold">Copy {source.name}</DialogTitle>
-          <DialogDescription>Copies all {source.rooms.length} rooms with their doors and windows. Heights follow the target floor.</DialogDescription>
+          <DialogTitle className="text-base font-semibold">{t("projects.rooms.copyTitle", { floor: floorName(source) })}</DialogTitle>
+          <DialogDescription>{t("projects.rooms.copyDesc", { n: source.rooms.length })}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <Label htmlFor="copy-target">Copy to</Label>
+          <Label htmlFor="copy-target">{t("projects.rooms.copyTo")}</Label>
           <Select value={targetId} onValueChange={setTargetId}>
             <SelectTrigger id="copy-target" className="w-full">
-              <SelectValue placeholder="Choose a floor" />
+              <SelectValue placeholder={t("projects.rooms.chooseFloor")} />
             </SelectTrigger>
             <SelectContent>
               {floors
                 .filter((f) => f.id !== source.id)
                 .map((f) => (
                   <SelectItem key={f.id} value={f.id}>
-                    {f.name} ({f.rooms.length} rooms)
+                    {t("projects.rooms.floorOption", { floor: floorName(f), n: f.rooms.length })}
                   </SelectItem>
                 ))}
             </SelectContent>
           </Select>
           {targetHasRooms ? (
             <div className="space-y-2">
-              <InlineAlert tone="warning">{target?.name} already has rooms.</InlineAlert>
+              <InlineAlert tone="warning">{t("projects.rooms.alreadyHasRooms", { floor: target ? floorName(target) : "" })}</InlineAlert>
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={replace} onCheckedChange={(c) => setReplace(c === true)} />
-                Replace its rooms
+                {t("projects.rooms.replaceRooms")}
               </label>
             </div>
           ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             disabled={!targetId || isLoading || (targetHasRooms && !replace)}
             onClick={async () => {
               const ok = await run(() => copy({ projectId, floorId: source.id, body: { targetFloorId: targetId, replace } }).unwrap(), {
-                success: `Rooms copied to ${target?.name}`,
+                success: t("projects.rooms.copied", { floor: target ? floorName(target) : "" }),
               });
               if (ok) {
                 setTargetId("");
@@ -90,7 +94,7 @@ function CopyFloorDialog({
               }
             }}
           >
-            Copy rooms
+            {t("projects.rooms.copyRooms")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -105,6 +109,8 @@ export function RoomsTab() {
   const [floorId, setFloorId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const t = useT();
+  const te = useEnumT();
   if (!projectId) return null;
 
   if (isLoading) return <CardsSkeleton count={2} height="h-64" />;
@@ -119,7 +125,7 @@ export function RoomsTab() {
   if (!floors.length) {
     return (
       <SectionCard>
-        <EmptyState icon={DoorOpen} title="No floors yet" description="Add floors in tab 3 (Plot & Structure) first." />
+        <EmptyState icon={DoorOpen} title={t("projects.section.noFloors")} description={t("projects.rooms.noFloorsDesc")} />
       </SectionCard>
     );
   }
@@ -142,7 +148,7 @@ export function RoomsTab() {
             <TabsList className="h-10!">
               {floors.map((f) => (
                 <TabsTrigger key={f.id} value={f.id} className="px-3">
-                  {f.name}
+                  {te("projectFloorLevel", f.level, f.name)}
                   <span className="text-xs text-muted-foreground tabular">{f.rooms.length}</span>
                 </TabsTrigger>
               ))}
@@ -152,11 +158,11 @@ export function RoomsTab() {
             <div className="flex gap-2">
               <Button variant="outline" disabled={!floor.rooms.length || floors.length < 2} onClick={() => setCopyOpen(true)}>
                 <Copy data-icon="inline-start" />
-                Copy floor
+                {t("projects.rooms.copyFloor")}
               </Button>
               <Button onClick={() => setAdding(true)} disabled={adding}>
                 <Plus data-icon="inline-start" />
-                Add room
+                {t("projects.rooms.addRoom")}
               </Button>
             </div>
           ) : null}
@@ -169,13 +175,13 @@ export function RoomsTab() {
             <EmptyState
               compact
               icon={DoorOpen}
-              title={`No rooms on the ${floor.name.toLowerCase()} yet`}
-              description="Add each room with its size and doors / windows."
+              title={t("projects.rooms.noRoomsYet", { floor: te("projectFloorLevel", floor.level, floor.name) })}
+              description={t("projects.rooms.addRoomDesc")}
               action={
                 !locked ? (
                   <Button onClick={() => setAdding(true)}>
                     <Plus data-icon="inline-start" />
-                    Add room
+                    {t("projects.rooms.addRoom")}
                   </Button>
                 ) : undefined
               }
@@ -184,39 +190,39 @@ export function RoomsTab() {
         ) : null}
       </div>
       <aside className="xl:sticky xl:top-0 xl:self-start">
-        <SectionCard title="Summary">
+        <SectionCard title={t("projects.rooms.summary")}>
           <div className="space-y-3 text-sm">
             <ul className="space-y-2">
               {floors.map((f) => (
                 <li key={f.id} className="flex justify-between gap-2">
-                  <span>{f.name}</span>
+                  <span>{te("projectFloorLevel", f.level, f.name)}</span>
                   <span className="text-muted-foreground tabular">
-                    {f.calculations.rooms} rooms · {formatArea(f.calculations.totalFloorAreaSqft)} sq ft
+                    {t("projects.rooms.floorSummary", { n: f.calculations.rooms, area: formatArea(f.calculations.totalFloorAreaSqft) })}
                   </span>
                 </li>
               ))}
             </ul>
             <div className="space-y-1 border-t pt-3">
               <p className="flex justify-between">
-                <span>Room area</span>
-                <strong className="tabular">{formatArea(roomArea)} sq ft</strong>
+                <span>{t("projects.rooms.roomArea")}</span>
+                <strong className="tabular">{t("projects.unit.sqftValue", { n: formatArea(roomArea) })}</strong>
               </p>
               <p className="flex justify-between">
-                <span>Covered area</span>
-                <strong className="tabular">{covered ? `${formatArea(covered)} sq ft` : "—"}</strong>
+                <span>{t("projects.coverage.coveredArea")}</span>
+                <strong className="tabular">{covered ? t("projects.unit.sqftValue", { n: formatArea(covered) }) : "—"}</strong>
               </p>
               <p className="flex justify-between text-muted-foreground">
-                <span>Net wall area</span>
-                <span className="tabular">{formatArea(data?.totals.netWallAreaSqft)} sq ft</span>
+                <span>{t("projects.rooms.netWallArea")}</span>
+                <span className="tabular">{t("projects.unit.sqftValue", { n: formatArea(data?.totals.netWallAreaSqft) })}</span>
               </p>
               <p className="flex justify-between text-muted-foreground">
-                <span>Wet rooms</span>
+                <span>{t("projects.section.wetRooms")}</span>
                 <span className="tabular">{data?.totals.wetRooms ?? 0}</span>
               </p>
             </div>
             {mismatch ? (
               <InlineAlert tone="warning">
-                Room areas total {formatArea(roomArea)} sq ft but covered area is {formatArea(covered)} sq ft — check walls and passages.
+                {t("projects.rooms.mismatch", { rooms: formatArea(roomArea), covered: formatArea(covered) })}
               </InlineAlert>
             ) : null}
           </div>

@@ -31,19 +31,24 @@ import { inviteSchema } from "../schemas";
 
 const FORM_ID = "invite-form";
 
-export const ROLE_CARDS: RadioCardOption<"PM" | "MUNSHI">[] = [
-  { value: "PM", title: "Project Manager", description: "Runs assigned projects on the web and phone. Uses an office seat.", icon: UserCog },
-  { value: "MUNSHI", title: "Munshi", description: "Site supervisor on the phone app (OTP login). Free — no seat.", icon: HardHat },
-];
+/** PM / Munshi account type cards, in the current language. */
+export function useRoleCards(): RadioCardOption<"PM" | "MUNSHI">[] {
+  const t = useT();
+  return [
+    { value: "PM", title: t("role.PM"), description: t("teamCompany.invite.pmCardDesc"), icon: UserCog },
+    { value: "MUNSHI", title: t("role.MUNSHI"), description: t("teamCompany.invite.munshiCardDesc"), icon: HardHat },
+  ];
+}
 
 function FinancialsToggle() {
+  const t = useT();
   const role = useWatch({ name: "role" });
   if (role !== "PM") return null;
   return (
     <ToggleField
       name="canSeeFinancials"
-      label="Can see contract value, billing & profit"
-      description="Off: these fields show as “Hidden for your role”."
+      label={t("teamCompany.invite.financials")}
+      description={t("teamCompany.invite.financialsDesc")}
     />
   );
 }
@@ -75,6 +80,8 @@ function RoleTemplateSelect({ open }: { open: boolean }) {
 }
 
 export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useT();
+  const roleCards = useRoleCards();
   const [create, { isLoading }] = useCreateInvitationMutation();
   const { data: settings } = useGetCompanySettingsQuery(undefined, { skip: !open });
   const { options, isLoading: loadingProjects } = useProjectOptions({ skip: !open });
@@ -116,7 +123,7 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
           ...(values.roleId ? { roleId: values.roleId } : {}),
         }).unwrap(),
       {
-        success: `Invite sent to ${values.name}`,
+        success: t("teamCompany.invite.sentTo", { name: values.name }),
         setError: form.setError,
         codeFields: { ALREADY_MEMBER: "phone", INVITE_PENDING: "phone", PHONE_TAKEN: "phone", ROLE_NOT_FOR_ACCOUNT: "roleId", GRANT_EXCEEDS_OWN: "roleId" },
       },
@@ -128,26 +135,26 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
     <SlideOver
       open={open}
       onOpenChange={close}
-      title="Invite member"
-      description="They get an SMS with a link to join. Links expire after 7 days."
+      title={t("teamCompany.invite.title")}
+      description={t("teamCompany.invite.desc")}
       busy={isLoading}
       footer={
         sent ? (
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setSent(null)}>
-              Invite another
+              {t("teamCompany.invite.another")}
             </Button>
-            <Button onClick={() => close(false)}>Done</Button>
+            <Button onClick={() => close(false)}>{t("action.done")}</Button>
           </div>
         ) : (
-          <FormActions formId={FORM_ID} submitLabel="Send invite" loading={isLoading} onCancel={() => close(false)} />
+          <FormActions formId={FORM_ID} submitLabel={t("teamCompany.invite.send")} loading={isLoading} onCancel={() => close(false)} />
         )
       }
     >
       {sent ? (
         <div className="space-y-4">
-          <InlineAlert tone="success" title={`Invite sent to ${sent.name}`}>
-            Pending · expires {formatDate(sent.expiresAt)}
+          <InlineAlert tone="success" title={t("teamCompany.invite.sentTo", { name: sent.name })}>
+            {t("teamCompany.invite.pendingExpires", { date: formatDate(sent.expiresAt) })}
           </InlineAlert>
           {sent.inviteUrl ? (
             <InviteShare
@@ -156,27 +163,27 @@ export function InviteMemberSlideOver({ open, onOpenChange }: { open: boolean; o
               phone={sent.phone}
               email={sent.email}
               companyName={me?.tenant.name}
-              roleLabel={sent.role === "PM" ? "Project Manager" : sent.role === "MUNSHI" ? "Munshi" : undefined}
+              roleLabel={sent.role === "PM" ? t("role.PM") : sent.role === "MUNSHI" ? t("role.MUNSHI") : undefined}
             />
           ) : null}
         </div>
       ) : (
         <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
           <FieldGrid>
-            <TextField name="name" label="Name" required />
-            <PhoneField name="phone" label="Phone" required />
+            <TextField name="name" label={t("field.name")} required />
+            <PhoneField name="phone" label={t("field.phone")} required />
           </FieldGrid>
-          <TextField name="email" label="Email" type="email" hint="Optional" />
-          <RadioCards name="role" label="Role" required options={ROLE_CARDS} />
+          <TextField name="email" label={t("field.email")} type="email" hint={t("common.optional")} />
+          <RadioCards name="role" label={t("field.role")} required options={roleCards} />
           <RoleTemplateSelect open={open} />
           <ComboboxField
             name="projectIds"
-            label="Projects"
+            label={t("field.projects")}
             multiple
             options={options}
             loading={loadingProjects}
-            placeholder="Choose projects"
-            hint="They will only see these projects."
+            placeholder={t("teamCompany.invite.chooseProjects")}
+            hint={t("teamCompany.invite.projectsHint")}
           />
           <FinancialsToggle />
         </Form>

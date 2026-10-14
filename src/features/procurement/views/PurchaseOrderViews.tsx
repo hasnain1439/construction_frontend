@@ -37,15 +37,21 @@ import { Button } from "@/components/ui/button";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useStatusT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { useSiteProjectOptions, useSupplierOptions } from "../options";
 import { purchaseOrderSchema, type PurchaseOrderValues } from "../schemas";
 
 const BASE = "/suppliers-stock/purchase-orders";
-const destination = (po: Pick<PurchaseOrder, "deliverTo" | "project" | "location">) => (po.deliverTo === "STORE" ? "Central Store" : (po.project?.name ?? po.location.name));
+const PO_STATUSES = ["OPEN", "PARTLY_RECEIVED", "RECEIVED", "CANCELLED"] as const;
+/** "Central Store" or the site name, in the current language. */
+const destination = (t: (key: TranslationKey) => string, po: Pick<PurchaseOrder, "deliverTo" | "project" | "location">) =>
+  po.deliverTo === "STORE" ? t("field.centralStore") : (po.project?.name ?? po.location.name);
 
 export function PurchaseOrdersView() {
+  const t = useT();
+  const ts = useStatusT();
   const router = useRouter();
   const readOnly = useReadOnly();
   const canCreate = useCan("procurement.order.create") && !readOnly;
@@ -53,43 +59,38 @@ export function PurchaseOrdersView() {
   const list = useListState({ supplierId: "", status: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetPurchaseOrdersQuery(list.query as PurchaseOrdersQuery);
   const columns: Column<PurchaseOrder>[] = [
-    { id: "number", header: "Order", cell: (o) => <span className="font-medium tabular">{o.number}</span> },
-    { id: "supplier", header: "Supplier", cell: (o) => o.supplier.name },
-    { id: "to", header: "Deliver to", cell: destination },
-    { id: "expected", header: "Expected", cell: (o) => formatDate(o.expectedDate), sortValue: (o) => o.expectedDate ?? "" },
-    { id: "items", header: "Materials", cell: (o) => o.items.map((i) => i.material.name).join(", ") },
-    { id: "total", header: "Value", align: "right", cell: (o) => <MoneyText paisa={o.totalPaisa} /> },
-    { id: "status", header: "Status", cell: (o) => <StatusBadge domain="purchaseOrder" value={o.status} /> },
+    { id: "number", header: t("procurement.orders.colOrder"), cell: (o) => <span className="font-medium tabular">{o.number}</span> },
+    { id: "supplier", header: t("field.supplier"), cell: (o) => o.supplier.name },
+    { id: "to", header: t("procurement.common.deliverTo"), cell: (o) => destination(t, o) },
+    { id: "expected", header: t("field.expected"), cell: (o) => formatDate(o.expectedDate), sortValue: (o) => o.expectedDate ?? "" },
+    { id: "items", header: t("field.materials"), cell: (o) => o.items.map((i) => i.material.name).join(", ") },
+    { id: "total", header: t("field.value"), align: "right", cell: (o) => <MoneyText paisa={o.totalPaisa} /> },
+    { id: "status", header: t("field.status"), cell: (o) => <StatusBadge domain="purchaseOrder" value={o.status} /> },
   ];
   return (
     <>
       <PageHeader
-        title="Purchase Orders"
-        description="Orders placed with suppliers. They fill up as challans arrive against them."
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Purchase Orders" }]}
+        title={t("procurement.orders.listTitle")}
+        description={t("procurement.orders.listDesc")}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders") }]}
         actions={
           canCreate ? (
             <Button asChild>
               <Link href={`${BASE}/new`}>
                 <Plus data-icon="inline-start" />
-                New order
+                {t("procurement.orders.newOrder")}
               </Link>
             </Button>
           ) : null
         }
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
-        <FilterSelect label="Supplier" value={list.filters.supplierId} onChange={(v) => list.setFilter("supplierId", v)} options={suppliers.options.map((o) => ({ value: o.value, label: o.label }))} />
+        <FilterSelect label={t("field.supplier")} value={list.filters.supplierId} onChange={(v) => list.setFilter("supplierId", v)} options={suppliers.options.map((o) => ({ value: o.value, label: o.label }))} />
         <FilterSelect
-          label="Status"
+          label={t("field.status")}
           value={list.filters.status}
           onChange={(v) => list.setFilter("status", v)}
-          options={[
-            { value: "OPEN", label: "Open" },
-            { value: "PARTLY_RECEIVED", label: "Partly received" },
-            { value: "RECEIVED", label: "Received" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ]}
+          options={PO_STATUSES.map((value) => ({ value, label: ts("purchaseOrder", value) }))}
         />
       </FilterBar>
       <SectionCard flush>
@@ -101,7 +102,7 @@ export function PurchaseOrdersView() {
           error={error}
           onRetry={refetch}
           onRowClick={(o) => router.push(`${BASE}/${o.id}`)}
-          empty={{ title: "No purchase orders", description: "Create an order to agree quantities and rates before the material arrives.", icon: ClipboardList }}
+          empty={{ title: t("procurement.orders.emptyTitle"), description: t("procurement.orders.emptyDesc"), icon: ClipboardList }}
           pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
         />
       </SectionCard>
@@ -110,6 +111,7 @@ export function PurchaseOrdersView() {
 }
 
 function OrderBody({ order }: { order: PurchaseOrder }) {
+  const t = useT();
   const router = useRouter();
   const readOnly = useReadOnly();
   const editable = useCan("procurement.order.create") && !readOnly;
@@ -123,7 +125,7 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
     <>
       <PageHeader
         title={order.number}
-        breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Purchase Orders", href: BASE }, { label: order.number }]}
+        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, { label: order.number }]}
         actions={
           editable ? (
             <>
@@ -131,7 +133,7 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
                 <Button asChild>
                   <Link href={`/suppliers-stock/purchases/new?po=${order.id}`}>
                     <ReceiptText data-icon="inline-start" />
-                    Record purchase
+                    {t("procurement.orders.recordPurchase")}
                   </Link>
                 </Button>
               ) : null}
@@ -139,14 +141,14 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
                 <Button asChild variant="outline">
                   <Link href={`${BASE}/${order.id}/edit`}>
                     <Pencil data-icon="inline-start" />
-                    Edit
+                    {t("common.edit")}
                   </Link>
                 </Button>
               ) : null}
               {canCancel ? (
                 <Button variant="outline" onClick={() => setCancelOpen(true)}>
                   <XCircle data-icon="inline-start" />
-                  Cancel order
+                  {t("procurement.orders.cancelOrder")}
                 </Button>
               ) : null}
             </>
@@ -154,57 +156,57 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
         }
       />
       <DocumentHeader
-        title="Purchase order"
+        title={t("procurement.common.purchaseOrder")}
         number={order.number}
         status={<StatusBadge domain="purchaseOrder" value={order.status} />}
-        party={`${order.supplier.name} → ${destination(order)}`}
+        party={t("procurement.common.route", { from: order.supplier.name, to: destination(t, order) })}
         meta={[
-          { label: "Expected", value: formatDate(order.expectedDate) },
-          { label: "Value", value: <MoneyText paisa={order.totalPaisa} /> },
-          { label: "Created", value: `${formatDate(order.createdAt)} · ${order.createdBy?.name ?? ""}` },
-          { label: "Note", value: order.note },
+          { label: t("field.expected"), value: formatDate(order.expectedDate) },
+          { label: t("field.value"), value: <MoneyText paisa={order.totalPaisa} /> },
+          { label: t("field.created"), value: `${formatDate(order.createdAt)} · ${order.createdBy?.name ?? ""}` },
+          { label: t("field.note"), value: order.note },
         ]}
       />
-      <SectionCard title="Ordered vs received" flush>
+      <SectionCard title={t("procurement.orders.orderedVsReceived")} flush>
         <DataTable
           rows={order.items}
           getRowId={(i) => i.id}
           clientPageSize={0}
-          empty={{ title: "No materials" }}
+          empty={{ title: t("procurement.common.noMaterials") }}
           columns={[
-            { id: "material", header: "Material", cell: (i) => <span className="font-medium">{i.material.name}</span> },
-            { id: "ordered", header: "Ordered", align: "right", cell: (i) => formatQty(i.orderedQty, i.material.unit) },
-            { id: "received", header: "Received", align: "right", cell: (i) => formatQty(i.receivedQty, i.material.unit) },
-            { id: "pending", header: "Pending", align: "right", cell: (i) => (i.pendingQty ? <span className="font-medium text-warning">{formatQty(i.pendingQty, i.material.unit)}</span> : "—") },
-            { id: "rate", header: "Rate", align: "right", cell: (i) => <MoneyText paisa={i.ratePaisa} /> },
-            { id: "amount", header: "Amount", align: "right", cell: (i) => <MoneyText paisa={i.amountPaisa} /> },
+            { id: "material", header: t("field.material"), cell: (i) => <span className="font-medium">{i.material.name}</span> },
+            { id: "ordered", header: t("procurement.orders.ordered"), align: "right", cell: (i) => formatQty(i.orderedQty, i.material.unit) },
+            { id: "received", header: t("field.received"), align: "right", cell: (i) => formatQty(i.receivedQty, i.material.unit) },
+            { id: "pending", header: t("procurement.orders.pending"), align: "right", cell: (i) => (i.pendingQty ? <span className="font-medium text-warning">{formatQty(i.pendingQty, i.material.unit)}</span> : "—") },
+            { id: "rate", header: t("field.rate"), align: "right", cell: (i) => <MoneyText paisa={i.ratePaisa} /> },
+            { id: "amount", header: t("field.amount"), align: "right", cell: (i) => <MoneyText paisa={i.amountPaisa} /> },
           ]}
         />
       </SectionCard>
-      <SectionCard title="Purchases against this order" flush>
+      <SectionCard title={t("procurement.orders.purchasesAgainst")} flush>
         <DataTable
           rows={order.purchases}
           getRowId={(p) => p.id}
           clientPageSize={0}
           onRowClick={(p) => router.push(`/suppliers-stock/purchases/${p.id}`)}
-          empty={{ title: "Nothing received yet", compact: true }}
+          empty={{ title: t("procurement.orders.nothingReceived"), compact: true }}
           columns={[
-            { id: "number", header: "Purchase", cell: (p) => <span className="font-medium tabular">{p.number}</span> },
-            { id: "challan", header: "Challan", cell: (p) => p.challanNo },
-            { id: "date", header: "Date", cell: (p) => formatDate(p.purchaseDate) },
-            { id: "status", header: "Status", cell: (p) => <StatusBadge domain="purchase" value={p.status} /> },
+            { id: "number", header: t("procurement.common.purchase"), cell: (p) => <span className="font-medium tabular">{p.number}</span> },
+            { id: "challan", header: t("procurement.common.challan"), cell: (p) => p.challanNo },
+            { id: "date", header: t("field.date"), cell: (p) => formatDate(p.purchaseDate) },
+            { id: "status", header: t("field.status"), cell: (p) => <StatusBadge domain="purchase" value={p.status} /> },
           ]}
         />
       </SectionCard>
       <ConfirmDialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}
-        title={`Cancel ${order.number}?`}
-        description="The supplier order is closed. Nothing has been received against it."
-        confirmLabel="Cancel order"
+        title={t("procurement.common.cancelTitle", { number: order.number })}
+        description={t("procurement.orders.cancelDesc")}
+        confirmLabel={t("procurement.orders.cancelOrder")}
         loading={isLoading}
         onConfirm={async () => {
-          const ok = await run(() => cancel(order.id).unwrap(), { success: `${order.number} cancelled` });
+          const ok = await run(() => cancel(order.id).unwrap(), { success: t("procurement.common.cancelled", { number: order.number }) });
           if (ok) setCancelOpen(false);
         }}
       />
@@ -222,6 +224,7 @@ type Line = PurchaseOrderValues["items"][number];
 const emptyLine = (): Line => ({ materialId: null, orderedQty: null, ratePaisa: null });
 
 function OrderForm({ order }: { order?: PurchaseOrder }) {
+  const t = useT();
   const router = useRouter();
   const suppliers = useSupplierOptions();
   const projects = useSiteProjectOptions();
@@ -248,7 +251,7 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
   const onSubmit = async (v: z.output<typeof purchaseOrderSchema>) => {
     const items = v.items.map((i) => ({ materialId: i.materialId, orderedQty: i.orderedQty, ratePaisa: i.ratePaisa }));
     const result = order
-      ? await run(() => update({ id: order.id, body: { items, expectedDate: v.expectedDate || null, note: v.note || null } }).unwrap(), { success: `${order.number} saved`, setError: form.setError })
+      ? await run(() => update({ id: order.id, body: { items, expectedDate: v.expectedDate || null, note: v.note || null } }).unwrap(), { success: t("procurement.common.saved", { number: order.number }), setError: form.setError })
       : await run(
           () =>
             create({
@@ -259,38 +262,38 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
               ...(v.note ? { note: v.note } : {}),
               items,
             }).unwrap(),
-          { success: (o) => `${o.number} created`, setError: form.setError },
+          { success: (o) => t("procurement.orders.created", { number: o.number }), setError: form.setError },
         );
     if (result) router.push(`${BASE}/${result.id}`);
   };
 
   return (
     <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-      <SectionCard title="Supplier & delivery">
+      <SectionCard title={t("procurement.common.supplierAndDelivery")}>
         <div className="space-y-4">
           <FieldGrid>
-            <ComboboxField name="supplierId" label="Supplier" required options={suppliers.options} loading={suppliers.loading} disabled={Boolean(order)} />
-            <DateField name="expectedDate" label="Expected by" />
+            <ComboboxField name="supplierId" label={t("field.supplier")} required options={suppliers.options} loading={suppliers.loading} disabled={Boolean(order)} />
+            <DateField name="expectedDate" label={t("procurement.orders.expectedBy")} />
           </FieldGrid>
           <SegmentedField<DeliverTo>
             name="deliverTo"
-            label="Deliver to"
+            label={t("procurement.common.deliverTo")}
             disabled={Boolean(order)}
             options={[
-              { value: "STORE", label: "Central Store" },
-              { value: "SITE", label: "Directly to site" },
+              { value: "STORE", label: t("field.centralStore") },
+              { value: "SITE", label: t("procurement.common.directlyToSite") },
             ]}
           />
-          {deliverTo === "SITE" ? <ComboboxField name="projectId" label="Project site" required options={projects.options} loading={projects.loading} disabled={Boolean(order)} /> : null}
+          {deliverTo === "SITE" ? <ComboboxField name="projectId" label={t("procurement.common.projectSite")} required options={projects.options} loading={projects.loading} disabled={Boolean(order)} /> : null}
         </div>
       </SectionCard>
-      <SectionCard title="Materials">
+      <SectionCard title={t("field.materials")}>
         <LineItemsEditor
           name="items"
           emptyRow={emptyLine}
           columns={[
-            { key: "orderedQty", label: "Quantity", kind: "quantity", required: true, width: "w-40" },
-            { key: "ratePaisa", label: "Rate", kind: "money", required: true, width: "w-40" },
+            { key: "orderedQty", label: t("field.quantity"), kind: "quantity", required: true, width: "w-40" },
+            { key: "ratePaisa", label: t("field.rate"), kind: "money", required: true, width: "w-40" },
           ]}
           amount={{ qtyKey: "orderedQty", rateKey: "ratePaisa" }}
           onMaterialChange={(index, material) => {
@@ -300,20 +303,21 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
         />
       </SectionCard>
       <SectionCard>
-        <TextareaField name="note" label="Note" rows={2} />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </SectionCard>
-      <FormActions formId={FORM_ID} submitLabel={order ? "Save order" : "Create order"} loading={creating || updating} onCancel={() => router.push(order ? `${BASE}/${order.id}` : BASE)} />
+      <FormActions formId={FORM_ID} submitLabel={t(order ? "procurement.orders.saveOrder" : "procurement.orders.createOrder")} loading={creating || updating} onCancel={() => router.push(order ? `${BASE}/${order.id}` : BASE)} />
     </Form>
   );
 }
 
 export function PurchaseOrderFormView({ orderId }: { orderId?: string }) {
+  const t = useT();
   const query = useGetPurchaseOrderQuery(orderId ?? "", { skip: !orderId });
-  const header = (title: string, crumbs: Array<{ label: string; href?: string }>) => <PageHeader title={title} breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "Purchase Orders", href: BASE }, ...crumbs]} />;
+  const header = (title: string, crumbs: Array<{ label: string; href?: string }>) => <PageHeader title={title} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, ...crumbs]} />;
   if (!orderId) {
     return (
       <>
-        {header("New purchase order", [{ label: "New" }])}
+        {header(t("procurement.orders.newTitle"), [{ label: t("procurement.common.new") }])}
         <OrderForm />
       </>
     );
@@ -322,7 +326,7 @@ export function PurchaseOrderFormView({ orderId }: { orderId?: string }) {
     <QueryState query={query}>
       {(order) => (
         <>
-          {header(`Edit ${order.number}`, [{ label: order.number, href: `${BASE}/${order.id}` }, { label: "Edit" }])}
+          {header(t("procurement.orders.editTitle", { number: order.number }), [{ label: order.number, href: `${BASE}/${order.id}` }, { label: t("common.edit") }])}
           <OrderForm order={order} />
         </>
       )}

@@ -84,7 +84,7 @@ export function InviteShare({
           <Button size="sm" variant="outline" asChild>
             <a href={`mailto:${email}?subject=${encodeURIComponent(t("invite.emailSubject"))}&body=${text}`}>
               <Mail data-icon="inline-start" />
-              Email
+              {t("field.email")}
             </a>
           </Button>
         ) : null}

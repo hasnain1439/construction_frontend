@@ -1,93 +1,93 @@
 import { Building, Hammer, HardHat, Layers, PaintRoller } from "lucide-react";
 import type { ContractType, FloorLevel, OpeningType, ProjectStatus, RoomType, SupplyCategoryKey } from "@/api/types";
+import type { TranslationKey } from "@/i18n/useT";
 
-export const CONTRACT_TYPES: Array<{ value: ContractType; title: string; description: string; badge?: string; icon: typeof Building }> = [
-  { value: "FULL", title: "Full Contract", description: "You supply all material and labour.", icon: Building },
+/** Contract type cards (texts are dictionary keys, translated where rendered). */
+export const CONTRACT_TYPES: Array<{ value: ContractType; titleKey: TranslationKey; descriptionKey: TranslationKey; badgeKey?: TranslationKey; icon: typeof Building }> = [
+  { value: "FULL", titleKey: "projects.contract.fullTitle", descriptionKey: "projects.contract.fullDesc", icon: Building },
   {
     value: "GREY_OWNER_FINISHING",
-    title: "Grey + Owner Finishing",
-    description: "You build the grey structure; the owner buys finishing.",
-    badge: "Most common",
+    titleKey: "projects.contract.greyTitle",
+    descriptionKey: "projects.contract.greyDesc",
+    badgeKey: "projects.contract.mostCommon",
     icon: PaintRoller,
   },
-  { value: "LABOR_ONLY", title: "Labor-Only", description: "Owner supplies material; you charge per sq ft.", icon: Hammer },
+  { value: "LABOR_ONLY", titleKey: "projects.contract.laborTitle", descriptionKey: "projects.contract.laborDesc", icon: Hammer },
 ];
-export const CONTRACT_TYPE_LABEL: Record<ContractType, string> = {
-  FULL: "Full contract",
-  GREY_OWNER_FINISHING: "Grey + owner finishing",
-  LABOR_ONLY: "Labour only",
-};
+/** Contract types in display order; labels via `te("projectContractType", v)`. */
+export const CONTRACT_TYPE_VALUES: ContractType[] = ["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"];
 
 export const STRUCTURE_TYPES = [
-  { value: "FRAMED" as const, title: "Framed", description: "RCC columns and beams carry the load.", icon: Layers },
-  { value: "LOAD_BEARING" as const, title: "Load-bearing", description: "Brick walls carry the slabs.", icon: HardHat },
+  { value: "FRAMED" as const, titleKey: "projects.plot.framedTitle" as TranslationKey, descriptionKey: "projects.plot.framedDesc" as TranslationKey, icon: Layers },
+  { value: "LOAD_BEARING" as const, titleKey: "projects.plot.loadBearingTitle" as TranslationKey, descriptionKey: "projects.plot.loadBearingDesc" as TranslationKey, icon: HardHat },
 ];
-export const STRUCTURE_LABEL: Record<string, string> = { FRAMED: "Framed", LOAD_BEARING: "Load-bearing" };
 
-export const PLOT_UNIT_LABEL: Record<string, string> = { MARLA: "Marla", KANAL: "Kanal", SQFT: "Sq ft" };
+/** Plot units; labels via `te("projectPlotUnit", v)`. */
+export const PLOT_UNITS = ["MARLA", "KANAL", "SQFT"] as const;
 
-/** Display order of floors (backend FLOOR_LEVELS). */
+/** Display order of floors (backend FLOOR_LEVELS); labels via `te("projectFloorLevel", v)`. */
 export const FLOOR_ORDER: FloorLevel[] = ["BASEMENT", "GROUND", "FIRST", "SECOND", "THIRD", "MUMTY"];
-export const FLOOR_LABEL: Record<FloorLevel, string> = {
-  BASEMENT: "Basement",
-  GROUND: "Ground floor",
-  FIRST: "First floor",
-  SECOND: "Second floor",
-  THIRD: "Third floor",
-  MUMTY: "Mumty",
-};
 export const DEFAULT_CEILING: Record<FloorLevel, number> = { BASEMENT: 10, GROUND: 11, FIRST: 10, SECOND: 10, THIRD: 10, MUMTY: 9 };
 
-export const ROOM_TYPE_LABEL: Record<RoomType, string> = {
-  MASTER_BEDROOM: "Master Bedroom",
-  BEDROOM: "Bedroom",
-  ATTACHED_BATH: "Attached Bath",
-  POWDER_ROOM: "Powder Room",
-  KITCHEN: "Kitchen",
-  TV_LOUNGE: "TV Lounge",
-  DRAWING_ROOM: "Drawing Room",
-  DINING: "Dining",
-  STORE: "Store",
-  TERRACE: "Terrace",
-  STAIR: "Stair",
-  GARAGE: "Garage",
-  OTHER: "Other",
-};
-
-export const OPENING_LABEL: Record<OpeningType, string> = { DOOR: "Door", WINDOW: "Window", VENTILATOR: "Ventilator" };
-
-export const SUPPLY_CATEGORIES: Array<{ key: SupplyCategoryKey; label: string; oftenChanges?: boolean }> = [
-  { key: "CEMENT", label: "Cement" },
-  { key: "BRICKS", label: "Bricks / blocks" },
-  { key: "STEEL", label: "Steel (Sarya)" },
-  { key: "SAND_BAJRI", label: "Sand & bajri" },
-  { key: "PIPES", label: "Plumbing pipes & fittings", oftenChanges: true },
-  { key: "WATERPROOFING", label: "Waterproofing" },
-  { key: "ELECTRICAL", label: "Electrical wiring & fittings", oftenChanges: true },
-  { key: "TILES_FLOORING", label: "Tiles, marble & flooring" },
-  { key: "SANITARY", label: "Sanitary ware" },
-  { key: "WOODWORK", label: "Doors, windows & woodwork" },
-  { key: "PAINT", label: "Paint & polish" },
+/** Room types; labels via `te("projectRoomType", v)`. */
+export const ROOM_TYPES: RoomType[] = [
+  "MASTER_BEDROOM",
+  "BEDROOM",
+  "ATTACHED_BATH",
+  "POWDER_ROOM",
+  "KITCHEN",
+  "TV_LOUNGE",
+  "DRAWING_ROOM",
+  "DINING",
+  "STORE",
+  "TERRACE",
+  "STAIR",
+  "GARAGE",
+  "OTHER",
 ];
 
+/** Opening types; labels via `te("projectOpeningType", v)`. */
+export const OPENING_TYPES: OpeningType[] = ["DOOR", "WINDOW", "VENTILATOR"];
+
+/** Supply categories in display order; labels via `te("projectSupplyCategory", key)`. */
+export const SUPPLY_CATEGORIES: Array<{ key: SupplyCategoryKey; oftenChanges?: boolean }> = [
+  { key: "CEMENT" },
+  { key: "BRICKS" },
+  { key: "STEEL" },
+  { key: "SAND_BAJRI" },
+  { key: "PIPES", oftenChanges: true },
+  { key: "WATERPROOFING" },
+  { key: "ELECTRICAL", oftenChanges: true },
+  { key: "TILES_FLOORING" },
+  { key: "SANITARY" },
+  { key: "WOODWORK" },
+  { key: "PAINT" },
+];
+
+export interface StatusTransition {
+  to: ProjectStatus;
+  labelKey: TranslationKey;
+  tone: "default" | "danger";
+}
+
 /** Status changes a Thekedar may make (backend: only these arrows). */
-export const STATUS_TRANSITIONS: Partial<Record<ProjectStatus, Array<{ to: ProjectStatus; label: string; tone: "default" | "danger" }>>> = {
-  ACTIVE: [{ to: "CLOSEOUT", label: "Move to closeout", tone: "default" }],
+export const STATUS_TRANSITIONS: Partial<Record<ProjectStatus, StatusTransition[]>> = {
+  ACTIVE: [{ to: "CLOSEOUT", labelKey: "projects.mode.moveToCloseout", tone: "default" }],
   CLOSEOUT: [
-    { to: "HANDED_OVER", label: "Mark handed over", tone: "default" },
-    { to: "ACTIVE", label: "Reopen", tone: "default" },
+    { to: "HANDED_OVER", labelKey: "projects.mode.markHandedOver", tone: "default" },
+    { to: "ACTIVE", labelKey: "projects.mode.reopen", tone: "default" },
   ],
-  HANDED_OVER: [{ to: "CLOSED", label: "Close project", tone: "danger" }],
+  HANDED_OVER: [{ to: "CLOSED", labelKey: "projects.mode.closeProject", tone: "danger" }],
 };
 
 /** Statuses where the wizard sections can't change (backend PROJECT_LOCKED). */
 export const LOCKED_STATUSES: ProjectStatus[] = ["CLOSEOUT", "HANDED_OVER", "CLOSED", "READ_ONLY"];
 
-export const WIZARD_STEPS = [
-  { id: 1, label: "Basic Info" },
-  { id: 2, label: "Contract & Supply" },
-  { id: 3, label: "Plot & Structure" },
-  { id: 4, label: "Coverage & Boundary" },
-  { id: 5, label: "Floors & Rooms" },
-  { id: 6, label: "Review" },
-] as const;
+export const WIZARD_STEPS: ReadonlyArray<{ id: number; labelKey: TranslationKey }> = [
+  { id: 1, labelKey: "projects.wizard.stepBasic" },
+  { id: 2, labelKey: "projects.wizard.stepContract" },
+  { id: 3, labelKey: "projects.wizard.stepPlot" },
+  { id: 4, labelKey: "projects.wizard.stepCoverage" },
+  { id: 5, labelKey: "projects.wizard.stepRooms" },
+  { id: 6, labelKey: "projects.wizard.stepReview" },
+];

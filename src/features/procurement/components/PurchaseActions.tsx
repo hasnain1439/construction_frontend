@@ -14,6 +14,7 @@ import { FormActions } from "@/components/forms/FormActions";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useT } from "@/i18n/useT";
 import { formatQty } from "@/lib/quantity";
 import { applyLineError } from "../lineErrors";
 import { correctionSchema, ratesSchema, returnSchema, type CorrectionValues, type RatesValues, type ReturnValues } from "../schemas";
@@ -27,6 +28,7 @@ interface Props {
 
 /** Return goods to the supplier: credited at the purchase rate. */
 export function ReturnSlideOver({ purchase, open, onOpenChange }: Props) {
+  const t = useT();
   const [save, { isLoading }] = useCreatePurchaseReturnMutation();
   const run = useMutationToast();
   const form = useForm<ReturnValues, unknown, z.output<typeof returnSchema>>({
@@ -43,7 +45,7 @@ export function ReturnSlideOver({ purchase, open, onOpenChange }: Props) {
     const result = await run(
       () => save({ id: purchase.id, body: { reason: v.reason, items, ...(v.note ? { note: v.note } : {}), ...(v.attachment ? { attachmentId: v.attachment.id } : {}) } }).unwrap(),
       {
-        success: (r) => `${r.number} saved — supplier credited`,
+        success: (r) => t("procurement.actions.returnSaved", { number: r.number }),
         setError: form.setError,
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { RETURN_EXCEEDS_STOCK: "qty", RETURN_EXCEEDS_PURCHASE: "qty", NOT_IN_PURCHASE: "qty" }),
       },
@@ -56,24 +58,24 @@ export function ReturnSlideOver({ purchase, open, onOpenChange }: Props) {
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={`Return goods — ${purchase.number}`}
-      description={`${purchase.supplier.name} is credited at the purchase rate; the stock leaves ${purchase.location.name}.`}
+      title={t("procurement.actions.returnTitle", { number: purchase.number })}
+      description={t("procurement.actions.returnDesc", { supplier: purchase.supplier.name, location: purchase.location.name })}
       busy={isLoading}
-      footer={<FormActions formId={id} submitLabel="Save return" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={id} submitLabel={t("procurement.actions.saveReturn")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={id}>
         <LineItemsEditor
           name="items"
           materialMode="fixed"
-          columns={[{ key: "qty", label: "Return qty", kind: "quantity", width: "w-40" }]}
+          columns={[{ key: "qty", label: t("procurement.actions.returnQty"), kind: "quantity", width: "w-40" }]}
           info={(row) => {
             const item = purchase.items.find((i) => i.material.id === row.materialId);
-            return item?.goodQty !== null && item?.goodQty !== undefined ? `Bought (good): ${formatQty(item.correctedQty ?? item.goodQty, item.material.unit)}` : null;
+            return item?.goodQty !== null && item?.goodQty !== undefined ? t("procurement.actions.boughtGood", { qty: formatQty(item.correctedQty ?? item.goodQty, item.material.unit) }) : null;
           }}
         />
-        <TextField name="reason" label="Reason" required placeholder="Hardened bags, wrong size…" />
-        <TextareaField name="note" label="Note" rows={2} />
-        <AttachmentField name="attachment" label="Return slip / photo (optional)" kind="DOCUMENT" />
+        <TextField name="reason" label={t("field.reason")} required placeholder={t("procurement.actions.reasonPlaceholder")} />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
+        <AttachmentField name="attachment" label={t("procurement.actions.returnSlip")} kind="DOCUMENT" />
       </Form>
     </SlideOver>
   );
@@ -81,6 +83,7 @@ export function ReturnSlideOver({ purchase, open, onOpenChange }: Props) {
 
 /** Office prices a munshi's site purchase (rates + payment). */
 export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
+  const t = useT();
   const [save, { isLoading }] = useSetPurchaseRatesMutation();
   const supplier = useGetSupplierQuery(purchase.supplier.id, { skip: !open });
   const agreed = new Map((supplier.data?.rates ?? []).map((r) => [r.material.id, r.ratePaisa]));
@@ -106,7 +109,7 @@ export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
             ...(v.paymentMode !== "UDHAAR" && v.paidFrom ? { paidFrom: v.paidFrom as PaidFrom } : {}),
           },
         }).unwrap(),
-      { success: `${purchase.number} priced`, setError: form.setError, codeFields: { INVALID_PAID_AMOUNT: "paidNowPaisa" } },
+      { success: t("procurement.actions.priced", { number: purchase.number }), setError: form.setError, codeFields: { INVALID_PAID_AMOUNT: "paidNowPaisa" } },
     );
     if (result) onOpenChange(false);
   };
@@ -116,19 +119,19 @@ export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={`Add rates — ${purchase.number}`}
-      description="The munshi recorded what arrived. Add the rates to post the bill to the supplier and value the stock."
+      title={t("procurement.actions.ratesTitle", { number: purchase.number })}
+      description={t("procurement.actions.ratesDesc")}
       busy={isLoading}
-      footer={<FormActions formId={id} submitLabel="Save rates" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={id} submitLabel={t("procurement.actions.saveRates")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={id}>
         <LineItemsEditor
           name="items"
           materialMode="fixed"
-          columns={[{ key: "ratePaisa", label: "Rate", kind: "money", required: true, width: "w-44" }]}
+          columns={[{ key: "ratePaisa", label: t("field.rate"), kind: "money", required: true, width: "w-44" }]}
           info={(row) => {
             const item = purchase.items.find((i) => i.material.id === row.materialId);
-            return item ? `Challan ${formatQty(item.challanQty ?? null, item.material.unit)} · good ${formatQty(item.goodQty, item.material.unit)}` : null;
+            return item ? t("procurement.actions.ratesInfo", { challan: formatQty(item.challanQty ?? null, item.material.unit), good: formatQty(item.goodQty, item.material.unit) }) : null;
           }}
         />
         <PaymentFields />
@@ -139,6 +142,7 @@ export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
 
 /** Owner fixes a saved purchase; the original stays visible. */
 export function CorrectionSlideOver({ purchase, open, onOpenChange }: Props) {
+  const t = useT();
   const [save, { isLoading }] = useCorrectPurchaseMutation();
   const run = useMutationToast();
   const lines = purchase.items.map((i) => ({
@@ -161,7 +165,7 @@ export function CorrectionSlideOver({ purchase, open, onOpenChange }: Props) {
         ...(i.ratePaisa !== null && i.ratePaisa !== i.currentRatePaisa ? { ratePaisa: i.ratePaisa } : {}),
       }));
     const result = await run(() => save({ id: purchase.id, body: { reason: v.reason, items } }).unwrap(), {
-      success: `${purchase.number} corrected`,
+      success: t("procurement.actions.corrected", { number: purchase.number }),
       setError: form.setError,
       onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { INSUFFICIENT_STOCK: "qty" }),
     });
@@ -173,22 +177,22 @@ export function CorrectionSlideOver({ purchase, open, onOpenChange }: Props) {
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={`Correct ${purchase.number}`}
-      description="Saved purchases are locked. A correction is recorded with your reason; the original stays visible and stock and the supplier ledger are adjusted."
+      title={t("procurement.actions.correctTitle", { number: purchase.number })}
+      description={t("procurement.actions.correctDesc")}
       busy={isLoading}
-      footer={<FormActions formId={id} submitLabel="Save correction" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={id} submitLabel={t("procurement.actions.saveCorrection")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={id}>
         <LineItemsEditor
           name="items"
           materialMode="fixed"
           columns={[
-            { key: "qty", label: "Correct qty", kind: "quantity", width: "w-36" },
-            { key: "ratePaisa", label: "Correct rate", kind: "money", width: "w-40" },
+            { key: "qty", label: t("procurement.actions.correctQty"), kind: "quantity", width: "w-36" },
+            { key: "ratePaisa", label: t("procurement.actions.correctRate"), kind: "money", width: "w-40" },
           ]}
-          amount={{ qtyKey: "qty", rateKey: "ratePaisa", label: "New amount" }}
+          amount={{ qtyKey: "qty", rateKey: "ratePaisa", label: t("procurement.actions.newAmount") }}
         />
-        <TextareaField name="reason" label="Reason" required rows={2} hint="Shown on the purchase and in the audit log." />
+        <TextareaField name="reason" label={t("field.reason")} required rows={2} hint={t("procurement.actions.reasonHint")} />
       </Form>
     </SlideOver>
   );

@@ -9,3 +9,4 @@ export * from "./labor";
 export * from "./billing";
 export * from "./dashboard";
 export * from "./sync";
+export * from "./onboarding";

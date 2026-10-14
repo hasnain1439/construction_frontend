@@ -8,6 +8,7 @@ import { useFieldError } from "@/components/forms/FormField";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPKR, percentOfPaisa } from "@/lib/money";
 
@@ -34,6 +35,7 @@ export function StageEditor({
   disabled?: boolean;
   maxRows?: number;
 }) {
+  const t = useT();
   const { control, register, setValue } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
   const rows = (useWatch({ control, name }) as StageRow[] | undefined) ?? [];
@@ -46,10 +48,10 @@ export function StageEditor({
       <div className="overflow-hidden rounded-xl border">
         <div className="grid grid-cols-[24px_1fr_110px_auto_36px] items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase sm:grid-cols-[24px_1fr_110px_130px_auto_36px]">
           <span />
-          <span>Stage</span>
+          <span>{t("field.stage")}</span>
           <span>%</span>
-          {totalPaisa !== undefined ? <span className="hidden text-right sm:block">Amount</span> : <span className="hidden sm:block" />}
-          <span>Retention</span>
+          {totalPaisa !== undefined ? <span className="hidden text-end sm:block">{t("field.amount")}</span> : <span className="hidden sm:block" />}
+          <span>{t("field.retention")}</span>
           <span />
         </div>
         <ul>
@@ -62,8 +64,8 @@ export function StageEditor({
               >
                 <GripVertical className="size-4 text-muted-foreground" aria-hidden />
                 <Input
-                  aria-label={`Stage ${index + 1} name`}
-                  placeholder="e.g. Plinth / DPC"
+                  aria-label={t("masterData.stages.nameAria", { n: index + 1 })}
+                  placeholder={t("masterData.stages.namePlaceholder")}
                   disabled={disabled}
                   {...register(`${name}.${index}.label`)}
                 />
@@ -72,7 +74,7 @@ export function StageEditor({
                   name={`${name}.${index}.percent`}
                   render={({ field: f }) => (
                     <NumberInput
-                      aria-label={`Stage ${index + 1} percent`}
+                      aria-label={t("masterData.stages.percentAria", { n: index + 1 })}
                       value={f.value as number | null}
                       onChange={f.onChange}
                       onBlur={f.onBlur}
@@ -83,7 +85,7 @@ export function StageEditor({
                   )}
                 />
                 {totalPaisa !== undefined ? (
-                  <span className="hidden text-right text-sm text-muted-foreground tabular sm:block">
+                  <span className="hidden text-end text-sm text-muted-foreground tabular sm:block">
                     {totalPaisa && row?.percent ? formatPKR(percentOfPaisa(totalPaisa, row.percent)) : "—"}
                   </span>
                 ) : (
@@ -94,7 +96,7 @@ export function StageEditor({
                     checked={Boolean(row?.isRetention)}
                     disabled={disabled || (retentionIndex !== -1 && retentionIndex !== index)}
                     onCheckedChange={(checked) => setValue(`${name}.${index}.isRetention`, checked === true, { shouldDirty: true })}
-                    aria-label={`Stage ${index + 1} is retention`}
+                    aria-label={t("masterData.stages.retentionAria", { n: index + 1 })}
                   />
                 </label>
                 <Button
@@ -103,7 +105,7 @@ export function StageEditor({
                   size="icon-sm"
                   disabled={disabled || fields.length <= 1}
                   onClick={() => remove(index)}
-                  aria-label={`Remove stage ${index + 1}`}
+                  aria-label={t("masterData.stages.removeAria", { n: index + 1 })}
                 >
                   <Trash2 />
                 </Button>
@@ -121,7 +123,7 @@ export function StageEditor({
           onClick={() => append({ label: "", percent: null, isRetention: false })}
         >
           <Plus data-icon="inline-start" />
-          Add stage
+          {t("masterData.stages.add")}
         </Button>
         <PercentTotalChip total={total} />
       </div>

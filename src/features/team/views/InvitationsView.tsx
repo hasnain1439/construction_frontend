@@ -16,7 +16,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useT } from "@/i18n/useT";
+import { useStatusT, useT } from "@/i18n/useT";
 import { useMe } from "@/store/hooks";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
@@ -27,12 +27,7 @@ import { formatPhone } from "@/lib/phone";
 import { InviteMemberSlideOver } from "../components/InviteMemberSlideOver";
 import { ProjectChips, RoleBadge } from "../components/TeamBits";
 
-const STATUS_OPTIONS: Array<{ value: InvitationStatus; label: string }> = [
-  { value: "PENDING", label: "Pending" },
-  { value: "ACCEPTED", label: "Accepted" },
-  { value: "EXPIRED", label: "Expired" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
+const STATUSES: InvitationStatus[] = ["PENDING", "ACCEPTED", "EXPIRED", "CANCELLED"];
 
 export function InvitationsView() {
   const readOnly = useReadOnly();
@@ -47,21 +42,22 @@ export function InvitationsView() {
   /** After a resend: the fresh link, ready to share (the old link stops working). */
   const [shared, setShared] = useState<{ invitation: Invitation; url: string } | null>(null);
   const t = useT();
+  const ts = useStatusT();
   const me = useMe();
   const run = useMutationToast();
 
   const columns: Column<Invitation>[] = [
-    { id: "name", header: "Name", cell: (i) => <AvatarName name={i.name} subtitle={formatPhone(i.phone)} />, sortValue: (i) => i.name },
-    { id: "role", header: "Role", cell: (i) => <RoleBadge role={i.role} /> },
-    { id: "projects", header: "Projects", cell: (i) => <ProjectChips projects={i.projects} /> },
-    { id: "status", header: "Status", cell: (i) => <StatusBadge domain="invitation" value={i.status} /> },
+    { id: "name", header: t("field.name"), cell: (i) => <AvatarName name={i.name} subtitle={formatPhone(i.phone)} />, sortValue: (i) => i.name },
+    { id: "role", header: t("field.role"), cell: (i) => <RoleBadge role={i.role} /> },
+    { id: "projects", header: t("field.projects"), cell: (i) => <ProjectChips projects={i.projects} /> },
+    { id: "status", header: t("field.status"), cell: (i) => <StatusBadge domain="invitation" value={i.status} /> },
     {
       id: "sent",
-      header: "Sent",
+      header: t("field.sent"),
       cell: (i) => <span className="text-muted-foreground">{formatRelative(i.lastResentAt ?? i.createdAt)}</span>,
       sortValue: (i) => i.lastResentAt ?? i.createdAt,
     },
-    { id: "expires", header: "Expires", cell: (i) => formatDate(i.expiresAt), sortValue: (i) => i.expiresAt },
+    { id: "expires", header: t("teamCompany.invitations.colExpires"), cell: (i) => formatDate(i.expiresAt), sortValue: (i) => i.expiresAt },
     {
       ...ACTIONS_COLUMN,
       cell: (i) =>
@@ -70,18 +66,18 @@ export function InvitationsView() {
             name={i.name}
             actions={[
               {
-                label: "Resend / Share link",
+                label: t("teamCompany.invitations.resend"),
                 icon: RotateCw,
                 hidden: !(i.status === "PENDING" || i.status === "EXPIRED"),
                 disabled: resending === i.id,
                 onSelect: async () => {
                   setResending(i.id);
-                  const result = await run(() => resend(i.id).unwrap(), { success: `New link sent to ${i.name}` });
+                  const result = await run(() => resend(i.id).unwrap(), { success: t("teamCompany.invitations.newLinkSent", { name: i.name }) });
                   setResending(null);
                   if (result?.inviteUrl) setShared({ invitation: i, url: result.inviteUrl });
                 },
               },
-              { label: "Cancel", icon: X, destructive: true, hidden: i.status !== "PENDING", onSelect: () => setToCancel(i) },
+              { label: t("common.cancel"), icon: X, destructive: true, hidden: i.status !== "PENDING", onSelect: () => setToCancel(i) },
             ]}
           />
         ),
@@ -91,26 +87,26 @@ export function InvitationsView() {
   return (
     <>
       <PageHeader
-        title="Invitations"
-        breadcrumbs={[{ label: "Team" }, { label: "Invitations" }]}
+        title={t("teamCompany.invitations.title")}
+        breadcrumbs={[{ label: t("crumb.team") }, { label: t("teamCompany.invitations.title") }]}
         actions={
           !readOnly ? (
             <Button onClick={() => setInviteOpen(true)}>
               <MailPlus data-icon="inline-start" />
-              Invite member
+              {t("teamCompany.invite.title")}
             </Button>
           ) : null
         }
       />
       <FilterBar>
         <SegmentedControl<InvitationStatus>
-          ariaLabel="Invitation status"
+          ariaLabel={t("teamCompany.invitations.statusFilter")}
           value={status}
           onChange={(v) => {
             setStatus(v);
             setPage(1);
           }}
-          options={STATUS_OPTIONS}
+          options={STATUSES.map((value) => ({ value, label: ts("invitation", value) }))}
         />
       </FilterBar>
       <SectionCard flush>
@@ -122,8 +118,8 @@ export function InvitationsView() {
           error={error}
           onRetry={refetch}
           empty={{
-            title: `No ${status.toLowerCase()} invitations`,
-            description: status === "PENDING" ? "Invite PMs and Munshis to work on your projects." : undefined,
+            title: t(`teamCompany.invitations.empty.${status}`),
+            description: status === "PENDING" ? t("teamCompany.invitations.emptyDesc") : undefined,
             icon: MailPlus,
           }}
           pagination={
@@ -137,7 +133,7 @@ export function InvitationsView() {
       <Dialog open={Boolean(shared)} onOpenChange={(o) => !o && setShared(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{shared ? `${t("invite.shareTitle")} — ${shared.invitation.name}` : ""}</DialogTitle>
+            <DialogTitle>{shared ? t("teamCompany.invitations.shareTitleFor", { title: t("invite.shareTitle"), name: shared.invitation.name }) : ""}</DialogTitle>
             <DialogDescription>{t("invite.newLinkMade")}</DialogDescription>
           </DialogHeader>
           {shared ? (
@@ -147,7 +143,7 @@ export function InvitationsView() {
               phone={shared.invitation.phone}
               email={shared.invitation.email}
               companyName={me?.tenant.name}
-              roleLabel={shared.invitation.role === "PM" ? "Project Manager" : shared.invitation.role === "MUNSHI" ? "Munshi" : undefined}
+              roleLabel={shared.invitation.role === "PM" ? t("role.PM") : shared.invitation.role === "MUNSHI" ? t("role.MUNSHI") : undefined}
             />
           ) : null}
         </DialogContent>
@@ -155,13 +151,13 @@ export function InvitationsView() {
       <ConfirmDialog
         open={Boolean(toCancel)}
         onOpenChange={(o) => !o && setToCancel(null)}
-        title={`Cancel the invite for ${toCancel?.name ?? ""}?`}
-        description="The link stops working immediately. You can invite them again later."
-        confirmLabel="Cancel invite"
+        title={t("teamCompany.invitations.cancelTitle", { name: toCancel?.name ?? "" })}
+        description={t("teamCompany.invitations.cancelBody")}
+        confirmLabel={t("teamCompany.invitations.cancelInvite")}
         loading={cancelling}
         onConfirm={async () => {
           if (!toCancel) return;
-          const ok = await run(() => cancel(toCancel.id).unwrap(), { success: "Invite cancelled" });
+          const ok = await run(() => cancel(toCancel.id).unwrap(), { success: t("teamCompany.invitations.cancelled") });
           if (ok) setToCancel(null);
         }}
       />

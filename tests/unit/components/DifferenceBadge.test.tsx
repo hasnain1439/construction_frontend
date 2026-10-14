@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithStore as render } from "../render";
 import { describe, expect, it } from "vitest";
 import { DifferenceBadge, differenceResult } from "@/components/common/DifferenceBadge";
 import { StockStatusBadge, stockStatus } from "@/components/common/StockStatusBadge";

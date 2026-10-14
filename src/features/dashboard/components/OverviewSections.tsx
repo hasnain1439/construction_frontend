@@ -15,7 +15,8 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
-import { formatDate, formatRelative } from "@/lib/dates";
+import { formatDate } from "@/lib/dates";
+import { useRelativeTime } from "@/components/common/useRelativeTime";
 import { formatPKRShort, toPaisaBigInt } from "@/lib/money";
 import { humanize, statusMeta, TONE_CLASSES } from "@/lib/status";
 import { workerTypeName } from "@/lib/workerTypes";
@@ -142,7 +143,7 @@ export function SiteStats({ site }: { site: DashboardOverview["site"] }) {
   return (
     <SectionCard title={t("dashboard.siteStats")} description={t("dashboard.weekRange", { from: day(site.week.weekStart), to: day(site.week.weekEnd) })}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Chip icon={Users} label={t("dashboard.attendanceToday")} value={h.total} hint={`${t("dashboard.hazriMistri")} ${h.mistri} · ${t("dashboard.hazriMazdoor")} ${h.mazdoor} · ${t("common.other")} ${h.other} ${t("dashboard.ofTotal", { n: site.assignedWorkers })}`} />
+        <Chip icon={Users} label={t("dashboard.attendanceToday")} value={h.total} hint={t("app.dashboard.hazriBreakdown", { mistri: h.mistri, mazdoor: h.mazdoor, other: h.other, n: site.assignedWorkers })} />
         <Chip icon={Wallet} label={t("dashboard.advancesThisWeek")} value={<MoneyText paisa={site.peshgiThisWeekPaisa} />} />
         <Chip icon={HardHat} label={t("dashboard.siteExpensesThisWeek")} value={<MoneyText paisa={site.siteKharchaThisWeekPaisa} />} />
         <Chip icon={PackageCheck} label={t("dashboard.deliveriesToday")} value={site.deliveriesToday} hint={site.openShortages ? t(site.openShortages === 1 ? "dashboard.openShortage" : "dashboard.openShortagesN", { n: site.openShortages }) : t("dashboard.noOpenShortages")} />
@@ -224,6 +225,7 @@ export function PaymentAnalysis({ payments }: { payments: NonNullable<DashboardO
 export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
   const t = useT();
   const te = useEnumT();
+  const rel = useRelativeTime();
   return (
     <SectionCard title={t("dashboard.alerts")} actions={<Button asChild variant="ghost" size="sm"><Link href="/dashboard/alerts">{t("dashboard.allNotifications")}</Link></Button>}>
       {alerts.length ? (
@@ -242,7 +244,7 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
                   <p className="truncate text-sm font-medium">{a.title}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {a.project ? `${a.project.name} · ` : ""}
-                    {formatRelative(a.at)}
+                    {rel(a.at)}
                   </p>
                 </div>
                 {a.actionUrl ? (

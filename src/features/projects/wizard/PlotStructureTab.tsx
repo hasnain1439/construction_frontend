@@ -18,9 +18,10 @@ import { SelectField } from "@/components/forms/SelectField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { useMe } from "@/store/hooks";
-import { DEFAULT_CEILING, FLOOR_LABEL, FLOOR_ORDER, PLOT_UNIT_LABEL, STRUCTURE_TYPES } from "../constants";
+import { DEFAULT_CEILING, FLOOR_ORDER, PLOT_UNITS, STRUCTURE_TYPES } from "../constants";
 import { formatArea, plotCalc } from "../utils/calc";
 import { plotStructureSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
@@ -56,17 +57,19 @@ function PlotResult() {
     name: ["plotUnit", "plotSize", "marlaStandard", "frontFt", "depthFt"],
   }) as [Values["plotUnit"], number | null, string, number | null, number | null];
   const calc = plotCalc({ plotUnit, plotSize, marlaStandard: Number(marlaStandard), frontFt, depthFt });
+  const t = useT();
+  const te = useEnumT();
   return (
     <div className={cn("rounded-xl border p-4", calc.plotAreaMismatch ? "border-warning/40 bg-warning-soft" : "bg-info-soft")} aria-live="polite">
       <p className="flex items-center gap-2 text-sm font-semibold">
         <Ruler className="size-4 text-primary" aria-hidden />
-        {calc.plotAreaSqft !== null ? `${plotSize} ${PLOT_UNIT_LABEL[plotUnit]} = ${formatArea(calc.plotAreaSqft)} sq ft` : "Enter the plot size"}
-        {calc.frontageAreaSqft !== null ? ` · ${frontFt} × ${depthFt} = ${formatArea(calc.frontageAreaSqft)} sq ft` : ""}
+        {calc.plotAreaSqft !== null ? t("projects.plot.plotResult", { size: String(plotSize), unit: te("projectPlotUnit", plotUnit), area: formatArea(calc.plotAreaSqft) }) : t("projects.plot.enterPlotSize")}
+        {calc.frontageAreaSqft !== null ? t("projects.plot.frontageResult", { front: String(frontFt), depth: String(depthFt), area: formatArea(calc.frontageAreaSqft) }) : null}
       </p>
       {calc.plotAreaMismatch ? (
         <p className="mt-1 flex items-center gap-1.5 text-xs text-warning">
           <TriangleAlert className="size-3.5" aria-hidden />
-          These differ by more than 10 % — check the size or the measurements.
+          {t("projects.plot.plotDiffer")}
         </p>
       ) : null}
     </div>
@@ -80,17 +83,19 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
   const hasBasement = useWatch({ control, name: "hasBasement" }) as boolean;
   const error = useFieldError("floors");
   const next = ADDABLE.find((level) => !floors.some((f) => f.level === level));
+  const t = useT();
+  const te = useEnumT();
 
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium">
-        Floors<span className="text-destructive">*</span>
+        {t("projects.section.floors")}<span className="text-destructive">*</span>
       </p>
       <ul className="space-y-2">
         {hasBasement ? (
           <li className="flex items-center gap-3 rounded-xl border border-dashed px-3 py-2 text-sm text-muted-foreground">
             <GripVertical className="size-4" aria-hidden />
-            <span className="flex-1">Basement — height set above</span>
+            <span className="flex-1">{t("projects.plot.basementRow")}</span>
           </li>
         ) : null}
         {fields.map((field, index) => {
@@ -98,17 +103,17 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
           return (
             <li key={field.id} className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2">
               <GripVertical className="size-4 text-muted-foreground" aria-hidden />
-              <span className="flex-1 text-sm font-medium">{FLOOR_LABEL[level]}</span>
+              <span className="flex-1 text-sm font-medium">{te("projectFloorLevel", level)}</span>
               <Controller
                 control={control}
                 name={`floors.${index}.ceilingHeightFt`}
                 render={({ field: f, fieldState }) => (
                   <NumberInput
-                    aria-label={`${FLOOR_LABEL[level]} ceiling height`}
+                    aria-label={t("projects.plot.ceilingAria", { floor: te("projectFloorLevel", level) })}
                     value={f.value as number | null}
                     onChange={f.onChange}
                     onBlur={f.onBlur}
-                    unit="ft"
+                    unit={t("projects.unit.ft")}
                     className="w-32"
                     disabled={disabled}
                     aria-invalid={Boolean(fieldState.error) || undefined}
@@ -121,7 +126,7 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
                 size="icon-sm"
                 disabled={disabled || level === "GROUND"}
                 onClick={() => remove(index)}
-                aria-label={`Remove ${FLOOR_LABEL[level]}`}
+                aria-label={t("projects.plot.removeFloor", { floor: te("projectFloorLevel", level) })}
               >
                 <Trash2 />
               </Button>
@@ -137,7 +142,7 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
         onClick={() => next && append({ level: next, ceilingHeightFt: DEFAULT_CEILING[next] })}
       >
         <Plus data-icon="inline-start" />
-        {next ? `Add ${FLOOR_LABEL[next].toLowerCase()}` : "All floors added"}
+        {next ? t("projects.plot.addFloor", { floor: te("projectFloorLevel", next).toLowerCase() }) : t("projects.plot.allFloorsAdded")}
       </Button>
       {error ? (
         <p role="alert" className="text-xs font-medium text-destructive">
@@ -150,8 +155,9 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
 
 function BasementHeight({ disabled }: { disabled: boolean }) {
   const hasBasement = useWatch({ name: "hasBasement" }) as boolean;
+  const t = useT();
   if (!hasBasement) return null;
-  return <NumberField name="basementHeightFt" label="Basement height" required unit="ft" disabled={disabled} />;
+  return <NumberField name="basementHeightFt" label={t("projects.plot.basementHeight")} required unit={t("projects.unit.ft")} disabled={disabled} />;
 }
 
 /** Tab 3 — PATCH /projects/:id/plot-structure (floors upserted by level). */
@@ -160,6 +166,8 @@ export function PlotStructureTab() {
   const me = useMe();
   const [save] = useUpdatePlotStructureMutation();
   const run = useMutationToast();
+  const t = useT();
+  const te = useEnumT();
   const [pendingForce, setPendingForce] = useState<Output | null>(null);
   const form = useForm<Values, unknown, Output>({ resolver: zodResolver(plotStructureSchema), values: toValues(project, me?.tenant.marlaStandard ?? 225) });
   useReportForm(form);
@@ -210,20 +218,20 @@ export function PlotStructureTab() {
   return (
     <>
       <Form form={form} onSubmit={(v) => send(v, false)} id={WIZARD_FORM_ID}>
-        <SectionCard title="Plot">
+        <SectionCard title={t("projects.section.plot")}>
           <div className="space-y-4">
             <FieldGrid columns={3}>
               <SelectField
                 name="plotUnit"
-                label="Plot unit"
+                label={t("projects.plot.plotUnit")}
                 required
                 disabled={locked}
-                options={Object.entries(PLOT_UNIT_LABEL).map(([value, label]) => ({ value, label }))}
+                options={PLOT_UNITS.map((value) => ({ value, label: te("projectPlotUnit", value) }))}
               />
-              <NumberField name="plotSize" label="Plot size" required disabled={locked} />
+              <NumberField name="plotSize" label={t("projects.plot.plotSize")} required disabled={locked} />
               <SegmentedField
                 name="marlaStandard"
-                label="Marla standard"
+                label={t("projects.section.marlaStandard")}
                 required
                 disabled={locked}
                 options={[
@@ -233,18 +241,18 @@ export function PlotStructureTab() {
               />
             </FieldGrid>
             <FieldGrid columns={3}>
-              <NumberField name="frontFt" label="Front" required unit="ft" disabled={locked} />
-              <NumberField name="depthFt" label="Depth" required unit="ft" disabled={locked} />
-              <ToggleField name="cornerPlot" label="Corner plot" disabled={locked} className="self-end" />
+              <NumberField name="frontFt" label={t("projects.plot.front")} required unit={t("projects.unit.ft")} disabled={locked} />
+              <NumberField name="depthFt" label={t("projects.plot.depth")} required unit={t("projects.unit.ft")} disabled={locked} />
+              <ToggleField name="cornerPlot" label={t("projects.section.cornerPlot")} disabled={locked} className="self-end" />
             </FieldGrid>
             <PlotResult />
           </div>
         </SectionCard>
-        <SectionCard title="Structure">
+        <SectionCard title={t("projects.section.structure")}>
           <div className="space-y-5">
-            <RadioCards name="structureType" label="Structure type" required options={STRUCTURE_TYPES} disabled={locked} />
+            <RadioCards name="structureType" label={t("projects.plot.structureType")} required options={STRUCTURE_TYPES.map((s) => ({ value: s.value, icon: s.icon, title: t(s.titleKey), description: t(s.descriptionKey) }))} disabled={locked} />
             <FieldGrid>
-              <ToggleField name="hasBasement" label="Basement" description="Adds a basement floor below ground." disabled={locked} />
+              <ToggleField name="hasBasement" label={t("projects.section.basement")} description={t("projects.plot.basementDesc")} disabled={locked} />
               <BasementHeight disabled={locked} />
             </FieldGrid>
             <FloorsBuilder disabled={locked} />
@@ -254,9 +262,9 @@ export function PlotStructureTab() {
       <ConfirmDialog
         open={pendingForce !== null}
         onOpenChange={(o) => !o && setPendingForce(null)}
-        title="Remove floors that have rooms?"
-        description="A floor you removed still has rooms. Saving deletes those rooms too."
-        confirmLabel="Remove floors and rooms"
+        title={t("projects.plot.removeFloorsTitle")}
+        description={t("projects.plot.removeFloorsDesc")}
+        confirmLabel={t("projects.plot.removeFloorsConfirm")}
         onConfirm={() => (pendingForce ? send(pendingForce, true) : undefined)}
       />
     </>

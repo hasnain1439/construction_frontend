@@ -21,6 +21,8 @@ import { RadioCards, type RadioCardOption } from "@/components/forms/RadioCards"
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
+import { msg } from "@/i18n/message";
+import { useEnumT, useT } from "@/i18n/useT";
 import { normalisePhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
 import { applyLineError } from "../lineErrors";
@@ -57,6 +59,7 @@ export function NewDispatchSlideOver({
   excludeProjectId?: string;
   onCreated?: (number: string) => void;
 }) {
+  const t = useT();
   const [create, { isLoading }] = useCreateDispatchMutation();
   const run = useMutationToast();
   const projects = useSiteProjectOptions();
@@ -70,7 +73,7 @@ export function NewDispatchSlideOver({
   const onSubmit = async (v: z.output<typeof dispatchSchema>) => {
     const phone = v.driverPhone ? normalisePhone(v.driverPhone) : null;
     if (v.driverPhone && !phone) {
-      form.setError("driverPhone", { message: "Enter a mobile number like 0300-1234567" });
+      form.setError("driverPhone", { message: msg("procurement.v.driverPhone") });
       return;
     }
     const result = await run(
@@ -86,7 +89,7 @@ export function NewDispatchSlideOver({
           items: v.items.map((i) => ({ materialId: i.materialId, qty: i.qty })),
         }).unwrap(),
       {
-        success: (d) => `${d.number} sent — the site team got an SMS`,
+        success: (d) => t("procurement.dispatch.sentToast", { number: d.number }),
         setError: form.setError,
         codeFields: { SAME_LOCATION: "toProjectId" },
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { INSUFFICIENT_STOCK: "qty" }),
@@ -103,57 +106,59 @@ export function NewDispatchSlideOver({
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Dispatch to site"
-      description="Creates a gate pass. The stock is on the way until the site counts it."
+      title={t("procurement.dispatch.newTitle")}
+      description={t("procurement.dispatch.newDesc")}
       busy={isLoading}
-      footer={<FormActions formId="dispatch-form" submitLabel="Send" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="dispatch-form" submitLabel={t("action.send")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="dispatch-form">
         <FieldGrid>
-          <ComboboxField name="fromLocationId" label="From" required options={fromOptions} />
-          <ComboboxField name="toProjectId" label="To site" required options={projects.options.filter((o) => o.value !== excludeProjectId)} loading={projects.loading} />
+          <ComboboxField name="fromLocationId" label={t("field.from")} required options={fromOptions} />
+          <ComboboxField name="toProjectId" label={t("procurement.dispatch.toSite")} required options={projects.options.filter((o) => o.value !== excludeProjectId)} loading={projects.loading} />
         </FieldGrid>
         <LineItemsEditor
           name="items"
           materialIds={inStock}
           describeMaterial={(m) => {
             const s = stock.get(m.id);
-            return s ? `Available: ${formatQty(s.qty, s.unit)}` : undefined;
+            return s ? t("procurement.common.available", { qty: formatQty(s.qty, s.unit) }) : undefined;
           }}
-          columns={[{ key: "qty", label: "Send", kind: "quantity", required: true, width: "w-40" }]}
+          columns={[{ key: "qty", label: t("action.send"), kind: "quantity", required: true, width: "w-40" }]}
           info={(row) => {
             const s = row.materialId ? stock.get(row.materialId) : undefined;
-            return s ? `Available: ${formatQty(s.qty, s.unit)}` : null;
+            return s ? t("procurement.common.available", { qty: formatQty(s.qty, s.unit) }) : null;
           }}
           rowError={(row) => {
             const s = row.materialId ? stock.get(row.materialId) : undefined;
             const q = Number(row.qty ?? 0);
-            return s && q > s.qty ? `Only ${formatQty(s.qty, s.unit)} available` : undefined;
+            return s && q > s.qty ? t("procurement.common.onlyAvailable", { qty: formatQty(s.qty, s.unit) }) : undefined;
           }}
           emptyRow={() => ({ materialId: null, qty: null })}
         />
         <FieldGrid columns={3}>
-          <TextField name="vehicleNo" label="Vehicle no." placeholder="LES-4521" />
-          <TextField name="driverName" label="Driver" placeholder="Nadeem" />
-          <PhoneField name="driverPhone" label="Driver phone" />
+          <TextField name="vehicleNo" label={t("procurement.common.vehicleNo")} placeholder={t("procurement.common.vehiclePlaceholder")} />
+          <TextField name="driverName" label={t("procurement.common.driver")} placeholder={t("procurement.common.driverPlaceholder")} />
+          <PhoneField name="driverPhone" label={t("procurement.common.driverPhone")} />
         </FieldGrid>
-        <AttachmentField name="loadPhoto" label="Load photo (optional)" kind="SITE_PHOTO" />
-        <TextareaField name="note" label="Note" rows={2} />
+        <AttachmentField name="loadPhoto" label={t("procurement.dispatch.loadPhoto")} kind="SITE_PHOTO" />
+        <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>
   );
 }
 
-const RESOLUTION_CARDS: Record<Resolution, RadioCardOption<Resolution>> = {
-  SEND_REMAINING: { value: "SEND_REMAINING", title: "Send the remaining", description: "A new gate pass with this quantity goes from the same store / site.", icon: PackagePlus },
-  RETURN_TO_STORE: { value: "RETURN_TO_STORE", title: "Back to store", description: "The goods are counted back in where they came from.", icon: Undo2 },
-  ACCEPT_LOSS: { value: "ACCEPT_LOSS", title: "Accept the loss", description: "Close it as is — the value stays a loss on this project.", icon: CircleCheck },
-  RECOVER_FROM_DRIVER: { value: "RECOVER_FROM_DRIVER", title: "Recover from driver", description: "The driver pays for it. Enter the amount recovered.", icon: HandCoins },
-  SUPPLIER_CREDIT: { value: "SUPPLIER_CREDIT", title: "Supplier credit", description: "The supplier's account is credited with the value.", icon: ArrowLeftRight },
+const RESOLUTION_ICONS: Record<Resolution, RadioCardOption<Resolution>["icon"]> = {
+  SEND_REMAINING: PackagePlus,
+  RETURN_TO_STORE: Undo2,
+  ACCEPT_LOSS: CircleCheck,
+  RECOVER_FROM_DRIVER: HandCoins,
+  SUPPLIER_CREDIT: ArrowLeftRight,
 };
 
 /** Owner's decision on a shortage. Only the decisions that apply are offered. */
 export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { shortage: Shortage | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useT();
+  const te = useEnumT();
   const [resolve, { isLoading }] = useResolveShortageMutation();
   const run = useMutationToast();
   const form = useForm<ResolveValues, unknown, z.output<typeof resolveSchema>>({
@@ -162,7 +167,7 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
   });
   const resolution = useWatch({ control: form.control, name: "resolution" });
   if (!shortage) return null;
-  const options = shortage.allowedResolutions.map((r) => RESOLUTION_CARDS[r]);
+  const options: RadioCardOption<Resolution>[] = shortage.allowedResolutions.map((r) => ({ value: r, title: te("procResolution", r), description: te("procResolutionDesc", r), icon: RESOLUTION_ICONS[r] }));
 
   const onSubmit = async (v: z.output<typeof resolveSchema>) => {
     const result = await run(
@@ -175,7 +180,7 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
             ...(v.resolution === "RECOVER_FROM_DRIVER" && v.recoveredAmountPaisa ? { recoveredAmountPaisa: v.recoveredAmountPaisa } : {}),
           },
         }).unwrap(),
-      { success: (s) => (s.newDispatch ? `Resolved — ${s.newDispatch.number} is on the way` : "Shortage resolved"), setError: form.setError },
+      { success: (s) => (s.newDispatch ? t("procurement.resolve.resolvedNew", { number: s.newDispatch.number }) : t("procurement.resolve.resolved")), setError: form.setError },
     );
     if (result) onOpenChange(false);
   };
@@ -185,30 +190,32 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title="Resolve shortage"
+      title={t("procurement.resolve.title")}
       description={
         <>
           {formatQty(shortage.qty, shortage.material.unit)} {shortage.material.name} · {shortage.dispatch?.number ?? shortage.purchase?.number}
         </>
       }
       busy={isLoading}
-      footer={<FormActions formId="resolve-form" submitLabel="Save decision" loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId="resolve-form" submitLabel={t("procurement.resolve.save")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="resolve-form">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <StatusBadge domain="shortageKind" value={shortage.kind} />
-          <span>Value</span>
+          <span>{t("field.value")}</span>
           <MoneyText paisa={shortage.valuePaisa} className="font-semibold" />
         </div>
-        {shortage.note ? <InlineAlert tone="info" title="Site note">{shortage.note}</InlineAlert> : null}
-        <RadioCards<Resolution> name="resolution" label="Decision" options={options} />
-        {resolution === "RECOVER_FROM_DRIVER" ? <MoneyField name="recoveredAmountPaisa" label="Amount recovered" required /> : null}
+        {shortage.note ? <InlineAlert tone="info" title={t("procurement.resolve.siteNote")}>{shortage.note}</InlineAlert> : null}
+        <RadioCards<Resolution> name="resolution" label={t("procurement.resolve.decision")} options={options} />
+        {resolution === "RECOVER_FROM_DRIVER" ? <MoneyField name="recoveredAmountPaisa" label={t("procurement.resolve.amountRecovered")} required /> : null}
         {resolution === "SEND_REMAINING" && shortage.dispatch ? (
           <p className="text-sm text-muted-foreground">
-            Uses the same vehicle {shortage.dispatch.vehicleNo ? `(${shortage.dispatch.vehicleNo})` : ""} and driver as {shortage.dispatch.number}.
+            {shortage.dispatch.vehicleNo
+              ? t("procurement.resolve.sameVehicleNo", { vehicle: shortage.dispatch.vehicleNo, number: shortage.dispatch.number })
+              : t("procurement.resolve.sameVehicle", { number: shortage.dispatch.number })}
           </p>
         ) : null}
-        <TextareaField name="note" label="Note" required rows={3} hint="Why — shown on the shortage and in the audit log." />
+        <TextareaField name="note" label={t("field.note")} required rows={3} hint={t("procurement.resolve.noteHint")} />
       </Form>
     </SlideOver>
   );

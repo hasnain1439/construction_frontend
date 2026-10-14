@@ -1,23 +1,23 @@
 "use client";
 
 import { Bike, Coffee, Fuel, Hammer, HelpCircle, Home, PackageOpen, Truck, Wrench, type LucideIcon } from "lucide-react";
+import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 
 export type KharchaCategory = "TEA_WATER" | "TRANSPORT" | "UNLOADING" | "FUEL" | "SMALL_TOOLS" | "URGENT_MATERIAL" | "OWNER_PURCHASE" | "REPAIRS" | "OTHER";
 
-export const KHARCHA_CATEGORIES: Array<{ value: KharchaCategory; label: string; icon: LucideIcon }> = [
-  { value: "TEA_WATER", label: "Tea / water", icon: Coffee },
-  { value: "TRANSPORT", label: "Transport", icon: Bike },
-  { value: "UNLOADING", label: "Unloading", icon: Truck },
-  { value: "FUEL", label: "Fuel", icon: Fuel },
-  { value: "SMALL_TOOLS", label: "Small tools", icon: Hammer },
-  { value: "URGENT_MATERIAL", label: "Urgent material", icon: PackageOpen },
-  { value: "OWNER_PURCHASE", label: "For the owner", icon: Home },
-  { value: "REPAIRS", label: "Repairs", icon: Wrench },
-  { value: "OTHER", label: "Other", icon: HelpCircle },
+/** Kharcha categories; labels come from the `cashKharchaCategory` enum group (`te("cashKharchaCategory", value)`). */
+export const KHARCHA_CATEGORIES: Array<{ value: KharchaCategory; icon: LucideIcon }> = [
+  { value: "TEA_WATER", icon: Coffee },
+  { value: "TRANSPORT", icon: Bike },
+  { value: "UNLOADING", icon: Truck },
+  { value: "FUEL", icon: Fuel },
+  { value: "SMALL_TOOLS", icon: Hammer },
+  { value: "URGENT_MATERIAL", icon: PackageOpen },
+  { value: "OWNER_PURCHASE", icon: Home },
+  { value: "REPAIRS", icon: Wrench },
+  { value: "OTHER", icon: HelpCircle },
 ];
-
-export const categoryLabel = (value: string | null | undefined) => KHARCHA_CATEGORIES.find((c) => c.value === value)?.label ?? "—";
 
 /**
  * Kharcha categories as big tappable chips (radio group). `allowAll` adds an "All" chip
@@ -27,7 +27,7 @@ export function CategoryChips({
   value,
   onChange,
   allowAll,
-  ariaLabel = "Category",
+  ariaLabel,
   className,
 }: {
   value: KharchaCategory | undefined;
@@ -36,9 +36,14 @@ export function CategoryChips({
   ariaLabel?: string;
   className?: string;
 }) {
-  const options: Array<{ value: KharchaCategory | undefined; label: string; icon?: LucideIcon }> = [...(allowAll ? [{ value: undefined, label: "All" }] : []), ...KHARCHA_CATEGORIES];
+  const t = useT();
+  const te = useEnumT();
+  const options: Array<{ value: KharchaCategory | undefined; label: string; icon?: LucideIcon }> = [
+    ...(allowAll ? [{ value: undefined, label: t("common.all") }] : []),
+    ...KHARCHA_CATEGORIES.map((c) => ({ ...c, label: te("cashKharchaCategory", c.value) })),
+  ];
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className={cn("flex flex-wrap gap-2", className)}>
+    <div role="radiogroup" aria-label={ariaLabel ?? t("field.category")} className={cn("flex flex-wrap gap-2", className)}>
       {options.map((o) => {
         const active = value === o.value;
         const Icon = o.icon;

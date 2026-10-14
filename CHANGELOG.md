@@ -8,6 +8,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ### Added
 
+- **Setup checklist** on the dashboard for the owner: progress bar and a link for each step (logo, rates, invite team, workers, suppliers, first project) from the API, "My rates are fine", a link to Opening balances, "Try with demo data", and Hide. It replaces the old "Get started" card.
+- **Import from Excel / CSV** on Workers, Sub-contractors, Suppliers, Materials and Clients: download the template, upload, check every row (problems highlighted per cell), then import — nothing is imported while a row has a problem unless you choose to import only the good rows.
+- **Settings → Opening balances**: supplier udhaar, cash with a munshi / PM, store stock with its rate and worker peshgi from before the app — entered once per item and then locked.
+- **Try with demo data**: one click adds a sample project (DEMO badge and banner) with workers, hazri, a purchase, kharcha and a draft invoice; "Remove demo data" deletes all of it. It doesn't count against the plan.
+- New texts in English, Roman Urdu and Urdu; new cash type "Opening cash in hand" and stock movement "Opening stock"; API types regenerated; new permission `company.opening.manage` in the permission keys and catalogue fixture.
+
 - **Docker image** for production: multi-stage `Dockerfile` on Next.js standalone output (`output: "standalone"` in `next.config.ts`), Node 24 alpine, non-root, healthcheck on the new `GET /api/health`; API origin, CSP origins and `NEXT_PUBLIC_*` keys are build args (one image per environment). See README → Deployment.
 - **GitHub Actions**: pull requests run typecheck, lint, unit tests and a production build; `main` builds the staging image (`ghcr.io/<owner>/construction-web:staging-<sha>`) and deploys it to staging over SSH; production is a manual workflow behind the `production` environment's approval.
 
@@ -18,6 +24,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - Platform console → **Support Sessions** page: every session with company, admin, reasons, mode and status; filter by company and live / finished; end a live session.
 - **Settings → Audit log** for the owner: who changed what, with every platform support visit (support person and reason) highlighted and a "Platform support only" filter. New "Platform support accessed your account" notification type.
 - Optional **error monitoring (Sentry)** for the browser and the Next.js server and **product analytics (PostHog)** sending only a `login` event (hashed user id, company group). Both are off unless `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_POSTHOG_KEY` are set; reports are scrubbed of emails, phones, tokens, cookies, request bodies and query secrets, and the CSP allows their hosts only when configured. See README "Observability".
+
+- **Every page in Roman Urdu and Urdu**: lists, forms, side panels, dialogs, toasts, table headers, empty states, form errors, status badges, charts and print previews of the company app now follow the chosen language (the platform admin console stays English). Urdu pages lay out right-to-left, with amounts, phone numbers and sizes kept left-to-right.
+- **Your language follows you**: changing the language saves it on your account, and signing in on a new browser opens the app in your account's language (unless that browser already has a language picked). Uses the API's new `PATCH /auth/me/preferences` and `language` in `/auth/me`; with an older API the language simply stays per browser.
+- Tests that fail when a Roman Urdu or Urdu text is missing, empty, has different `{placeholders}` or still has English in the Urdu, and when a company-app page shows hard-coded English text.
 
 ### Changed
 
@@ -30,6 +40,7 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 ### Fixed
 
 - Side panels and money fields lay out correctly right-to-left in Urdu (close button, "Rs" prefix).
+- In Urdu, dates and week ranges no longer flip ("Oct 2026 7" → "7 Oct 2026", "Oct 2026 18 – 12" → "12 – 18 Oct 2026"); amounts stay left-to-right.
 
 ### Security
 

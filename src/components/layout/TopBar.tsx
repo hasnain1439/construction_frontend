@@ -43,7 +43,7 @@ export function SearchTrigger() {
         </button>
       </TooltipTrigger>
       <TooltipContent>
-        {t("shell.searchMenu")} <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">Ctrl K</kbd>
+        {t("shell.searchMenu")} <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">Ctrl K{/* i18n-ignore: key names */}</kbd>
       </TooltipContent>
     </Tooltip>
   );

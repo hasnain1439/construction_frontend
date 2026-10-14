@@ -273,7 +273,8 @@ export type CashEntryType =
   | "HANDOVER_OUT"
   | "HANDOVER_IN"
   | "COUNT_ADJUSTMENT"
-  | "REFUND_IN";
+  | "REFUND_IN"
+  | "OPENING";
 export type CashEntryStatus = "PENDING_ACK" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "POSTED";
 export type ExpenseCategory =
   | "TEA_WATER"

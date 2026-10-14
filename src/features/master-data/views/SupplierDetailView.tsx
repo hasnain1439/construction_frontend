@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SupplierLedgerPanel, SupplierPaymentsPanel } from "@/features/procurement/views/SupplierMoneyViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
+import { useT } from "@/i18n/useT";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { ActiveToggle } from "../components/ActiveToggle";
@@ -43,6 +44,7 @@ interface RateRow {
 
 /** Agreed rates: edit existing rows, add materials, save only what changed. */
 function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editable: boolean }) {
+  const t = useT();
   const materials = useGetMaterialsQuery(undefined, { skip: !editable });
   const [save, { isLoading }] = useSetSupplierRatesMutation();
   const run = useMutationToast();
@@ -69,7 +71,7 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
   const changed = rows.filter((r) => r.ratePaisa && r.ratePaisa !== r.original);
   const options = (materials.data ?? [])
     .filter((m) => !rows.some((r) => r.materialId === m.id))
-    .map((m) => ({ value: m.id, label: m.name, description: `${m.group.name} · per ${m.unit}` }));
+    .map((m) => ({ value: m.id, label: m.name, description: t("masterData.suppliers.perUnit", { group: m.group.name, unit: m.unit }) }));
 
   const addRow = (materialId: string | null) => {
     const material = materials.data?.find((m) => m.id === materialId);
@@ -81,21 +83,21 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
   const onSave = async () => {
     const ok = await run(
       () => save({ id: supplier.id, body: { rates: changed.map((r) => ({ materialId: r.materialId, ratePaisa: r.ratePaisa as string })) } }).unwrap(),
-      { success: `${changed.length} rate${changed.length === 1 ? "" : "s"} saved` },
+      { success: changed.length === 1 ? t("masterData.common.oneRateSaved") : t("masterData.common.nRatesSaved", { n: changed.length }) },
     );
     if (ok !== undefined) setRows((current) => current.map((r) => ({ ...r, original: r.ratePaisa })));
   };
 
   return (
     <SectionCard
-      title="Agreed rates"
-      description="Rates you've agreed with this supplier. New purchases start from these."
+      title={t("masterData.suppliers.agreedRates")}
+      description={t("masterData.suppliers.agreedRatesDesc")}
       flush
       actions={
         editable ? (
           <Button size="sm" disabled={!changed.length || isLoading} onClick={() => void onSave()}>
             <Save data-icon="inline-start" />
-            Save rates{changed.length ? ` (${changed.length})` : ""}
+            {changed.length ? t("masterData.common.saveRatesCount", { n: changed.length }) : t("masterData.common.saveRates")}
           </Button>
         ) : null
       }
@@ -104,19 +106,19 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
         rows={rows}
         getRowId={(r) => r.materialId}
         clientPageSize={0}
-        empty={{ title: "No agreed rates yet", description: editable ? "Add the materials you buy from this supplier." : undefined }}
+        empty={{ title: t("masterData.suppliers.noAgreedRates"), description: editable ? t("masterData.suppliers.noAgreedRatesDesc") : undefined }}
         columns={[
-          { id: "material", header: "Material", cell: (r) => <span className="font-medium">{r.name}</span>, sortValue: (r) => r.name },
-          { id: "unit", header: "Unit", cell: (r) => r.unit },
+          { id: "material", header: t("field.material"), cell: (r) => <span className="font-medium">{r.name}</span>, sortValue: (r) => r.name },
+          { id: "unit", header: t("field.unit"), cell: (r) => r.unit },
           {
             id: "rate",
-            header: "Rate",
+            header: t("field.rate"),
             align: "right",
             className: "w-56",
             cell: (r) =>
               editable ? (
                 <MoneyInput
-                  aria-label={`${r.name} rate`}
+                  aria-label={t("masterData.common.rateAria", { name: r.name })}
                   value={r.ratePaisa}
                   onChange={(v) => setRows((current) => current.map((x) => (x.materialId === r.materialId ? { ...x, ratePaisa: v } : x)))}
                   suffix={`/ ${r.unit}`}
@@ -127,17 +129,17 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
           },
           {
             id: "since",
-            header: "Since",
-            cell: (r) => (r.effectiveFrom ? formatDate(r.effectiveFrom) : <StatusBadge tone="warning" label="New" />),
+            header: t("masterData.suppliers.since"),
+            cell: (r) => (r.effectiveFrom ? formatDate(r.effectiveFrom) : <StatusBadge tone="warning" label={t("masterData.suppliers.newBadge")} />),
           },
           {
             id: "remove",
-            header: <span className="sr-only">Remove</span>,
+            header: <span className="sr-only">{t("action.remove")}</span>,
             align: "right",
             hidden: !editable,
             cell: (r) =>
               r.original === null ? (
-                <Button variant="ghost" size="icon-sm" aria-label={`Remove ${r.name}`} onClick={() => setRows((c) => c.filter((x) => x.materialId !== r.materialId))}>
+                <Button variant="ghost" size="icon-sm" aria-label={t("masterData.common.removeAria", { name: r.name })} onClick={() => setRows((c) => c.filter((x) => x.materialId !== r.materialId))}>
                   <Trash2 />
                 </Button>
               ) : null,
@@ -147,11 +149,11 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
       {editable ? (
         <div className="flex flex-wrap items-center gap-2 border-t px-4 py-3">
           <div className="w-72">
-            <Combobox value={adding} onChange={(v) => addRow(v as string | null)} options={options} loading={materials.isLoading} placeholder="Add a material…" />
+            <Combobox value={adding} onChange={(v) => addRow(v as string | null)} options={options} loading={materials.isLoading} placeholder={t("masterData.suppliers.addMaterial")} />
           </div>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Plus className="size-3.5" aria-hidden />
-            Pick a material, then enter its rate.
+            {t("masterData.suppliers.pickHint")}
           </span>
         </div>
       ) : null}
@@ -160,9 +162,10 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
 }
 
 function RateHistory({ supplierId }: { supplierId: string }) {
+  const t = useT();
   const { data, isLoading, error, refetch } = useGetSupplierRatesQuery(supplierId);
   return (
-    <SectionCard title="Rate history" flush>
+    <SectionCard title={t("masterData.common.rateHistory")} flush>
       <DataTable
         rows={data?.history}
         loading={isLoading}
@@ -170,12 +173,12 @@ function RateHistory({ supplierId }: { supplierId: string }) {
         onRetry={refetch}
         getRowId={(h) => h.id}
         clientPageSize={10}
-        empty={{ title: "No rate changes yet", icon: History }}
+        empty={{ title: t("masterData.suppliers.noRateChanges"), icon: History }}
         columns={[
-          { id: "date", header: "Date", cell: (h) => formatDateTime(h.effectiveFrom), sortValue: (h) => h.effectiveFrom },
-          { id: "material", header: "Material", cell: (h) => h.material.name, sortValue: (h) => h.material.name },
-          { id: "rate", header: "Rate", align: "right", cell: (h) => <MoneyText paisa={h.ratePaisa} /> },
-          { id: "by", header: "Changed by", cell: (h) => h.changedBy?.name ?? "—" },
+          { id: "date", header: t("field.date"), cell: (h) => formatDateTime(h.effectiveFrom), sortValue: (h) => h.effectiveFrom },
+          { id: "material", header: t("field.material"), cell: (h) => h.material.name, sortValue: (h) => h.material.name },
+          { id: "rate", header: t("field.rate"), align: "right", cell: (h) => <MoneyText paisa={h.ratePaisa} /> },
+          { id: "by", header: t("masterData.common.changedBy"), cell: (h) => h.changedBy?.name ?? "—" },
         ]}
       />
     </SectionCard>
@@ -183,6 +186,7 @@ function RateHistory({ supplierId }: { supplierId: string }) {
 }
 
 function SupplierDetailBody({ supplierId }: { supplierId: string }) {
+  const t = useT();
   const readOnly = useReadOnly();
   const { can, canSee } = usePermissions();
   const canEdit = can("masterdata.supplier.edit") && !readOnly;
@@ -204,7 +208,11 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
           <PageHeader
             title={supplier.name}
             meta={<StatusBadge domain="active" value={supplier.isActive} />}
-            breadcrumbs={[{ label: "Suppliers & Stock" }, { label: "All Suppliers", href: "/suppliers-stock/suppliers" }, { label: supplier.name }]}
+            breadcrumbs={[
+              { label: t("crumb.suppliersStock") },
+              { label: t("masterData.suppliers.title"), href: "/suppliers-stock/suppliers" },
+              { label: supplier.name },
+            ]}
             actions={
               <>
                 {isOwner ? (
@@ -213,14 +221,16 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
                     isActive={supplier.isActive}
                     size="default"
                     loading={toggling}
-                    consequence="They won't appear in new purchases. History and balances are kept."
-                    onToggle={(active) => run(() => setActive({ id: supplier.id, active }).unwrap(), { success: `${supplier.name} ${active ? "activated" : "deactivated"}` })}
+                    consequence={t("masterData.suppliers.consequence")}
+                    onToggle={(active) => run(() => setActive({ id: supplier.id, active }).unwrap(), {
+                        success: t(active ? "masterData.common.activated" : "masterData.common.deactivated", { name: supplier.name }),
+                      })}
                   />
                 ) : null}
                 {canEdit ? (
                   <Button variant="outline" onClick={() => setEditOpen(true)}>
                     <Pencil data-icon="inline-start" />
-                    Edit
+                    {t("common.edit")}
                   </Button>
                 ) : null}
               </>
@@ -228,24 +238,24 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
           />
           <Tabs value={tab} onValueChange={setTab} className="gap-5">
             <TabsList>
-              <TabsTrigger value="info">Info</TabsTrigger>
-              <TabsTrigger value="rates">Agreed Rates</TabsTrigger>
-              {seesRates && seesLedger ? <TabsTrigger value="ledger">Ledger</TabsTrigger> : null}
-              {seesRates && seesPayments ? <TabsTrigger value="payments">Payments</TabsTrigger> : null}
+              <TabsTrigger value="info">{t("masterData.suppliers.tabInfo")}</TabsTrigger>
+              <TabsTrigger value="rates">{t("masterData.suppliers.tabRates")}</TabsTrigger>
+              {seesRates && seesLedger ? <TabsTrigger value="ledger">{t("masterData.suppliers.tabLedger")}</TabsTrigger> : null}
+              {seesRates && seesPayments ? <TabsTrigger value="payments">{t("field.payments")}</TabsTrigger> : null}
             </TabsList>
             <TabsContent value="info" className="space-y-5">
-              <SectionCard title="Details">
+              <SectionCard title={t("masterData.suppliers.details")}>
                 <InfoList
                   columns={3}
                   items={[
-                    { label: "Category", value: supplier.category },
-                    { label: "Phone", value: formatPhone(supplier.phone) },
-                    { label: "City", value: supplier.city },
-                    { label: "Address", value: supplier.address },
-                    { label: "NTN", value: supplier.ntn },
-                    { label: "Added", value: formatDate(supplier.createdAt) },
-                    ...(seesRates ? [{ label: "Udhaar balance", value: <MoneyText paisa={supplier.udhaarBalancePaisa} className="font-semibold" /> }] : []),
-                    { label: "Notes", value: supplier.notes },
+                    { label: t("field.category"), value: supplier.category },
+                    { label: t("field.phone"), value: supplier.phone ? <bdi dir="ltr">{formatPhone(supplier.phone)}</bdi> : null },
+                    { label: t("field.city"), value: supplier.city },
+                    { label: t("field.address"), value: supplier.address },
+                    { label: t("field.ntn"), value: supplier.ntn ? <bdi dir="ltr">{supplier.ntn}</bdi> : null },
+                    { label: t("masterData.common.colAdded"), value: formatDate(supplier.createdAt) },
+                    ...(seesRates ? [{ label: t("masterData.suppliers.udhaarBalance"), value: <MoneyText paisa={supplier.udhaarBalancePaisa} className="font-semibold" /> }] : []),
+                    { label: t("field.notes"), value: supplier.notes },
                   ]}
                 />
               </SectionCard>

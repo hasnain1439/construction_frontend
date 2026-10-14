@@ -1,4 +1,7 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
+import { useStatusT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { statusMeta, TONE_CLASSES, type StatusDomain, type StatusTone } from "@/lib/status";
 
@@ -8,9 +11,10 @@ type Props =
 
 /** Pill badge: colour + icon + label. Use `domain`+`value` for known statuses. */
 export function StatusBadge(props: Props) {
+  const statusT = useStatusT();
   const meta =
     "domain" in props && props.domain
-      ? { ...statusMeta(props.domain, props.value), ...(props.label ? { label: props.label } : {}) }
+      ? { ...statusMeta(props.domain, props.value), label: props.label || statusT(props.domain, props.value) }
       : { tone: props.tone as StatusTone, label: props.label, icon: props.icon };
   const Icon = meta.icon;
   return (

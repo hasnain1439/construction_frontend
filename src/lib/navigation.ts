@@ -492,6 +492,14 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["logo", "ntn"],
       },
       {
+        id: "settings.openingBalances",
+        label: L("Opening Balances", "Opening balance", "ابتدائی بیلنس"),
+        href: "/settings/opening-balances",
+        available: true,
+        access: P("company.opening.manage"),
+        keywords: ["udhaar", "opening", "cash in hand", "stock", "peshgi"],
+      },
+      {
         id: "settings.materials",
         label: L("Materials", "Materials", "میٹیریلز"),
         href: "/settings/materials",

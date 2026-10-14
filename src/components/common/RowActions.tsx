@@ -50,11 +50,17 @@ export interface RowActionsProps {
 /** Shared props of a DataTable "actions" column: narrow, end-aligned, header only for screen readers. */
 export const ACTIONS_COLUMN = {
   id: "actions",
-  header: <span className="sr-only">Actions</span>,
+  header: <ActionsHeader />,
   align: "right",
   className: "w-28 whitespace-nowrap px-2",
   headerClassName: "w-28",
 } as const;
+
+/** Screen-reader-only "Actions" header (a component so it follows the language). */
+function ActionsHeader() {
+  const t = useT();
+  return <span className="sr-only">{t("common.actions")}</span>;
+}
 
 const stop = (e: SyntheticEvent) => e.stopPropagation();
 
