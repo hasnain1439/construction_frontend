@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { SUPPLY_CATEGORIES } from "../constants";
 import { formatArea } from "../utils/calc";
+import { FoundationSummary } from "./FoundationSummary";
 import { wizardHref } from "../utils/links";
 
 function EditLink({ project, tab, canEdit }: { project: ProjectDetail; tab: number; canEdit?: boolean }) {
@@ -151,6 +152,16 @@ export function StructureCard({ project, canEdit }: { project: ProjectDetail; ca
         ]}
         columns={1}
       />
+    </SectionCard>
+  );
+}
+
+/** Foundation (bunyaad) — edited with the plot & structure (tab 3). */
+export function FoundationSummaryCard({ project, canEdit }: { project: ProjectDetail; canEdit?: boolean }) {
+  const t = useT();
+  return (
+    <SectionCard title={t("projects.foundation.title")} actions={<EditLink project={project} tab={3} canEdit={canEdit} />}>
+      <FoundationSummary foundation={project.foundation} />
     </SectionCard>
   );
 }

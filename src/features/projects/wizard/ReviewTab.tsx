@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { strings as projectStrings } from "@/i18n/areas/projects/en";
 import { type TranslationKey, useEnumT, useT } from "@/i18n/useT";
 import { formatPhone } from "@/lib/phone";
+import { FoundationSummary } from "../components/FoundationSummary";
 import { WIZARD_STEPS } from "../constants";
 import { formatArea } from "../utils/calc";
 import { useWizard } from "./WizardContext";
@@ -108,6 +109,9 @@ function Summary({ review }: { review: ProjectReview }) {
             { label: t("projects.section.boundaryWall"), value: s.coverage.boundaryWall ? t("common.yes") : t("common.no") },
           ]}
         />
+      </SectionCard>
+      <SectionCard title={t("projects.foundation.title")} className="lg:col-span-2">
+        <FoundationSummary foundation={s.foundation} />
       </SectionCard>
       <SectionCard title={t("projects.review.roomsPerFloor")} flush>
         <table className="w-full text-sm">

@@ -176,6 +176,15 @@ The whole company app is in three languages; the platform admin console (`/admin
 
 ## Recent features
 
+- **Foundation (Bunyaad)** card in the project wizard's Plot & Structure tab (`wizard/FoundationCard.tsx`), saved
+  with `PATCH /projects/:id/plot-structure` as `foundation`. Starts from Pakistani defaults (brick strip footing,
+  5 ft excavation, 3 ft wide, 9″ thick — 12″ for other types —, 2 ft plinth, 1.5″ DPC, PCC 1:4:8 × 3″, RCC 1:2:4 with
+  #4 (12 mm) bars, termite treatment on, DPC in PCC + waterproofing compound, medium soil). Fields follow the type:
+  strip width; footing count + L × W for isolated / combined; pile count, diameter and depth for piles; RCC mix and
+  main bar wherever RCC applies (not a brick / stone strip footing); the soil test note only once a test is ticked.
+  Only the fields that apply are sent (`utils/foundation.ts` → `foundationToBody`). Shown read-only in the review
+  (`components/FoundationSummary.tsx`) and as a card on the project overview and Site Setup (`FoundationSummaryCard`);
+  older projects show "Not entered yet". Locked like the rest of the tab.
 - **Workforce → Worker Types** (`/workforce/worker-types`): list, add / edit (names in three languages, rate, overtime),
   activate / deactivate. Type names elsewhere come from the API in the current language.
 - **Remember me** on login (ticked by default). Unticked, the API sets session cookies that end when the browser closes.

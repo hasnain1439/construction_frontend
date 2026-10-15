@@ -29,6 +29,7 @@ import {
   ClientCard,
   ContractCard,
   CoverageCard,
+  FoundationSummaryCard,
   PlotCard,
   RoomsSummaryCard,
   StructureCard,
@@ -235,6 +236,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
               <TeamCard project={project} canEdit={canEdit && canEditTeam} />
               <PlotCard project={project} canEdit={canEdit} />
               <StructureCard project={project} canEdit={canEdit} />
+              <FoundationSummaryCard project={project} canEdit={canEdit} />
               <CoverageCard project={project} canEdit={canEdit} />
             </div>
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
@@ -257,6 +259,7 @@ export function SiteSetupView({ projectId }: { projectId: string }) {
           <ClientCard project={project} canEdit={canEdit} />
           <PlotCard project={project} canEdit={canEdit} />
           <StructureCard project={project} canEdit={canEdit} />
+          <FoundationSummaryCard project={project} canEdit={canEdit} />
           <CoverageCard project={project} canEdit={canEdit} />
         </div>
       )}
