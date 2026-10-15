@@ -23,6 +23,8 @@ import { cn } from "@/lib/cn";
 import { useMe } from "@/store/hooks";
 import { DEFAULT_CEILING, FLOOR_ORDER, PLOT_UNITS, STRUCTURE_TYPES } from "../constants";
 import { formatArea, plotCalc } from "../utils/calc";
+import { foundationToBody, foundationToForm } from "../utils/foundation";
+import { FoundationCard } from "./FoundationCard";
 import { plotStructureSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
@@ -48,6 +50,8 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
     hasBasement: p?.structure?.hasBasement ?? false,
     basementHeightFt: p?.structure?.basementHeightFt ?? null,
     floors: floors.length ? floors.filter((f) => f.level !== "BASEMENT") : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND }],
+    // Pakistani defaults (brick strip footing) until a foundation is saved
+    foundation: foundationToForm(p?.foundation),
   };
 }
 
@@ -194,6 +198,7 @@ export function PlotStructureTab() {
             hasBasement: v.hasBasement,
             ...(v.hasBasement ? { basementHeightFt: v.basementHeightFt as number } : {}),
             floors,
+            foundation: foundationToBody(v.foundation),
             ...(force ? { force: true } : {}),
           },
         }).unwrap(),
@@ -258,6 +263,7 @@ export function PlotStructureTab() {
             <FloorsBuilder disabled={locked} />
           </div>
         </SectionCard>
+        <FoundationCard disabled={locked} />
       </Form>
       <ConfirmDialog
         open={pendingForce !== null}

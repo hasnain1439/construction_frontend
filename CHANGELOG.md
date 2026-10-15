@@ -7,6 +7,7 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **Foundation (Bunyaad)** in the project setup (Plot & Structure tab): foundation type (strip, isolated, combined, raft, pile), excavation depth, footing size and thickness, plinth height, DPC, number and size of footings or piles, masonry, PCC and RCC mix, main steel bar ("#4 (12 mm)"), termite (deemak) treatment, DPC material, soil type, water table, dewatering and soil test — pre-filled with the usual Pakistani values, with only the fields for the chosen type. It appears in the Review step and on the project overview / Site Setup. In English, Roman Urdu and Urdu; API types regenerated.
 - **Add / Edit member** is now a wide centered modal with three tabs — Personal details, Roles (tick one or more roles: Administrator, Project Manager, Munshi, Accountant, Store Keeper and your own roles) and Custom permissions (every permission as a checkbox, pre-ticked from the roles, with "+N added, −M removed"). The account type follows the roles; office and site roles can't be mixed; things you don't have yourself are disabled.
 - **Roles & Permissions**: create / edit a role in the same centered modal (Details | Permissions with Select all, a section per module and a 3-column grid); templates are read-only with Duplicate to edit. The old role editor page now opens this modal.
 

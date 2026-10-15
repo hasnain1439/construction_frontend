@@ -13200,6 +13200,32 @@ export interface paths {
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
                          *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
+                         *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
                          *           "semiCoveredSqft": 180,
@@ -13335,7 +13361,7 @@ export interface paths {
         };
         /**
          * Project details
-         * @description Scoped (others → 404). Client, team, contract, plot, structure, coverage, supply rules, billing stages, floor summaries, calculations and wizard progress. MUNSHI gets only id, code, name, status, client name, site, dates and team. Financial fields only with `billing.view`.
+         * @description Scoped (others → 404). Client, team, contract, plot, structure, foundation (or null), coverage, supply rules, billing stages, floor summaries, calculations and wizard progress. MUNSHI gets only id, code, name, status, client name, site, dates and team. Financial fields only with `billing.view`.
          */
         get: {
             parameters: {
@@ -13416,6 +13442,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
@@ -13624,7 +13676,7 @@ export interface paths {
         };
         /**
          * Review before activation
-         * @description THEKEDAR, PM. `errors` block activation (missing tab fields, stages ≠ 100 %, no GROUND floor, no rooms, contract value / rate missing). `warnings` don’t: plot vs front × depth > 10 %, room area vs covered area > 15 %, no PM, no Munshi, end date < 3 months after start.
+         * @description THEKEDAR, PM. `errors` block activation (missing tab fields, stages ≠ 100 %, no GROUND floor, no rooms, contract value / rate missing). `warnings` don’t: plot vs front × depth > 10 %, room area vs covered area > 15 %, no foundation (bunyaad) entered, no PM, no Munshi, end date < 3 months after start. `summary.foundation` is the saved foundation or null.
          */
         get: {
             parameters: {
@@ -13688,6 +13740,32 @@ export interface paths {
                          *             "structureType": "FRAMED",
                          *             "hasBasement": false,
                          *             "floors": 2
+                         *           },
+                         *           "foundation": {
+                         *             "type": "STRIP",
+                         *             "excavationDepthFt": 5,
+                         *             "footingWidthFt": 3,
+                         *             "footingThicknessIn": 9,
+                         *             "plinthHeightFt": 2,
+                         *             "dpcThicknessIn": 1.5,
+                         *             "footingCount": null,
+                         *             "footingLengthFt": null,
+                         *             "pileCount": null,
+                         *             "pileDiameterIn": null,
+                         *             "pileDepthFt": null,
+                         *             "masonry": "BRICK",
+                         *             "pccMix": "1:4:8",
+                         *             "pccThicknessIn": 3,
+                         *             "rccMix": null,
+                         *             "mainBarMm": null,
+                         *             "termiteTreatment": true,
+                         *             "dpcMaterial": "PCC_WATERPROOF",
+                         *             "soilType": "MEDIUM",
+                         *             "waterTableDepthFt": null,
+                         *             "dewateringNeeded": false,
+                         *             "soilTestDone": false,
+                         *             "soilTestNote": null,
+                         *             "notes": null
                          *           },
                          *           "coverage": {
                          *             "coveredAreaSqft": 2100,
@@ -13849,6 +13927,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
@@ -14103,6 +14207,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
@@ -14373,6 +14503,32 @@ export interface paths {
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
                          *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
+                         *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
                          *           "semiCoveredSqft": 180,
@@ -14611,6 +14767,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
@@ -14891,6 +15073,32 @@ export interface paths {
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
                          *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
+                         *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
                          *           "semiCoveredSqft": 180,
@@ -15040,8 +15248,10 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Tab 3 — plot & structure (floors)
+         * Tab 3 — plot & structure (floors, foundation)
          * @description Plot in MARLA / KANAL (20 marla) / SQFT with the marla standard (225 or 272.25), front × depth, structure, basement. `floors` are upserted by level (GROUND required; BASEMENT only with `hasBasement`). Removing a floor that has rooms → 409 FLOOR_HAS_ROOMS unless `force: true` (its rooms are deleted).
+         *
+         *     `foundation` (bunyaad, optional — omitted = unchanged, `null` = cleared): `type` STRIP / ISOLATED / COMBINED / RAFT / PILE; excavation depth 1–30 ft, footing thickness 3–36 in, plinth above natural ground 0–6 ft, DPC 0.5–6 in, PCC (lean concrete) mix + 2–12 in, masonry BRICK / STONE / RCC_ONLY, termite (deemak) treatment, DPC material, soil type, water table, dewatering, soil test + note, notes. Required by type: `footingWidthFt` for STRIP / ISOLATED / COMBINED; `footingCount` + `footingLengthFt` for ISOLATED / COMBINED; `pileCount`, `pileDiameterIn`, `pileDepthFt` for PILE; `rccMix` + `mainBarMm` (10 / 12 / 16 / 20 = #3–#6) wherever RCC applies (every type except a BRICK / STONE strip footing). Fields that don’t apply are stored as null. The excavation must be at least the PCC + footing thickness deep.
          *
          *     Only while DRAFT or ACTIVE (else 409 PROJECT_LOCKED). THEKEDAR, or a PM assigned to the project (others get 404).
          */
@@ -15081,6 +15291,76 @@ export interface paths {
                          * @default false
                          */
                         force?: boolean;
+                        /** @description Foundation (bunyaad). Omitted = unchanged, null = cleared. Fields that do not apply to the type are stored as null. */
+                        foundation?: {
+                            /**
+                             * @description STRIP (wall footing), ISOLATED (column footing), COMBINED, RAFT (mat), PILE
+                             * @enum {string}
+                             */
+                            type: "STRIP" | "ISOLATED" | "COMBINED" | "RAFT" | "PILE";
+                            /** @example 5 */
+                            excavationDepthFt: number;
+                            /**
+                             * @description Strip width, or pad W (STRIP / ISOLATED / COMBINED)
+                             * @example 3
+                             */
+                            footingWidthFt?: number;
+                            /** @example 9 */
+                            footingThicknessIn: number;
+                            /**
+                             * @description Plinth above natural ground level
+                             * @example 2
+                             */
+                            plinthHeightFt: number;
+                            /** @example 1.5 */
+                            dpcThicknessIn: number;
+                            /** @description ISOLATED / COMBINED */
+                            footingCount?: number;
+                            /** @description Pad L (ISOLATED / COMBINED) */
+                            footingLengthFt?: number;
+                            /** @description PILE */
+                            pileCount?: number;
+                            /** @description PILE */
+                            pileDiameterIn?: number;
+                            /** @description PILE */
+                            pileDepthFt?: number;
+                            /** @enum {string} */
+                            masonry: "BRICK" | "STONE" | "RCC_ONLY";
+                            /**
+                             * @description Lean concrete under the footing
+                             * @enum {string}
+                             */
+                            pccMix: "1:4:8" | "1:3:6" | "1:2:4";
+                            /** @example 3 */
+                            pccThicknessIn: number;
+                            /**
+                             * @description Where RCC applies (every type except a brick / stone strip footing)
+                             * @enum {string}
+                             */
+                            rccMix?: "1:2:4" | "1:1.5:3";
+                            /** @description Main steel bar in mm: 10 (#3), 12 (#4), 16 (#5), 20 (#6) */
+                            mainBarMm?: 10 | 12 | 16 | 20;
+                            /**
+                             * @description Deemak (anti-termite) treatment
+                             * @default true
+                             */
+                            termiteTreatment?: boolean;
+                            /**
+                             * @default PCC_WATERPROOF
+                             * @enum {string}
+                             */
+                            dpcMaterial?: "BITUMEN" | "PCC_WATERPROOF";
+                            /** @enum {string} */
+                            soilType?: "HARD" | "MEDIUM" | "SOFT" | "SANDY" | "FILLED" | "CLAY";
+                            waterTableDepthFt?: number | null;
+                            /** @default false */
+                            dewateringNeeded?: boolean;
+                            /** @default false */
+                            soilTestDone?: boolean;
+                            /** @description Lab / report reference, bearing capacity… (only with soilTestDone) */
+                            soilTestNote?: string;
+                            notes?: string;
+                        } | null;
                     };
                 };
             };
@@ -15152,6 +15432,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,
@@ -15402,6 +15708,32 @@ export interface paths {
                          *           "structureType": "FRAMED",
                          *           "hasBasement": false,
                          *           "basementHeightFt": null
+                         *         },
+                         *         "foundation": {
+                         *           "type": "STRIP",
+                         *           "excavationDepthFt": 5,
+                         *           "footingWidthFt": 3,
+                         *           "footingThicknessIn": 9,
+                         *           "plinthHeightFt": 2,
+                         *           "dpcThicknessIn": 1.5,
+                         *           "footingCount": null,
+                         *           "footingLengthFt": null,
+                         *           "pileCount": null,
+                         *           "pileDiameterIn": null,
+                         *           "pileDepthFt": null,
+                         *           "masonry": "BRICK",
+                         *           "pccMix": "1:4:8",
+                         *           "pccThicknessIn": 3,
+                         *           "rccMix": null,
+                         *           "mainBarMm": null,
+                         *           "termiteTreatment": true,
+                         *           "dpcMaterial": "PCC_WATERPROOF",
+                         *           "soilType": "MEDIUM",
+                         *           "waterTableDepthFt": null,
+                         *           "dewateringNeeded": false,
+                         *           "soilTestDone": false,
+                         *           "soilTestNote": null,
+                         *           "notes": null
                          *         },
                          *         "coverage": {
                          *           "coveredAreaSqft": 3950,

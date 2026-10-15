@@ -128,6 +128,45 @@ export interface ProjectStructure {
   basementHeightFt: number | null;
 }
 
+/** Foundation (bunyaad) request body of PATCH /projects/:id/plot-structure. */
+export type FoundationInput = NonNullable<UpdatePlotStructureBody["foundation"]>;
+export type FoundationType = FoundationInput["type"];
+export type FoundationMasonry = FoundationInput["masonry"];
+export type PccMix = FoundationInput["pccMix"];
+export type RccMix = NonNullable<FoundationInput["rccMix"]>;
+/** Main bar diameter in mm: 10 (#3), 12 (#4), 16 (#5), 20 (#6). */
+export type BarSizeMm = NonNullable<FoundationInput["mainBarMm"]>;
+export type DpcMaterial = NonNullable<FoundationInput["dpcMaterial"]>;
+export type SoilType = NonNullable<FoundationInput["soilType"]>;
+
+/** Saved foundation (backend foundation.ts): every key present, null where it does not apply to the type. */
+export interface ProjectFoundation {
+  type: FoundationType;
+  excavationDepthFt: number;
+  footingWidthFt: number | null;
+  footingThicknessIn: number;
+  plinthHeightFt: number;
+  dpcThicknessIn: number;
+  footingCount: number | null;
+  footingLengthFt: number | null;
+  pileCount: number | null;
+  pileDiameterIn: number | null;
+  pileDepthFt: number | null;
+  masonry: FoundationMasonry;
+  pccMix: PccMix;
+  pccThicknessIn: number;
+  rccMix: RccMix | null;
+  mainBarMm: BarSizeMm | null;
+  termiteTreatment: boolean;
+  dpcMaterial: DpcMaterial;
+  soilType: SoilType | null;
+  waterTableDepthFt: number | null;
+  dewateringNeeded: boolean;
+  soilTestDone: boolean;
+  soilTestNote: string | null;
+  notes: string | null;
+}
+
 export interface ProjectCoverage {
   coveredAreaSqft: number | null;
   semiCoveredSqft: number;
@@ -200,6 +239,8 @@ export interface ProjectDetail extends ProjectBasic {
   contract?: ProjectContract;
   plot?: ProjectPlot;
   structure?: ProjectStructure;
+  /** null = not entered yet. */
+  foundation?: ProjectFoundation | null;
   coverage?: ProjectCoverage;
   supplyRules?: SupplyRule[];
   billingStages?: BillingStage[];
@@ -250,6 +291,8 @@ export interface ProjectReview {
       cornerPlot: boolean;
     };
     structure: { structureType: StructureType | null; hasBasement: boolean; floors: number };
+    /** Absent from an older API; null = not entered. */
+    foundation?: ProjectFoundation | null;
     coverage: {
       coveredAreaSqft: number | null;
       semiCoveredSqft: number;

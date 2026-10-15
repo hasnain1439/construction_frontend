@@ -4,6 +4,7 @@ import { msg } from "@/i18n/message";
 import type { TranslationKey } from "@/i18n/useT";
 import { normaliseAnyPhone, ANY_PHONE_ERROR } from "@/lib/phone";
 import { requiredText } from "@/lib/validation";
+import { hasFootingWidth, hasPads, isPile } from "../utils/foundation";
 
 /** `label` is a dictionary key ("projects.basic.startDate"). */
 const required = (label: TranslationKey) => msg("validation.required", { label });
@@ -102,6 +103,65 @@ export const floorRowSchema = z.object({
   ceilingHeightFt: positive("projects.room.height", 30),
 });
 
+/** Foundation (bunyaad) card: ranges as on the backend; type-specific fields checked only when they apply. */
+export const foundationSchema = z
+  .object({
+    type: z.enum(["STRIP", "ISOLATED", "COMBINED", "RAFT", "PILE"]),
+    excavationDepthFt: z.number().nullable(),
+    footingWidthFt: z.number().nullable(),
+    footingThicknessIn: z.number().nullable(),
+    plinthHeightFt: z.number().nullable(),
+    dpcThicknessIn: z.number().nullable(),
+    footingCount: z.number().nullable(),
+    footingLengthFt: z.number().nullable(),
+    pileCount: z.number().nullable(),
+    pileDiameterIn: z.number().nullable(),
+    pileDepthFt: z.number().nullable(),
+    masonry: z.enum(["BRICK", "STONE", "RCC_ONLY"]),
+    pccMix: z.enum(["1:4:8", "1:3:6", "1:2:4"]),
+    pccThicknessIn: z.number().nullable(),
+    rccMix: z.enum(["1:2:4", "1:1.5:3"]),
+    mainBarMm: z.enum(["10", "12", "16", "20"]),
+    termiteTreatment: z.boolean(),
+    dpcMaterial: z.enum(["BITUMEN", "PCC_WATERPROOF"]),
+    soilType: z.enum(["HARD", "MEDIUM", "SOFT", "SANDY", "FILLED", "CLAY"]).nullable(),
+    waterTableDepthFt: z.number().nullable(),
+    dewateringNeeded: z.boolean(),
+    soilTestDone: z.boolean(),
+    soilTestNote: z.string().trim().max(300, msg("projects.v.upTo300")),
+    notes: z.string().trim().max(1000, msg("projects.v.upTo1000")),
+  })
+  .superRefine((v, ctx) => {
+    const check = (key: keyof typeof v, label: TranslationKey, min: number, max: number, opts: { optional?: boolean; whole?: boolean } = {}) => {
+      const value = v[key] as number | null;
+      if (value === null) {
+        if (!opts.optional) ctx.addIssue({ code: "custom", path: [key], message: required(label) });
+        return;
+      }
+      if (value < min || value > max) ctx.addIssue({ code: "custom", path: [key], message: msg("projects.v.range", { label, min: String(min), max: String(max) }) });
+      else if (opts.whole && !Number.isInteger(value)) ctx.addIssue({ code: "custom", path: [key], message: msg("projects.v.wholeNumber") });
+    };
+    check("excavationDepthFt", "projects.foundation.excavationDepth", 1, 30);
+    check("footingThicknessIn", "projects.foundation.footingThickness", 3, 36);
+    check("plinthHeightFt", "projects.foundation.plinthHeight", 0, 6);
+    check("dpcThicknessIn", "projects.foundation.dpcThickness", 0.5, 6);
+    check("pccThicknessIn", "projects.foundation.pccThickness", 2, 12);
+    check("waterTableDepthFt", "projects.foundation.waterTable", 0, 300, { optional: true });
+    if (hasFootingWidth(v.type)) check("footingWidthFt", hasPads(v.type) ? "projects.foundation.footingWidthPad" : "projects.foundation.footingWidth", 1, 20);
+    if (hasPads(v.type)) {
+      check("footingCount", "projects.foundation.footingCount", 1, 500, { whole: true });
+      check("footingLengthFt", "projects.foundation.footingLength", 1, 20);
+    }
+    if (isPile(v.type)) {
+      check("pileCount", "projects.foundation.pileCount", 1, 1000, { whole: true });
+      check("pileDiameterIn", "projects.foundation.pileDiameter", 6, 60);
+      check("pileDepthFt", "projects.foundation.pileDepth", 5, 150);
+    }
+    if (v.excavationDepthFt !== null && v.footingThicknessIn !== null && v.pccThicknessIn !== null && v.excavationDepthFt * 12 < v.footingThicknessIn + v.pccThicknessIn) {
+      ctx.addIssue({ code: "custom", path: ["excavationDepthFt"], message: msg("projects.v.excavationShallow") });
+    }
+  });
+
 export const plotStructureSchema = z
   .object({
     plotUnit: z.enum(["MARLA", "KANAL", "SQFT"]),
@@ -114,6 +174,7 @@ export const plotStructureSchema = z
     hasBasement: z.boolean(),
     basementHeightFt: z.number().nullable(),
     floors: z.array(floorRowSchema).min(1, msg("projects.v.addGroundFloor")),
+    foundation: foundationSchema,
   })
   .superRefine((v, ctx) => {
     if (!v.floors.some((f) => f.level === "GROUND")) ctx.addIssue({ code: "custom", path: ["floors"], message: msg("projects.v.groundRequired") });
