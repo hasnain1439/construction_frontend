@@ -15,6 +15,7 @@ import * as estimatesEn from "./areas/estimates/en";
 import * as salesEn from "./areas/sales/en";
 import * as scheduleEn from "./areas/schedule/en";
 import * as controlEn from "./areas/control/en";
+import * as reportsEn from "./areas/reports/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -33,6 +34,7 @@ export const en = {
   sales: salesEn.strings,
   schedule: scheduleEn.strings,
   control: controlEn.strings,
+  reports: reportsEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",

@@ -6,6 +6,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 18 — Reports
+- **Reports → Delay Analysis** is live (no longer "Coming soon"), with **Variance Report**, **Change Order Register**, **Equipment Utilisation** and **Snag Summary** next to it: filters (project, dates; change-order status / type; equipment category and per item / per category), charts (delay days by cause, progress vs plan, change orders by status, utilisation, snags by status), KPIs, a translated table and CSV / Excel / PDF export with the same filters.
+- Picking a project on Delay Analysis, Variance or Snag Summary opens that project's full report (stoppages, change-order days, late milestones / material variance, cost buckets, burn by month / snags by assignee, open list, defect period) with its own CSV / Excel / PDF export.
+- Each page needs Reports access plus the module's view permission (control, change orders, equipment, snags); the Munshi never sees them. Rupee columns appear only with the matching data-visibility permission, with a note when they are hidden.
+- Everything in English, Roman Urdu and Urdu (new area `src/i18n/areas/reports/`), including column headers and statuses the API sends in English.
+
 ### Step 12
 - **Sales → Quote Pipeline** is live: a board with one column per status (Draft, Sent, Negotiation, Won, Lost, Expired) or a table; search, status filter and **Needs follow-up** (sent more than 5 days ago with no reply).
 - **New Quote**: client (existing or new), title, site, plot, covered area, storeys, mumty / basement, structure, contract type, material quality, payment schedule, margin / finishing % and an optional agreed price on one side; on the other a **live internal view** (price, per sq ft, cost, margin, cost by work section, key quantities, floors assumed, warnings) and the **customer view** (what the quotation shows — never costs or margins).

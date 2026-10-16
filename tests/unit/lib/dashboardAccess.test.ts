@@ -11,7 +11,7 @@ const visible = (me: ReturnType<typeof meFixture>, id: string) =>
     ?.items.map((i) => i.id) ?? [];
 
 describe("Step 9 navigation", () => {
-  it("dashboard, finance and report pages are built (not ComingSoon) — Delay Analysis still waits for the schedule", () => {
+  it("dashboard, finance and report pages are built (not ComingSoon) — Step 18 adds delay, variance, change orders, equipment, snags", () => {
     for (const id of ["dashboard.overview", "dashboard.approvals", "dashboard.alerts"]) expect(section("dashboard").items.find((i) => i.id === id)?.available).toBe(true);
     expect(section("finance").items.every((i) => i.available)).toBe(true);
     const reports = section("reports").items;
@@ -23,14 +23,19 @@ describe("Step 9 navigation", () => {
       "/reports/supplier-ageing",
       "/reports/receivables-ageing",
       "/reports/stock-valuation",
+      "/reports/delay-analysis",
+      "/reports/variance",
+      "/reports/change-orders",
+      "/reports/equipment-utilisation",
+      "/reports/snags",
     ]);
-    expect(reports.find((i) => i.id === "reports.delay")?.available).toBe(false);
+    expect(reports.every((i) => i.available)).toBe(true);
   });
 
   it("PM without financials: Finance has only cash floats (cashbook.float.view), no money reports", () => {
     const pm = meFixture("PM");
     expect(visible(pm, "finance")).toEqual(["finance.floats"]);
-    expect(visible(pm, "reports")).toEqual(["reports.material", "reports.labor", "reports.cashbook", "reports.delay"]);
+    expect(visible(pm, "reports")).toEqual(["reports.material", "reports.labor", "reports.cashbook", "reports.delay", "reports.variance", "reports.changeOrders", "reports.equipment", "reports.snags"]);
   });
 
   it("PM with financials: Profit & Loss and the project summary report, not the company reports", () => {

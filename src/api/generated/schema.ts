@@ -50858,6 +50858,1169 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/delay-analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Delay analysis — all projects
+         * @description finance.reports.view + control.view (its project scope); no money. One row per project with a schedule: original / revised / projected end, progress, working days of delay by owner / excusable / contractor, change-order days, total, calendar days late, days ahead, late and behind milestones, top reasons (in the file language). `extra.projects[]` (JSON only): days per category and every reason with its days. The per-project book with stoppages, change orders and milestones: GET /reports/delay-analysis/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description change-orders only: one change-order status */
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                    /** @description change-orders only: ADDITION or DEDUCTION */
+                    type?: "ADDITION" | "DEDUCTION";
+                    /** @description equipment-utilisation only: one equipment category */
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    /** @description equipment-utilisation only: one row per item (default) or per category */
+                    group?: "item" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "delay-analysis",
+                         *         "title": "Delay analysis — all projects",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/variance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Variance — company summary
+         * @description finance.reports.view + control.view (its project scope). One row per ACTIVE / CLOSEOUT project: physical vs planned progress, materials over / under / not in the estimate; material PKR impact (fields.rates); cost estimate to date, actual, variance and % (fields.amounts + fields.rates); spent % of contract and the gap to progress (fields.amounts + fields.contract); revised contract (fields.contract); estimate at completion and projected margin (fields.amounts + rates + contract + profit). Money columns are left out without the permission. Plan + estimate are loaded once per project and the cost rows in one query. Per project: GET /reports/variance/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description change-orders only: one change-order status */
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                    /** @description change-orders only: ADDITION or DEDUCTION */
+                    type?: "ADDITION" | "DEDUCTION";
+                    /** @description equipment-utilisation only: one equipment category */
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    /** @description equipment-utilisation only: one row per item (default) or per category */
+                    group?: "item" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "variance",
+                         *         "title": "Variance — company summary",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/change-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Change order register
+         * @description finance.reports.view + changeorder.view (its project scope); the total needs fields.rates or fields.amounts. Every change order across the projects: project, code, title, type, status, total (signed; left out without the price permission), days, proof type, the invoice that billed it, created and approved dates. Filters: projectId, status, type, from / to (created date). Totals count the approved set only (APPROVED / IN_PROGRESS / COMPLETED / BILLED). `extra`: count per status, approved count / total. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description change-orders only: one change-order status */
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                    /** @description change-orders only: ADDITION or DEDUCTION */
+                    type?: "ADDITION" | "DEDUCTION";
+                    /** @description equipment-utilisation only: one equipment category */
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    /** @description equipment-utilisation only: one row per item (default) or per category */
+                    group?: "item" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "change-orders",
+                         *         "title": "Change order register",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/equipment-utilisation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Equipment utilisation
+         * @description finance.reports.view + equipment.view (sites of its project scope); hire / rent / loss value need fields.rates. Per item (`group=item`, default) or category: owned at the end of the period, days on site / idle, unit-days on site / idle (end-of-day ledger balances, Karachi days; idle = owned units at the yard or in transit), utilisation % (unit-days on site ÷ owned unit-days), rented unit-days, internal hire charged and rent of the period (EquipmentCharge), lost / damaged quantity and value (EquipmentLoss reported in the period). Filters: from / to (default the last 30 days, at most 366), projectId (that site only), category. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description change-orders only: one change-order status */
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                    /** @description change-orders only: ADDITION or DEDUCTION */
+                    type?: "ADDITION" | "DEDUCTION";
+                    /** @description equipment-utilisation only: one equipment category */
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    /** @description equipment-utilisation only: one row per item (default) or per category */
+                    group?: "item" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "equipment-utilisation",
+                         *         "title": "Equipment utilisation",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/snags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snag summary — all projects
+         * @description finance.reports.view + closeout.snag.view (its project scope); cost attribution needs fields.amounts. One row per project with snags: total, open / fixed / verified, overdue (open past the target date), open snags by days open (0–7 / 8–30 / 31+), oldest open, defect-period snags (and still open), cost attributed to rework / sub-contractors / change orders (fields.amounts). Filters: projectId, from / to (logged date). Per project (by assignee, open list, defect-period list): GET /reports/snags/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description change-orders only: one change-order status */
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                    /** @description change-orders only: ADDITION or DEDUCTION */
+                    type?: "ADDITION" | "DEDUCTION";
+                    /** @description equipment-utilisation only: one equipment category */
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    /** @description equipment-utilisation only: one row per item (default) or per category */
+                    group?: "item" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "snags",
+                         *         "title": "Snag summary — all projects",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/delay-analysis/{projectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Delay analysis — one project (book)
+         * @description finance.reports.view + control.view. Summary (original / baseline / planned / revised / projected end, progress, days by category, calendar days late, ahead) + sections: `categories` (days and reasons), `stoppages` (approved + pending: dates, days, reason, category, status, note; total = approved days), `changeOrders` (approved change orders with days), `milestones` (late, behind or slipped vs the baseline). No money. A project without a schedule → 409 NO_SCHEDULE. `format=json` (default) returns the book: `project`, `summary` [{ key, label, type, value }], `sections` [{ key, title, columns, rows, totals }]. `csv` (summary, then each section) / `xlsx` (a summary sheet + one sheet per section) / `pdf` (letterhead, summary, one table per section) answer a signed link like the other reports, in `lang`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description snags only: snags created on / after */
+                    from?: string;
+                    /** @description snags only: snags created on / before */
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report book (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "delay-analysis-project",
+                         *         "title": "Delay analysis — one project (book)",
+                         *         "subtitle": "MSB-2026-012 DHA Phase 6 · 10 Marla · as of 16 Oct 2026",
+                         *         "generatedAt": "2026-10-16T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "summary": [
+                         *           {
+                         *             "key": "totalDays",
+                         *             "label": "Total delay days",
+                         *             "type": "int",
+                         *             "value": 5
+                         *           }
+                         *         ],
+                         *         "sections": [
+                         *           {
+                         *             "key": "stoppages",
+                         *             "title": "Stoppages",
+                         *             "columns": [
+                         *               {
+                         *                 "key": "reason",
+                         *                 "label": "Reason",
+                         *                 "type": "text"
+                         *               }
+                         *             ],
+                         *             "rows": [
+                         *               {
+                         *                 "reason": "RAIN"
+                         *               }
+                         *             ],
+                         *             "totals": null
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description NO_SCHEDULE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/variance/{projectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Variance — one project (book)
+         * @description finance.reports.view + control.view. Summary (progress, planned progress, cost totals, spent %, revised contract, projected margin — each with its money permission) + sections: `materials` (Step 14 material variance; PKR with fields.rates), `costBuckets` (estimate total / to date, actual, variance; money with fields.amounts + fields.rates), `burn` (per month: progress, cost, cumulative, spent %, gap). `format=json` (default) returns the book: `project`, `summary` [{ key, label, type, value }], `sections` [{ key, title, columns, rows, totals }]. `csv` (summary, then each section) / `xlsx` (a summary sheet + one sheet per section) / `pdf` (letterhead, summary, one table per section) answer a signed link like the other reports, in `lang`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description snags only: snags created on / after */
+                    from?: string;
+                    /** @description snags only: snags created on / before */
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report book (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "variance-project",
+                         *         "title": "Variance — one project (book)",
+                         *         "subtitle": "MSB-2026-012 DHA Phase 6 · 10 Marla · as of 16 Oct 2026",
+                         *         "generatedAt": "2026-10-16T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "summary": [
+                         *           {
+                         *             "key": "totalDays",
+                         *             "label": "Total delay days",
+                         *             "type": "int",
+                         *             "value": 5
+                         *           }
+                         *         ],
+                         *         "sections": [
+                         *           {
+                         *             "key": "stoppages",
+                         *             "title": "Stoppages",
+                         *             "columns": [
+                         *               {
+                         *                 "key": "reason",
+                         *                 "label": "Reason",
+                         *                 "type": "text"
+                         *               }
+                         *             ],
+                         *             "rows": [
+                         *               {
+                         *                 "reason": "RAIN"
+                         *               }
+                         *             ],
+                         *             "totals": null
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/snags/{projectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snag summary — one project (book)
+         * @description finance.reports.view + closeout.snag.view. Summary (counts, defect period, cost attribution with fields.amounts) + sections: `byAssignee` (worker / sub-contractor / nobody: open, fixed, verified, overdue, cost), `open` (oldest first: location, assignee, days open, target, overdue days), `defectPeriod`. from / to = logged date. `format=json` (default) returns the book: `project`, `summary` [{ key, label, type, value }], `sections` [{ key, title, columns, rows, totals }]. `csv` (summary, then each section) / `xlsx` (a summary sheet + one sheet per section) / `pdf` (letterhead, summary, one table per section) answer a signed link like the other reports, in `lang`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description snags only: snags created on / after */
+                    from?: string;
+                    /** @description snags only: snags created on / before */
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report book (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "snags-project",
+                         *         "title": "Snag summary — one project (book)",
+                         *         "subtitle": "MSB-2026-012 DHA Phase 6 · 10 Marla · as of 16 Oct 2026",
+                         *         "generatedAt": "2026-10-16T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000012",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "summary": [
+                         *           {
+                         *             "key": "totalDays",
+                         *             "label": "Total delay days",
+                         *             "type": "int",
+                         *             "value": 5
+                         *           }
+                         *         ],
+                         *         "sections": [
+                         *           {
+                         *             "key": "stoppages",
+                         *             "title": "Stoppages",
+                         *             "columns": [
+                         *               {
+                         *                 "key": "reason",
+                         *                 "label": "Reason",
+                         *                 "type": "text"
+                         *               }
+                         *             ],
+                         *             "rows": [
+                         *               {
+                         *                 "reason": "RAIN"
+                         *               }
+                         *             ],
+                         *             "totals": null
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{id}/daily-logs": {
         parameters: {
             query?: never;

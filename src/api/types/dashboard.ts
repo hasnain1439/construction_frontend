@@ -327,9 +327,15 @@ export interface CashFloatsOverview {
 
 // ─── Reports ────────────────────────────────────────────────────────────────
 
-export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation";
+/** Step 18 reports (finance.reports.view + the module's view key). */
+export type Step18ReportName = "delay-analysis" | "variance" | "change-orders" | "equipment-utilisation" | "snags";
+export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | Step18ReportName;
+/** Per-project report books (GET /reports/<name>/:projectId). */
+export type ReportBookName = "delay-analysis" | "variance" | "snags";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";
-export type ReportQuery = QueryParams<"/api/v1/reports/project-summary", "get">;
+/** Filters of every report (the Step 18 ones add status / type / category / group; the Phase 1 ones ignore them). */
+export type ReportQuery = QueryParams<"/api/v1/reports/change-orders", "get">;
+export type ReportBookQuery = QueryParams<"/api/v1/reports/snags/{projectId}", "get">;
 export type ReportColumnType = "text" | "money" | "qty" | "int" | "percent" | "date";
 export type ReportCell = string | number | null;
 export interface ReportTable {
@@ -337,11 +343,55 @@ export interface ReportTable {
   title: string;
   subtitle: string;
   generatedAt: IsoDateTime;
-  filters: { projectId: Id | null; from: IsoDate | null; to: IsoDate | null };
-  columns: Array<{ key: string; label: string; type: ReportColumnType }>;
+  filters: { projectId: Id | null; from: IsoDate | null; to: IsoDate | null; status?: string; type?: string; category?: string; group?: string };
+  columns: ReportColumn[];
   rows: Array<Record<string, ReportCell>>;
   totals: Record<string, ReportCell> | null;
   notes?: string[];
+  /** Step 18: extra JSON for charts (never in the files). */
+  extra?: ReportExtra;
+}
+export interface ReportColumn {
+  key: string;
+  label: string;
+  type: ReportColumnType;
+}
+export interface ReportDelayReason {
+  reason: string;
+  category: "OWNER" | "EXCUSABLE" | "CONTRACTOR";
+  days: number;
+}
+/** Step 18 `extra` by report: delay analysis (projects), change orders (byStatus …), equipment (period). */
+export interface ReportExtra {
+  projects?: Array<{ projectId: Id; code: string; categories: Array<{ category: ReportDelayReason["category"]; days: number }>; reasons: ReportDelayReason[] }>;
+  byStatus?: Record<string, number>;
+  approvedCount?: number;
+  approvedTotalPaisa?: Paisa;
+  from?: IsoDate;
+  to?: IsoDate;
+  days?: number;
+}
+export interface ReportSection {
+  key: string;
+  title: string;
+  columns: ReportColumn[];
+  rows: Array<Record<string, ReportCell>>;
+  totals: Record<string, ReportCell> | null;
+  notes?: string[];
+}
+/** Step 18 · one project's report: a summary + several tables. */
+export interface ReportBook {
+  name: string;
+  title: string;
+  subtitle: string;
+  generatedAt: IsoDateTime;
+  filters: { projectId: Id; from: IsoDate | null; to: IsoDate | null };
+  project: { id: Id; code: string; name: string; status: string };
+  summary: Array<{ key: string; label: string; type: ReportColumnType; value: ReportCell }>;
+  sections: ReportSection[];
+  notes?: string[];
+  /** Delay book: the delay days per category and every reason (to label them in the reader's language). */
+  extra?: { categories?: Array<{ category: ReportDelayReason["category"]; days: number }>; reasons?: ReportDelayReason[] };
 }
 export interface ReportFile {
   attachmentId: Id;

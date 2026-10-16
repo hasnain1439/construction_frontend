@@ -455,6 +455,8 @@ export const ENDPOINTS = {
 
   reports: {
     byName: (name: string) => `/reports/${id(name)}`,
+    /** Step 18 · one project's report book (delay analysis, variance, snags). */
+    book: (name: string, projectId: string) => `/reports/${id(name)}/${id(projectId)}`,
   },
 
   admin: {
