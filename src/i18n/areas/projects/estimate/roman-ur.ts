@@ -279,6 +279,8 @@ export const strings: Widen<typeof En.strings> = {
     RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh kharche mein shamil nahin.",
     LABOUR_RATES_MISSING: "In ki mazdoori ka rate nahin: {items}. Mazdoori mein shamil nahin.",
     CONTRACT_VALUE_MISSING: "Theke ki raqam nahin — nafa nahin nikal sakta.",
+    STEEL_NORM_DEVIATION: "Sariya covered area ke fi murabba ft {actual} kg ban raha hai, qawaid ke mayaar {norm} se {percent}% farq — dhanche ki maloomat check karein.",
+    RCC_NORM_DEVIATION: "RCC concrete covered area ke fi murabba ft {actual} cft ban raha hai, qawaid ke mayaar {norm} se {percent}% farq — dhanche ki maloomat check karein.",
     CONTRACT_INCLUDES_FINISHING:
       "Poora theka: theke ki raqam mein finishing bhi hai, jo is grey structure andaze mein nahin.",
     openSetup: "Setup kholein",

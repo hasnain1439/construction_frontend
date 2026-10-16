@@ -6,6 +6,7 @@
  */
 import type { Id, IsoDateTime, Paisa, RequestBody } from "./common";
 import type { ContractType, FloorLevel, StructureType, SuppliedBy } from "./projects";
+import type { BoqPreview } from "./boq";
 
 export type EstimateStage = "FOUNDATION" | "WALLS" | "RCC" | "PLASTER";
 export type EstimateMaterial =
@@ -202,7 +203,10 @@ export type EstimateWarningCode =
   | "ROOF_TOO_THIN"
   | "ROOF_SPAN_NEEDS_BEAM"
   | "ROOF_MAIN_SPACING_WIDE"
-  | "ROOF_DIST_SPACING_WIDE";
+  | "ROOF_DIST_SPACING_WIDE"
+  // BoQ (Step 11)
+  | "STEEL_NORM_DEVIATION"
+  | "RCC_NORM_DEVIATION";
 
 export interface EstimateWarning {
   code: EstimateWarningCode;
@@ -212,7 +216,8 @@ export interface EstimateWarning {
   /** The floor it is about (roof / wall warnings). */
   floor?: { level: FloorLevel; name: string };
   materials?: EstimateMaterial[];
-  items?: EstimateLabourItem[];
+  /** Labour items (live estimate) or BoQ material / labour keys (the BoQ's RATES_MISSING / LABOUR_RATES_MISSING). */
+  items?: string[];
 }
 
 export interface ProjectEstimate {
@@ -265,6 +270,8 @@ export interface ProjectEstimate {
   /** Contract value (labour-only: rate) from this estimate — needs fields.contract + fields.rates; null before a contract type. */
   contractSuggestion?: ContractSuggestion | null;
   warnings: EstimateWarning[];
+  /** BoQ preview = what POST /projects/:id/estimates would save (Step 11). Absent from an older API. */
+  boq?: BoqPreview;
 }
 
 /** Where a margin / finishing percentage comes from: the company settings or this project. */

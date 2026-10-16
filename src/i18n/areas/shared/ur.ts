@@ -205,6 +205,8 @@ export const strings: Widen<typeof En.strings> = {
       POSTED: "ہو گیا",
     },
     topup: { PENDING: "زیر التوا", APPROVED: "بھیج دیا", REJECTED: "رد" },
+    estimateRevision: { DRAFT: "مسودہ", APPROVED: "منظور شدہ", SUPERSEDED: "پرانا (تبدیل شدہ)" },
+    rulebookVersion: { DRAFT: "مسودہ", PUBLISHED: "جاری" },
     severity: { INFO: "معلومات", WARNING: "انتباہ", CRITICAL: "سنگین" },
   },
 };

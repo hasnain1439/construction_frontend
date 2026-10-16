@@ -138,6 +138,7 @@ export const strings: Widen<typeof En.strings> = {
     stepSaved: "{step} mehfooz ho gaya",
     fixErrorsFirst: "Pehle is tab par di gayi ghaltiyan theek karein.",
     activated: "Project active ho gaya.",
+    activatedEstimate: "Project active ho gaya — ab is ka pehla estimate banayein.",
     notFound: "Project nahi mila",
     newTitle: "Naya Project",
     editTitle: "{name} tabdeel karein",

@@ -311,7 +311,8 @@ export interface ProjectDetail extends ProjectBasic {
   activatedAt?: IsoDateTime | null;
   createdAt?: IsoDateTime;
   updatedAt?: IsoDateTime;
-  nextStep?: "ESTIMATE";
+  /** "GENERATE_ESTIMATE" after activation (Step 11); "ESTIMATE" from an older API. */
+  nextStep?: "GENERATE_ESTIMATE" | "ESTIMATE";
 }
 
 export type CreateProjectBody = RequestBody<"/api/v1/projects", "post">;

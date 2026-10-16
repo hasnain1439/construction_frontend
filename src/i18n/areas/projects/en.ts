@@ -137,6 +137,7 @@ export const strings = {
     stepSaved: "{step} saved",
     fixErrorsFirst: "Fix the errors listed on this tab first.",
     activated: "Project activated.",
+    activatedEstimate: "Project activated — now generate its first estimate.",
     notFound: "Project not found",
     newTitle: "New Project",
     editTitle: "Edit {name}",

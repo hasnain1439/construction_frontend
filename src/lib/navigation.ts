@@ -53,7 +53,7 @@ export interface NavItem {
   access?: AccessRule;
   /** false → opens the ComingSoon page. */
   available: boolean;
-  /** Custom ComingSoon wording, e.g. "Estimate comes in Phase 2". */
+  /** Custom ComingSoon wording for an item that is not live yet. */
   comingSoonNote?: string;
   keywords?: string[];
   /** Live count shown next to the item (project mode: incoming deliveries). */
@@ -541,12 +541,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: ALL("masterdata.laborrate.view", "fields.rates"),
         keywords: ["wages"],
       },
-      soon(
-        "settings.rulebook",
-        L("Rulebook", "Qawaid", "قواعد"),
-        "/settings/rulebook",
-        P("company.settings.manage"),
-      ),
+      {
+        id: "settings.rulebook",
+        label: L("Rulebook", "Qawaid", "قواعد"),
+        href: "/settings/rulebook",
+        available: true,
+        access: P("rulebook.override.view"),
+        keywords: ["estimate", "wastage", "bricks per cft", "steel kg", "qawaid", "safe range"],
+      },
       {
         id: "settings.paymentTemplates",
         label: L("Payment Templates", "Adaigi templates", "ادائیگی کے سانچے"),
@@ -643,18 +645,21 @@ export const PROJECT_NAV: NavSection[] = [
         keywords: ["boq", "andaza", "material estimate", "cement", "bricks", "steel", "quantity"],
       },
       {
-        ...soon(
-          "p.planning.revisions",
-          L("Estimate Revisions", "Estimate revisions", "تخمینے میں ترمیم"),
-          "/planning/estimate-revisions",
-        ),
-        comingSoonNote: "Estimate comes in Phase 2.",
+        id: "p.planning.revisions",
+        label: L("Estimate Revisions", "Estimate revisions", "تخمینے میں ترمیم"),
+        href: "/planning/estimate-revisions",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["revision", "compare", "approve", "boq"],
       },
-      soon(
-        "p.planning.shopping",
-        L("Owner Shopping List", "Maalik ki shopping list", "مالک کی خریداری کی فہرست"),
-        "/planning/shopping-list",
-      ),
+      {
+        id: "p.planning.shopping",
+        label: L("Owner Shopping List", "Maalik ki shopping list", "مالک کی خریداری کی فہرست"),
+        href: "/planning/shopping-list",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["owner", "maalik", "tiles", "paint", "whatsapp"],
+      },
     ],
   },
   {
@@ -1035,7 +1040,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
     id: "admin.rulebook",
     label: L("Rulebook", "Qawaid", "قواعد"),
     href: "/admin/rulebook",
-    available: false,
+    available: true,
     icon: BookOpen,
   },
   {

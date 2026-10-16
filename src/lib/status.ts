@@ -194,6 +194,16 @@ const DOMAINS = {
     APPROVED: S("success", "Sent", CircleCheck),
     REJECTED: S("danger", "Rejected", CircleX),
   },
+  // Step 11 — estimate revisions + rulebook
+  estimateRevision: {
+    DRAFT: S("warning", "Draft", CircleDashed),
+    APPROVED: S("success", "Approved", CircleCheck),
+    SUPERSEDED: S("neutral", "Superseded", CircleSlash),
+  },
+  rulebookVersion: {
+    DRAFT: S("warning", "Draft", CircleDashed),
+    PUBLISHED: S("success", "Published", CircleCheck),
+  },
   severity: {
     INFO: S("info", "Info", Info),
     WARNING: S("warning", "Warning", TriangleAlert),

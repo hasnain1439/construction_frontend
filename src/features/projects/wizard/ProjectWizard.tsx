@@ -206,8 +206,15 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       },
     });
     if (result) {
-      toast.success(t("projects.wizard.activated"));
-      router.push(projectHref(projectId, "/overview"));
+      // Step 11: activation offers "Generate estimate" — open Planning → Estimate (BoQ), where the
+      // first revision is one click away.
+      if (result.nextStep && canViewEstimate) {
+        toast.success(t("projects.wizard.activatedEstimate"));
+        router.push(projectHref(projectId, "/planning/estimate"));
+      } else {
+        toast.success(t("projects.wizard.activated"));
+        router.push(projectHref(projectId, "/overview"));
+      }
     }
   };
 
