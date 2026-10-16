@@ -271,6 +271,22 @@ export const ENDPOINTS = {
     ownerDeliveries: (projectId: string) => `/projects/${id(projectId)}/owner-deliveries`,
   },
 
+  /** Step 13 — schedule: Gantt, milestones, quotas, stoppage days, delays. */
+  schedule: {
+    detail: (projectId: string) => `/projects/${id(projectId)}/schedule`,
+    generate: (projectId: string) => `/projects/${id(projectId)}/schedule/generate`,
+    replan: (projectId: string) => `/projects/${id(projectId)}/schedule/replan`,
+    baseline: (projectId: string) => `/projects/${id(projectId)}/schedule/baseline`,
+    versions: (projectId: string) => `/projects/${id(projectId)}/schedule/versions`,
+    delays: (projectId: string) => `/projects/${id(projectId)}/schedule/delays`,
+    quotas: (projectId: string) => `/projects/${id(projectId)}/schedule/quotas`,
+    milestone: (milestoneId: string) => `/milestones/${id(milestoneId)}`,
+    milestoneProgress: (milestoneId: string) => `/milestones/${id(milestoneId)}/progress`,
+    stoppages: (projectId: string) => `/projects/${id(projectId)}/stoppages`,
+    stoppageApprove: (stoppageId: string) => `/stoppages/${id(stoppageId)}/approve`,
+    stoppageReject: (stoppageId: string) => `/stoppages/${id(stoppageId)}/reject`,
+  },
+
   /** Step 16 — equipment & shuttering. */
   equipment: {
     list: "/equipment",

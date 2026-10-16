@@ -15,3 +15,4 @@ export * from "./onboarding";
 export * from "./closeout";
 export * from "./equipment";
 export * from "./sales";
+export * from "./schedule";

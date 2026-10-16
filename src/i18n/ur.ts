@@ -12,6 +12,7 @@ import * as teamCompanyUr from "./areas/teamCompany/ur";
 import * as appUr from "./areas/app/ur";
 import * as equipmentUr from "./areas/equipment/ur";
 import * as estimatesUr from "./areas/estimates/ur";
+import * as scheduleUr from "./areas/schedule/ur";
 
 /** Urdu (Nastaliq script, right-to-left) UI strings — same keys as `en.ts`. */
 export const ur: Dictionary = {
@@ -28,6 +29,7 @@ export const ur: Dictionary = {
   app: appUr.strings,
   equipment: equipmentUr.strings,
   estimates: estimatesUr.strings,
+  schedule: scheduleUr.strings,
   common: {
     save: "محفوظ کریں",
     saveChanges: "تبدیلیاں محفوظ کریں",
@@ -617,6 +619,7 @@ export const ur: Dictionary = {
     ...teamCompanyUr.enums,
     ...appUr.enums,
     ...equipmentUr.enums,
+    ...scheduleUr.enums,
     projectStatus: {
       DRAFT: "مسودہ",
       ACTIVE: "جاری",

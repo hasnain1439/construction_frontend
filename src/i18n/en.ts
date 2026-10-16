@@ -12,6 +12,7 @@ import * as closeoutEn from "./areas/closeout/en";
 import * as equipmentEn from "./areas/equipment/en";
 import * as estimatesEn from "./areas/estimates/en";
 import * as salesEn from "./areas/sales/en";
+import * as scheduleEn from "./areas/schedule/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -27,6 +28,7 @@ export const en = {
   equipment: equipmentEn.strings,
   estimates: estimatesEn.strings,
   sales: salesEn.strings,
+  schedule: scheduleEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",
@@ -616,6 +618,7 @@ export const en = {
     ...teamCompanyEn.enums,
     ...appEn.enums,
     ...equipmentEn.enums,
+    ...scheduleEn.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Active",

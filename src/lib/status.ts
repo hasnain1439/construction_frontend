@@ -132,6 +132,24 @@ const DOMAINS = {
     EXCESS: S("info", "Excess", CircleDashed),
     SUPPLIER_SHORT: S("warning", "Supplier short", TriangleAlert),
   },
+  // Step 13 — schedule
+  milestone: {
+    PLANNED: S("neutral", "Planned", CircleDashed),
+    IN_PROGRESS: S("info", "In progress", Clock),
+    CURING: S("warning", "Curing", Hourglass),
+    DONE: S("success", "Done", CircleCheck),
+    BLOCKED: S("danger", "Blocked", OctagonAlert),
+  },
+  scheduleStage: {
+    PLANNED: S("neutral", "Planned", CircleDashed),
+    IN_PROGRESS: S("info", "In progress", Clock),
+    DONE: S("success", "Done", CircleCheck),
+  },
+  stoppage: {
+    PENDING: S("warning", "Pending", Clock),
+    APPROVED: S("success", "Approved", CircleCheck),
+    REJECTED: S("danger", "Rejected", CircleX),
+  },
   // Step 16 — equipment & shuttering
   equipmentTransfer: {
     ON_THE_WAY: S("info", "On the way", Truck),
