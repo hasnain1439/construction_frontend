@@ -74,13 +74,6 @@ const L = (en: string, ur: string, urdu: string): Label => ({ en, ur, urdu });
 const P = (permission: PermissionKey): AccessRule => ({ permission });
 const ANY = (...anyPermission: PermissionKey[]): AccessRule => ({ anyPermission });
 const ALL = (...allPermissions: PermissionKey[]): AccessRule => ({ allPermissions });
-const soon = (id: string, label: Label, href: string, access?: AccessRule): NavItem => ({
-  id,
-  label,
-  href,
-  access,
-  available: false,
-});
 
 // ─── Company mode ───────────────────────────────────────────────────────────
 
@@ -493,6 +486,23 @@ export const COMPANY_NAV: NavSection[] = [
         access: ALL("finance.reports.view", "closeout.snag.view"),
         keywords: ["defects", "punch list"],
       },
+      // Step 18 · tax reports
+      {
+        id: "reports.wht",
+        label: L("WHT Summary", "WHT ka khulasa", "ٹیکس کٹوتی کا خلاصہ"),
+        href: "/reports/wht-summary",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["withholding", "certificate", "tax"],
+      },
+      {
+        id: "reports.taxRegister",
+        label: L("Tax-wise Invoice Register", "Tax ke hisaab se invoice register", "ٹیکس وار انوائس رجسٹر"),
+        href: "/reports/tax-invoice-register",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["sales tax", "PRA", "SRB", "return"],
+      },
     ],
   },
   {
@@ -620,7 +630,14 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: P("company.settings.manage"),
       },
-      soon("settings.tax", L("Tax", "Tax", "ٹیکس"), "/settings/tax", P("company.settings.manage")),
+      {
+        id: "settings.tax",
+        label: L("Tax", "Tax", "ٹیکس"),
+        href: "/settings/tax",
+        available: true,
+        access: P("tax.view"),
+        keywords: ["sales tax", "PRA", "SRB", "NTN", "WHT"],
+      },
       {
         id: "settings.subscription",
         label: L("Subscription", "Subscription", "سبسکرپشن"),

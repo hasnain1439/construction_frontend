@@ -3,7 +3,7 @@ import type { TranslationKey } from "@/i18n/useT";
 import type { AccessRule } from "@/lib/permissions";
 import type { PermissionKey } from "@/lib/permissionKeys";
 
-/** The reports (seven Phase 1 + five Step 18): title, who may open them and which filters apply (shared by the page and the view). */
+/** The reports (seven Phase 1 + five Step 18 + two tax): title, who may open them and which filters apply (shared by the page and the view). */
 export interface ReportDef {
   name: ReportName;
   titleKey: TranslationKey;
@@ -22,6 +22,8 @@ const STEP18_NAMES: readonly Step18ReportName[] = ["delay-analysis", "variance",
 function step18(name: Step18ReportName, moduleKey: PermissionKey, dates: boolean): ReportDef {
   return { name, titleKey: `reports.title.${name}`, descriptionKey: `reports.desc.${name}`, access: { allPermissions: ["finance.reports.view", moduleKey] }, project: true, dates };
 }
+/** Step 18: tax reports — tax.view + money amounts (owner, Administrator, Accountant). */
+const TAX: AccessRule = { allPermissions: ["tax.view", "fields.amounts"] };
 
 export const REPORTS: Record<ReportName, ReportDef> = {
   "project-summary": { name: "project-summary", titleKey: "billing.reports.projectSummary", descriptionKey: "billing.reports.projectSummaryDesc", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: false },
@@ -37,6 +39,9 @@ export const REPORTS: Record<ReportName, ReportDef> = {
   "change-orders": step18("change-orders", "changeorder.view", true),
   "equipment-utilisation": step18("equipment-utilisation", "equipment.view", true),
   snags: step18("snags", "closeout.snag.view", true),
+  // Step 18 · tax reports (default period: the current tax year, 1 July – 30 June)
+  "wht-summary": { name: "wht-summary", titleKey: "tax.reports.whtSummary", descriptionKey: "tax.reports.whtSummaryDesc", access: TAX, project: true, dates: true, dateLabelKey: "tax.reports.thisTaxYear" },
+  "tax-invoice-register": { name: "tax-invoice-register", titleKey: "tax.reports.register", descriptionKey: "tax.reports.registerDesc", access: TAX, project: true, dates: true, dateLabelKey: "tax.reports.thisTaxYear" },
 };
 
 /** Step 18 reports with a per-project book (shown under the table when a project is picked). */

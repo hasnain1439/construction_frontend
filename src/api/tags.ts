@@ -111,6 +111,9 @@ export const COMPANY_TAGS = [
   "Control",
   "ControlAlerts",
   "ControlSettings",
+  // Step 18
+  "TaxSettings",
+  "ProjectTax",
   "Milestones",
   "Stoppages",
 ] as const;

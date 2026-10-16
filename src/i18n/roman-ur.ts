@@ -16,6 +16,7 @@ import * as estimatesRoman from "./areas/estimates/roman-ur";
 import * as scheduleRoman from "./areas/schedule/roman-ur";
 import * as controlRoman from "./areas/control/roman-ur";
 import * as reportsRoman from "./areas/reports/roman-ur";
+import * as taxRoman from "./areas/tax/roman-ur";
 
 /** Roman Urdu UI strings. */
 export const romanUr: Dictionary = {
@@ -36,6 +37,7 @@ export const romanUr: Dictionary = {
   schedule: scheduleRoman.strings,
   control: controlRoman.strings,
   reports: reportsRoman.strings,
+  tax: taxRoman.strings,
   common: {
     save: "Mehfooz karein",
     saveChanges: "Tabdeeliyan mehfooz karein",
@@ -627,6 +629,7 @@ export const romanUr: Dictionary = {
     ...equipmentRoman.enums,
     ...scheduleRoman.enums,
     ...controlRoman.enums,
+    ...taxRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Jari",

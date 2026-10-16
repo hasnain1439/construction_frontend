@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -14,6 +15,7 @@ import { NumberField } from "@/components/forms/NumberField";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
+import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
@@ -26,9 +28,6 @@ const defaults = (s: CompanySettings): Values => ({
   overuseAlertPercent: s.overuseAlertPercent,
   missingLogAlertTime: s.missingLogAlertTime,
   quoteValidityDays: s.quoteValidityDays,
-  taxEnabled: s.taxEnabled,
-  taxRatePercent: s.taxRatePercent,
-  taxLabel: s.taxLabel ?? "",
   paymentTermsDays: s.paymentTermsDays,
   pmCanRecordPayments: s.pmCanRecordPayments,
   defaultMarginPercent: s.defaultMarginPercent,
@@ -74,7 +73,7 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
   });
 
   const onSubmit = async (values: z.output<typeof companySettingsSchema>) => {
-    const result = await run(() => update({ ...values, taxLabel: values.taxLabel || null }).unwrap(), { success: t("teamCompany.settings.saved"), setError: form.setError });
+    const result = await run(() => update(values).unwrap(), { success: t("teamCompany.settings.saved"), setError: form.setError });
     if (result) form.reset(defaults(result));
   };
 
@@ -122,11 +121,11 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       <SettingCard title={t("teamCompany.settings.termsTitle")} help={t("teamCompany.settings.termsHelp")}>
         <NumberField name="paymentTermsDays" label={t("teamCompany.settings.termsTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
       </SettingCard>
-      <SettingCard title={t("teamCompany.settings.taxRateTitle")} help={t("teamCompany.settings.taxRateHelp")}>
-        <div className="grid grid-cols-2 gap-2">
-          <NumberField name="taxRatePercent" label={t("teamCompany.settings.taxRate")} hideLabel unit="%" decimals={2} required />
-          <TextField name="taxLabel" label={t("teamCompany.settings.taxName")} hideLabel placeholder={t("teamCompany.settings.taxNameExample")} />
-        </div>
+      {/* Step 18: sales tax, NTN / STRN and WHT live on Settings → Tax. */}
+      <SettingCard title={t("tax.settings.movedTitle")} help={t("tax.settings.movedHelp")}>
+        <Button asChild variant="outline">
+          <Link href="/settings/tax">{t("tax.settings.open")}</Link>
+        </Button>
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.marginTitle")} help={t("teamCompany.settings.marginHelp")}>
         <NumberField name="defaultMarginPercent" label={t("teamCompany.settings.marginTitle")} hideLabel unit="%" decimals={2} required />
@@ -152,11 +151,6 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
         name="pmCanRecordPayments"
         label={t("teamCompany.settings.pmPayments")}
         description={t("teamCompany.settings.pmPaymentsDesc")}
-      />
-      <ToggleField
-        name="taxEnabled"
-        label={t("teamCompany.settings.taxOn")}
-        description={t("teamCompany.settings.taxOnDesc")}
       />
       <FormActions
         submitLabel={t("teamCompany.settings.save")}

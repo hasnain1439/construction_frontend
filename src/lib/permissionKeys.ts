@@ -174,6 +174,9 @@ export const PERMISSION_KEYS = [
   // control (Step 14)
   "control.view",
   "control.manage",
+  // tax (Step 18)
+  "tax.view",
+  "tax.settings.manage",
   // fields
   "fields.rates",
   "fields.amounts",

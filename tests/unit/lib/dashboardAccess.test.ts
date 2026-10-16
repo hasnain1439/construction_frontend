@@ -28,6 +28,8 @@ describe("Step 9 navigation", () => {
       "/reports/change-orders",
       "/reports/equipment-utilisation",
       "/reports/snags",
+      "/reports/wht-summary", // Step 18
+      "/reports/tax-invoice-register", // Step 18
     ]);
     expect(reports.every((i) => i.available)).toBe(true);
   });

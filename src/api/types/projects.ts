@@ -17,6 +17,8 @@ export interface Client {
   email: string | null;
   address: string | null;
   notes: string | null;
+  /** Step 18: NTN / CNIC (taxed invoices, tax reports). */
+  ntn?: string | null;
   isDemo?: boolean;
   createdAt: IsoDateTime;
   projectsCount?: number;

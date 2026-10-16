@@ -39,12 +39,6 @@ export const companySettingsSchema = z.object({
     .number({ error: msg("teamCompany.v.enterDays") })
     .nullable()
     .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 1 && v <= 90, msg("teamCompany.v.daysRange", { min: 1, max: 90 })),
-  taxEnabled: z.boolean(),
-  taxRatePercent: z
-    .number({ error: msg("teamCompany.v.enterPercent") })
-    .nullable()
-    .refine((v): v is number => v !== null && v >= 0 && v <= 30, msg("teamCompany.v.percentRange", { min: 0, max: 30 })),
-  taxLabel: z.string().trim().max(20),
   paymentTermsDays: z
     .number({ error: msg("teamCompany.v.enterDays") })
     .nullable()

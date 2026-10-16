@@ -404,6 +404,21 @@ Company mode → **Sales**: `/sales/quotes` (pipeline: board + table), `/sales/q
 
 Dashboard: `AlertsList` names control rules (`source: "CONTROL_ALERT"`), "N delayed" under Active projects, project rows with progress + projected margin. Finance → P&L: the projected margin is real (KPI hint, column, project card). Settings → Alerts & Limits: behind-plan points, late-finish grace days, quota %, spend-ahead points, control alerts on / off.
 
+## Tax (Phase 3 · Step 18)
+
+`src/features/tax` (`components/TaxSettingsForm.tsx`, `components/ProjectTax.tsx` (card + override slide-over), `components/WhtCertificate.tsx`, `schemas.ts` — form rules plus `taxOf` / `whtFromRate`, the API's rounding rules for previews), API `src/api/services/tax.api.ts` (tags `TaxSettings`, `ProjectTax`), types `src/api/types/tax.ts`, texts `src/i18n/areas/tax/` (`t("tax.…")`; enums `taxAuthority`, `projectTaxMode`). Contract: `PHASE_2_3_CONTRACTS.md` → Step 18 — Tax. Tax is **off by default**; the settings page carries the API's "check with your tax adviser" note.
+
+| Where | What | Keys |
+|---|---|---|
+| Settings → **Tax** (`/settings/tax`, was "Coming soon") | On / off, authority (PRA / SRB / KPRA / ICT) + "use the usual rate", rate, invoice label, NTN, STRN, usual WHT %, rules + worked example | read `tax.view`; edit `tax.settings.manage` |
+| Billing → Invoices: **Tax on this project** | Effective tax and its source; **Change** → INHERIT / ON / OFF, authority, rate | `billing.invoice.view`; change `tax.settings.manage` |
+| New invoice / invoice detail | Tax line + total preview; taxable value, frozen / draft note, NTN / STRN / client NTN | `billing.invoice.*` |
+| Record payment / Payments | WHT amount or rate (other worked out), certificate no. / date / file; WHT column, "Certificate missing", **WHT certificate** row action | `billing.payment.create` (fields only when the project's tax is on) |
+| Reports → **WHT Summary**, **Tax-wise Invoice Register** | Through `ReportView` (`reports.config.ts`): project + dates (default this tax year), CSV / Excel / PDF | `tax.view` + `fields.amounts` |
+| Clients | Optional NTN / CNIC | `clients.client.*` |
+
+Tests: `tests/unit/components/Tax.test.tsx` (rounding helpers, settings off / on / read-only, project card, invoice tax preview, payment WHT fields, report access + navigation).
+
 ## Schedule (Phase 2 · Step 13)
 
 `src/features/schedule` (`gantt/ganttModel.ts` pure layout, `gantt/GanttChart.tsx`, `views/*`, `components/*`, `schemas.ts`), API `src/api/services/schedule.api.ts` (tags `Schedule`, `ScheduleVersions`, `ScheduleDelays`, `ScheduleQuotas`, `Milestones`, `Stoppages`), types `src/api/types/schedule.ts`, texts `src/i18n/areas/schedule/` (en · roman-ur · ur, `t("schedule.…")`). API contract: `PHASE_2_3_CONTRACTS.md` → Step 13. Nothing in the schedule carries money (quotas are quantities).

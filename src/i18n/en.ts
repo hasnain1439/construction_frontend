@@ -16,6 +16,7 @@ import * as salesEn from "./areas/sales/en";
 import * as scheduleEn from "./areas/schedule/en";
 import * as controlEn from "./areas/control/en";
 import * as reportsEn from "./areas/reports/en";
+import * as taxEn from "./areas/tax/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -35,6 +36,7 @@ export const en = {
   schedule: scheduleEn.strings,
   control: controlEn.strings,
   reports: reportsEn.strings,
+  tax: taxEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",
@@ -626,6 +628,7 @@ export const en = {
     ...equipmentEn.enums,
     ...scheduleEn.enums,
     ...controlEn.enums,
+    ...taxEn.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Active",

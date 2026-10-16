@@ -12,6 +12,14 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - Each page needs Reports access plus the module's view permission (control, change orders, equipment, snags); the Munshi never sees them. Rupee columns appear only with the matching data-visibility permission, with a note when they are hidden.
 - Everything in English, Roman Urdu and Urdu (new area `src/i18n/areas/reports/`), including column headers and statuses the API sends in English.
 
+### Step 18 — Tax
+- **Settings → Tax** is live (was "Coming soon"): switch sales tax on / off (off by default), authority (PRA, SRB, KPRA, ICT) with a "use the usual rate" shortcut, rate, name on invoices, company NTN and STRN, the usual client WHT rate, how tax is worked out with a worked example, and a "check with your tax adviser" note. The Accountant can read it; only the owner / Administrator can change it. The tax fields left Settings → Alerts & Limits (a link points to the new page).
+- **Billing → Invoices** shows the tax new invoices of the project get ("PRA Sales Tax 16% on new invoices · From the company tax settings") with **Change** (project override: same as company / always / no tax, authority and rate for a project in another province).
+- **New invoice** previews the tax line and the total when tax applies; **invoice detail** shows the taxable value (when it differs), the tax line, whether the tax is still following the settings (draft) or frozen, and our NTN / STRN + the client's NTN.
+- **Record payment**: WHT amount or WHT rate (the other is worked out, "Use 8%" fills the usual rate), certificate number, date and file — only when tax is on for the project. **Payments** list gets a WHT column with "Certificate missing" and a **WHT certificate** row action to add it later.
+- **Reports → WHT Summary** and **Tax-wise Invoice Register** (filters: project, dates — default this tax year Jul – Jun; CSV / Excel / PDF), for `tax.view` + money amounts.
+- Clients have an optional **NTN / CNIC**.
+
 ### Step 12
 - **Sales → Quote Pipeline** is live: a board with one column per status (Draft, Sent, Negotiation, Won, Lost, Expired) or a table; search, status filter and **Needs follow-up** (sent more than 5 days ago with no reply).
 - **New Quote**: client (existing or new), title, site, plot, covered area, storeys, mumty / basement, structure, contract type, material quality, payment schedule, margin / finishing % and an optional agreed price on one side; on the other a **live internal view** (price, per sq ft, cost, margin, cost by work section, key quantities, floors assumed, warnings) and the **customer view** (what the quotation shows — never costs or margins).

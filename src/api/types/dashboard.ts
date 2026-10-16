@@ -329,7 +329,9 @@ export interface CashFloatsOverview {
 
 /** Step 18 reports (finance.reports.view + the module's view key). */
 export type Step18ReportName = "delay-analysis" | "variance" | "change-orders" | "equipment-utilisation" | "snags";
-export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | Step18ReportName;
+/** Step 18 tax reports (tax.view + fields.amounts). */
+export type TaxReportName = "wht-summary" | "tax-invoice-register";
+export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | Step18ReportName | TaxReportName;
 /** Per-project report books (GET /reports/<name>/:projectId). */
 export type ReportBookName = "delay-analysis" | "variance" | "snags";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";

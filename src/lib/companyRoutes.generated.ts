@@ -48,6 +48,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"price-list"}], load: () => import("@/app/(company)/settings/price-list/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"rulebook"}], load: () => import("@/app/(company)/settings/rulebook/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"subscription"}], load: () => import("@/app/(company)/settings/subscription/page") },
+  { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"tax"}], load: () => import("@/app/(company)/settings/tax/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/suppliers-stock/[...rest]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"dispatches"},{"kind":"param","name":"dispatchId"}], load: () => import("@/app/(company)/suppliers-stock/dispatches/[dispatchId]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"dispatches"}], load: () => import("@/app/(company)/suppliers-stock/dispatches/page") },

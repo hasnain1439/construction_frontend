@@ -201,6 +201,7 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "changeorder.view",
   "changeorder.manage",
   "control.view",
+  "tax.view",
 ];
 
 export const FINANCIAL_BUNDLE: PermissionKey[] = [

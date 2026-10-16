@@ -191,6 +191,14 @@
     "roman": "Control aur alerts",
     "urdu": "کنٹرول اور الرٹس"
    }
+  },
+  {
+   "key": "tax",
+   "label": {
+    "en": "Tax",
+    "roman": "Tax",
+    "urdu": "ٹیکس"
+   }
   }
  ],
  "permissions": [
@@ -2563,6 +2571,38 @@
    "field": false
   },
   {
+   "key": "tax.view",
+   "module": "tax",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View tax & tax reports",
+    "roman": "Tax aur tax reports dekhna",
+    "urdu": "ٹیکس اور ٹیکس رپورٹس دیکھنا"
+   },
+   "description": "Tax settings (read), the yearly WHT summary and the tax-wise invoice register (amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "tax.settings.manage",
+   "module": "tax",
+   "resource": "settings",
+   "action": "manage",
+   "label": {
+    "en": "Manage tax settings",
+    "roman": "Tax settings badalna",
+    "urdu": "ٹیکس سیٹنگز بدلنا"
+   },
+   "description": "Switch sales tax on / off, authority (PRA / SRB / KPRA / ICT), rate, NTN / STRN, default WHT %, and the tax override of a project.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -2783,6 +2823,8 @@
     "closeout.retention.view",
     "control.view",
     "control.manage",
+    "tax.view",
+    "tax.settings.manage",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -3012,7 +3054,8 @@
     "closeout.retention.view",
     "changeorder.view",
     "changeorder.manage",
-    "control.view"
+    "control.view",
+    "tax.view"
    ]
   },
   {
