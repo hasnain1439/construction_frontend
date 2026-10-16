@@ -167,6 +167,22 @@
     "roman": "Schedule (kaam ka nizam)",
     "urdu": "شیڈول"
    }
+  },
+  {
+   "key": "sales",
+   "label": {
+    "en": "Sales & quotes",
+    "roman": "Sales aur quotes",
+    "urdu": "سیلز اور کوٹیشن"
+   }
+  },
+  {
+   "key": "control",
+   "label": {
+    "en": "Control & alerts",
+    "roman": "Control aur alerts",
+    "urdu": "کنٹرول اور الرٹس"
+   }
   }
  ],
  "permissions": [
@@ -421,6 +437,86 @@
     "urdu": "کمپنی کے قواعد بدلنا"
    },
    "description": "Set the company own values for rulebook parameters (within the safe range).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.view",
+   "module": "sales",
+   "resource": "quote",
+   "action": "view",
+   "label": {
+    "en": "View quotes",
+    "roman": "Quotes dekhna",
+    "urdu": "کوٹیشن دیکھنا"
+   },
+   "description": "Quote pipeline, quote detail and revisions, quote PDFs, win / loss insights (price, cost and margin follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.create",
+   "module": "sales",
+   "resource": "quote",
+   "action": "create",
+   "label": {
+    "en": "Create quotes",
+    "roman": "Naya quote banana",
+    "urdu": "نیا کوٹیشن بنانا"
+   },
+   "description": "Start a quote for a client (quick estimate from plot, covered area and floors).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.edit",
+   "module": "sales",
+   "resource": "quote",
+   "action": "edit",
+   "label": {
+    "en": "Work on quotes",
+    "roman": "Quote par kaam",
+    "urdu": "کوٹیشن پر کام"
+   },
+   "description": "Change a quote, add a revision, send it to the client, record negotiation, mark it lost.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.approve",
+   "module": "sales",
+   "resource": "quote",
+   "action": "approve",
+   "label": {
+    "en": "Mark quotes won",
+    "roman": "Quote jeeta hua karna",
+    "urdu": "کوٹیشن جیتا ہوا کرنا"
+   },
+   "description": "Mark a quote won: a draft project is made from it (also needs Create projects).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.manage",
+   "module": "sales",
+   "resource": "quote",
+   "action": "manage",
+   "label": {
+    "en": "Delete quotes",
+    "roman": "Quote delete karna",
+    "urdu": "کوٹیشن ڈیلیٹ کرنا"
+   },
+   "description": "Delete a quote that was not won.",
    "ownerOnly": false,
    "scoped": false,
    "limit": false,
@@ -2315,6 +2411,38 @@
    "field": false
   },
   {
+   "key": "control.view",
+   "module": "control",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View control (variance & alerts)",
+    "roman": "Control dekhna (farq aur alerts)",
+    "urdu": "کنٹرول دیکھنا (فرق اور الرٹس)"
+   },
+   "description": "Material and cost variance, burn rate vs progress, delay analysis, projected margin and control alerts of a project (rupee values follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "control.manage",
+   "module": "control",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Manage alert thresholds",
+    "roman": "Alert ki hadein badalna",
+    "urdu": "الرٹ کی حدیں بدلنا"
+   },
+   "description": "Change the control alert thresholds (overuse %, behind-plan points, quota %, spend-ahead points) and run the alert check now.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -2406,6 +2534,11 @@
     "schedule.stoppage.create",
     "schedule.stoppage.approve",
     "rulebook.override.manage",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit",
+    "sales.quote.approve",
+    "sales.quote.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2521,6 +2654,8 @@
     "closeout.snag.manage",
     "closeout.handover.manage",
     "closeout.retention.view",
+    "control.view",
+    "control.manage",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -2591,6 +2726,9 @@
     "rulebook.override.view",
     "schedule.plan.manage",
     "schedule.stoppage.approve",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2635,7 +2773,8 @@
     "closeout.drawing.manage",
     "closeout.snag.manage",
     "closeout.handover.manage",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "control.view"
    ]
   },
   {
@@ -2709,6 +2848,7 @@
     "projects.project.view",
     "projects.estimate.view",
     "schedule.plan.view",
+    "sales.quote.view",
     "clients.client.view",
     "labor.settlement.view",
     "labor.advance.view",
@@ -2735,7 +2875,8 @@
     "fields.amounts",
     "fields.contract",
     "closeout.snag.view",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "control.view"
    ]
   },
   {

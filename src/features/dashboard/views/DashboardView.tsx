@@ -92,7 +92,7 @@ function CompanyOverview() {
                   icon={FolderKanban}
                   value={k.activeProjects.count}
                   tone={k.activeProjects.atRisk ? "warning" : "primary"}
-                  hint={money ? t("dashboard.atRisk", { n: k.activeProjects.atRisk }) : onTheWay}
+                  hint={[money ? t("dashboard.atRisk", { n: k.activeProjects.atRisk }) : onTheWay, k.activeProjects.delayed ? t("control.dashboard.delayed", { n: k.activeProjects.delayed }) : null].filter(Boolean).join(" · ")}
                 />
                 <Link href="/dashboard/approvals" className="rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                   <KpiCard variant="tile" label={t("dashboard.pendingApprovals")} icon={ClipboardList} value={k.pendingApprovals} tone={k.pendingApprovals ? "warning" : "success"} hint={t("dashboard.openMyApprovals")} className="h-full transition-colors hover:bg-accent" />

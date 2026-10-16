@@ -18,6 +18,13 @@ export const companyProfileSchema = z.object({
     .nullable(),
 });
 
+/** Whole number between min and max (Step 14 thresholds). */
+const intRange = (min: number, max: number, range: "control.v.pointsRange" | "teamCompany.v.daysRange" | "teamCompany.v.percentRange", enter: "teamCompany.v.enterPercent" | "teamCompany.v.enterDays") =>
+  z
+    .number({ error: msg(enter) })
+    .nullable()
+    .refine((v): v is number => v !== null && Number.isInteger(v) && v >= min && v <= max, msg(range, { min, max }));
+
 export const companySettingsSchema = z.object({
   kharchaApprovalLimitPaisa: z
     .string({ error: msg("validation.validAmount") })
@@ -53,6 +60,12 @@ export const companySettingsSchema = z.object({
     .refine((v): v is number => v !== null && v >= 0 && v <= 200, msg("teamCompany.v.percentRange", { min: 0, max: 200 })),
   pmCanSeeFinancials: z.boolean(),
   defaultLanguage: z.enum(["ENGLISH", "ROMAN_URDU", "URDU"]),
+  // Step 14 · control alert thresholds
+  behindPlanAlertPoints: intRange(5, 50, "control.v.pointsRange", "teamCompany.v.enterPercent"),
+  lateFinishGraceDays: intRange(0, 30, "teamCompany.v.daysRange", "teamCompany.v.enterDays"),
+  quotaAlertPercent: intRange(50, 150, "teamCompany.v.percentRange", "teamCompany.v.enterPercent"),
+  spendAheadAlertPoints: intRange(1, 50, "control.v.pointsRange", "teamCompany.v.enterPercent"),
+  controlAlertsEnabled: z.boolean(),
 });
 
 export const holidaySchema = z

@@ -157,6 +157,15 @@ export const PERMISSION_KEYS = [
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
+  // sales (Step 12)
+  "sales.quote.view",
+  "sales.quote.create",
+  "sales.quote.edit",
+  "sales.quote.approve",
+  "sales.quote.manage",
+  // control (Step 14)
+  "control.view",
+  "control.manage",
   // fields
   "fields.rates",
   "fields.amounts",

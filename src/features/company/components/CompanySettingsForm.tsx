@@ -35,6 +35,11 @@ const defaults = (s: CompanySettings): Values => ({
   defaultFinishingAllowancePercent: s.defaultFinishingAllowancePercent,
   pmCanSeeFinancials: s.pmCanSeeFinancials,
   defaultLanguage: s.defaultLanguage,
+  behindPlanAlertPoints: s.behindPlanAlertPoints,
+  lateFinishGraceDays: s.lateFinishGraceDays,
+  quotaAlertPercent: s.quotaAlertPercent,
+  spendAheadAlertPoints: s.spendAheadAlertPoints,
+  controlAlertsEnabled: s.controlAlertsEnabled,
 });
 
 /** One setting per card, with plain-language help. */
@@ -84,6 +89,18 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       >
         <NumberField name="overuseAlertPercent" label={t("teamCompany.settings.overuseLabel")} hideLabel unit="%" decimals={0} required />
       </SettingCard>
+      <SettingCard title={t("control.settings.behindTitle")} help={t("control.settings.behindHelp")}>
+        <NumberField name="behindPlanAlertPoints" label={t("control.settings.behindTitle")} hideLabel unit={t("control.settings.points")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.graceTitle")} help={t("control.settings.graceHelp")}>
+        <NumberField name="lateFinishGraceDays" label={t("control.settings.graceTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.quotaTitle")} help={t("control.settings.quotaHelp")}>
+        <NumberField name="quotaAlertPercent" label={t("control.settings.quotaTitle")} hideLabel unit="%" decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.spendTitle")} help={t("control.settings.spendHelp")}>
+        <NumberField name="spendAheadAlertPoints" label={t("control.settings.spendTitle")} hideLabel unit={t("control.settings.points")} decimals={0} required />
+      </SettingCard>
       <SettingCard title={t("teamCompany.settings.logTitle")} help={t("teamCompany.settings.logHelp")}>
         <TextField name="missingLogAlertTime" label={t("teamCompany.settings.logLabel")} hideLabel type="time" required />
       </SettingCard>
@@ -113,6 +130,7 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
           options={LANGUAGES.map((value) => ({ value, label: te("userLanguage", value) }))}
         />
       </SettingCard>
+      <ToggleField name="controlAlertsEnabled" label={t("control.settings.enabled")} description={t("control.settings.enabledDesc")} />
       <ToggleField
         name="pmCanSeeFinancials"
         label={t("teamCompany.settings.pmFinancials")}

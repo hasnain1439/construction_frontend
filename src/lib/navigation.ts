@@ -919,30 +919,39 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Gauge,
     mode: "project",
     items: [
-      soon(
-        "p.control.material",
-        L("Material Variance", "Maal ka farq", "مال کا فرق"),
-        "/control/material-variance",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.cost",
-        L("Cost Variance", "Lagat ka farq", "لاگت کا فرق"),
-        "/control/cost-variance",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.burn",
-        L("Burn Rate vs Progress", "Kharch vs taraqqi", "خرچ بمقابلہ پیش رفت"),
-        "/control/burn-rate",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.delay",
-        L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
-        "/control/delay",
-        P("finance.pnl.view"),
-      ),
+      // Step 14 · control (control.view; rupee figures follow the data-visibility permissions)
+      {
+        id: "p.control.material",
+        label: L("Material Variance", "Maal ka farq", "مال کا فرق"),
+        href: "/control/material-variance",
+        available: true,
+        access: P("control.view"),
+        keywords: ["overuse", "wastage", "estimate vs used"],
+      },
+      {
+        id: "p.control.cost",
+        label: L("Cost Variance", "Lagat ka farq", "لاگت کا فرق"),
+        href: "/control/cost-variance",
+        available: true,
+        access: P("control.view"),
+        keywords: ["budget", "projected margin"],
+      },
+      {
+        id: "p.control.burn",
+        label: L("Burn Rate vs Progress", "Kharch vs taraqqi", "خرچ بمقابلہ پیش رفت"),
+        href: "/control/burn-rate",
+        available: true,
+        access: P("control.view"),
+        keywords: ["spend", "progress"],
+      },
+      {
+        id: "p.control.delay",
+        label: L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
+        href: "/control/delay",
+        available: true,
+        access: P("control.view"),
+        keywords: ["late", "behind plan"],
+      },
     ],
   },
   {

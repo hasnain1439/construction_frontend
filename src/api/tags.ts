@@ -97,6 +97,10 @@ export const COMPANY_TAGS = [
   "ScheduleVersions",
   "ScheduleDelays",
   "ScheduleQuotas",
+  // Step 14
+  "Control",
+  "ControlAlerts",
+  "ControlSettings",
   "Milestones",
   "Stoppages",
 ] as const;

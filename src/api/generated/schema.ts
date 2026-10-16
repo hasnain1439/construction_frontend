@@ -2314,6 +2314,11 @@ export interface paths {
                             /** @example 2026-12-25 */
                             end: string;
                         }[] | null;
+                        behindPlanAlertPoints?: number;
+                        lateFinishGraceDays?: number;
+                        quotaAlertPercent?: number;
+                        spendAheadAlertPoints?: number;
+                        controlAlertsEnabled?: boolean;
                     };
                 };
             };
@@ -23912,6 +23917,3079 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quotes/assumptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quick-mode assumptions
+         * @description The area-based room assumptions a quote estimate uses instead of room-by-room input (rulebook-style: key, label in three languages, unit, value, description; all pending civil-engineer review). Permission sales.quote.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Assumptions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "key": "quickRoomSizeSqft",
+                         *           "group": "QUICK",
+                         *           "label": {
+                         *             "en": "Typical room size",
+                         *             "roman": "Aam kamre ka size",
+                         *             "ur": "عام کمرے کا سائز"
+                         *           },
+                         *           "unit": "sq ft",
+                         *           "value": 160,
+                         *           "description": "…",
+                         *           "reviewStatus": "PENDING_ENGINEER_REVIEW"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Live quick estimate (nothing saved)
+         * @description Prices the inputs with the Step 11 engine in quick mode (synthetic rooms from the covered area, company rulebook, price list in the chosen quality category, sub-contract rates): cost by BoQ section, key quantities, price, rate per sq ft, margin and the payment schedule. The New Quote screen calls it on every change. Permission sales.quote.view. Money follows the data-visibility permissions (keys are left out without them): the price (`pricePaisa`, `perSqftPaisa`, stage `amountPaisa`, `computedPricePaisa`, `inputs.finalPricePaisa`) needs fields.contract; the cost (`costPaisa`, section `amountPaisa`, overheads, contingency, finishing allowance, `costPerSqftPaisa`) fields.rates; the margin (`marginPaisa`, `marginOnPricePercent`, `marginPercent`, `finishingAllowancePercent`) fields.contract + fields.profit.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuotePreviewInput"];
+                };
+            };
+            responses: {
+                /** @description Preview */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *         "revision": 2,
+                         *         "note": "Client asked for a better price — margin 15 %",
+                         *         "createdAt": "2026-10-11T06:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "inputs": {
+                         *           "plot": {
+                         *             "unit": "MARLA",
+                         *             "size": 8,
+                         *             "frontFt": 30,
+                         *             "depthFt": 60
+                         *           },
+                         *           "coveredAreaSqft": 3300,
+                         *           "floors": 2,
+                         *           "mumty": true,
+                         *           "basement": false,
+                         *           "basementHeightFt": 10,
+                         *           "structureType": "FRAMED",
+                         *           "contractType": "GREY_OWNER_FINISHING",
+                         *           "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *           "supplyRules": [],
+                         *           "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *           "finalPricePaisa": null,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0
+                         *         },
+                         *         "rulebook": {
+                         *           "region": "PUNJAB_KP",
+                         *           "version": 1
+                         *         },
+                         *         "basis": {
+                         *           "plotAreaSqft": 1800,
+                         *           "coveredAreaSqft": 3300,
+                         *           "storeyAreaSqft": 1571.43,
+                         *           "floors": [
+                         *             {
+                         *               "level": "GROUND",
+                         *               "name": "Ground floor",
+                         *               "areaSqft": 1571.43,
+                         *               "rooms": 11,
+                         *               "wetRooms": 4,
+                         *               "ceilingHeightFt": 11
+                         *             }
+                         *           ],
+                         *           "foundation": "ISOLATED",
+                         *           "assumptions": {
+                         *             "quickMumtyPercent": 10,
+                         *             "quickRoomFillPercent": 80
+                         *           }
+                         *         },
+                         *         "quantities": {
+                         *           "cementBags": 2140.5,
+                         *           "steelKg": 13920.4,
+                         *           "bricks": 101200,
+                         *           "blocks": 0,
+                         *           "sandCft": 6120,
+                         *           "crushCft": 3410,
+                         *           "plasterSqft": 21400,
+                         *           "floorTilesSqft": 2620,
+                         *           "wallTilesSqft": 1480,
+                         *           "paintGallons": 196
+                         *         },
+                         *         "sections": [
+                         *           {
+                         *             "section": "CONCRETE",
+                         *             "amountPaisa": "210000000"
+                         *           }
+                         *         ],
+                         *         "specifications": [
+                         *           {
+                         *             "categoryKey": "CEMENT",
+                         *             "label": "Cement",
+                         *             "suppliedBy": "CONTRACTOR",
+                         *             "qualityCategory": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *               "name": "Standard"
+                         *             },
+                         *             "materials": [
+                         *               "Cement OPC"
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "paymentStages": [
+                         *           {
+                         *             "label": "Agreement & mobilisation",
+                         *             "percent": 15,
+                         *             "isRetention": false,
+                         *             "amountPaisa": "196500000"
+                         *           }
+                         *         ],
+                         *         "paymentTemplate": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *           "name": "Residential standard"
+                         *         },
+                         *         "warnings": [],
+                         *         "costPaisa": "1139130000",
+                         *         "directCostPaisa": "1035000000",
+                         *         "overheadPaisa": "51750000",
+                         *         "contingencyPaisa": "52380000",
+                         *         "finishingAllowancePaisa": "0",
+                         *         "costPerSqftPaisa": "345191",
+                         *         "pricePaisa": "1310000000",
+                         *         "computedPricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "priceOverridden": false,
+                         *         "marginPercent": 15,
+                         *         "finishingAllowancePercent": 0,
+                         *         "marginPaisa": "170870000",
+                         *         "marginOnPricePercent": 13.04
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_QUALITY_CATEGORY | INVALID_TEMPLATE | QUOTE_PRICE_MISSING */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Win / loss insights
+         * @description Quotes made in the last `months` months (this month included): totals by status, win rate (won ÷ won + lost + expired), quotes / wins / losses per month, loss reasons, and the follow-up list (SENT quotes with no activity for more than 5 days, any age). With fields.contract also the average rate per sq ft quoted (sent quotes) vs won, the won value and the open pipeline value. Permission sales.quote.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Months back from this month (default 12) */
+                    months?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Insights */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "from": "2025-11-01",
+                         *         "to": "2026-10-16",
+                         *         "months": 12,
+                         *         "totals": {
+                         *           "quotes": 6,
+                         *           "sent": 5,
+                         *           "won": 1,
+                         *           "lost": 1,
+                         *           "expired": 1,
+                         *           "open": 3
+                         *         },
+                         *         "winRate": 33.33,
+                         *         "perMonth": [
+                         *           {
+                         *             "month": "2026-10",
+                         *             "created": 3,
+                         *             "won": 0,
+                         *             "lost": 0
+                         *           }
+                         *         ],
+                         *         "lossReasons": [
+                         *           {
+                         *             "reason": "COMPETITOR_CHEAPER",
+                         *             "count": 1
+                         *           }
+                         *         ],
+                         *         "followUps": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *             "number": "Q-2026-0004",
+                         *             "status": "NEGOTIATION",
+                         *             "title": "Bahria Orchard · 8 Marla",
+                         *             "client": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *               "name": "Waqas Butt",
+                         *               "phone": "+923335551122"
+                         *             },
+                         *             "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *             "city": "Lahore",
+                         *             "revision": 2,
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "coveredAreaSqft": 3300,
+                         *             "validUntil": "2026-10-25",
+                         *             "sentAt": "2026-10-10T11:00:00.000Z",
+                         *             "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *             "daysSinceActivity": 2,
+                         *             "followUp": false,
+                         *             "wonAt": null,
+                         *             "lostAt": null,
+                         *             "expiredAt": null,
+                         *             "lostReason": null,
+                         *             "lostNote": null,
+                         *             "wonProject": null,
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *               "name": "Bilal Ahmed"
+                         *             },
+                         *             "createdAt": "2026-10-04T05:00:00.000Z",
+                         *             "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970"
+                         *           }
+                         *         ],
+                         *         "avgRateQuotedPaisa": "412000",
+                         *         "avgRateWonPaisa": "468350",
+                         *         "wonValuePaisa": "1850000000",
+                         *         "pipelineValuePaisa": "3900000000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quote pipeline
+         * @description Quotes, latest activity first. Filters: status, client, search (number, title, client name or phone), followUp=true (SENT with no activity for more than 5 days). Permission sales.quote.view. Money follows the data-visibility permissions (keys are left out without them): the price (`pricePaisa`, `perSqftPaisa`, stage `amountPaisa`, `computedPricePaisa`, `inputs.finalPricePaisa`) needs fields.contract; the cost (`costPaisa`, section `amountPaisa`, overheads, contingency, finishing allowance, `costPerSqftPaisa`) fields.rates; the margin (`marginPaisa`, `marginOnPricePercent`, `marginPercent`, `finishingAllowancePercent`) fields.contract + fields.profit.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "DRAFT" | "SENT" | "NEGOTIATION" | "WON" | "LOST" | "EXPIRED";
+                    /** @description Number, title, client name or phone contains */
+                    search?: string;
+                    clientId?: string;
+                    /** @description true = SENT quotes with no activity for more than 5 days */
+                    followUp?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Quotes (meta: page, limit, total, totalPages) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *           "number": "Q-2026-0004",
+                         *           "status": "NEGOTIATION",
+                         *           "title": "Bahria Orchard · 8 Marla",
+                         *           "client": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *             "name": "Waqas Butt",
+                         *             "phone": "+923335551122"
+                         *           },
+                         *           "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *           "city": "Lahore",
+                         *           "revision": 2,
+                         *           "contractType": "GREY_OWNER_FINISHING",
+                         *           "coveredAreaSqft": 3300,
+                         *           "validUntil": "2026-10-25",
+                         *           "sentAt": "2026-10-10T11:00:00.000Z",
+                         *           "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *           "daysSinceActivity": 2,
+                         *           "followUp": false,
+                         *           "wonAt": null,
+                         *           "lostAt": null,
+                         *           "expiredAt": null,
+                         *           "lostReason": null,
+                         *           "lostNote": null,
+                         *           "wonProject": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *             "name": "Bilal Ahmed"
+                         *           },
+                         *           "createdAt": "2026-10-04T05:00:00.000Z",
+                         *           "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *           "pricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * New quote (DRAFT, revision 1)
+         * @description Numbers the quote Q-YYYY-NNNN, prices revision 1 in quick mode and saves it as DRAFT. `validUntil` defaults to today + the company `quoteValidityDays` (15). `newClient` creates the client too (needs clients.client.create). No cost (rates missing) and no `finalPricePaisa` → 400 QUOTE_PRICE_MISSING. Permission sales.quote.create. Audited `quote.create`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateQuoteInput"];
+                };
+            };
+            responses: {
+                /** @description Created (detail) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "NEGOTIATION",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": null,
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_QUALITY_CATEGORY | INVALID_TEMPLATE | QUOTE_PRICE_MISSING | INVALID_CLIENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CLIENT_PHONE_TAKEN */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quote detail
+         * @description Summary + the latest revision in full, the revision list and the activity (audit rows of the quote, newest first). Permission sales.quote.view. Money follows the data-visibility permissions (keys are left out without them): the price (`pricePaisa`, `perSqftPaisa`, stage `amountPaisa`, `computedPricePaisa`, `inputs.finalPricePaisa`) needs fields.contract; the cost (`costPaisa`, section `amountPaisa`, overheads, contingency, finishing allowance, `costPerSqftPaisa`) fields.rates; the margin (`marginPaisa`, `marginOnPricePercent`, `marginPercent`, `finishingAllowancePercent`) fields.contract + fields.profit.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Quote */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "NEGOTIATION",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": null,
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a quote
+         * @description Deletes a quote and its revisions (not a WON one → 409 QUOTE_WON). Permission sales.quote.manage. Audited `quote.delete`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_WON */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change the quote header
+         * @description Title, client, site address, city, validity, notes. WON / LOST → 409 QUOTE_CLOSED. Permission sales.quote.edit. Audited `quote.update`.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateQuoteInput"];
+                };
+            };
+            responses: {
+                /** @description Updated (detail) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "NEGOTIATION",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": null,
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_CLIENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_CLOSED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every revision in full
+         * @description Newest first — the web compares two of them (inputs, sections, price). Permission sales.quote.view. Money follows the data-visibility permissions (keys are left out without them): the price (`pricePaisa`, `perSqftPaisa`, stage `amountPaisa`, `computedPricePaisa`, `inputs.finalPricePaisa`) needs fields.contract; the cost (`costPaisa`, section `amountPaisa`, overheads, contingency, finishing allowance, `costPerSqftPaisa`) fields.rates; the margin (`marginPaisa`, `marginOnPricePercent`, `marginPercent`, `finishingAllowancePercent`) fields.contract + fields.profit.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revisions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a revision (recompute)
+         * @description Prices the new inputs (today’s rulebook and rates) as revision n + 1; the quote shows its price from now on. An EXPIRED quote re-opens as DRAFT with a fresh validity. WON / LOST → 409 QUOTE_CLOSED. Permission sales.quote.edit. Audited `quote.revision`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddQuoteRevisionInput"];
+                };
+            };
+            responses: {
+                /** @description Revision added (detail) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "NEGOTIATION",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": null,
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_QUALITY_CATEGORY | INVALID_TEMPLATE | QUOTE_PRICE_MISSING */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_CLOSED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send to the client (customer PDF + WhatsApp text)
+         * @description DRAFT / SENT / NEGOTIATION → SENT; validity = `validUntil` or today + quoteValidityDays. Makes the customer quotation PDF (letterhead, total, rate per sq ft, scope, material specifications, payment schedule, validity, terms — never costs or margins) and returns a signed link with a WhatsApp message and the client phone. EXPIRED → 409 QUOTE_STATUS_INVALID (add a revision first). Permission sales.quote.edit + fields.contract. Audited `quote.send`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SendQuoteInput"];
+                };
+            };
+            responses: {
+                /** @description Sent */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "quote": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *           "number": "Q-2026-0004",
+                         *           "status": "SENT",
+                         *           "title": "Bahria Orchard · 8 Marla",
+                         *           "client": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *             "name": "Waqas Butt",
+                         *             "phone": "+923335551122"
+                         *           },
+                         *           "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *           "city": "Lahore",
+                         *           "revision": 2,
+                         *           "contractType": "GREY_OWNER_FINISHING",
+                         *           "coveredAreaSqft": 3300,
+                         *           "validUntil": "2026-10-25",
+                         *           "sentAt": "2026-10-10T11:00:00.000Z",
+                         *           "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *           "daysSinceActivity": 2,
+                         *           "followUp": false,
+                         *           "wonAt": null,
+                         *           "lostAt": null,
+                         *           "expiredAt": null,
+                         *           "lostReason": null,
+                         *           "lostNote": null,
+                         *           "wonProject": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *             "name": "Bilal Ahmed"
+                         *           },
+                         *           "createdAt": "2026-10-04T05:00:00.000Z",
+                         *           "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *           "pricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "notes": null,
+                         *           "latest": {
+                         *             "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *             "revision": 2,
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "inputs": {
+                         *               "plot": {
+                         *                 "unit": "MARLA",
+                         *                 "size": 8,
+                         *                 "frontFt": 30,
+                         *                 "depthFt": 60
+                         *               },
+                         *               "coveredAreaSqft": 3300,
+                         *               "floors": 2,
+                         *               "mumty": true,
+                         *               "basement": false,
+                         *               "basementHeightFt": 10,
+                         *               "structureType": "FRAMED",
+                         *               "contractType": "GREY_OWNER_FINISHING",
+                         *               "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *               "supplyRules": [],
+                         *               "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *               "finalPricePaisa": null,
+                         *               "marginPercent": 15,
+                         *               "finishingAllowancePercent": 0
+                         *             },
+                         *             "rulebook": {
+                         *               "region": "PUNJAB_KP",
+                         *               "version": 1
+                         *             },
+                         *             "basis": {
+                         *               "plotAreaSqft": 1800,
+                         *               "coveredAreaSqft": 3300,
+                         *               "storeyAreaSqft": 1571.43,
+                         *               "floors": [
+                         *                 {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor",
+                         *                   "areaSqft": 1571.43,
+                         *                   "rooms": 11,
+                         *                   "wetRooms": 4,
+                         *                   "ceilingHeightFt": 11
+                         *                 }
+                         *               ],
+                         *               "foundation": "ISOLATED",
+                         *               "assumptions": {
+                         *                 "quickMumtyPercent": 10,
+                         *                 "quickRoomFillPercent": 80
+                         *               }
+                         *             },
+                         *             "quantities": {
+                         *               "cementBags": 2140.5,
+                         *               "steelKg": 13920.4,
+                         *               "bricks": 101200,
+                         *               "blocks": 0,
+                         *               "sandCft": 6120,
+                         *               "crushCft": 3410,
+                         *               "plasterSqft": 21400,
+                         *               "floorTilesSqft": 2620,
+                         *               "wallTilesSqft": 1480,
+                         *               "paintGallons": 196
+                         *             },
+                         *             "sections": [
+                         *               {
+                         *                 "section": "CONCRETE",
+                         *                 "amountPaisa": "210000000"
+                         *               }
+                         *             ],
+                         *             "specifications": [
+                         *               {
+                         *                 "categoryKey": "CEMENT",
+                         *                 "label": "Cement",
+                         *                 "suppliedBy": "CONTRACTOR",
+                         *                 "qualityCategory": {
+                         *                   "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                   "name": "Standard"
+                         *                 },
+                         *                 "materials": [
+                         *                   "Cement OPC"
+                         *                 ]
+                         *               }
+                         *             ],
+                         *             "paymentStages": [
+                         *               {
+                         *                 "label": "Agreement & mobilisation",
+                         *                 "percent": 15,
+                         *                 "isRetention": false,
+                         *                 "amountPaisa": "196500000"
+                         *               }
+                         *             ],
+                         *             "paymentTemplate": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *               "name": "Residential standard"
+                         *             },
+                         *             "warnings": [],
+                         *             "costPaisa": "1139130000",
+                         *             "directCostPaisa": "1035000000",
+                         *             "overheadPaisa": "51750000",
+                         *             "contingencyPaisa": "52380000",
+                         *             "finishingAllowancePaisa": "0",
+                         *             "costPerSqftPaisa": "345191",
+                         *             "pricePaisa": "1310000000",
+                         *             "computedPricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "priceOverridden": false,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0,
+                         *             "marginPaisa": "170870000",
+                         *             "marginOnPricePercent": 13.04
+                         *           },
+                         *           "revisions": [
+                         *             {
+                         *               "revision": 2,
+                         *               "createdAt": "2026-10-11T06:00:00.000Z",
+                         *               "createdBy": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *                 "name": "Khalid Malik"
+                         *               },
+                         *               "note": "Client asked for a better price — margin 15 %",
+                         *               "pricePaisa": "1310000000",
+                         *               "perSqftPaisa": "396970",
+                         *               "costPaisa": "1139130000"
+                         *             }
+                         *           ],
+                         *           "activity": [
+                         *             {
+                         *               "action": "quote.negotiation",
+                         *               "at": "2026-10-14T12:00:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *                 "name": "Khalid Malik"
+                         *               },
+                         *               "system": false,
+                         *               "details": {
+                         *                 "note": "Wants the price under Rs 1.3 crore"
+                         *               }
+                         *             }
+                         *           ]
+                         *         },
+                         *         "share": {
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-00000000f001",
+                         *           "url": "https://…",
+                         *           "expiresAt": "2026-10-17T10:00:00.000Z",
+                         *           "whatsappText": "Assalam o Alaikum Waqas Butt sahib, …",
+                         *           "clientPhone": "+923335551122"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_CLOSED | QUOTE_STATUS_INVALID */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/negotiation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record negotiation
+         * @description SENT / NEGOTIATION → NEGOTIATION with what the client said (activity). Other statuses → 409 QUOTE_STATUS_INVALID / QUOTE_CLOSED. Permission sales.quote.edit. Audited `quote.negotiation`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuoteNegotiationInput"];
+                };
+            };
+            responses: {
+                /** @description Updated (detail) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "NEGOTIATION",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": null,
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_STATUS_INVALID | QUOTE_CLOSED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/lost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark lost
+         * @description Any open status → LOST with a reason (COMPETITOR_CHEAPER, CLIENT_POSTPONED, SELF_BUILD, OTHER — OTHER needs a note: 400 LOST_NOTE_REQUIRED). WON / LOST → 409 QUOTE_CLOSED. Permission sales.quote.edit. Audited `quote.lost`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuoteLostInput"];
+                };
+            };
+            responses: {
+                /** @description Lost (detail) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *         "number": "Q-2026-0004",
+                         *         "status": "LOST",
+                         *         "title": "Bahria Orchard · 8 Marla",
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *           "name": "Waqas Butt",
+                         *           "phone": "+923335551122"
+                         *         },
+                         *         "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *         "city": "Lahore",
+                         *         "revision": 2,
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "coveredAreaSqft": 3300,
+                         *         "validUntil": "2026-10-25",
+                         *         "sentAt": "2026-10-10T11:00:00.000Z",
+                         *         "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *         "daysSinceActivity": 2,
+                         *         "followUp": false,
+                         *         "wonAt": null,
+                         *         "lostAt": null,
+                         *         "expiredAt": null,
+                         *         "lostReason": "COMPETITOR_CHEAPER",
+                         *         "lostNote": null,
+                         *         "wonProject": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *           "name": "Bilal Ahmed"
+                         *         },
+                         *         "createdAt": "2026-10-04T05:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *         "pricePaisa": "1310000000",
+                         *         "perSqftPaisa": "396970",
+                         *         "notes": null,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *           "revision": 2,
+                         *           "note": "Client asked for a better price — margin 15 %",
+                         *           "createdAt": "2026-10-11T06:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "inputs": {
+                         *             "plot": {
+                         *               "unit": "MARLA",
+                         *               "size": 8,
+                         *               "frontFt": 30,
+                         *               "depthFt": 60
+                         *             },
+                         *             "coveredAreaSqft": 3300,
+                         *             "floors": 2,
+                         *             "mumty": true,
+                         *             "basement": false,
+                         *             "basementHeightFt": 10,
+                         *             "structureType": "FRAMED",
+                         *             "contractType": "GREY_OWNER_FINISHING",
+                         *             "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *             "supplyRules": [],
+                         *             "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "finalPricePaisa": null,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0
+                         *           },
+                         *           "rulebook": {
+                         *             "region": "PUNJAB_KP",
+                         *             "version": 1
+                         *           },
+                         *           "basis": {
+                         *             "plotAreaSqft": 1800,
+                         *             "coveredAreaSqft": 3300,
+                         *             "storeyAreaSqft": 1571.43,
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "areaSqft": 1571.43,
+                         *                 "rooms": 11,
+                         *                 "wetRooms": 4,
+                         *                 "ceilingHeightFt": 11
+                         *               }
+                         *             ],
+                         *             "foundation": "ISOLATED",
+                         *             "assumptions": {
+                         *               "quickMumtyPercent": 10,
+                         *               "quickRoomFillPercent": 80
+                         *             }
+                         *           },
+                         *           "quantities": {
+                         *             "cementBags": 2140.5,
+                         *             "steelKg": 13920.4,
+                         *             "bricks": 101200,
+                         *             "blocks": 0,
+                         *             "sandCft": 6120,
+                         *             "crushCft": 3410,
+                         *             "plasterSqft": 21400,
+                         *             "floorTilesSqft": 2620,
+                         *             "wallTilesSqft": 1480,
+                         *             "paintGallons": 196
+                         *           },
+                         *           "sections": [
+                         *             {
+                         *               "section": "CONCRETE",
+                         *               "amountPaisa": "210000000"
+                         *             }
+                         *           ],
+                         *           "specifications": [
+                         *             {
+                         *               "categoryKey": "CEMENT",
+                         *               "label": "Cement",
+                         *               "suppliedBy": "CONTRACTOR",
+                         *               "qualityCategory": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                 "name": "Standard"
+                         *               },
+                         *               "materials": [
+                         *                 "Cement OPC"
+                         *               ]
+                         *             }
+                         *           ],
+                         *           "paymentStages": [
+                         *             {
+                         *               "label": "Agreement & mobilisation",
+                         *               "percent": 15,
+                         *               "isRetention": false,
+                         *               "amountPaisa": "196500000"
+                         *             }
+                         *           ],
+                         *           "paymentTemplate": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *             "name": "Residential standard"
+                         *           },
+                         *           "warnings": [],
+                         *           "costPaisa": "1139130000",
+                         *           "directCostPaisa": "1035000000",
+                         *           "overheadPaisa": "51750000",
+                         *           "contingencyPaisa": "52380000",
+                         *           "finishingAllowancePaisa": "0",
+                         *           "costPerSqftPaisa": "345191",
+                         *           "pricePaisa": "1310000000",
+                         *           "computedPricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "priceOverridden": false,
+                         *           "marginPercent": 15,
+                         *           "finishingAllowancePercent": 0,
+                         *           "marginPaisa": "170870000",
+                         *           "marginOnPricePercent": 13.04
+                         *         },
+                         *         "revisions": [
+                         *           {
+                         *             "revision": 2,
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "pricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "costPaisa": "1139130000"
+                         *           }
+                         *         ],
+                         *         "activity": [
+                         *           {
+                         *             "action": "quote.negotiation",
+                         *             "at": "2026-10-14T12:00:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "system": false,
+                         *             "details": {
+                         *               "note": "Wants the price under Rs 1.3 crore"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | LOST_NOTE_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_CLOSED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/won": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark won → pre-filled DRAFT project
+         * @description Makes a DRAFT project from the latest revision (wizard tabs 1–4 done: client, site, contract type + value = the quote price (labour-only: rate per sq ft), billing stages of the quote’s payment template, supply split with its quality category, plot, structure, floors, covered area, margin %) with `createdFromQuoteId`, and links it. Rooms are added in the wizard for the full estimate. Idempotent: a WON quote returns its project (`created: false`). LOST → 409 QUOTE_CLOSED. Permission sales.quote.approve + projects.project.create. Audited `quote.won` + `project.create`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuoteWonInput"];
+                };
+            };
+            responses: {
+                /** @description Won */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "quote": {
+                         *           "id": "0199a8c0-0000-7000-8000-00000000a001",
+                         *           "number": "Q-2026-0004",
+                         *           "status": "WON",
+                         *           "title": "Bahria Orchard · 8 Marla",
+                         *           "client": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000c01",
+                         *             "name": "Waqas Butt",
+                         *             "phone": "+923335551122"
+                         *           },
+                         *           "siteAddress": "Plot 118, Block E, Bahria Orchard",
+                         *           "city": "Lahore",
+                         *           "revision": 2,
+                         *           "contractType": "GREY_OWNER_FINISHING",
+                         *           "coveredAreaSqft": 3300,
+                         *           "validUntil": "2026-10-25",
+                         *           "sentAt": "2026-10-10T11:00:00.000Z",
+                         *           "lastActivityAt": "2026-10-14T12:00:00.000Z",
+                         *           "daysSinceActivity": 2,
+                         *           "followUp": false,
+                         *           "wonAt": null,
+                         *           "lostAt": null,
+                         *           "expiredAt": null,
+                         *           "lostReason": null,
+                         *           "lostNote": null,
+                         *           "wonProject": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000201",
+                         *             "name": "Bilal Ahmed"
+                         *           },
+                         *           "createdAt": "2026-10-04T05:00:00.000Z",
+                         *           "updatedAt": "2026-10-14T12:00:00.000Z",
+                         *           "pricePaisa": "1310000000",
+                         *           "perSqftPaisa": "396970",
+                         *           "notes": null,
+                         *           "latest": {
+                         *             "id": "0199a8c0-0000-7000-8000-00000000a102",
+                         *             "revision": 2,
+                         *             "note": "Client asked for a better price — margin 15 %",
+                         *             "createdAt": "2026-10-11T06:00:00.000Z",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "inputs": {
+                         *               "plot": {
+                         *                 "unit": "MARLA",
+                         *                 "size": 8,
+                         *                 "frontFt": 30,
+                         *                 "depthFt": 60
+                         *               },
+                         *               "coveredAreaSqft": 3300,
+                         *               "floors": 2,
+                         *               "mumty": true,
+                         *               "basement": false,
+                         *               "basementHeightFt": 10,
+                         *               "structureType": "FRAMED",
+                         *               "contractType": "GREY_OWNER_FINISHING",
+                         *               "qualityCategoryId": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *               "supplyRules": [],
+                         *               "paymentTemplateId": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *               "finalPricePaisa": null,
+                         *               "marginPercent": 15,
+                         *               "finishingAllowancePercent": 0
+                         *             },
+                         *             "rulebook": {
+                         *               "region": "PUNJAB_KP",
+                         *               "version": 1
+                         *             },
+                         *             "basis": {
+                         *               "plotAreaSqft": 1800,
+                         *               "coveredAreaSqft": 3300,
+                         *               "storeyAreaSqft": 1571.43,
+                         *               "floors": [
+                         *                 {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor",
+                         *                   "areaSqft": 1571.43,
+                         *                   "rooms": 11,
+                         *                   "wetRooms": 4,
+                         *                   "ceilingHeightFt": 11
+                         *                 }
+                         *               ],
+                         *               "foundation": "ISOLATED",
+                         *               "assumptions": {
+                         *                 "quickMumtyPercent": 10,
+                         *                 "quickRoomFillPercent": 80
+                         *               }
+                         *             },
+                         *             "quantities": {
+                         *               "cementBags": 2140.5,
+                         *               "steelKg": 13920.4,
+                         *               "bricks": 101200,
+                         *               "blocks": 0,
+                         *               "sandCft": 6120,
+                         *               "crushCft": 3410,
+                         *               "plasterSqft": 21400,
+                         *               "floorTilesSqft": 2620,
+                         *               "wallTilesSqft": 1480,
+                         *               "paintGallons": 196
+                         *             },
+                         *             "sections": [
+                         *               {
+                         *                 "section": "CONCRETE",
+                         *                 "amountPaisa": "210000000"
+                         *               }
+                         *             ],
+                         *             "specifications": [
+                         *               {
+                         *                 "categoryKey": "CEMENT",
+                         *                 "label": "Cement",
+                         *                 "suppliedBy": "CONTRACTOR",
+                         *                 "qualityCategory": {
+                         *                   "id": "0199a8c0-0000-7000-8000-0000000007c1",
+                         *                   "name": "Standard"
+                         *                 },
+                         *                 "materials": [
+                         *                   "Cement OPC"
+                         *                 ]
+                         *               }
+                         *             ],
+                         *             "paymentStages": [
+                         *               {
+                         *                 "label": "Agreement & mobilisation",
+                         *                 "percent": 15,
+                         *                 "isRetention": false,
+                         *                 "amountPaisa": "196500000"
+                         *               }
+                         *             ],
+                         *             "paymentTemplate": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000007d1",
+                         *               "name": "Residential standard"
+                         *             },
+                         *             "warnings": [],
+                         *             "costPaisa": "1139130000",
+                         *             "directCostPaisa": "1035000000",
+                         *             "overheadPaisa": "51750000",
+                         *             "contingencyPaisa": "52380000",
+                         *             "finishingAllowancePaisa": "0",
+                         *             "costPerSqftPaisa": "345191",
+                         *             "pricePaisa": "1310000000",
+                         *             "computedPricePaisa": "1310000000",
+                         *             "perSqftPaisa": "396970",
+                         *             "priceOverridden": false,
+                         *             "marginPercent": 15,
+                         *             "finishingAllowancePercent": 0,
+                         *             "marginPaisa": "170870000",
+                         *             "marginOnPricePercent": 13.04
+                         *           },
+                         *           "revisions": [
+                         *             {
+                         *               "revision": 2,
+                         *               "createdAt": "2026-10-11T06:00:00.000Z",
+                         *               "createdBy": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *                 "name": "Khalid Malik"
+                         *               },
+                         *               "note": "Client asked for a better price — margin 15 %",
+                         *               "pricePaisa": "1310000000",
+                         *               "perSqftPaisa": "396970",
+                         *               "costPaisa": "1139130000"
+                         *             }
+                         *           ],
+                         *           "activity": [
+                         *             {
+                         *               "action": "quote.negotiation",
+                         *               "at": "2026-10-14T12:00:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *                 "name": "Khalid Malik"
+                         *               },
+                         *               "system": false,
+                         *               "details": {
+                         *                 "note": "Wants the price under Rs 1.3 crore"
+                         *               }
+                         *             }
+                         *           ]
+                         *         },
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000199",
+                         *         "projectCode": "MSB-2026-017",
+                         *         "created": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_CLOSED | PROJECT_CODE_TAKEN */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quote PDF (customer or internal)
+         * @description `variant=customer` (needs fields.contract): the quotation the client gets — never any cost, overhead, contingency or margin. `variant=internal` (needs fields.rates): cost by BoQ section, overheads, contingency, finishing allowance; the price with fields.contract and the margin with fields.contract + fields.profit. Returns a signed link + share text. Permission sales.quote.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    variant?: "customer" | "internal";
+                    /** @description en = English, roman = Roman Urdu, ur = Urdu (right-to-left) */
+                    lang?: "en" | "roman" | "ur";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description PDF link */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-00000000f001",
+                         *         "url": "https://…",
+                         *         "expiresAt": "2026-10-17T10:00:00.000Z",
+                         *         "whatsappText": "…",
+                         *         "clientPhone": "+923335551122"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description QUOTE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stock-locations": {
         parameters: {
             query?: never;
@@ -44402,6 +47480,1372 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{id}/control/material-variance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Material variance (estimated vs delivered vs used vs stock vs loss)
+         * @description Per material at the project site: estimated total (APPROVED estimate quantities through the milestone quotas, material units) and estimated to date (× each milestone’s progress), delivered (receipts + site purchases + owner deliveries − returns), used (usage entries), counted loss (stock-count shortfall), in stock, consumed = used + loss, variance = consumed − estimated to date (qty and %). Status OVER / UNDER beyond the company overuse % (Alerts & Limits), ON_TRACK, UNPLANNED (not in the estimate), NOT_STARTED, NO_SCHEDULE (no schedule → nothing can be prorated). PKR impact (fields.rates): quantity variance × estimate rate + (actual average cost − estimate rate) × consumed. `?milestoneId=`: that milestone’s quotas × its progress vs the usage linked to it (site-level delivered / stock / loss are null). Owner-supplied materials: quantities only. Rupee keys are LEFT OUT (not null) without the data-visibility permission: material rates / PKR impact need fields.rates; cost-variance money needs fields.amounts + fields.rates; burn-rate cost fields.amounts, contract value fields.contract, spent % fields.amounts + fields.contract; the projected margin fields.amounts + fields.rates + fields.contract + fields.profit. Permission control.view (project in scope).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Only this milestone: its quotas × its progress vs usage linked to it */
+                    milestoneId?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Material variance */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "milestone": null,
+                         *         "asOf": "2026-10-16",
+                         *         "estimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *           "revision": 1
+                         *         },
+                         *         "hasSchedule": true,
+                         *         "progress": {
+                         *           "percent": 46.8,
+                         *           "basis": "ESTIMATE_VALUE"
+                         *         },
+                         *         "thresholdPercent": 10,
+                         *         "items": [
+                         *           {
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag"
+                         *             },
+                         *             "estimateKey": "cement",
+                         *             "description": "Cement OPC",
+                         *             "unit": "bag",
+                         *             "ownerSupplied": false,
+                         *             "estimatedTotalQty": 812.4,
+                         *             "estimatedToDateQty": 360.8,
+                         *             "deliveredQty": 450,
+                         *             "usedQty": 408,
+                         *             "lossQty": 4,
+                         *             "inStockQty": 38,
+                         *             "consumedQty": 412,
+                         *             "varianceQty": 51.2,
+                         *             "variancePercent": 14.2,
+                         *             "status": "OVER",
+                         *             "estimateRatePaisa": "142000",
+                         *             "actualAvgCostPaisa": "145500",
+                         *             "quantityImpactPaisa": "7270400",
+                         *             "priceImpactPaisa": "1442000",
+                         *             "impactPaisa": "8712400"
+                         *           }
+                         *         ],
+                         *         "counts": {
+                         *           "over": 1,
+                         *           "under": 0,
+                         *           "onTrack": 4,
+                         *           "unplanned": 0,
+                         *           "notStarted": 3
+                         *         },
+                         *         "totals": {
+                         *           "quantityImpactPaisa": "7270400",
+                         *           "priceImpactPaisa": "1442000",
+                         *           "impactPaisa": "8712400"
+                         *         },
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_MILESTONE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/control/cost-variance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cost variance by bucket vs the estimate to date + projected margin
+         * @description Buckets MATERIALS, LABOUR (wages), SUBCONTRACT (theka payments; estimate LUMP_SUM lines such as MEP), EQUIPMENT, OVERHEADS, LOSSES, CONTINGENCY: estimate total, estimate to date (each APPROVED estimate line × its stage’s progress; lines without a stage × physical progress), actual (cost engine), variance (actual − estimate to date; positive = over). `labourCombined` = LABOUR + SUBCONTRACT (piece-rate labour is often paid as a theka). Physical progress is weighted by the estimate value of each stage (`ESTIMATE_VALUE`), else by effort (`EFFORT`). `projection` = projected margin at completion: EAC = cost to date + (budget − earned value) ÷ CPI (CPI = earned value ÷ cost, 0.5–1.5; 1 below 10 % progress); margin = revised contract − EAC. Rupee keys are LEFT OUT (not null) without the data-visibility permission: material rates / PKR impact need fields.rates; cost-variance money needs fields.amounts + fields.rates; burn-rate cost fields.amounts, contract value fields.contract, spent % fields.amounts + fields.contract; the projected margin fields.amounts + fields.rates + fields.contract + fields.profit. Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cost variance */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "asOf": "2026-10-16",
+                         *         "estimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *           "revision": 1
+                         *         },
+                         *         "hasSchedule": true,
+                         *         "progress": {
+                         *           "percent": 39,
+                         *           "basis": "ESTIMATE_VALUE"
+                         *         },
+                         *         "thresholdPercent": 10,
+                         *         "buckets": [
+                         *           {
+                         *             "bucket": "MATERIALS",
+                         *             "status": "OVER",
+                         *             "estimateTotalPaisa": "980000000",
+                         *             "estimateToDatePaisa": "382200000",
+                         *             "actualPaisa": "431000000",
+                         *             "variancePaisa": "48800000",
+                         *             "variancePercent": 12.8
+                         *           },
+                         *           {
+                         *             "bucket": "LABOUR",
+                         *             "status": "UNDER",
+                         *             "estimateTotalPaisa": "260000000",
+                         *             "estimateToDatePaisa": "101400000",
+                         *             "actualPaisa": "61000000",
+                         *             "variancePaisa": "-40400000",
+                         *             "variancePercent": -39.8
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "estimateTotalPaisa": "1512000000",
+                         *           "estimateToDatePaisa": "589680000",
+                         *           "actualPaisa": "640000000",
+                         *           "variancePaisa": "50320000",
+                         *           "variancePercent": 8.5
+                         *         },
+                         *         "labourCombined": {
+                         *           "estimateToDatePaisa": "140000000",
+                         *           "actualPaisa": "150000000",
+                         *           "variancePaisa": "10000000",
+                         *           "variancePercent": 7.1
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "stageKey": "GF_STRUCTURE",
+                         *             "progressPercent": 100,
+                         *             "estimatePaisa": "320000000",
+                         *             "estimateToDatePaisa": "320000000"
+                         *           }
+                         *         ],
+                         *         "projection": {
+                         *           "contractPaisa": "1850000000",
+                         *           "approvedChangesPaisa": "0",
+                         *           "revisedContractPaisa": "1850000000",
+                         *           "budgetAtCompletionPaisa": "1512000000",
+                         *           "actualToDatePaisa": "640000000",
+                         *           "earnedValuePaisa": "589680000",
+                         *           "costPerformanceIndex": 0.921,
+                         *           "estimateAtCompletionPaisa": "1641737000",
+                         *           "remainingCostPaisa": "1001737000",
+                         *           "projectedMarginPaisa": "208263000",
+                         *           "projectedMarginPercent": 11.3,
+                         *           "basis": "EARNED_VALUE",
+                         *           "note": "Cost to date + the rest of the approved estimate (Rev 1) adjusted by performance so far (CPI 0.921)."
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/control/burn-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Burn rate (cost % of contract) vs physical progress by month
+         * @description One row per Karachi month from the first cost / plan month to this month: cost of the month and cumulative (fields.amounts), cumulative cost as % of the revised contract (`spentPercent`), physical progress at month end (milestone updates up to that date; this month = live) and `gapPoints` = spent − progress; `ahead` when the gap is above the spend-ahead points (Alerts & Limits). `current.plannedProgressPercent` = where the plan says the work should be today. Rupee keys are LEFT OUT (not null) without the data-visibility permission: material rates / PKR impact need fields.rates; cost-variance money needs fields.amounts + fields.rates; burn-rate cost fields.amounts, contract value fields.contract, spent % fields.amounts + fields.contract; the projected margin fields.amounts + fields.rates + fields.contract + fields.profit. Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Burn rate */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "asOf": "2026-10-16",
+                         *         "thresholdPoints": 10,
+                         *         "progressBasis": "ESTIMATE_VALUE",
+                         *         "hasSchedule": true,
+                         *         "contractPaisa": "1850000000",
+                         *         "months": [
+                         *           {
+                         *             "month": "2026-09",
+                         *             "progressPercent": 33.5,
+                         *             "costPaisa": "62000000",
+                         *             "cumulativeCostPaisa": "590000000",
+                         *             "spentPercent": 31.9,
+                         *             "gapPoints": -1.6,
+                         *             "ahead": false
+                         *           },
+                         *           {
+                         *             "month": "2026-10",
+                         *             "progressPercent": 39,
+                         *             "costPaisa": "50000000",
+                         *             "cumulativeCostPaisa": "640000000",
+                         *             "spentPercent": 34.6,
+                         *             "gapPoints": -4.4,
+                         *             "ahead": false
+                         *           }
+                         *         ],
+                         *         "current": {
+                         *           "progressPercent": 39,
+                         *           "plannedProgressPercent": 44.2,
+                         *           "spentPercent": 34.6,
+                         *           "gapPoints": -4.4,
+                         *           "ahead": false
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/control/delay-analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Delay analysis (Step 13 delays + planned vs actual per milestone + timeline)
+         * @description `delays` = the Step 13 delay breakdown (original / revised / projected end, owner / excusable / contractor days with reasons, pending stoppages). Each milestone: planned progress today (working days elapsed of its window) vs actual, `behindPoints`, `lateDays` (past its planned end, not finished) and `behind` (the MILESTONE_BEHIND_PLAN condition with the company thresholds). `timeline`: stoppages, plan versions and site updates, newest first (≤ 100). Without a schedule: `hasSchedule: false`, `delays: null`. No money. Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Delay analysis */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         },
+                         *         "asOf": "2026-10-16",
+                         *         "thresholdPoints": 15,
+                         *         "graceDays": 3,
+                         *         "hasSchedule": true,
+                         *         "delays": {
+                         *           "originalEnd": "2027-02-15",
+                         *           "baselineEnd": "2027-01-12",
+                         *           "plannedEnd": "2027-02-02",
+                         *           "revisedEnd": "2027-02-17",
+                         *           "projectedEnd": "2027-03-01",
+                         *           "pace": 0.86,
+                         *           "progressPercent": 41.2,
+                         *           "days": {
+                         *             "owner": 0,
+                         *             "excusable": 2,
+                         *             "contractor": 10,
+                         *             "changeOrders": 0,
+                         *             "total": 12
+                         *           },
+                         *           "aheadDays": 0,
+                         *           "calendarDaysLate": 14,
+                         *           "categories": [],
+                         *           "pending": [],
+                         *           "changeOrders": {
+                         *             "days": 0,
+                         *             "items": []
+                         *           }
+                         *         },
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "status": "IN_PROGRESS",
+                         *             "plannedStart": "2026-10-08",
+                         *             "plannedEnd": "2026-10-28",
+                         *             "baselineStart": "2026-07-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "varianceDays": 75,
+                         *             "actualStart": "2026-10-14",
+                         *             "actualEnd": null,
+                         *             "progressPercent": 20,
+                         *             "plannedProgressPercent": 44.4,
+                         *             "behindPoints": 24.4,
+                         *             "late": false,
+                         *             "lateDays": 0,
+                         *             "behind": true
+                         *           }
+                         *         ],
+                         *         "timeline": [
+                         *           {
+                         *             "date": "2026-10-15",
+                         *             "kind": "MILESTONE_UPDATE",
+                         *             "title": "First floor — roof slab (lenter)",
+                         *             "detail": null,
+                         *             "category": null,
+                         *             "status": "IN_PROGRESS",
+                         *             "days": null,
+                         *             "refId": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "plannedEnd": null,
+                         *             "progressPercent": 20
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "behind": 1,
+                         *           "late": 0,
+                         *           "finished": 8,
+                         *           "total": 13
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/control/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Control alerts of a project
+         * @description Alerts the caller may see (rules whose permission + money permissions they hold), OPEN by default. Title / body in the reader’s language; never money. Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "OPEN" | "RESOLVED" | "ALL";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Alerts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001401",
+                         *             "rule": "MATERIAL_OVERUSE",
+                         *             "severity": "WARNING",
+                         *             "status": "OPEN",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "title": "DHA Phase 6 · 10 Marla: Cement OPC 14.2% over the estimate",
+                         *             "body": "412 bags used (with counted losses) against 360.8 bags due for the work done so far. Check wastage, theft or a wrong entry.",
+                         *             "refType": "MATERIAL",
+                         *             "refId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "details": {
+                         *               "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "material": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "estimatedToDateQty": 360.8,
+                         *               "consumedQty": 412,
+                         *               "varianceQty": 51.2,
+                         *               "variancePercent": 14.2,
+                         *               "thresholdPercent": 10
+                         *             },
+                         *             "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
+                         *             "openedAt": "2026-10-14T01:30:00.000Z",
+                         *             "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *             "resolvedAt": null,
+                         *             "notifiedAt": "2026-10-14T01:30:00.000Z",
+                         *             "occurrences": 1
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Company control summary (dashboard card)
+         * @description Every ACTIVE / CLOSEOUT project in the caller’s control.view scope: physical vs planned progress, behind / late milestones, materials over the estimate, exhausted quotas, open alerts by severity; `spentPercent` / `gapPoints` with fields.amounts + fields.contract, `projectedMarginPercent` / `projectedMarginPaisa` with the projected-margin permissions. Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "asOf": "2026-10-16",
+                         *         "thresholds": {
+                         *           "overuseAlertPercent": 10,
+                         *           "behindPlanAlertPoints": 15,
+                         *           "lateFinishGraceDays": 3,
+                         *           "quotaAlertPercent": 100,
+                         *           "spendAheadAlertPoints": 10,
+                         *           "controlAlertsEnabled": true
+                         *         },
+                         *         "projects": [
+                         *           {
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "status": "ACTIVE"
+                         *             },
+                         *             "hasSchedule": true,
+                         *             "progressPercent": 39,
+                         *             "plannedProgressPercent": 44.2,
+                         *             "behindMilestones": 1,
+                         *             "lateMilestones": 0,
+                         *             "overuseMaterials": 1,
+                         *             "quotasExhausted": 1,
+                         *             "openAlerts": {
+                         *               "critical": 0,
+                         *               "warning": 3,
+                         *               "info": 0
+                         *             },
+                         *             "spentPercent": 34.6,
+                         *             "gapPoints": -4.4,
+                         *             "projectedMarginPercent": 11.3,
+                         *             "projectedMarginPaisa": "208263000"
+                         *           }
+                         *         ],
+                         *         "alerts": {
+                         *           "open": 3,
+                         *           "critical": 0,
+                         *           "warning": 3,
+                         *           "info": 0,
+                         *           "byRule": {
+                         *             "MATERIAL_OVERUSE": 1,
+                         *             "MILESTONE_BEHIND_PLAN": 1,
+                         *             "QUOTA_EXHAUSTED": 1
+                         *           }
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Control alerts (company)
+         * @description Paged, newest `lastSeenAt` first; only projects in the caller’s control.view scope and rules the caller may see. Filters: project, rule, severity, status (OPEN default / RESOLVED / ALL). Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    projectId?: string;
+                    rule?: string;
+                    severity?: "INFO" | "WARNING" | "CRITICAL";
+                    status?: "OPEN" | "RESOLVED" | "ALL";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Alerts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001401",
+                         *           "rule": "MATERIAL_OVERUSE",
+                         *           "severity": "WARNING",
+                         *           "status": "OPEN",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "title": "DHA Phase 6 · 10 Marla: Cement OPC 14.2% over the estimate",
+                         *           "body": "412 bags used (with counted losses) against 360.8 bags due for the work done so far. Check wastage, theft or a wrong entry.",
+                         *           "refType": "MATERIAL",
+                         *           "refId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *           "details": {
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "material": "Cement OPC",
+                         *             "unit": "bag",
+                         *             "estimatedToDateQty": 360.8,
+                         *             "consumedQty": 412,
+                         *             "varianceQty": 51.2,
+                         *             "variancePercent": 14.2,
+                         *             "thresholdPercent": 10
+                         *           },
+                         *           "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
+                         *           "openedAt": "2026-10-14T01:30:00.000Z",
+                         *           "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *           "resolvedAt": null,
+                         *           "notifiedAt": "2026-10-14T01:30:00.000Z",
+                         *           "occurrences": 1
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/alerts/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Alert rule registry
+         * @description Every rule the engine knows: source (CONTROL / EXTERNAL job), trigger (DAILY 06:30 PKT, ON_WRITE = usage / stock count / milestone progress), default severity, recipients (permission + money permissions, project scope; the owner always), threshold setting and value, dedupe key + renotify window, link, status (ACTIVE / DISABLED / PENDING_PLUGIN — EQUIPMENT_IDLE until Step 16 plugs it in). Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Rules */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "rule": "MATERIAL_OVERUSE",
+                         *           "source": "CONTROL",
+                         *           "trigger": "DAILY_AND_ON_WRITE",
+                         *           "severity": "WARNING",
+                         *           "permission": "control.view",
+                         *           "moneyPermissions": [],
+                         *           "threshold": {
+                         *             "setting": "overuseAlertPercent",
+                         *             "value": 10
+                         *           },
+                         *           "dedupe": {
+                         *             "key": "MATERIAL_OVERUSE:<projectId>:<materialId>",
+                         *             "renotifyHours": 168
+                         *           },
+                         *           "actionUrl": "/projects/:projectId/control/material-variance",
+                         *           "status": "ACTIVE",
+                         *           "description": "A material is used …"
+                         *         },
+                         *         {
+                         *           "rule": "EQUIPMENT_IDLE",
+                         *           "source": "CONTROL",
+                         *           "trigger": "DAILY",
+                         *           "severity": "WARNING",
+                         *           "permission": "equipment.rental.manage",
+                         *           "moneyPermissions": [],
+                         *           "threshold": {
+                         *             "setting": "equipmentIdleDays",
+                         *             "value": null
+                         *           },
+                         *           "dedupe": {
+                         *             "key": "EQUIPMENT_IDLE:<rentalId>",
+                         *             "renotifyHours": 24
+                         *           },
+                         *           "actionUrl": "/equipment/rentals",
+                         *           "status": "PENDING_PLUGIN",
+                         *           "description": "Rented equipment …"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/alerts/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run the alert engine now
+         * @description Evaluates the rules (default all) for one project or every ACTIVE / CLOSEOUT project now — what the daily job does. New findings open alerts and notify (CONTROL_ALERT) the permitted users; findings that are gone resolve their alert. Permission control.manage. Audited `control.alerts_run`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Only this project (default: every ACTIVE / CLOSEOUT project)
+                         */
+                        projectId?: string;
+                        /**
+                         * @description Only these rules (default: every rule the engine evaluates)
+                         * @example [
+                         *       "MATERIAL_OVERUSE"
+                         *     ]
+                         */
+                        rules?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Ran */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "ranAt": "2026-10-16T09:00:00.000Z",
+                         *         "projects": 2,
+                         *         "evaluated": 3,
+                         *         "opened": 1,
+                         *         "updated": 2,
+                         *         "resolved": 0,
+                         *         "notified": 3,
+                         *         "alerts": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001401",
+                         *             "rule": "MATERIAL_OVERUSE",
+                         *             "severity": "WARNING",
+                         *             "status": "OPEN",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "title": "DHA Phase 6 · 10 Marla: Cement OPC 14.2% over the estimate",
+                         *             "body": "412 bags used (with counted losses) against 360.8 bags due for the work done so far. Check wastage, theft or a wrong entry.",
+                         *             "refType": "MATERIAL",
+                         *             "refId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "details": {
+                         *               "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "material": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "estimatedToDateQty": 360.8,
+                         *               "consumedQty": 412,
+                         *               "varianceQty": 51.2,
+                         *               "variancePercent": 14.2,
+                         *               "thresholdPercent": 10
+                         *             },
+                         *             "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
+                         *             "openedAt": "2026-10-14T01:30:00.000Z",
+                         *             "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *             "resolvedAt": null,
+                         *             "notifiedAt": "2026-10-14T01:30:00.000Z",
+                         *             "occurrences": 1
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | UNKNOWN_RULE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ALERTS_DISABLED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Alert thresholds
+         * @description The company thresholds of the control alerts (also in GET /company/settings for the owner). Permission control.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Thresholds */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "overuseAlertPercent": 10,
+                         *         "behindPlanAlertPoints": 15,
+                         *         "lateFinishGraceDays": 3,
+                         *         "quotaAlertPercent": 100,
+                         *         "spendAheadAlertPoints": 10,
+                         *         "controlAlertsEnabled": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * Change alert thresholds
+         * @description overuseAlertPercent 1–20, behindPlanAlertPoints 5–50, lateFinishGraceDays 0–30, quotaAlertPercent 50–150, spendAheadAlertPoints 1–50, controlAlertsEnabled. Permission control.manage. Audited `control.settings_update` (before / after).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        overuseAlertPercent?: number;
+                        behindPlanAlertPoints?: number;
+                        lateFinishGraceDays?: number;
+                        quotaAlertPercent?: number;
+                        spendAheadAlertPoints?: number;
+                        controlAlertsEnabled?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Thresholds */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "overuseAlertPercent": 5,
+                         *         "behindPlanAlertPoints": 10,
+                         *         "lateFinishGraceDays": 3,
+                         *         "quotaAlertPercent": 100,
+                         *         "spendAheadAlertPoints": 10,
+                         *         "controlAlertsEnabled": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/project-summary": {
         parameters: {
             query?: never;
@@ -52547,6 +56991,28 @@ export interface components {
             }[];
             /** @description false = the built-in approximate dates */
             ramadanPeriodsCustom: boolean;
+            /**
+             * @description Step 14: a milestone is behind plan when planned − actual progress ≥ this many points (5–50)
+             * @example 15
+             */
+            behindPlanAlertPoints: number;
+            /**
+             * @description Step 14: a milestone is late when not finished this many days after its planned end (0–30)
+             * @example 3
+             */
+            lateFinishGraceDays: number;
+            /**
+             * @description Step 14: quota exhausted when used ≥ this % of the milestone quota (50–150)
+             * @example 100
+             */
+            quotaAlertPercent: number;
+            /**
+             * @description Step 14: spend ahead of progress when cost % of contract − progress % > this many points (1–50)
+             * @example 10
+             */
+            spendAheadAlertPoints: number;
+            /** @description Step 14: false = the control alert engine stores / sends nothing */
+            controlAlertsEnabled: boolean;
         };
         Holiday: {
             /** Format: uuid */
@@ -53527,6 +57993,142 @@ export interface components {
         };
         RejectStoppageInput: {
             note: string;
+        };
+        QuotePreviewInput: {
+            inputs: components["schemas"]["QuoteInputs"];
+        };
+        QuoteInputs: {
+            plot: {
+                /** @enum {string} */
+                unit: "MARLA" | "KANAL" | "SQFT";
+                size: number;
+                frontFt?: number | null;
+                depthFt?: number | null;
+                /** @description Sq ft per marla; default = the company setting */
+                marlaStandard?: 225 | 272.25;
+            };
+            /**
+             * @description Total covered area of all floors (basement and mumty included)
+             * @example 3950
+             */
+            coveredAreaSqft: number;
+            /**
+             * @description Storeys above ground: 1 = ground only, 2 = ground + first …
+             * @example 2
+             */
+            floors: number;
+            /** @default true */
+            mumty: boolean;
+            /** @default false */
+            basement: boolean;
+            /** @default 10 */
+            basementHeightFt: number;
+            /** @enum {string} */
+            structureType: "FRAMED" | "LOAD_BEARING";
+            /** @enum {string} */
+            contractType: "FULL" | "GREY_OWNER_FINISHING" | "LABOR_ONLY";
+            /**
+             * Format: uuid
+             * @description Quality category of contractor-supplied material; null / omitted = the company default category
+             */
+            qualityCategoryId?: string | null;
+            /** @description Who supplies what, on top of the contract-type preset */
+            supplyRules?: {
+                /** @enum {string} */
+                categoryKey: "CEMENT" | "BRICKS" | "STEEL" | "SAND_BAJRI" | "PIPES" | "WATERPROOFING" | "ELECTRICAL" | "TILES_FLOORING" | "SANITARY" | "WOODWORK" | "PAINT";
+                /** @enum {string} */
+                suppliedBy: "CONTRACTOR" | "OWNER";
+            }[];
+            /** @description Profit margin % on cost; default = the company default */
+            marginPercent?: number;
+            /** @description FULL only; default = the company default */
+            finishingAllowancePercent?: number;
+            /**
+             * Format: uuid
+             * @description Payment schedule template; default = the company default template
+             */
+            paymentTemplateId?: string;
+            /**
+             * @description Negotiated final price (paisa); null / omitted = the computed price
+             * @example 1850000000
+             */
+            finalPricePaisa?: string | number | null;
+        };
+        CreateQuoteInput: {
+            /** Format: uuid */
+            clientId?: string;
+            newClient?: {
+                name: string;
+                /** @example 042-35761234 */
+                phone: string;
+                /** Format: email */
+                email?: string;
+            };
+            /** @example DHA Phase 6 · 10 Marla */
+            title: string;
+            siteAddress?: string;
+            city?: string;
+            /**
+             * @description Default: today + company quoteValidityDays
+             * @example 2026-12-25
+             */
+            validUntil?: string;
+            notes?: string;
+            inputs: components["schemas"]["QuoteInputs"];
+            /** @description Note on revision 1 */
+            note?: string;
+        };
+        UpdateQuoteInput: {
+            /** Format: uuid */
+            clientId?: string;
+            /** @example DHA Phase 6 · 10 Marla */
+            title?: string;
+            siteAddress?: string | null;
+            city?: string | null;
+            /** @example 2026-12-25 */
+            validUntil?: string;
+            notes?: string | null;
+        };
+        AddQuoteRevisionInput: {
+            inputs: components["schemas"]["QuoteInputs"];
+            note?: string;
+        };
+        SendQuoteInput: {
+            /**
+             * @description Default: today + company quoteValidityDays
+             * @example 2026-12-25
+             */
+            validUntil?: string;
+            /**
+             * @description Customer PDF / WhatsApp language (default: the signed-in user)
+             * @example ur
+             * @enum {string}
+             */
+            lang?: "en" | "roman" | "ur";
+        };
+        QuoteNegotiationInput: {
+            note: string;
+        };
+        QuoteLostInput: {
+            /** @enum {string} */
+            reason: "COMPETITOR_CHEAPER" | "CLIENT_POSTPONED" | "SELF_BUILD" | "OTHER";
+            note?: string;
+        };
+        QuoteWonInput: {
+            /**
+             * @description Project start (default today)
+             * @example 2026-12-25
+             */
+            startDate?: string;
+            /**
+             * @description Project end (default start + 12 months)
+             * @example 2026-12-25
+             */
+            endDate?: string;
+            /** @description Project name (default: the quote title) */
+            name?: string;
+            /** @description Project code (default: next MSB-2026-NNN) */
+            code?: string;
         };
     };
     responses: never;

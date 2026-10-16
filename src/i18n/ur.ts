@@ -11,6 +11,7 @@ import * as teamCompanyUr from "./areas/teamCompany/ur";
 import * as appUr from "./areas/app/ur";
 import * as equipmentUr from "./areas/equipment/ur";
 import * as scheduleUr from "./areas/schedule/ur";
+import * as controlUr from "./areas/control/ur";
 
 /** Urdu (Nastaliq script, right-to-left) UI strings — same keys as `en.ts`. */
 export const ur: Dictionary = {
@@ -26,6 +27,7 @@ export const ur: Dictionary = {
   app: appUr.strings,
   equipment: equipmentUr.strings,
   schedule: scheduleUr.strings,
+  control: controlUr.strings,
   common: {
     save: "محفوظ کریں",
     saveChanges: "تبدیلیاں محفوظ کریں",
@@ -616,6 +618,7 @@ export const ur: Dictionary = {
     ...appUr.enums,
     ...equipmentUr.enums,
     ...scheduleUr.enums,
+    ...controlUr.enums,
     projectStatus: {
       DRAFT: "مسودہ",
       ACTIVE: "جاری",
@@ -641,6 +644,7 @@ export const ur: Dictionary = {
       CHEQUE_BOUNCED: "چیک باؤنس",
       INVOICE_OVERDUE: "انوائس کی مدت گزر گئی",
       STAGE_READY_UNBILLED: "مرحلہ تیار، بل نہیں بنا",
+      CONTROL_ALERT: "کنٹرول الرٹ",
       PREVIOUS_STAGE_UNPAID: "پچھلے مرحلے کی ادائیگی باقی",
       SHORTAGE_CREATED: "کمی درج ہوئی",
       LOW_STOCK: "اسٹاک کم",
