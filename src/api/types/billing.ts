@@ -4,6 +4,7 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
+import type { TaxAuthority } from "./tax";
 
 export type StageStatus = "UPCOMING" | "READY" | "INVOICED" | "PARTLY_PAID" | "PAID";
 export type InvoiceType = "STAGE" | "RUNNING_BILL" | "RECOVERABLE" | "RETENTION" | "OTHER";
@@ -103,6 +104,12 @@ export interface Invoice {
   taxPaisa: Paisa;
   taxLabel: string | null;
   taxRatePercent: number | null;
+  /** Step 18: tax snapshot (frozen when the invoice is issued). */
+  taxableBasePaisa: Paisa;
+  taxAuthority: TaxAuthority | null;
+  sellerNtn: string | null;
+  sellerStrn: string | null;
+  buyerNtn: string | null;
   totalPaisa: Paisa;
   paidPaisa: Paisa;
   pendingPaisa: Paisa;
@@ -126,6 +133,10 @@ export interface ClientPayment {
   receivedOn: IsoDate;
   amountPaisa: Paisa;
   whtDeductedPaisa: Paisa;
+  /** Step 18: cash + WHT. */
+  grossPaisa: Paisa;
+  whtRatePercent: number | null;
+  whtCertificate: { number: string | null; date: IsoDate | null; attachmentId: Id | null } | null;
   method: ClientPaymentMethod;
   bankName: string | null;
   reference: string | null;

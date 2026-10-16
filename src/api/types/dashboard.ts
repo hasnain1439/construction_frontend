@@ -327,7 +327,17 @@ export interface CashFloatsOverview {
 
 // ─── Reports ────────────────────────────────────────────────────────────────
 
-export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation";
+export type ReportName =
+  | "project-summary"
+  | "material-audit"
+  | "labor-peshgi"
+  | "cash-book"
+  | "supplier-ageing"
+  | "receivables-ageing"
+  | "stock-valuation"
+  // Step 18 · tax reports
+  | "wht-summary"
+  | "tax-invoice-register";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";
 export type ReportQuery = QueryParams<"/api/v1/reports/project-summary", "get">;
 export type ReportColumnType = "text" | "money" | "qty" | "int" | "percent" | "date";

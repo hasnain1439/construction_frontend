@@ -16,7 +16,7 @@ import {
   useMarkStageReadyMutation,
   useRecordPaymentMutation,
 } from "@/api/services/billing.api";
-import { useGetCompanySettingsQuery } from "@/api/services/company.api";
+import { useGetProjectTaxQuery } from "@/api/services/tax.api";
 import type { ScheduleStage, UnpaidStageWarning } from "@/api/types";
 import { AllocationEditor, type AllocatableInvoice } from "@/components/common/AllocationEditor";
 import { PAYMENT_METHODS } from "@/components/common/BillingBadges";
@@ -30,6 +30,7 @@ import { DateField } from "@/components/forms/DateField";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyField } from "@/components/forms/MoneyInput";
+import { NumberField } from "@/components/forms/NumberField";
 import { QuantityField } from "@/components/forms/QuantityInput";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
@@ -42,6 +43,7 @@ import { todayPK } from "@/lib/dates";
 import { formatPKR, sumPaisa, toPaisaBigInt } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { qtyTimesRate } from "@/lib/quantity";
+import { taxOf, whtFromRate } from "@/features/tax/schemas";
 import { markReadySchema, newInvoiceSchema, paymentSchema, progressSchema, type MarkReadyValues, type NewInvoiceValues, type PaymentValues, type ProgressValues } from "../schemas";
 
 interface Open {
@@ -167,6 +169,16 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
     if (type === "RETENTION") return stages.data?.find((s) => s.isRetention)?.amountPaisa ?? "0";
     return sumPaisa(manual.map((l) => l.amountPaisa ?? qtyTimesRate(l.quantity, l.ratePaisa) ?? "0"));
   }, [type, billingStageId, cashEntryIds, from, to, manual, stages.data, recoverables, progress.data]);
+  // Step 18: tax preview (the server works out the exact figure): owner purchases passed through are not taxed.
+  const projectTax = useGetProjectTaxQuery(projectId);
+  const tax = projectTax.data?.effective;
+  const taxable = useMemo(() => {
+    if (type === "RECOVERABLE") return "0";
+    const passedThrough = type === "STAGE" ? sumPaisa(recoverables.filter((r) => cashEntryIds.includes(r.id)).map((r) => r.amountPaisa)) : "0";
+    const base = (toPaisaBigInt(preview) ?? BigInt(0)) - (toPaisaBigInt(passedThrough) ?? BigInt(0));
+    return base > BigInt(0) ? base.toString() : "0";
+  }, [type, preview, recoverables, cashEntryIds]);
+  const taxPreview = tax?.applies && taxable !== "0" ? taxOf(taxable, tax.ratePercent) : null;
 
   const onSubmit = async (v: z.output<typeof newInvoiceSchema>) => {
     const body =
@@ -274,6 +286,21 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
           <span className="text-muted-foreground">{t("billing.forms.subtotalPreview")}</span>
           <MoneyText paisa={preview} className="font-semibold" />
         </div>
+        {taxPreview && tax ? (
+          <div className="space-y-1 rounded-lg bg-muted p-3 text-sm" data-testid="invoice-tax-preview">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">
+                {tax.label ?? tax.authority} {tax.ratePercent}%
+              </span>
+              <MoneyText paisa={taxPreview} />
+            </div>
+            <div className="flex items-center justify-between font-semibold">
+              <span>{t("field.total")}</span>
+              <MoneyText paisa={sumPaisa([preview, taxPreview])} />
+            </div>
+            <p className="text-xs text-muted-foreground">{t("tax.invoice.draftNote")}</p>
+          </div>
+        ) : null}
       </Form>
     </SlideOver>
   );
@@ -284,9 +311,8 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const t = useT();
   const te = useEnumT();
-  // Company settings (tax) are readable with company.settings.manage only.
-  const owner = useCan("company.settings.manage");
-  const settings = useGetCompanySettingsQuery(undefined, { skip: !owner });
+  // Step 18: WHT only when tax is on for this project (company setting or project override).
+  const projectTax = useGetProjectTaxQuery(projectId);
   const invoices = useGetInvoicesQuery({ projectId, limit: 100 });
   const [record, { isLoading }] = useRecordPaymentMutation();
   const run = useMutationToast();
@@ -294,10 +320,14 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
   const [touched, setTouched] = useState(false);
   const form = useForm<PaymentValues, unknown, z.output<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
-    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, slip: null, note: "" },
+    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
   });
-  const [method, amount, wht] = useWatch({ control: form.control, name: ["method", "amountPaisa", "whtDeductedPaisa"] });
-  const taxOn = settings.data?.taxEnabled ?? false;
+  const [method, amount, wht, whtRate] = useWatch({ control: form.control, name: ["method", "amountPaisa", "whtDeductedPaisa", "whtRatePercent"] });
+  const taxOn = projectTax.data?.effective.taxOn ?? false;
+  const defaultWht = projectTax.data?.company.whtDefaultRatePercent ?? 0;
+  // Rate without an amount → the backend works the WHT out (r % of cash + WHT); shown here the same way.
+  const whtWorkedOut = taxOn && !wht ? whtFromRate(amount, whtRate) : null;
+  const whtPaisa = taxOn ? (wht ?? whtWorkedOut ?? "0") : "0";
   const open_: AllocatableInvoice[] = (invoices.data?.items ?? [])
     .filter((i) => i.status === "ISSUED" || i.status === "PARTLY_PAID")
     .map((i) => ({
@@ -308,7 +338,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
       openPaisa: ((toPaisaBigInt(i.totalPaisa) ?? BigInt(0)) - (toPaisaBigInt(i.paidPaisa) ?? BigInt(0)) - (toPaisaBigInt(i.pendingPaisa) ?? BigInt(0))).toString(),
     }))
     .filter((i) => (toPaisaBigInt(i.openPaisa) ?? BigInt(0)) > BigInt(0));
-  const total = sumPaisa([amount ?? "0", taxOn ? (wht ?? "0") : "0"]);
+  const total = sumPaisa([amount ?? "0", whtPaisa]);
 
   const onSubmit = async (v: z.output<typeof paymentSchema>) => {
     const allocations = touched
@@ -328,6 +358,10 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             ...(v.reference ? { reference: v.reference } : {}),
             ...(v.method === "CHEQUE" ? { chequeNo: v.chequeNo, ...(v.chequeDate ? { chequeDate: v.chequeDate } : {}) } : {}),
             ...(taxOn && v.whtDeductedPaisa ? { whtDeductedPaisa: v.whtDeductedPaisa } : {}),
+            ...(taxOn && v.whtRatePercent ? { whtRatePercent: v.whtRatePercent } : {}),
+            ...(taxOn && (v.whtDeductedPaisa || v.whtRatePercent) && v.whtCertificateNo ? { whtCertificateNo: v.whtCertificateNo } : {}),
+            ...(taxOn && (v.whtDeductedPaisa || v.whtRatePercent) && v.whtCertificateNo && v.whtCertificateDate ? { whtCertificateDate: v.whtCertificateDate } : {}),
+            ...(taxOn && (v.whtDeductedPaisa || v.whtRatePercent) && v.whtCertificate ? { whtCertificateAttachmentId: v.whtCertificate.id } : {}),
             ...(v.slip ? { attachmentId: v.slip.id } : {}),
             ...(v.note ? { note: v.note } : {}),
             ...(allocations ? { allocations } : {}),
@@ -336,7 +370,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
       {
         success: (p) => t(p.status === "PENDING" ? "billing.forms.paymentSavedPending" : "billing.forms.paymentSaved", { number: p.number }),
         setError: form.setError,
-        codeFields: { FUTURE_DATE: "receivedOn", WHT_NOT_ENABLED: "whtDeductedPaisa" },
+        codeFields: { FUTURE_DATE: "receivedOn", WHT_NOT_ENABLED: "whtDeductedPaisa", WHT_RATE_MISMATCH: "whtRatePercent", WHT_TOO_HIGH: "whtDeductedPaisa", WHT_CERTIFICATE_WITHOUT_WHT: "whtCertificateNo" },
       },
     );
     if (ok) onOpenChange(false);
@@ -367,7 +401,32 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             <DateField name="chequeDate" label={t("billing.forms.chequeDate")} />
           </FieldGrid>
         ) : null}
-        {taxOn ? <MoneyField name="whtDeductedPaisa" label={t("billing.forms.wht")} hint={t("billing.forms.whtHint")} /> : null}
+        {taxOn ? (
+          <div className="space-y-3 rounded-lg border p-3" data-testid="wht-fields">
+            <FieldGrid>
+              <MoneyField name="whtDeductedPaisa" label={t("billing.forms.wht")} hint={t("billing.forms.whtHint")} />
+              <div className="space-y-1">
+                <NumberField name="whtRatePercent" label={t("tax.payment.whtRate")} hint={t("tax.payment.whtRateHint")} unit="%" decimals={2} />
+                {defaultWht > 0 && whtRate !== defaultWht ? (
+                  <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => form.setValue("whtRatePercent", defaultWht, { shouldDirty: true })}>
+                    {t("tax.payment.useDefault", { rate: defaultWht })}
+                  </Button>
+                ) : null}
+              </div>
+            </FieldGrid>
+            {whtWorkedOut ? (
+              <p className="text-sm" data-testid="wht-worked-out">
+                {t("tax.payment.whtWorkedOut", { amount: formatPKR(whtWorkedOut), gross: formatPKR(total) })}
+              </p>
+            ) : null}
+            <FieldGrid>
+              <TextField name="whtCertificateNo" label={t("tax.payment.certNo")} maxLength={40} />
+              <DateField name="whtCertificateDate" label={t("tax.payment.certDate")} max={todayPK()} />
+            </FieldGrid>
+            <AttachmentField name="whtCertificate" label={t("tax.payment.certFile")} kind="DOCUMENT" />
+            <p className="text-xs text-muted-foreground">{t("tax.payment.certLater")}</p>
+          </div>
+        ) : null}
         <AttachmentField name="slip" label={t("billing.forms.slipOptional")} kind="PAYMENT_SLIP" />
         <AllocationEditor
           invoices={open_}

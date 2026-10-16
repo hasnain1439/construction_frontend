@@ -452,6 +452,23 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: ALL("finance.reports.view", "finance.companyreports.view"),
       },
+      // Step 18 · tax reports
+      {
+        id: "reports.wht",
+        label: L("WHT Summary", "WHT ka khulasa", "ٹیکس کٹوتی کا خلاصہ"),
+        href: "/reports/wht-summary",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["withholding", "certificate", "tax"],
+      },
+      {
+        id: "reports.taxRegister",
+        label: L("Tax-wise Invoice Register", "Tax ke hisaab se invoice register", "ٹیکس وار انوائس رجسٹر"),
+        href: "/reports/tax-invoice-register",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["sales tax", "PRA", "SRB", "return"],
+      },
       soon(
         "reports.delay",
         L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
@@ -585,7 +602,14 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: P("company.settings.manage"),
       },
-      soon("settings.tax", L("Tax", "Tax", "ٹیکس"), "/settings/tax", P("company.settings.manage")),
+      {
+        id: "settings.tax",
+        label: L("Tax", "Tax", "ٹیکس"),
+        href: "/settings/tax",
+        available: true,
+        access: P("tax.view"),
+        keywords: ["sales tax", "PRA", "SRB", "NTN", "WHT"],
+      },
       {
         id: "settings.subscription",
         label: L("Subscription", "Subscription", "سبسکرپشن"),

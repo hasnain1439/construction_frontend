@@ -457,6 +457,13 @@ export const ENDPOINTS = {
     byName: (name: string) => `/reports/${id(name)}`,
   },
 
+  /** Step 18 — tax settings, project override, WHT certificate. */
+  tax: {
+    settings: "/tax/settings",
+    project: (projectId: string) => `/projects/${id(projectId)}/tax`,
+    whtCertificate: (paymentId: string) => `/payments/${id(paymentId)}/wht-certificate`,
+  },
+
   admin: {
     overview: "/admin/overview",
     health: "/admin/health",

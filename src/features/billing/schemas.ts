@@ -73,6 +73,14 @@ export const paymentSchema = z
     chequeNo: z.string().trim().max(30),
     chequeDate: z.string(),
     whtDeductedPaisa: paisa,
+    // Step 18 · client WHT details
+    whtRatePercent: z
+      .number()
+      .nullable()
+      .refine((v) => v === null || (v > 0 && v <= 30), msg("tax.v.rateRange", { min: 0.01, max: 30 })),
+    whtCertificateNo: z.string().trim().max(40),
+    whtCertificateDate: z.string(),
+    whtCertificate: file,
     slip: file,
     note: z.string().trim().max(500),
   })

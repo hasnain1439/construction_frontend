@@ -10259,6 +10259,7 @@ export interface paths {
                          *           "email": null,
                          *           "address": null,
                          *           "notes": null,
+                         *           "ntn": null,
                          *           "createdAt": "2026-03-01T09:00:00.000Z",
                          *           "projectsCount": 1
                          *         }
@@ -10333,6 +10334,8 @@ export interface paths {
                         email?: string;
                         address?: string;
                         notes?: string;
+                        /** @example 1234567-8 */
+                        ntn?: string;
                     };
                 };
             };
@@ -10353,6 +10356,7 @@ export interface paths {
                          *         "email": null,
                          *         "address": null,
                          *         "notes": null,
+                         *         "ntn": null,
                          *         "createdAt": "2026-03-01T09:00:00.000Z"
                          *       }
                          *     }
@@ -10447,6 +10451,7 @@ export interface paths {
                          *         "email": null,
                          *         "address": null,
                          *         "notes": null,
+                         *         "ntn": null,
                          *         "createdAt": "2026-03-01T09:00:00.000Z",
                          *         "projects": [
                          *           {
@@ -10531,6 +10536,8 @@ export interface paths {
                         email?: string | null;
                         address?: string | null;
                         notes?: string | null;
+                        /** @example 1234567-8 */
+                        ntn?: string | null;
                     };
                 };
             };
@@ -10551,6 +10558,7 @@ export interface paths {
                          *         "email": null,
                          *         "address": null,
                          *         "notes": null,
+                         *         "ntn": null,
                          *         "createdAt": "2026-03-01T09:00:00.000Z"
                          *       }
                          *     }
@@ -44637,6 +44645,11 @@ export interface paths {
                          *           "taxPaisa": "0",
                          *           "taxLabel": null,
                          *           "taxRatePercent": null,
+                         *           "taxableBasePaisa": "0",
+                         *           "taxAuthority": null,
+                         *           "sellerNtn": null,
+                         *           "sellerStrn": null,
+                         *           "buyerNtn": null,
                          *           "totalPaisa": "370000000",
                          *           "paidPaisa": "260000000",
                          *           "pendingPaisa": "0",
@@ -44748,7 +44761,7 @@ export interface paths {
          *     - **RETENTION** — after handover (CLOSEOUT / HANDED_OVER)
          *     - **OTHER** `lines` — manual (THEKEDAR)
          *
-         *     Tax is added when tax is on (subtotal × taxRatePercent).
+         *     Step 18 tax: when tax is on for the project (company setting or project override) a tax line is added: round(taxable base × rate ÷ 100), base = all lines except owner-recoverable purchases (CASH_ENTRY). Drafts follow the current settings; issuing freezes `taxAuthority`, `taxRatePercent`, `taxLabel`, `taxableBasePaisa`, `taxPaisa`, `sellerNtn`, `sellerStrn`, `buyerNtn`.
          */
         post: {
             parameters: {
@@ -44847,6 +44860,11 @@ export interface paths {
                          *         "taxPaisa": "0",
                          *         "taxLabel": null,
                          *         "taxRatePercent": null,
+                         *         "taxableBasePaisa": "0",
+                         *         "taxAuthority": null,
+                         *         "sellerNtn": null,
+                         *         "sellerStrn": null,
+                         *         "buyerNtn": null,
                          *         "totalPaisa": "370000000",
                          *         "paidPaisa": "0",
                          *         "pendingPaisa": "0",
@@ -44995,6 +45013,11 @@ export interface paths {
                          *         "taxPaisa": "0",
                          *         "taxLabel": null,
                          *         "taxRatePercent": null,
+                         *         "taxableBasePaisa": "0",
+                         *         "taxAuthority": null,
+                         *         "sellerNtn": null,
+                         *         "sellerStrn": null,
+                         *         "buyerNtn": null,
                          *         "totalPaisa": "370000000",
                          *         "paidPaisa": "260000000",
                          *         "pendingPaisa": "0",
@@ -45243,6 +45266,11 @@ export interface paths {
                          *         "taxPaisa": "0",
                          *         "taxLabel": null,
                          *         "taxRatePercent": null,
+                         *         "taxableBasePaisa": "0",
+                         *         "taxAuthority": null,
+                         *         "sellerNtn": null,
+                         *         "sellerStrn": null,
+                         *         "buyerNtn": null,
                          *         "totalPaisa": "370000000",
                          *         "paidPaisa": "260000000",
                          *         "pendingPaisa": "0",
@@ -45426,6 +45454,11 @@ export interface paths {
                          *         "taxPaisa": "0",
                          *         "taxLabel": null,
                          *         "taxRatePercent": null,
+                         *         "taxableBasePaisa": "0",
+                         *         "taxAuthority": null,
+                         *         "sellerNtn": null,
+                         *         "sellerStrn": null,
+                         *         "buyerNtn": null,
                          *         "totalPaisa": "370000000",
                          *         "paidPaisa": "260000000",
                          *         "pendingPaisa": "0",
@@ -45609,6 +45642,11 @@ export interface paths {
                          *         "taxPaisa": "0",
                          *         "taxLabel": null,
                          *         "taxRatePercent": null,
+                         *         "taxableBasePaisa": "0",
+                         *         "taxAuthority": null,
+                         *         "sellerNtn": null,
+                         *         "sellerStrn": null,
+                         *         "buyerNtn": null,
                          *         "totalPaisa": "370000000",
                          *         "paidPaisa": "260000000",
                          *         "pendingPaisa": "0",
@@ -45882,6 +45920,9 @@ export interface paths {
                          *           "receivedOn": "2026-09-20",
                          *           "amountPaisa": "110000000",
                          *           "whtDeductedPaisa": "0",
+                         *           "grossPaisa": "110000000",
+                         *           "whtRatePercent": null,
+                         *           "whtCertificate": null,
                          *           "method": "CHEQUE",
                          *           "bankName": "MCB",
                          *           "reference": null,
@@ -45962,7 +46003,7 @@ export interface paths {
         put?: never;
         /**
          * Record a payment
-         * @description THEKEDAR (PM only when `pmCanRecordPayments`). Numbered RV-2026-0001. Without `allocations` the oldest due invoices are settled first; the remainder is kept as project credit and settles the next issued invoice. Cheques start PENDING (shown as pending, not paid). WHT (only when tax is on) counts towards the invoices.
+         * @description THEKEDAR (PM only when `pmCanRecordPayments`). Numbered RV-2026-0001. Without `allocations` the oldest due invoices are settled first; the remainder is kept as project credit and settles the next issued invoice. Cheques start PENDING (shown as pending, not paid). WHT (only when tax is on for the project) counts towards the invoices like cash: paid / balance / received include it. Step 18: `whtRatePercent` alone works the WHT out as r % of the gross (cash + WHT); with `whtDeductedPaisa` both must agree within Rs 1. The certificate number / date / file can be added later (PATCH /payments/{id}/wht-certificate).
          */
         post: {
             parameters: {
@@ -45996,6 +46037,19 @@ export interface paths {
                          * @example 2500000
                          */
                         whtDeductedPaisa?: string | number;
+                        /**
+                         * @description WHT % of the gross (cash + WHT). Alone → the WHT amount is worked out; with whtDeductedPaisa → must match within Rs 1
+                         * @example 8
+                         */
+                        whtRatePercent?: number;
+                        whtCertificateNo?: string;
+                        /** @example 2026-12-25 */
+                        whtCertificateDate?: string;
+                        /**
+                         * Format: uuid
+                         * @description Photo / PDF of the client's withholding certificate
+                         */
+                        whtCertificateAttachmentId?: string;
                         /** Format: uuid */
                         attachmentId?: string;
                         note?: string;
@@ -46037,6 +46091,9 @@ export interface paths {
                          *         "receivedOn": "2026-09-20",
                          *         "amountPaisa": "110000000",
                          *         "whtDeductedPaisa": "0",
+                         *         "grossPaisa": "110000000",
+                         *         "whtRatePercent": null,
+                         *         "whtCertificate": null,
                          *         "method": "CHEQUE",
                          *         "bankName": "MCB",
                          *         "reference": null,
@@ -46075,7 +46132,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR | FUTURE_DATE | WHT_NOT_ENABLED | INVALID_ATTACHMENT | INVALID_ALLOCATION | ALLOCATION_EXCEEDS_BALANCE | ALLOCATION_EXCEEDS_PAYMENT */
+                /** @description VALIDATION_ERROR | FUTURE_DATE | WHT_NOT_ENABLED | WHT_RATE_MISMATCH | WHT_TOO_HIGH | WHT_CERTIFICATE_WITHOUT_WHT | INVALID_ATTACHMENT | INVALID_ALLOCATION | ALLOCATION_EXCEEDS_BALANCE | ALLOCATION_EXCEEDS_PAYMENT */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -46163,6 +46220,9 @@ export interface paths {
                          *         "receivedOn": "2026-09-20",
                          *         "amountPaisa": "110000000",
                          *         "whtDeductedPaisa": "0",
+                         *         "grossPaisa": "110000000",
+                         *         "whtRatePercent": null,
+                         *         "whtCertificate": null,
                          *         "method": "CHEQUE",
                          *         "bankName": "MCB",
                          *         "reference": null,
@@ -46301,6 +46361,9 @@ export interface paths {
                          *         "receivedOn": "2026-09-20",
                          *         "amountPaisa": "110000000",
                          *         "whtDeductedPaisa": "0",
+                         *         "grossPaisa": "110000000",
+                         *         "whtRatePercent": null,
+                         *         "whtCertificate": null,
                          *         "method": "CHEQUE",
                          *         "bankName": "MCB",
                          *         "reference": null,
@@ -46376,6 +46439,167 @@ export interface paths {
                     };
                 };
                 /** @description CHEQUE_ALREADY_SETTLED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/payments/{id}/wht-certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * WHT certificate (Step 18)
+         * @description billing.payment.create. The client's withholding certificate for the WHT on this payment (it usually arrives weeks later). `certificateNo: null` removes it. Shown in the WHT summary report (certificates received / missing).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ClientPayment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description null removes the certificate
+                         * @example WHT-2026-00412
+                         */
+                        certificateNo: string | null;
+                        /** @example 2026-12-25 */
+                        certificateDate?: string | null;
+                        /** Format: uuid */
+                        attachmentId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Payment */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000e21",
+                         *         "number": "RV-2026-0013",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "client": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000101",
+                         *           "name": "Ahmed Raza"
+                         *         },
+                         *         "receivedOn": "2026-09-20",
+                         *         "amountPaisa": "110000000",
+                         *         "whtDeductedPaisa": "8000000",
+                         *         "grossPaisa": "118000000",
+                         *         "whtRatePercent": 6.78,
+                         *         "whtCertificate": {
+                         *           "number": "WHT-2026-00412",
+                         *           "date": "2026-10-05",
+                         *           "attachmentId": "0199a8c0-0000-7000-8000-000000000602"
+                         *         },
+                         *         "method": "CHEQUE",
+                         *         "bankName": "MCB",
+                         *         "reference": null,
+                         *         "chequeNo": "118845",
+                         *         "chequeDate": null,
+                         *         "status": "CLEARED",
+                         *         "allocatedPaisa": "110000000",
+                         *         "creditPaisa": "0",
+                         *         "allocations": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000e21",
+                         *             "amountPaisa": "110000000",
+                         *             "invoice": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *               "number": "INV-2026-0010",
+                         *               "type": "STAGE",
+                         *               "status": "PARTLY_PAID"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "attachmentId": null,
+                         *         "receiptAttachmentId": "0199a8c0-0000-7000-8000-000000000e51",
+                         *         "note": null,
+                         *         "bounceReason": null,
+                         *         "clearedAt": null,
+                         *         "bouncedAt": null,
+                         *         "receivedById": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "createdAt": "2026-09-20T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description NO_WHT | PAYMENT_BOUNCED */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -50793,6 +51017,733 @@ export interface paths {
                          *           "project": null,
                          *           "value": "79890724"
                          *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tax/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tax settings
+         * @description tax.view. Tax is OFF by default. Effective tax of a project: mode INHERIT = the company setting, ON / OFF = this project only; authority / rate = the project override when set, else the company value. An invoice gets a tax line when tax is on and the rate > 0: round half-up (taxable base × rate ÷ 100), base = every line except owner-recoverable purchases (CASH_ENTRY). Drafts are recalculated when settings change; issued invoices keep their snapshot. Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on. `authorities` lists PRA / SRB / KPRA / ICT with their default rate and label (defaults only pre-fill the form).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Tax settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "enabled": true,
+                         *         "authority": "PRA",
+                         *         "ratePercent": 16,
+                         *         "label": null,
+                         *         "effectiveLabel": "PRA Sales Tax",
+                         *         "ntn": "1234567-8",
+                         *         "strn": "3277876123456",
+                         *         "whtDefaultRatePercent": 8,
+                         *         "authorities": [
+                         *           {
+                         *             "code": "PRA",
+                         *             "name": "Punjab Revenue Authority (Punjab Sales Tax on Services)",
+                         *             "defaultRatePercent": 16,
+                         *             "defaultLabel": "PRA Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "SRB",
+                         *             "name": "Sindh Revenue Board (Sindh Sales Tax on Services)",
+                         *             "defaultRatePercent": 15,
+                         *             "defaultLabel": "SRB Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "KPRA",
+                         *             "name": "Khyber Pakhtunkhwa Revenue Authority",
+                         *             "defaultRatePercent": 15,
+                         *             "defaultLabel": "KPRA Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "ICT",
+                         *             "name": "Islamabad Capital Territory (tax on services, FBR)",
+                         *             "defaultRatePercent": 16,
+                         *             "defaultLabel": "ICT Sales Tax"
+                         *           }
+                         *         ],
+                         *         "adviserNote": "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change tax settings
+         * @description tax.settings.manage (owner, Administrator). Switching on needs an authority and a rate > 0. `ntn` is the company profile NTN. DRAFT invoices are recalculated; audited (tax.settings.update). Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Sales tax on invoices (off by default) */
+                        enabled?: boolean;
+                        /**
+                         * @description PRA (Punjab) / SRB (Sindh) / KPRA (Khyber Pakhtunkhwa) / ICT (Islamabad)
+                         * @enum {string|null}
+                         */
+                        authority?: "PRA" | "SRB" | "KPRA" | "ICT" | null;
+                        /**
+                         * @description Sales tax % on the taxable base (verify with your tax adviser)
+                         * @example 16
+                         */
+                        ratePercent?: number;
+                        /**
+                         * @description Tax line label on invoices (null = the authority default)
+                         * @example PRA Sales Tax
+                         */
+                        label?: string | null;
+                        /**
+                         * @description Company NTN (same field as the company profile)
+                         * @example 1234567-8
+                         */
+                        ntn?: string | null;
+                        /**
+                         * @description Sales tax registration number printed on invoices
+                         * @example 3277876123456
+                         */
+                        strn?: string | null;
+                        /**
+                         * @description WHT % pre-filled on the payment form
+                         * @example 8
+                         */
+                        whtDefaultRatePercent?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Tax settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "enabled": true,
+                         *         "authority": "PRA",
+                         *         "ratePercent": 16,
+                         *         "label": null,
+                         *         "effectiveLabel": "PRA Sales Tax",
+                         *         "ntn": "1234567-8",
+                         *         "strn": "3277876123456",
+                         *         "whtDefaultRatePercent": 8,
+                         *         "authorities": [
+                         *           {
+                         *             "code": "PRA",
+                         *             "name": "Punjab Revenue Authority (Punjab Sales Tax on Services)",
+                         *             "defaultRatePercent": 16,
+                         *             "defaultLabel": "PRA Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "SRB",
+                         *             "name": "Sindh Revenue Board (Sindh Sales Tax on Services)",
+                         *             "defaultRatePercent": 15,
+                         *             "defaultLabel": "SRB Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "KPRA",
+                         *             "name": "Khyber Pakhtunkhwa Revenue Authority",
+                         *             "defaultRatePercent": 15,
+                         *             "defaultLabel": "KPRA Sales Tax"
+                         *           },
+                         *           {
+                         *             "code": "ICT",
+                         *             "name": "Islamabad Capital Territory (tax on services, FBR)",
+                         *             "defaultRatePercent": 16,
+                         *             "defaultLabel": "ICT Sales Tax"
+                         *           }
+                         *         ],
+                         *         "adviserNote": "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | TAX_SETTINGS_INCOMPLETE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/tax": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tax of a project
+         * @description billing.invoice.view (project scope). The project override (mode / authority / rate) and the effective tax its invoices get.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Project tax */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "mode": "ON",
+                         *         "authority": "SRB",
+                         *         "ratePercent": 15,
+                         *         "effective": {
+                         *           "taxOn": true,
+                         *           "applies": true,
+                         *           "authority": "SRB",
+                         *           "ratePercent": 15,
+                         *           "label": "SRB Sales Tax",
+                         *           "source": "PROJECT"
+                         *         },
+                         *         "company": {
+                         *           "enabled": false,
+                         *           "authority": "PRA",
+                         *           "ratePercent": 16,
+                         *           "whtDefaultRatePercent": 8
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Project tax override
+         * @description tax.settings.manage. INHERIT / ON / OFF, and authority / rate for a project in another province (null = the company value). ON needs an authority and rate (here or in the company settings). The project’s DRAFT invoices are recalculated; audited (project.tax.update).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description INHERIT = company setting; ON / OFF = this project only
+                         * @enum {string}
+                         */
+                        mode?: "INHERIT" | "ON" | "OFF";
+                        /**
+                         * @description Project in another province (null = the company authority)
+                         * @enum {string|null}
+                         */
+                        authority?: "PRA" | "SRB" | "KPRA" | "ICT" | null;
+                        /** @description null = the company rate */
+                        ratePercent?: number | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Project tax */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "mode": "ON",
+                         *         "authority": "SRB",
+                         *         "ratePercent": 15,
+                         *         "effective": {
+                         *           "taxOn": true,
+                         *           "applies": true,
+                         *           "authority": "SRB",
+                         *           "ratePercent": 15,
+                         *           "label": "SRB Sales Tax",
+                         *           "source": "PROJECT"
+                         *         },
+                         *         "company": {
+                         *           "enabled": false,
+                         *           "authority": "PRA",
+                         *           "ratePercent": 16,
+                         *           "whtDefaultRatePercent": 8
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | TAX_SETTINGS_INCOMPLETE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/reports/wht-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * WHT summary (tax year) (Step 18)
+         * @description tax.view + fields.amounts (403 FORBIDDEN without amounts). Per client × month: receipts, gross received (cash + WHT), cash, WHT deducted, WHT % of gross, certificates received / missing and WHT without a certificate. Bounced cheques left out. Default period: the current tax year (1 July – 30 June). `format=json` (default) returns the table; `csv` / `xlsx` / `pdf` are stored as a REPORT attachment and answer `{ url, expiresAt }`. Money is paisa in JSON and rupees in files.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    /** @description Default: 1 July of the current tax year */
+                    from?: string;
+                    /** @description Default: 30 June of the current tax year */
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language) */
+                    lang?: "en" | "roman" | "ur";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "wht-summary",
+                         *         "title": "WHT summary (tax year)",
+                         *         "subtitle": "All projects · Tax year 2026-27 (1 Jul 2026 – 30 Jun 2027)",
+                         *         "generatedAt": "2026-10-16T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": "2026-07-01",
+                         *           "to": "2027-06-30"
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "client",
+                         *             "label": "Client",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "month",
+                         *             "label": "Month",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "wht",
+                         *             "label": "WHT deducted",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "client": "Ahmed Raza",
+                         *             "month": "2026-09",
+                         *             "wht": "8000000"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "client": null,
+                         *           "month": null,
+                         *           "wht": "8000000"
+                         *         },
+                         *         "notes": [
+                         *           "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tax-invoice-register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tax-wise invoice register (Step 18)
+         * @description tax.view + fields.amounts (403 FORBIDDEN without amounts). Issued invoices of the period (cancelled ones listed, not counted): invoice no., date, client, client NTN, project, value, taxable value, tax rate, tax, total, authority, status. Sorted by authority, then date; notes give the subtotal per authority + rate. Default period: the current tax year (1 July – 30 June). `format=json` (default) returns the table; `csv` / `xlsx` / `pdf` are stored as a REPORT attachment and answer `{ url, expiresAt }`. Money is paisa in JSON and rupees in files.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    /** @description Default: 1 July of the current tax year */
+                    from?: string;
+                    /** @description Default: 30 June of the current tax year */
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language) */
+                    lang?: "en" | "roman" | "ur";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "tax-invoice-register",
+                         *         "title": "Tax-wise invoice register",
+                         *         "subtitle": "All projects · Tax year 2026-27 (1 Jul 2026 – 30 Jun 2027)",
+                         *         "generatedAt": "2026-10-16T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": "2026-07-01",
+                         *           "to": "2027-06-30"
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "number",
+                         *             "label": "Invoice no.",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "tax",
+                         *             "label": "Tax",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "number": "INV-2026-0050",
+                         *             "tax": "59200000"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "number": null,
+                         *           "tax": "59200000"
+                         *         },
+                         *         "notes": [
+                         *           "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *         ]
                          *       }
                          *     }
                          */

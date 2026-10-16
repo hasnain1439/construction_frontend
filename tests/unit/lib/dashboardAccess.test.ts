@@ -23,6 +23,8 @@ describe("Step 9 navigation", () => {
       "/reports/supplier-ageing",
       "/reports/receivables-ageing",
       "/reports/stock-valuation",
+      "/reports/wht-summary", // Step 18
+      "/reports/tax-invoice-register", // Step 18
     ]);
     expect(reports.find((i) => i.id === "reports.delay")?.available).toBe(false);
   });
