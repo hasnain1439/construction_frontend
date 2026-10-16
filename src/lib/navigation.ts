@@ -157,24 +157,29 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("clients.client.view"),
         keywords: ["owner", "customer"],
       },
-      soon(
-        "sales.quotes",
-        L("Quote Pipeline", "Quote pipeline", "کوٹیشن پائپ لائن"),
-        "/sales/quotes",
-        P("clients.client.create"),
-      ),
-      soon(
-        "sales.newQuote",
-        L("New Quote", "Naya quote", "نیا کوٹیشن"),
-        "/sales/quotes/new",
-        P("clients.client.create"),
-      ),
-      soon(
-        "sales.insights",
-        L("Win / Loss Insights", "Jeet / haar ka jaiza", "جیت / ہار کا جائزہ"),
-        "/sales/insights",
-        P("finance.companyreports.view"),
-      ),
+      // Step 12 · quotes
+      {
+        id: "sales.quotes",
+        label: L("Quote Pipeline", "Quote pipeline", "کوٹیشن پائپ لائن"),
+        href: "/sales/quotes",
+        available: true,
+        access: P("sales.quote.view"),
+        keywords: ["quotation", "estimate", "offer"],
+      },
+      {
+        id: "sales.newQuote",
+        label: L("New Quote", "Naya quote", "نیا کوٹیشن"),
+        href: "/sales/quotes/new",
+        available: true,
+        access: P("sales.quote.create"),
+      },
+      {
+        id: "sales.insights",
+        label: L("Win / Loss Insights", "Jeet / haar ka jaiza", "جیت / ہار کا جائزہ"),
+        href: "/sales/insights",
+        available: true,
+        access: P("sales.quote.view"),
+      },
     ],
   },
   {
@@ -1170,8 +1175,8 @@ export const CREATE_ACTIONS: QuickAction[] = [
     id: "create.quote",
     label: L("New quote", "Naya quote", "نیا کوٹیشن"),
     href: "/sales/quotes/new",
-    available: false,
-    access: P("clients.client.create"),
+    available: true,
+    access: P("sales.quote.create"),
   },
   {
     id: "create.purchase",

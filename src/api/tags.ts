@@ -76,6 +76,7 @@ export const COMPANY_TAGS = [
   "Snags",
   "Handover",
   "Retention",
+  "Quotes",
   "SyncStatus",
   "Approvals",
   "Dashboard",

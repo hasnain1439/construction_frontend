@@ -7,6 +7,7 @@ import * as masterDataUr from "./areas/masterData/ur";
 import * as billingUr from "./areas/billing/ur";
 import * as cashSiteUr from "./areas/cashSite/ur";
 import * as closeoutUr from "./areas/closeout/ur";
+import * as salesUr from "./areas/sales/ur";
 import * as teamCompanyUr from "./areas/teamCompany/ur";
 import * as appUr from "./areas/app/ur";
 import * as equipmentUr from "./areas/equipment/ur";
@@ -22,6 +23,7 @@ export const ur: Dictionary = {
   billing: billingUr.strings,
   cashSite: cashSiteUr.strings,
   closeout: closeoutUr.strings,
+  sales: salesUr.strings,
   teamCompany: teamCompanyUr.strings,
   app: appUr.strings,
   equipment: equipmentUr.strings,
