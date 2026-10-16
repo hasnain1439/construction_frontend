@@ -131,6 +131,14 @@ export const PERMISSION_KEYS = [
   "company.holiday.manage",
   // subscription
   "subscription.manage",
+  // closeout (Step 17)
+  "closeout.drawing.view",
+  "closeout.drawing.manage",
+  "closeout.snag.view",
+  "closeout.snag.create",
+  "closeout.snag.manage",
+  "closeout.handover.manage",
+  "closeout.retention.view",
   // fields
   "fields.rates",
   "fields.amounts",

@@ -121,6 +121,14 @@
    }
   },
   {
+   "key": "closeout",
+   "label": {
+    "en": "Closeout & handover",
+    "roman": "Ikhtitaam aur hawalgi",
+    "urdu": "اختتام اور حوالگی"
+   }
+  },
+  {
    "key": "fields",
    "label": {
     "en": "Data visibility",
@@ -1923,6 +1931,118 @@
    "field": false
   },
   {
+   "key": "closeout.drawing.view",
+   "module": "closeout",
+   "resource": "drawing",
+   "action": "view",
+   "label": {
+    "en": "View drawings",
+    "roman": "Naqshe dekhna",
+    "urdu": "نقشے دیکھنا"
+   },
+   "description": "Project drawings by folder and every revision (superseded ones too).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.drawing.manage",
+   "module": "closeout",
+   "resource": "drawing",
+   "action": "manage",
+   "label": {
+    "en": "Manage drawings",
+    "roman": "Naqshon ka intezam",
+    "urdu": "نقشوں کا انتظام"
+   },
+   "description": "Add drawings, upload new revisions, set approval dates, delete drawings.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.view",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "view",
+   "label": {
+    "en": "View snag list",
+    "roman": "Kamiyon ki list dekhna",
+    "urdu": "خامیوں کی فہرست دیکھنا"
+   },
+   "description": "Snags of a project with before / after photos (cost amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.create",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "create",
+   "label": {
+    "en": "Report snags",
+    "roman": "Kami darj karna",
+    "urdu": "خامی درج کرنا"
+   },
+   "description": "Log a snag with photos and mark it fixed with after photos (site).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.manage",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "manage",
+   "label": {
+    "en": "Manage snags",
+    "roman": "Kamiyon ka intezam",
+    "urdu": "خامیوں کا انتظام"
+   },
+   "description": "Edit / assign snags, verify or reopen them, delete, and set who pays (rework, sub-contractor deduction, change order — with fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.handover.manage",
+   "module": "closeout",
+   "resource": "handover",
+   "action": "manage",
+   "label": {
+    "en": "Handover to owner",
+    "roman": "Maalik ko hawalgi",
+    "urdu": "مالک کو حوالگی"
+   },
+   "description": "Handover checklist, owner sign-off, handover certificate, retention reminders (completing the handover also needs projects.project.manage).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.retention.view",
+   "module": "closeout",
+   "resource": "retention",
+   "action": "view",
+   "label": {
+    "en": "View retention",
+    "roman": "Retention dekhna",
+    "urdu": "روکی گئی رقم دیکھنا"
+   },
+   "description": "Retention due dates of the owner and sub-contractors after handover (amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -2107,6 +2227,13 @@
     "company.profile.view",
     "company.opening.manage",
     "company.holiday.manage",
+    "closeout.drawing.view",
+    "closeout.drawing.manage",
+    "closeout.snag.view",
+    "closeout.snag.create",
+    "closeout.snag.manage",
+    "closeout.handover.manage",
+    "closeout.retention.view",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -2160,6 +2287,9 @@
     "masterdata.worker.view",
     "masterdata.worker.create",
     "masterdata.subcontractor.view",
+    "closeout.drawing.view",
+    "closeout.snag.view",
+    "closeout.snag.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
@@ -2203,7 +2333,11 @@
     "masterdata.subcontractor.edit",
     "team.member.view",
     "company.profile.view",
-    "fields.rates"
+    "fields.rates",
+    "closeout.drawing.manage",
+    "closeout.snag.manage",
+    "closeout.handover.manage",
+    "closeout.retention.view"
    ]
   },
   {
@@ -2252,7 +2386,10 @@
     "masterdata.laborrate.view",
     "masterdata.worker.view",
     "masterdata.worker.create",
-    "masterdata.subcontractor.view"
+    "masterdata.subcontractor.view",
+    "closeout.drawing.view",
+    "closeout.snag.view",
+    "closeout.snag.create"
    ]
   },
   {
@@ -2291,7 +2428,9 @@
     "company.profile.view",
     "fields.rates",
     "fields.amounts",
-    "fields.contract"
+    "fields.contract",
+    "closeout.snag.view",
+    "closeout.retention.view"
    ]
   },
   {

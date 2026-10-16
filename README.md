@@ -320,6 +320,15 @@ Site entries now also come from the **Munshi phone app** (`../construction-mobil
 
 New: `components/common/LateSyncBadge.tsx`, `features/site/DailyLogsView.tsx`, `api/services/dailyLogs.api.ts` (`getDailyLogs`, `getDailyLog`, `getSyncStatus`; tags `DailyLogs`, `SyncStatus`), `api/types/sync.ts`, endpoints `ENDPOINTS.dailyLogs.*` and `ENDPOINTS.sync.status`. `lateSync?: boolean` was added to `AttendanceMark`, today's hazri rows, `CashEntry`, `Purchase`, `PurchaseListRow` and `Dispatch`. Navigation: _Daily Logs & Photos_ is now available. API types regenerated (`npm run api:types`).
 
+## Documents & Closeout (Phase 3 · Step 17)
+
+Project mode → **Documents & Closeout**: `/projects/:id/documents/drawings | snags | handover | retention` (`src/features/closeout/`: `DrawingsView`, `SnagsView`, `HandoverView`, `RetentionView`, `schemas.ts`, `shared.tsx`). API service `src/api/services/closeout.api.ts` (tags `Drawings`, `Snags`, `Handover`, `Retention`), types `src/api/types/closeout.ts`, texts `src/i18n/areas/closeout/` (`t("closeout.…")`).
+
+- **Access**: nav items gated by `closeout.drawing.view`, `closeout.snag.view`, `closeout.handover.manage`, `closeout.retention.view`; buttons by `closeout.drawing.manage`, `closeout.snag.create` (log / mark fixed), `closeout.snag.manage` (edit, verify, reopen, delete), "Who pays" needs `closeout.snag.manage` + `fields.amounts`; "Hand over to owner" needs `projects.project.manage` too. Money the API leaves out shows "Hidden for your role" (`MoneyText`).
+- **Status rules** (mirror the API): drawings and snags change on ACTIVE / CLOSEOUT / HANDED_OVER projects; the checklist and sign-off on ACTIVE / CLOSEOUT; the handover is completed from CLOSEOUT.
+- Photos open in the shared lightbox (`PhotoLightbox` from `features/site/DailyLogsView`); the certificate uses `PdfActions` (fresh signed link each time).
+- Tests: `tests/unit/components/Closeout.test.tsx` (nav gating, drawings history, snags with / without money, handover blockers + PM limits, retention gating, Urdu).
+
 ## Onboarding & data import (Pilot · Part 7)
 
 `src/features/onboarding`, API `src/api/services/onboarding.api.ts`.

@@ -86,6 +86,13 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "team.member.view",
   "company.profile.view",
   "fields.rates",
+  "closeout.drawing.view",
+  "closeout.snag.view",
+  "closeout.snag.create",
+  "closeout.drawing.manage",
+  "closeout.snag.manage",
+  "closeout.handover.manage",
+  "closeout.retention.view",
 ];
 
 export const MUNSHI_TEMPLATE: PermissionKey[] = [
@@ -126,6 +133,9 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
   "masterdata.worker.view",
   "masterdata.worker.create",
   "masterdata.subcontractor.view",
+  "closeout.drawing.view",
+  "closeout.snag.view",
+  "closeout.snag.create",
 ];
 
 export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
@@ -156,6 +166,8 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "fields.rates",
   "fields.amounts",
   "fields.contract",
+  "closeout.snag.view",
+  "closeout.retention.view",
 ];
 
 export const FINANCIAL_BUNDLE: PermissionKey[] = [

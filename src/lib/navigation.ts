@@ -900,15 +900,39 @@ export const PROJECT_NAV: NavSection[] = [
     icon: FolderArchive,
     mode: "project",
     items: [
-      soon("p.docs.drawings", L("Drawings", "Naqshe", "نقشے"), "/documents/drawings"),
-      soon("p.docs.snags", L("Snag List", "Kamiyon ki list", "خامیوں کی فہرست"), "/documents/snags"),
-      soon("p.docs.handover", L("Handover", "Hawalgi", "حوالگی"), "/documents/handover"),
-      soon(
-        "p.docs.retention",
-        L("Retention", "Retention", "روکی گئی رقم"),
-        "/documents/retention",
-        P("billing.invoice.view"),
-      ),
+      // Step 17 · Closeout
+      {
+        id: "p.docs.drawings",
+        label: L("Drawings", "Naqshe", "نقشے"),
+        href: "/documents/drawings",
+        available: true,
+        access: P("closeout.drawing.view"),
+        keywords: ["naqsha", "plan", "revision", "society approved"],
+      },
+      {
+        id: "p.docs.snags",
+        label: L("Snag List", "Kamiyon ki list", "خامیوں کی فہرست"),
+        href: "/documents/snags",
+        available: true,
+        access: P("closeout.snag.view"),
+        keywords: ["snag", "defect", "punch list", "kami"],
+      },
+      {
+        id: "p.docs.handover",
+        label: L("Handover", "Hawalgi", "حوالگی"),
+        href: "/documents/handover",
+        available: true,
+        access: P("closeout.handover.manage"),
+        keywords: ["keys", "certificate", "sign-off"],
+      },
+      {
+        id: "p.docs.retention",
+        label: L("Retention", "Retention", "روکی گئی رقم"),
+        href: "/documents/retention",
+        available: true,
+        access: P("closeout.retention.view"),
+        keywords: ["retention", "defect period"],
+      },
     ],
   },
 ];
