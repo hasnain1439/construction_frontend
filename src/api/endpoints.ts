@@ -301,6 +301,20 @@ export const ENDPOINTS = {
     stoppageReject: (stoppageId: string) => `/stoppages/${id(stoppageId)}/reject`,
   },
 
+  /** Step 14 — control: variance, burn rate, delay analysis, alerts, thresholds. */
+  control: {
+    materialVariance: (projectId: string) => `/projects/${id(projectId)}/control/material-variance`,
+    costVariance: (projectId: string) => `/projects/${id(projectId)}/control/cost-variance`,
+    burnRate: (projectId: string) => `/projects/${id(projectId)}/control/burn-rate`,
+    delayAnalysis: (projectId: string) => `/projects/${id(projectId)}/control/delay-analysis`,
+    projectAlerts: (projectId: string) => `/projects/${id(projectId)}/control/alerts`,
+    summary: "/control/summary",
+    alerts: "/control/alerts",
+    rules: "/control/alerts/rules",
+    run: "/control/alerts/run",
+    settings: "/control/settings",
+  },
+
   /** Step 16 — equipment & shuttering. */
   equipment: {
     list: "/equipment",

@@ -113,6 +113,7 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "changeorder.edit",
   "changeorder.approve",
   "changeorder.instruction.view",
+  "control.view",
 ];
 
 export const MUNSHI_TEMPLATE: PermissionKey[] = [
@@ -199,6 +200,7 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "closeout.retention.view",
   "changeorder.view",
   "changeorder.manage",
+  "control.view",
 ];
 
 export const FINANCIAL_BUNDLE: PermissionKey[] = [

@@ -128,7 +128,8 @@ export interface Period {
 }
 
 export interface DashboardAlert {
-  source: "BILLING_EVENT" | "NOTIFICATION";
+  /** CONTROL_ALERT (Step 14): `type` is the control rule, e.g. MATERIAL_OVERUSE. */
+  source: "BILLING_EVENT" | "NOTIFICATION" | "CONTROL_ALERT";
   id: Id;
   type: string;
   severity: NotificationSeverity;
@@ -152,6 +153,10 @@ export interface OverviewProjectRow {
   percentBilled?: number;
   percentSpentOfContract?: number;
   atRisk?: boolean;
+  /** Step 14 (control.view): value-weighted physical progress. */
+  progressPercent?: number;
+  /** Step 14 (control.view + profit, contract, rates): projected margin at completion. */
+  projectedMarginPercent?: number | null;
   nextBillableStage?: { id: Id; label: string; status: string; amountPaisa: Paisa } | null;
 }
 
@@ -258,7 +263,11 @@ export interface PnlProject {
   marginToDatePercent: number | null;
   percentBilled: number;
   percentCostOfContract: number;
+  /** Step 14: at completion = revised contract − estimate at completion (null when it can't be computed yet). */
   projectedMarginPercent: number | null;
+  projectedMarginPaisa: Paisa | null;
+  estimateAtCompletionPaisa: Paisa | null;
+  projectedMarginBasis: "EARNED_VALUE" | "PROGRESS_ONLY" | "NOT_ENOUGH_PROGRESS" | "NO_CONTRACT";
   projectedMarginNote: string;
 }
 export interface ProfitAndLoss {
@@ -273,6 +282,8 @@ export interface ProfitAndLoss {
     cost: CostBuckets;
     grossProfitToDatePaisa: Paisa;
     marginToDatePercent: number | null;
+    projectedMarginPaisa: Paisa | null;
+    projectedMarginPercent: number | null;
   };
   trend: Array<{ month: string; billedPaisa: Paisa; costPaisa: Paisa; grossProfitPaisa: Paisa }>;
   projectedMarginNote: string;

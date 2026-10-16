@@ -14,6 +14,7 @@ import * as appRoman from "./areas/app/roman-ur";
 import * as equipmentRoman from "./areas/equipment/roman-ur";
 import * as estimatesRoman from "./areas/estimates/roman-ur";
 import * as scheduleRoman from "./areas/schedule/roman-ur";
+import * as controlRoman from "./areas/control/roman-ur";
 
 /** Roman Urdu UI strings. */
 export const romanUr: Dictionary = {
@@ -32,6 +33,7 @@ export const romanUr: Dictionary = {
   equipment: equipmentRoman.strings,
   estimates: estimatesRoman.strings,
   schedule: scheduleRoman.strings,
+  control: controlRoman.strings,
   common: {
     save: "Mehfooz karein",
     saveChanges: "Tabdeeliyan mehfooz karein",
@@ -622,6 +624,7 @@ export const romanUr: Dictionary = {
     ...appRoman.enums,
     ...equipmentRoman.enums,
     ...scheduleRoman.enums,
+    ...controlRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Jari",
@@ -647,6 +650,7 @@ export const romanUr: Dictionary = {
       CHEQUE_BOUNCED: "Cheque bounce",
       INVOICE_OVERDUE: "Invoice late",
       STAGE_READY_UNBILLED: "Marhala tayyar, bill nahin bana",
+      CONTROL_ALERT: "Control alert",
       PREVIOUS_STAGE_UNPAID: "Pichhle marhale ki adaigi baqi",
       SHORTAGE_CREATED: "Kami darj hui",
       LOW_STOCK: "Stock kam",

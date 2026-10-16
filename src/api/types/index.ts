@@ -17,3 +17,4 @@ export * from "./equipment";
 export * from "./sales";
 export * from "./schedule";
 export * from "./changeOrders";
+export * from "./control";

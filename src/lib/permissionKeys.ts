@@ -171,6 +171,9 @@ export const PERMISSION_KEYS = [
   "changeorder.manage",
   "changeorder.instruction.create",
   "changeorder.instruction.view",
+  // control (Step 14)
+  "control.view",
+  "control.manage",
   // fields
   "fields.rates",
   "fields.amounts",

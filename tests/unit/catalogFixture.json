@@ -183,6 +183,14 @@
     "roman": "Tabdeeli orders",
     "urdu": "تبدیلی آرڈرز"
    }
+  },
+  {
+   "key": "control",
+   "label": {
+    "en": "Control & alerts",
+    "roman": "Control aur alerts",
+    "urdu": "کنٹرول اور الرٹس"
+   }
   }
  ],
  "permissions": [
@@ -2523,6 +2531,38 @@
    "field": false
   },
   {
+   "key": "control.view",
+   "module": "control",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View control (variance & alerts)",
+    "roman": "Control dekhna (farq aur alerts)",
+    "urdu": "کنٹرول دیکھنا (فرق اور الرٹس)"
+   },
+   "description": "Material and cost variance, burn rate vs progress, delay analysis, projected margin and control alerts of a project (rupee values follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "control.manage",
+   "module": "control",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Manage alert thresholds",
+    "roman": "Alert ki hadein badalna",
+    "urdu": "الرٹ کی حدیں بدلنا"
+   },
+   "description": "Change the control alert thresholds (overuse %, behind-plan points, quota %, spend-ahead points) and run the alert check now.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -2741,6 +2781,8 @@
     "closeout.snag.manage",
     "closeout.handover.manage",
     "closeout.retention.view",
+    "control.view",
+    "control.manage",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -2864,7 +2906,8 @@
     "changeorder.create",
     "changeorder.edit",
     "changeorder.approve",
-    "changeorder.instruction.view"
+    "changeorder.instruction.view",
+    "control.view"
    ]
   },
   {
@@ -2968,7 +3011,8 @@
     "closeout.snag.view",
     "closeout.retention.view",
     "changeorder.view",
-    "changeorder.manage"
+    "changeorder.manage",
+    "control.view"
    ]
   },
   {
