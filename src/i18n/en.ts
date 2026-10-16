@@ -9,6 +9,7 @@ import * as cashSiteEn from "./areas/cashSite/en";
 import * as teamCompanyEn from "./areas/teamCompany/en";
 import * as appEn from "./areas/app/en";
 import * as closeoutEn from "./areas/closeout/en";
+import * as changeOrdersEn from "./areas/changeOrders/en";
 import * as equipmentEn from "./areas/equipment/en";
 import * as estimatesEn from "./areas/estimates/en";
 import * as salesEn from "./areas/sales/en";
@@ -25,6 +26,7 @@ export const en = {
   teamCompany: teamCompanyEn.strings,
   app: appEn.strings,
   closeout: closeoutEn.strings,
+  changeOrders: changeOrdersEn.strings,
   equipment: equipmentEn.strings,
   estimates: estimatesEn.strings,
   sales: salesEn.strings,

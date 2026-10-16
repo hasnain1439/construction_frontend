@@ -169,11 +169,11 @@
    }
   },
   {
-   "key": "sales",
+   "key": "changeorder",
    "label": {
-    "en": "Sales & quotes",
-    "roman": "Sales aur quotes",
-    "urdu": "سیلز اور کوٹیشن"
+    "en": "Change orders",
+    "roman": "Tabdeeli orders",
+    "urdu": "تبدیلی آرڈرز"
    }
   }
  ],
@@ -429,86 +429,6 @@
     "urdu": "کمپنی کے قواعد بدلنا"
    },
    "description": "Set the company own values for rulebook parameters (within the safe range).",
-   "ownerOnly": false,
-   "scoped": false,
-   "limit": false,
-   "field": false
-  },
-  {
-   "key": "sales.quote.view",
-   "module": "sales",
-   "resource": "quote",
-   "action": "view",
-   "label": {
-    "en": "View quotes",
-    "roman": "Quotes dekhna",
-    "urdu": "کوٹیشن دیکھنا"
-   },
-   "description": "Quote pipeline, quote detail and revisions, quote PDFs, win / loss insights (price, cost and margin follow the data-visibility permissions).",
-   "ownerOnly": false,
-   "scoped": false,
-   "limit": false,
-   "field": false
-  },
-  {
-   "key": "sales.quote.create",
-   "module": "sales",
-   "resource": "quote",
-   "action": "create",
-   "label": {
-    "en": "Create quotes",
-    "roman": "Naya quote banana",
-    "urdu": "نیا کوٹیشن بنانا"
-   },
-   "description": "Start a quote for a client (quick estimate from plot, covered area and floors).",
-   "ownerOnly": false,
-   "scoped": false,
-   "limit": false,
-   "field": false
-  },
-  {
-   "key": "sales.quote.edit",
-   "module": "sales",
-   "resource": "quote",
-   "action": "edit",
-   "label": {
-    "en": "Work on quotes",
-    "roman": "Quote par kaam",
-    "urdu": "کوٹیشن پر کام"
-   },
-   "description": "Change a quote, add a revision, send it to the client, record negotiation, mark it lost.",
-   "ownerOnly": false,
-   "scoped": false,
-   "limit": false,
-   "field": false
-  },
-  {
-   "key": "sales.quote.approve",
-   "module": "sales",
-   "resource": "quote",
-   "action": "approve",
-   "label": {
-    "en": "Mark quotes won",
-    "roman": "Quote jeeta hua karna",
-    "urdu": "کوٹیشن جیتا ہوا کرنا"
-   },
-   "description": "Mark a quote won: a draft project is made from it (also needs Create projects).",
-   "ownerOnly": false,
-   "scoped": false,
-   "limit": false,
-   "field": false
-  },
-  {
-   "key": "sales.quote.manage",
-   "module": "sales",
-   "resource": "quote",
-   "action": "manage",
-   "label": {
-    "en": "Delete quotes",
-    "roman": "Quote delete karna",
-    "urdu": "کوٹیشن ڈیلیٹ کرنا"
-   },
-   "description": "Delete a quote that was not won.",
    "ownerOnly": false,
    "scoped": false,
    "limit": false,
@@ -2291,6 +2211,118 @@
    "field": false
   },
   {
+   "key": "changeorder.view",
+   "module": "changeorder",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View change orders",
+    "roman": "Tabdeeli orders dekhna",
+    "urdu": "تبدیلی آرڈرز دیکھنا"
+   },
+   "description": "Change orders of a project, their slip PDF and WhatsApp text (amounts also need fields.rates or fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.create",
+   "module": "changeorder",
+   "resource": "create",
+   "action": "",
+   "label": {
+    "en": "Create change orders",
+    "roman": "Tabdeeli order banana",
+    "urdu": "تبدیلی آرڈر بنانا"
+   },
+   "description": "New change order (mini BoQ: material / labour lines, markup, days), turn a site instruction or a snag into a change order draft, dismiss a site instruction.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.edit",
+   "module": "changeorder",
+   "resource": "edit",
+   "action": "",
+   "label": {
+    "en": "Edit change orders",
+    "roman": "Tabdeeli order badalna",
+    "urdu": "تبدیلی آرڈر بدلنا"
+   },
+   "description": "Edit or delete a draft, send it to the owner, reopen it, mark the work started / completed.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.approve",
+   "module": "changeorder",
+   "resource": "approve",
+   "action": "",
+   "label": {
+    "en": "Record owner approval",
+    "roman": "Maalik ki manzoori darj karna",
+    "urdu": "مالک کی منظوری درج کرنا"
+   },
+   "description": "Record that the owner approved (with proof: WhatsApp screenshot, signed slip or verbal note) or rejected a change order.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.manage",
+   "module": "changeorder",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Bill change orders",
+    "roman": "Tabdeeli orders ka bill",
+    "urdu": "تبدیلی آرڈرز کا بل"
+   },
+   "description": "Put an approved change order on the next stage invoice or make a separate variation invoice (also needs billing.invoice.create).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.create",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "create",
+   "label": {
+    "en": "Record site instructions",
+    "roman": "Site hidayat darj karna",
+    "urdu": "سائٹ ہدایت درج کرنا"
+   },
+   "description": "Record what the owner asked for on site (photo + note) so the office can turn it into a change order; see own instructions.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.view",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "view",
+   "label": {
+    "en": "View site instructions",
+    "roman": "Site hidayat dekhna",
+    "urdu": "سائٹ ہدایات دیکھنا"
+   },
+   "description": "Every site instruction of a project (not only own).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "closeout.drawing.view",
    "module": "closeout",
    "resource": "drawing",
@@ -2494,11 +2526,6 @@
     "schedule.stoppage.create",
     "schedule.stoppage.approve",
     "rulebook.override.manage",
-    "sales.quote.view",
-    "sales.quote.create",
-    "sales.quote.edit",
-    "sales.quote.approve",
-    "sales.quote.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2607,6 +2634,13 @@
     "equipment.rental.manage",
     "equipment.loss.create",
     "equipment.loss.approve",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.manage",
+    "changeorder.instruction.create",
+    "changeorder.instruction.view",
     "closeout.drawing.view",
     "closeout.drawing.manage",
     "closeout.snag.view",
@@ -2676,6 +2710,7 @@
     "schedule.plan.view",
     "schedule.progress.edit",
     "schedule.stoppage.create",
+    "changeorder.instruction.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
@@ -2684,9 +2719,6 @@
     "rulebook.override.view",
     "schedule.plan.manage",
     "schedule.stoppage.approve",
-    "sales.quote.view",
-    "sales.quote.create",
-    "sales.quote.edit",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2731,7 +2763,12 @@
     "closeout.drawing.manage",
     "closeout.snag.manage",
     "closeout.handover.manage",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.instruction.view"
    ]
   },
   {
@@ -2789,7 +2826,8 @@
     "closeout.snag.create",
     "schedule.plan.view",
     "schedule.progress.edit",
-    "schedule.stoppage.create"
+    "schedule.stoppage.create",
+    "changeorder.instruction.create"
    ]
   },
   {
@@ -2805,7 +2843,6 @@
     "projects.project.view",
     "projects.estimate.view",
     "schedule.plan.view",
-    "sales.quote.view",
     "clients.client.view",
     "labor.settlement.view",
     "labor.advance.view",
@@ -2832,7 +2869,9 @@
     "fields.amounts",
     "fields.contract",
     "closeout.snag.view",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.manage"
    ]
   },
   {

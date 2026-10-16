@@ -77,6 +77,9 @@ export const COMPANY_TAGS = [
   "Handover",
   "Retention",
   "Quotes",
+  // Step 15 — change orders
+  "ChangeOrders",
+  "SiteInstructions",
   "SyncStatus",
   "Approvals",
   "Dashboard",

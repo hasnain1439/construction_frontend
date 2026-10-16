@@ -43482,7 +43482,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     status?: "DRAFT" | "ISSUED" | "PARTLY_PAID" | "PAID" | "CANCELLED";
-                    type?: "STAGE" | "RUNNING_BILL" | "RECOVERABLE" | "RETENTION" | "OTHER";
+                    type?: "STAGE" | "RUNNING_BILL" | "RECOVERABLE" | "RETENTION" | "OTHER" | "VARIATION";
                     from?: string;
                     to?: string;
                 };
@@ -52502,6 +52502,3486 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/projects/{id}/change-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Change orders of a project
+         * @description changeorder.view. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Newest first (filter `status`). `summary`: approved count, days, original / revised end date (contract end + approved CO days, company working days), approved changes and revised contract, counts by status, NEW site instructions, CHANGE_ORDER snags not converted yet. Money: cost side (line `ratePaisa` / `amountPaisa`, `markupPercent`, `costPaisa`, `markupPaisa`) only with fields.rates; owner price (`totalPaisa`, line `priceRatePaisa` / `priceAmountPaisa`) with fields.rates or fields.amounts; contract values with fields.contract. A Munshi never sees a change order.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "IN_PROGRESS" | "COMPLETED" | "BILLED";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change orders */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "number": 1,
+                         *             "code": "CO-001",
+                         *             "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *             "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *             "type": "ADDITION",
+                         *             "status": "APPROVED",
+                         *             "source": "MANUAL",
+                         *             "siteInstructionId": null,
+                         *             "snagId": null,
+                         *             "daysImpact": 3,
+                         *             "affectedMilestones": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *                 "key": "FINISHING.TILES",
+                         *                 "name": "Tiles",
+                         *                 "stageKey": "FINISHING"
+                         *               }
+                         *             ],
+                         *             "proofType": "WHATSAPP_SCREENSHOT",
+                         *             "proofNote": null,
+                         *             "proofCount": 1,
+                         *             "lineCount": 2,
+                         *             "billingMode": "NEXT_STAGE",
+                         *             "invoice": null,
+                         *             "sentAt": "2026-10-10T07:00:00.000Z",
+                         *             "approvedOn": "2026-10-11",
+                         *             "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *             "approvedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "rejectedAt": null,
+                         *             "rejectionReason": null,
+                         *             "startedAt": null,
+                         *             "completedAt": null,
+                         *             "billedAt": null,
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-10-10T06:30:00.000Z",
+                         *             "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *             "markupPercent": 10,
+                         *             "costPaisa": "3720000",
+                         *             "markupPaisa": "372000",
+                         *             "totalPaisa": "4092000"
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "approvedCount": 1,
+                         *           "daysImpact": 3,
+                         *           "originalEndDate": "2027-02-28",
+                         *           "revisedEndDate": "2027-03-04",
+                         *           "approvedChangesPaisa": "4092000",
+                         *           "originalContractPaisa": "18500000",
+                         *           "revisedContractPaisa": "22592000",
+                         *           "byStatus": {
+                         *             "DRAFT": 1,
+                         *             "SENT": 1,
+                         *             "APPROVED": 1,
+                         *             "REJECTED": 0,
+                         *             "IN_PROGRESS": 0,
+                         *             "COMPLETED": 0,
+                         *             "BILLED": 0
+                         *           },
+                         *           "newSiteInstructions": 1,
+                         *           "changeOrderSnags": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001505",
+                         *               "code": "SN-007",
+                         *               "description": "Bigger window in the lounge (owner)",
+                         *               "status": "OPEN",
+                         *               "amountPaisa": "2500000"
+                         *             }
+                         *           ],
+                         *           "pendingPaisa": "1850000"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * New change order (mini BoQ)
+         * @description changeorder.create. Project scope: the owner sees every project, others need the permission on the project (outside → 404). ACTIVE / CLOSEOUT projects. Lines: MATERIAL (rate from the APPROVED estimate, else the price list), LABOUR (company labour rate, or description + unit + rate), OTHER (description + unit + rate). An explicit `ratePaisa` / `markupPercent` needs fields.rates. Price = rate × (1 + markup %); a DEDUCTION total is negative. VERBAL proof needs a note. Creates a DRAFT (CO-001, CO-002 … per project).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        description?: string;
+                        /** @enum {string} */
+                        type: "ADDITION" | "DEDUCTION";
+                        /**
+                         * @description Markup % on the cost (0–100, 2 decimals)
+                         * @example 10
+                         */
+                        markupPercent?: number | string;
+                        /** @description Working days the change adds to the contract end date */
+                        daysImpact?: number;
+                        /** @description Schedule milestones of the project the change touches */
+                        affectedMilestoneIds?: string[];
+                        lines?: {
+                            /** @enum {string} */
+                            kind: "MATERIAL" | "LABOUR" | "OTHER";
+                            /**
+                             * Format: uuid
+                             * @description MATERIAL lines: company material
+                             */
+                            materialId?: string;
+                            /**
+                             * Format: uuid
+                             * @description LABOUR lines: company labour rate (or give description + unit + ratePaisa)
+                             */
+                            laborRateId?: string;
+                            /** @description Default: the material / labour rate name */
+                            description?: string;
+                            /**
+                             * @description Default: the material / labour rate's unit
+                             * @example sqft
+                             */
+                            unit?: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            quantity: number | string;
+                            /**
+                             * @description Cost rate per unit (needs fields.rates). Default: approved estimate → price list → labour rate.
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                        }[];
+                        /** @enum {string} */
+                        proofType?: "WHATSAPP_SCREENSHOT" | "SIGNED_SLIP" | "VERBAL";
+                        /** @description Required for VERBAL proof (who agreed, when, where) */
+                        proofNote?: string;
+                        /** @description SITE_PHOTO / DOCUMENT attachments: WhatsApp screenshot, signed slip */
+                        proofAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order (DRAFT) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "DRAFT",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": null,
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": null,
+                         *         "approvedAt": null,
+                         *         "approvedBy": null,
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RATE_MISSING | INVALID_MATERIAL | INVALID_LABOR_RATE | LINE_INCOMPLETE | INVALID_MILESTONE | INVALID_ATTACHMENT | PROOF_NOTE_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/change-orders/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Builder pick lists (materials, labour rates, milestones)
+         * @description changeorder.create. Every visible material with the rate a change order would use (APPROVED estimate → price list, `rateSource`), active labour rates and the schedule milestones. Rates only with fields.rates.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Pick lists */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "estimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001110",
+                         *           "revision": 1
+                         *         },
+                         *         "materials": [
+                         *           {
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "name": "Floor tiles 2×2",
+                         *             "unit": "sqft",
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000"
+                         *           }
+                         *         ],
+                         *         "labour": [
+                         *           {
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "kind": "SUBCONTRACT",
+                         *             "label": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "ratePaisa": "6000"
+                         *           }
+                         *         ],
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING",
+                         *             "status": "PLANNED"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One change order
+         * @description changeorder.view. Lines, proof files (signed links), the site instruction / snag it came from, the live invoice carrying it. Money: cost side (line `ratePaisa` / `amountPaisa`, `markupPercent`, `costPaisa`, `markupPaisa`) only with fields.rates; owner price (`totalPaisa`, line `priceRatePaisa` / `priceAmountPaisa`) with fields.rates or fields.amounts; contract values with fields.contract. A Munshi never sees a change order.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change order */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "APPROVED",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a draft
+         * @description changeorder.edit. DRAFT only; a site instruction it came from goes back to NEW.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_LOCKED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Edit a draft
+         * @description changeorder.edit. DRAFT only (reopen a SENT / REJECTED one first). `lines` replaces every line; a new markup re-prices the lines.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title?: string;
+                        description?: string | null;
+                        /** @enum {string} */
+                        type?: "ADDITION" | "DEDUCTION";
+                        /**
+                         * @description Markup % on the cost (0–100, 2 decimals)
+                         * @example 10
+                         */
+                        markupPercent?: number | string;
+                        /** @description Working days the change adds to the contract end date */
+                        daysImpact?: number;
+                        affectedMilestoneIds?: string[];
+                        lines?: {
+                            /** @enum {string} */
+                            kind: "MATERIAL" | "LABOUR" | "OTHER";
+                            /**
+                             * Format: uuid
+                             * @description MATERIAL lines: company material
+                             */
+                            materialId?: string;
+                            /**
+                             * Format: uuid
+                             * @description LABOUR lines: company labour rate (or give description + unit + ratePaisa)
+                             */
+                            laborRateId?: string;
+                            /** @description Default: the material / labour rate name */
+                            description?: string;
+                            /**
+                             * @description Default: the material / labour rate's unit
+                             * @example sqft
+                             */
+                            unit?: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            quantity: number | string;
+                            /**
+                             * @description Cost rate per unit (needs fields.rates). Default: approved estimate → price list → labour rate.
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                        }[];
+                        /** @enum {string|null} */
+                        proofType?: "WHATSAPP_SCREENSHOT" | "SIGNED_SLIP" | "VERBAL" | null;
+                        proofNote?: string | null;
+                        proofAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "APPROVED",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RATE_MISSING | INVALID_MATERIAL | INVALID_MILESTONE | INVALID_ATTACHMENT | PROOF_NOTE_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_LOCKED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark sent to the owner
+         * @description changeorder.edit. DRAFT → SENT (share the slip PDF / WhatsApp text from `GET /change-orders/{id}/pdf`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change order */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "SENT",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description EMPTY_CHANGE_ORDER */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the owner’s approval
+         * @description changeorder.approve. DRAFT / SENT → APPROVED with proof: WHATSAPP_SCREENSHOT / SIGNED_SLIP need a proof file, VERBAL a note. The revised contract (receivables, P&L) and the revised end date (Schedule.changeOrderDays, delay breakdown OWNER category) include it from now on. `billingMode` can be chosen now or when billing.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Date the owner agreed (default today, not in the future)
+                         * @example 2026-12-25
+                         */
+                        approvedOn?: string;
+                        /** @enum {string} */
+                        proofType?: "WHATSAPP_SCREENSHOT" | "SIGNED_SLIP" | "VERBAL";
+                        proofNote?: string;
+                        proofAttachmentIds?: string[];
+                        /**
+                         * @description How it will be billed (can also be chosen when billing)
+                         * @enum {string}
+                         */
+                        billingMode?: "NEXT_STAGE" | "VARIATION";
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order (APPROVED) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "APPROVED",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | PROOF_REQUIRED | PROOF_NOTE_REQUIRED | PROOF_FILE_REQUIRED | EMPTY_CHANGE_ORDER | FUTURE_DATE | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Owner said no
+         * @description changeorder.approve. DRAFT / SENT → REJECTED with a reason (reopen to revise it).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order (REJECTED) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "REJECTED",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Back to draft
+         * @description changeorder.edit. SENT / REJECTED → DRAFT.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change order (DRAFT) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "DRAFT",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Work started
+         * @description changeorder.edit. APPROVED → IN_PROGRESS.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change order (IN_PROGRESS) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "IN_PROGRESS",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Work completed
+         * @description changeorder.edit. APPROVED / IN_PROGRESS → COMPLETED.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Change order (COMPLETED) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "COMPLETED",
+                         *         "source": "MANUAL",
+                         *         "siteInstructionId": null,
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Billing link (next stage invoice or VARIATION invoice)
+         * @description changeorder.manage + billing.invoice.create. APPROVED / IN_PROGRESS / COMPLETED. **VARIATION**: a DRAFT invoice of its own (type VARIATION, one line per CO line at the owner price; ADDITION only). **NEXT_STAGE**: one line "CO-001 · title" on the project’s DRAFT STAGE / RUNNING_BILL invoice if there is one, else on the next one created (`invoice: null` until then). Issuing the invoice marks the change order BILLED; cancelling it reverts that.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mode: "NEXT_STAGE" | "VARIATION";
+                        notes?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order + invoice */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "changeOrder": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "number": 1,
+                         *           "code": "CO-001",
+                         *           "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *           "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *           "type": "ADDITION",
+                         *           "status": "APPROVED",
+                         *           "source": "MANUAL",
+                         *           "siteInstructionId": null,
+                         *           "snagId": null,
+                         *           "daysImpact": 3,
+                         *           "affectedMilestones": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *               "key": "FINISHING.TILES",
+                         *               "name": "Tiles",
+                         *               "stageKey": "FINISHING"
+                         *             }
+                         *           ],
+                         *           "proofType": "WHATSAPP_SCREENSHOT",
+                         *           "proofNote": null,
+                         *           "proofCount": 1,
+                         *           "lineCount": 2,
+                         *           "billingMode": "VARIATION",
+                         *           "invoice": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001507",
+                         *             "number": null,
+                         *             "type": "VARIATION",
+                         *             "status": "DRAFT"
+                         *           },
+                         *           "sentAt": "2026-10-10T07:00:00.000Z",
+                         *           "approvedOn": "2026-10-11",
+                         *           "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *           "approvedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "rejectedAt": null,
+                         *           "rejectionReason": null,
+                         *           "startedAt": null,
+                         *           "completedAt": null,
+                         *           "billedAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-10T06:30:00.000Z",
+                         *           "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *           "markupPercent": 10,
+                         *           "costPaisa": "3720000",
+                         *           "markupPaisa": "372000",
+                         *           "totalPaisa": "4092000",
+                         *           "lines": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *               "sortOrder": 1,
+                         *               "kind": "MATERIAL",
+                         *               "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *               "laborRateId": null,
+                         *               "description": "Floor tiles 2×2 (bathroom 2)",
+                         *               "unit": "sqft",
+                         *               "quantity": 120,
+                         *               "rateSource": "ESTIMATE",
+                         *               "ratePaisa": "25000",
+                         *               "amountPaisa": "3000000",
+                         *               "priceRatePaisa": "27500",
+                         *               "priceAmountPaisa": "3300000"
+                         *             },
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *               "sortOrder": 2,
+                         *               "kind": "LABOUR",
+                         *               "materialId": null,
+                         *               "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *               "description": "Tile fixing",
+                         *               "unit": "sqft",
+                         *               "quantity": 120,
+                         *               "rateSource": "LABOUR_RATE",
+                         *               "ratePaisa": "6000",
+                         *               "amountPaisa": "720000",
+                         *               "priceRatePaisa": "6600",
+                         *               "priceAmountPaisa": "792000"
+                         *             }
+                         *           ],
+                         *           "proofFiles": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *               "fileName": "whatsapp.jpg",
+                         *               "mimeType": "image/jpeg",
+                         *               "sizeBytes": 182113,
+                         *               "url": "https://…/file?sig=…",
+                         *               "thumbUrl": "https://…/file?w=480&sig=…",
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             }
+                         *           ],
+                         *           "siteInstruction": null,
+                         *           "snag": null,
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "status": "ACTIVE"
+                         *           }
+                         *         },
+                         *         "invoice": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001507",
+                         *           "number": null,
+                         *           "type": "VARIATION",
+                         *           "status": "DRAFT"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | DEDUCTION_NEEDS_STAGE | EMPTY_CHANGE_ORDER */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_CHANGE_ORDER_STATUS | CHANGE_ORDER_ALREADY_BILLED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-orders/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Change order slip PDF (owner) + WhatsApp text
+         * @description changeorder.view + fields.rates or fields.amounts. Letterhead, project, CO code / title / details, items at the owner price (no cost or markup), total (minus for a deduction), days impact, approval and signature lines. `?lang=en|roman|ur` (Urdu right-to-left). Signed link (10 min) + WhatsApp text + the owner’s phone.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description en = English, roman = Roman Urdu, ur = Urdu (right-to-left) */
+                    lang?: "en" | "roman" | "ur";
+                };
+                header?: never;
+                path: {
+                    /** @description Change order id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Slip */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000001506",
+                         *         "url": "https://…/file?sig=…",
+                         *         "expiresAt": "2026-10-16T10:10:00.000Z",
+                         *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, DHA Phase 6 · 10 Marla ka tabdeeli order CO-001: …",
+                         *         "clientPhone": "+923001112233"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CHANGE_ORDER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/site-instructions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Site instructions of a project
+         * @description changeorder.instruction.view (all) or changeorder.instruction.create (own only). Project scope: the owner sees every project, others need the permission on the project (outside → 404). Newest first. No money.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "NEW" | "CONVERTED" | "DISMISSED";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Site instructions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001504",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "number": 4,
+                         *             "code": "SI-004",
+                         *             "note": "Owner wants a skylight above the stairs instead of the plain slab",
+                         *             "photos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "mimeType": "image/jpeg",
+                         *                 "url": "https://…/file?sig=…",
+                         *                 "thumbUrl": "https://…/file?w=320&sig=…"
+                         *               }
+                         *             ],
+                         *             "status": "NEW",
+                         *             "changeOrder": null,
+                         *             "dismissReason": null,
+                         *             "clientId": "0199a8c0-0000-7000-8000-00000000ab15",
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "createdAt": "2026-10-15T10:00:00.000Z",
+                         *             "decidedBy": null,
+                         *             "decidedAt": null,
+                         *             "updatedAt": "2026-10-15T10:00:00.000Z"
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "new": 1,
+                         *           "converted": 2,
+                         *           "dismissed": 0
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a site instruction (Munshi)
+         * @description changeorder.instruction.create. ACTIVE / CLOSEOUT projects. What the owner asked for on site: note + SITE_PHOTO photos. A repeated `clientId` returns the saved row (200). The owner and the project PMs get a SITE_INSTRUCTION_CREATED notification. Also pushed offline as `SITE_INSTRUCTION_CREATE`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note: string;
+                        /** @description SITE_PHOTO attachments */
+                        photoIds?: string[];
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created (200 when the clientId was already saved) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001504",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 4,
+                         *         "code": "SI-004",
+                         *         "note": "Owner wants a skylight above the stairs instead of the plain slab",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "status": "NEW",
+                         *         "changeOrder": null,
+                         *         "dismissReason": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab15",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-15T10:00:00.000Z",
+                         *         "decidedBy": null,
+                         *         "decidedAt": null,
+                         *         "updatedAt": "2026-10-15T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/site-instructions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One site instruction
+         * @description changeorder.instruction.view, or changeorder.instruction.create for own ones.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Site instruction id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Site instruction */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001504",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 4,
+                         *         "code": "SI-004",
+                         *         "note": "Owner wants a skylight above the stairs instead of the plain slab",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "status": "NEW",
+                         *         "changeOrder": null,
+                         *         "dismissReason": null,
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab15",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-15T10:00:00.000Z",
+                         *         "decidedBy": null,
+                         *         "decidedAt": null,
+                         *         "updatedAt": "2026-10-15T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SITE_INSTRUCTION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/site-instructions/{id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Turn into a change order draft
+         * @description changeorder.create. NEW → CONVERTED; the CO draft (source SITE_INSTRUCTION) gets the note as title / details unless given; every create field is optional.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Site instruction id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title?: string;
+                        description?: string;
+                        /** @enum {string} */
+                        type?: "ADDITION" | "DEDUCTION";
+                        /**
+                         * @description Markup % on the cost (0–100, 2 decimals)
+                         * @example 10
+                         */
+                        markupPercent?: number | string;
+                        /** @description Working days the change adds to the contract end date */
+                        daysImpact?: number;
+                        affectedMilestoneIds?: string[];
+                        lines?: {
+                            /** @enum {string} */
+                            kind: "MATERIAL" | "LABOUR" | "OTHER";
+                            /**
+                             * Format: uuid
+                             * @description MATERIAL lines: company material
+                             */
+                            materialId?: string;
+                            /**
+                             * Format: uuid
+                             * @description LABOUR lines: company labour rate (or give description + unit + ratePaisa)
+                             */
+                            laborRateId?: string;
+                            /** @description Default: the material / labour rate name */
+                            description?: string;
+                            /**
+                             * @description Default: the material / labour rate's unit
+                             * @example sqft
+                             */
+                            unit?: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            quantity: number | string;
+                            /**
+                             * @description Cost rate per unit (needs fields.rates). Default: approved estimate → price list → labour rate.
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                        }[];
+                        /** @enum {string} */
+                        proofType?: "WHATSAPP_SCREENSHOT" | "SIGNED_SLIP" | "VERBAL";
+                        proofNote?: string;
+                        proofAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order draft */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "DRAFT",
+                         *         "source": "SITE_INSTRUCTION",
+                         *         "siteInstructionId": "0199a8c0-0000-7000-8000-000000001504",
+                         *         "snagId": null,
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | RATE_MISSING | LINE_INCOMPLETE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SITE_INSTRUCTION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SITE_INSTRUCTION_NOT_NEW | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/site-instructions/{id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss
+         * @description changeorder.create. NEW → DISMISSED with a reason.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Site instruction id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Site instruction */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001504",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 4,
+                         *         "code": "SI-004",
+                         *         "note": "Owner wants a skylight above the stairs instead of the plain slab",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "status": "DISMISSED",
+                         *         "changeOrder": null,
+                         *         "dismissReason": "Small change, done free of cost",
+                         *         "clientId": "0199a8c0-0000-7000-8000-00000000ab15",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-15T10:00:00.000Z",
+                         *         "decidedBy": null,
+                         *         "decidedAt": null,
+                         *         "updatedAt": "2026-10-15T10:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SITE_INSTRUCTION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SITE_INSTRUCTION_NOT_NEW */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snags/{id}/change-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Snag → change order draft
+         * @description changeorder.create. Only a snag whose cost attribution is CHANGE_ORDER (`PUT /snags/{id}/cost`), once. Default title "SN-007: description" and one OTHER line: quantity 1 × the snag amount (when set).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title?: string;
+                        description?: string;
+                        /** @enum {string} */
+                        type?: "ADDITION" | "DEDUCTION";
+                        /**
+                         * @description Markup % on the cost (0–100, 2 decimals)
+                         * @example 10
+                         */
+                        markupPercent?: number | string;
+                        /** @description Working days the change adds to the contract end date */
+                        daysImpact?: number;
+                        affectedMilestoneIds?: string[];
+                        lines?: {
+                            /** @enum {string} */
+                            kind: "MATERIAL" | "LABOUR" | "OTHER";
+                            /**
+                             * Format: uuid
+                             * @description MATERIAL lines: company material
+                             */
+                            materialId?: string;
+                            /**
+                             * Format: uuid
+                             * @description LABOUR lines: company labour rate (or give description + unit + ratePaisa)
+                             */
+                            laborRateId?: string;
+                            /** @description Default: the material / labour rate name */
+                            description?: string;
+                            /**
+                             * @description Default: the material / labour rate's unit
+                             * @example sqft
+                             */
+                            unit?: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            quantity: number | string;
+                            /**
+                             * @description Cost rate per unit (needs fields.rates). Default: approved estimate → price list → labour rate.
+                             * @example 2500000
+                             */
+                            ratePaisa?: string | number;
+                        }[];
+                        /** @enum {string} */
+                        proofType?: "WHATSAPP_SCREENSHOT" | "SIGNED_SLIP" | "VERBAL";
+                        proofNote?: string;
+                        proofAttachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Change order draft */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001501",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 1,
+                         *         "code": "CO-001",
+                         *         "title": "Extra bathroom tiles (2nd bathroom, full height)",
+                         *         "description": "Owner wants wall tiles up to the ceiling in bathroom 2",
+                         *         "type": "ADDITION",
+                         *         "status": "DRAFT",
+                         *         "source": "SNAG",
+                         *         "siteInstructionId": null,
+                         *         "snagId": "0199a8c0-0000-7000-8000-000000001505",
+                         *         "daysImpact": 3,
+                         *         "affectedMilestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001509",
+                         *             "key": "FINISHING.TILES",
+                         *             "name": "Tiles",
+                         *             "stageKey": "FINISHING"
+                         *           }
+                         *         ],
+                         *         "proofType": "WHATSAPP_SCREENSHOT",
+                         *         "proofNote": null,
+                         *         "proofCount": 1,
+                         *         "lineCount": 2,
+                         *         "billingMode": "NEXT_STAGE",
+                         *         "invoice": null,
+                         *         "sentAt": "2026-10-10T07:00:00.000Z",
+                         *         "approvedOn": "2026-10-11",
+                         *         "approvedAt": "2026-10-11T09:30:00.000Z",
+                         *         "approvedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "rejectedAt": null,
+                         *         "rejectionReason": null,
+                         *         "startedAt": null,
+                         *         "completedAt": null,
+                         *         "billedAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T06:30:00.000Z",
+                         *         "updatedAt": "2026-10-11T09:30:00.000Z",
+                         *         "markupPercent": 10,
+                         *         "costPaisa": "3720000",
+                         *         "markupPaisa": "372000",
+                         *         "totalPaisa": "4092000",
+                         *         "lines": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001502",
+                         *             "sortOrder": 1,
+                         *             "kind": "MATERIAL",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d6",
+                         *             "laborRateId": null,
+                         *             "description": "Floor tiles 2×2 (bathroom 2)",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "ESTIMATE",
+                         *             "ratePaisa": "25000",
+                         *             "amountPaisa": "3000000",
+                         *             "priceRatePaisa": "27500",
+                         *             "priceAmountPaisa": "3300000"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001503",
+                         *             "sortOrder": 2,
+                         *             "kind": "LABOUR",
+                         *             "materialId": null,
+                         *             "laborRateId": "0199a8c0-0000-7000-8000-000000001508",
+                         *             "description": "Tile fixing",
+                         *             "unit": "sqft",
+                         *             "quantity": 120,
+                         *             "rateSource": "LABOUR_RATE",
+                         *             "ratePaisa": "6000",
+                         *             "amountPaisa": "720000",
+                         *             "priceRatePaisa": "6600",
+                         *             "priceAmountPaisa": "792000"
+                         *           }
+                         *         ],
+                         *         "proofFiles": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001506",
+                         *             "fileName": "whatsapp.jpg",
+                         *             "mimeType": "image/jpeg",
+                         *             "sizeBytes": 182113,
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=480&sig=…",
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "siteInstruction": null,
+                         *         "snag": null,
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_CHANGE_ORDER | SNAG_ALREADY_CONVERTED | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sync/pull": {
         parameters: {
             query?: never;
@@ -52511,7 +55991,7 @@ export interface paths {
         };
         /**
          * Pull changes (mobile read model)
-         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole, permissionRoles — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays, own notifications, schedule `milestones` (not DONE + DONE in the last 14 days, quota planned / used — never money) and `stoppages` (PENDING + 60 days). Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
+         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole, permissionRoles — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays, own notifications, schedule `milestones` (not DONE + DONE in the last 14 days, quota planned / used — never money) `stoppages` (PENDING + 60 days) and `site_instructions` (Step 15: NEW + 60 days; own only without changeorder.instruction.view — never money). Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
          */
         get: {
             parameters: {
@@ -52704,7 +56184,7 @@ export interface paths {
         put?: never;
         /**
          * Push queued mutations
-         * @description Up to 100 mutations, applied in order, each through the same service and permission checks as its REST endpoint, each in its own transaction. Result per mutation: **APPLIED** (serverId) · **DUPLICATE** (clientId seen before — same serverId, nothing done again) · **REJECTED** (permanent: code, message, details — e.g. PERMISSION_DENIED (details.permission — the mutation type needs the same permission as its REST route), WEEK_LOCKED, INVALID_WORKER_TYPE, INSUFFICIENT_CASH, ALREADY_RECEIVED, INSUFFICIENT_STOCK, VALIDATION_ERROR, DEPENDENCY_REJECTED) · **RETRY** (transient; everything after it is RETRY too). Payload = the REST body plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, milestoneId — MILESTONE_PROGRESS / STOPPAGE_LOG are the schedule site updates); any id may be the clientId of an earlier mutation or of an attachment uploaded with a clientId. Header `X-Pending-Mutations` = items still queued on the phone (shown to the office). Entries reaching the server more than 48 h after `deviceCreatedAt` are flagged `lateSync`.
+         * @description Up to 100 mutations, applied in order, each through the same service and permission checks as its REST endpoint, each in its own transaction. Result per mutation: **APPLIED** (serverId) · **DUPLICATE** (clientId seen before — same serverId, nothing done again) · **REJECTED** (permanent: code, message, details — e.g. PERMISSION_DENIED (details.permission — the mutation type needs the same permission as its REST route), WEEK_LOCKED, INVALID_WORKER_TYPE, INSUFFICIENT_CASH, ALREADY_RECEIVED, INSUFFICIENT_STOCK, VALIDATION_ERROR, DEPENDENCY_REJECTED) · **RETRY** (transient; everything after it is RETRY too). Payload = the REST body plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, milestoneId — MILESTONE_PROGRESS / STOPPAGE_LOG are the schedule site updates, SITE_INSTRUCTION_CREATE the owner instruction for a change order); any id may be the clientId of an earlier mutation or of an attachment uploaded with a clientId. Header `X-Pending-Mutations` = items still queued on the phone (shown to the office). Entries reaching the server more than 48 h after `deviceCreatedAt` are flagged `lateSync`.
          */
         post: {
             parameters: {
@@ -52722,7 +56202,7 @@ export interface paths {
                             /** Format: uuid */
                             clientId: string;
                             /** @enum {string} */
-                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "EQUIPMENT_RECEIVE" | "EQUIPMENT_LOSS_REPORT" | "SNAG_CREATE" | "SNAG_FIX" | "MILESTONE_PROGRESS" | "STOPPAGE_LOG";
+                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "EQUIPMENT_RECEIVE" | "EQUIPMENT_LOSS_REPORT" | "SNAG_CREATE" | "SNAG_FIX" | "MILESTONE_PROGRESS" | "STOPPAGE_LOG" | "SITE_INSTRUCTION_CREATE";
                             /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, snagId, milestoneId). Ids may be clientIds of earlier mutations or attachments. */
                             payload: {
                                 [key: string]: unknown;

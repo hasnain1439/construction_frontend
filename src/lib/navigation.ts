@@ -869,18 +869,29 @@ export const PROJECT_NAV: NavSection[] = [
     icon: FilePen,
     mode: "project",
     items: [
-      soon(
-        "p.changes.all",
-        L("All Change Orders", "Tamam tabdeeli orders", "تمام تبدیلی آرڈرز"),
-        "/change-orders",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "p.changes.new",
-        L("New Change Order", "Naya tabdeeli order", "نیا تبدیلی آرڈر"),
-        "/change-orders/new",
-        P("projects.project.edit"),
-      ),
+      {
+        id: "p.changes.all",
+        label: L("All Change Orders", "Tamam tabdeeli orders", "تمام تبدیلی آرڈرز"),
+        href: "/change-orders",
+        available: true,
+        access: P("changeorder.view"),
+        keywords: ["variation", "extra work", "revised contract"],
+      },
+      {
+        id: "p.changes.new",
+        label: L("New Change Order", "Naya tabdeeli order", "نیا تبدیلی آرڈر"),
+        href: "/change-orders/new",
+        available: true,
+        access: P("changeorder.create"),
+      },
+      {
+        id: "p.changes.instructions",
+        label: L("Site Instructions", "Site hidayaat", "سائٹ ہدایات"),
+        href: "/change-orders/instructions",
+        available: true,
+        access: ANY("changeorder.instruction.view", "changeorder.instruction.create"),
+        keywords: ["owner request", "munshi"],
+      },
     ],
   },
   {

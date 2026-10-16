@@ -6,6 +6,7 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { BillingModel } from "./masterData";
+import type { ProjectChangeSummary } from "./changeOrders";
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
@@ -313,6 +314,8 @@ export interface ProjectDetail extends ProjectBasic {
   updatedAt?: IsoDateTime;
   /** "GENERATE_ESTIMATE" after activation (Step 11); "ESTIMATE" from an older API. */
   nextStep?: "GENERATE_ESTIMATE" | "ESTIMATE";
+  /** Step 15: approved change orders → revised contract (fields.contract) and revised end date. */
+  changeOrders?: ProjectChangeSummary;
 }
 
 export type CreateProjectBody = RequestBody<"/api/v1/projects", "post">;

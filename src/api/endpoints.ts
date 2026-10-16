@@ -108,6 +108,20 @@ export const ENDPOINTS = {
     retention: (projectId: string) => `/projects/${id(projectId)}/retention`,
   },
 
+  /** Step 15 · Change orders + site instructions. */
+  changeOrders: {
+    list: (projectId: string) => `/projects/${id(projectId)}/change-orders`,
+    rates: (projectId: string) => `/projects/${id(projectId)}/change-orders/rates`,
+    byId: (coId: string) => `/change-orders/${id(coId)}`,
+    action: (coId: string, action: "send" | "approve" | "reject" | "reopen" | "start" | "complete" | "bill") => `/change-orders/${id(coId)}/${action}`,
+    pdf: (coId: string) => `/change-orders/${id(coId)}/pdf`,
+    instructions: (projectId: string) => `/projects/${id(projectId)}/site-instructions`,
+    instructionById: (siId: string) => `/site-instructions/${id(siId)}`,
+    convertInstruction: (siId: string) => `/site-instructions/${id(siId)}/convert`,
+    dismissInstruction: (siId: string) => `/site-instructions/${id(siId)}/dismiss`,
+    fromSnag: (snagId: string) => `/snags/${id(snagId)}/change-order`,
+  },
+
   dailyLogs: {
     list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
     byId: (logId: string) => `/daily-logs/${id(logId)}`,

@@ -163,6 +163,14 @@ export const PERMISSION_KEYS = [
   "sales.quote.edit",
   "sales.quote.approve",
   "sales.quote.manage",
+  // change orders (Step 15)
+  "changeorder.view",
+  "changeorder.create",
+  "changeorder.edit",
+  "changeorder.approve",
+  "changeorder.manage",
+  "changeorder.instruction.create",
+  "changeorder.instruction.view",
   // fields
   "fields.rates",
   "fields.amounts",
