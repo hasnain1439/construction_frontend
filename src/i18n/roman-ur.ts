@@ -7,6 +7,7 @@ import * as masterDataRoman from "./areas/masterData/roman-ur";
 import * as billingRoman from "./areas/billing/roman-ur";
 import * as cashSiteRoman from "./areas/cashSite/roman-ur";
 import * as closeoutRoman from "./areas/closeout/roman-ur";
+import * as salesRoman from "./areas/sales/roman-ur";
 import * as teamCompanyRoman from "./areas/teamCompany/roman-ur";
 import * as appRoman from "./areas/app/roman-ur";
 
@@ -20,6 +21,7 @@ export const romanUr: Dictionary = {
   billing: billingRoman.strings,
   cashSite: cashSiteRoman.strings,
   closeout: closeoutRoman.strings,
+  sales: salesRoman.strings,
   teamCompany: teamCompanyRoman.strings,
   app: appRoman.strings,
   common: {

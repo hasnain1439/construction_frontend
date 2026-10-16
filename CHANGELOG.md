@@ -6,6 +6,13 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 12
+- **Sales → Quote Pipeline** is live: a board with one column per status (Draft, Sent, Negotiation, Won, Lost, Expired) or a table; search, status filter and **Needs follow-up** (sent more than 5 days ago with no reply).
+- **New Quote**: client (existing or new), title, site, plot, covered area, storeys, mumty / basement, structure, contract type, material quality, payment schedule, margin / finishing % and an optional agreed price on one side; on the other a **live internal view** (price, per sq ft, cost, margin, cost by work section, key quantities, floors assumed, warnings) and the **customer view** (what the quotation shows — never costs or margins).
+- **Quote Detail**: status, client and validity, internal + customer views of the latest revision, revision list and **compare** (inputs, price, cost, margin, each work section), activity, actions — send to the client (customer PDF + WhatsApp), customer / internal PDFs, record negotiation, new revision, mark lost with a reason, delete, and **Mark as won** → opens the pre-filled draft in the New Project wizard.
+- **Win / Loss Insights**: win rate, quotes, won / lost, average rate quoted vs won, open pipeline, quotes per month chart, loss reasons, follow-up list.
+- Gating: `sales.quote.view|create|edit|approve|manage`; price needs `fields.contract`, cost `fields.rates`, margin `fields.contract` + `fields.profit` ("Hidden for your role" otherwise). Texts in English, Roman Urdu and Urdu (`src/i18n/areas/sales/`). API types regenerated (adds the Step 11 estimate and Step 12 quote paths).
+
 ### Step 17
 - **Project → Documents & Closeout** pages are live (no more "Coming soon"): Drawings, Snag List, Handover, Retention — each shown only with its `closeout.*` permission.
 - **Drawings**: folders (Architectural, Structural, MEP, Society approved, Other) with counts, search, latest revision badge and approval date; revision history slide-over keeps superseded revisions (open any file), upload a new revision, mark approved today, add / edit / delete drawings.

@@ -9,6 +9,7 @@ import * as cashSiteEn from "./areas/cashSite/en";
 import * as teamCompanyEn from "./areas/teamCompany/en";
 import * as appEn from "./areas/app/en";
 import * as closeoutEn from "./areas/closeout/en";
+import * as salesEn from "./areas/sales/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -21,6 +22,7 @@ export const en = {
   teamCompany: teamCompanyEn.strings,
   app: appEn.strings,
   closeout: closeoutEn.strings,
+  sales: salesEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",

@@ -17,6 +17,14 @@
    }
   },
   {
+   "key": "sales",
+   "label": {
+    "en": "Sales & quotes",
+    "roman": "Sales aur quotes",
+    "urdu": "سیلز اور کوٹیشن"
+   }
+  },
+  {
    "key": "labor",
    "label": {
     "en": "Labour",
@@ -271,6 +279,86 @@
    "description": "Change the assumptions of a project estimate (wall / slab thickness, mixes, steel, wastage, labour rate).",
    "ownerOnly": false,
    "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.view",
+   "module": "sales",
+   "resource": "quote",
+   "action": "view",
+   "label": {
+    "en": "View quotes",
+    "roman": "Quotes dekhna",
+    "urdu": "کوٹیشن دیکھنا"
+   },
+   "description": "Quote pipeline, quote detail and revisions, quote PDFs, win / loss insights (price, cost and margin follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.create",
+   "module": "sales",
+   "resource": "quote",
+   "action": "create",
+   "label": {
+    "en": "Create quotes",
+    "roman": "Naya quote banana",
+    "urdu": "نیا کوٹیشن بنانا"
+   },
+   "description": "Start a quote for a client (quick estimate from plot, covered area and floors).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.edit",
+   "module": "sales",
+   "resource": "quote",
+   "action": "edit",
+   "label": {
+    "en": "Work on quotes",
+    "roman": "Quote par kaam",
+    "urdu": "کوٹیشن پر کام"
+   },
+   "description": "Change a quote, add a revision, send it to the client, record negotiation, mark it lost.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.approve",
+   "module": "sales",
+   "resource": "quote",
+   "action": "approve",
+   "label": {
+    "en": "Mark quotes won",
+    "roman": "Quote jeeta hua karna",
+    "urdu": "کوٹیشن جیتا ہوا کرنا"
+   },
+   "description": "Mark a quote won: a draft project is made from it (also needs Create projects).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.manage",
+   "module": "sales",
+   "resource": "quote",
+   "action": "manage",
+   "label": {
+    "en": "Delete quotes",
+    "roman": "Quote delete karna",
+    "urdu": "کوٹیشن ڈیلیٹ کرنا"
+   },
+   "description": "Delete a quote that was not won.",
+   "ownerOnly": false,
+   "scoped": false,
    "limit": false,
    "field": false
   },
@@ -2364,7 +2452,12 @@
     "fields.rates",
     "fields.amounts",
     "fields.profit",
-    "fields.contract"
+    "fields.contract",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit",
+    "sales.quote.approve",
+    "sales.quote.manage"
    ]
   },
   {
@@ -2469,7 +2562,10 @@
     "closeout.drawing.manage",
     "closeout.snag.manage",
     "closeout.handover.manage",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit"
    ]
   },
   {
@@ -2565,7 +2661,8 @@
     "fields.amounts",
     "fields.contract",
     "closeout.snag.view",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "sales.quote.view"
    ]
   },
   {

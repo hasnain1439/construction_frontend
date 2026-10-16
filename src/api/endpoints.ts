@@ -190,6 +190,21 @@ export const ENDPOINTS = {
     byId: (clientId: string) => `/clients/${id(clientId)}`,
   },
 
+  // Step 12 · quotes / sales pipeline
+  quotes: {
+    list: "/quotes",
+    assumptions: "/quotes/assumptions",
+    preview: "/quotes/preview",
+    insights: "/quotes/insights",
+    byId: (quoteId: string) => `/quotes/${id(quoteId)}`,
+    revisions: (quoteId: string) => `/quotes/${id(quoteId)}/revisions`,
+    send: (quoteId: string) => `/quotes/${id(quoteId)}/send`,
+    negotiation: (quoteId: string) => `/quotes/${id(quoteId)}/negotiation`,
+    lost: (quoteId: string) => `/quotes/${id(quoteId)}/lost`,
+    won: (quoteId: string) => `/quotes/${id(quoteId)}/won`,
+    pdf: (quoteId: string) => `/quotes/${id(quoteId)}/pdf`,
+  },
+
   projects: {
     list: "/projects",
     byId: (projectId: string) => `/projects/${id(projectId)}`,

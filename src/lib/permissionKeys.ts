@@ -147,6 +147,12 @@ export const PERMISSION_KEYS = [
   "equipment.rental.manage",
   "equipment.loss.create",
   "equipment.loss.approve",
+  // sales (Step 12)
+  "sales.quote.view",
+  "sales.quote.create",
+  "sales.quote.edit",
+  "sales.quote.approve",
+  "sales.quote.manage",
   // fields
   "fields.rates",
   "fields.amounts",

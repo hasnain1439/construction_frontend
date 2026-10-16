@@ -329,6 +329,15 @@ Project mode → **Documents & Closeout**: `/projects/:id/documents/drawings | s
 - Photos open in the shared lightbox (`PhotoLightbox` from `features/site/DailyLogsView`); the certificate uses `PdfActions` (fresh signed link each time).
 - Tests: `tests/unit/components/Closeout.test.tsx` (nav gating, drawings history, snags with / without money, handover blockers + PM limits, retention gating, Urdu).
 
+## Sales → Quotes (Phase 2 · Step 12)
+
+Company mode → **Sales**: `/sales/quotes` (pipeline: board + table), `/sales/quotes/new` (New quote), `/sales/quotes/:id` (detail), `/sales/quotes/:id/revise` (new revision), `/sales/insights` (win / loss). Code in `src/features/sales/` (`QuotePipelineView`, `NewQuoteView` + `ReviseQuoteView`, `QuoteDetailView`, `InsightsView`, `shared.tsx` — status badge, internal and customer panels, `schemas.ts`). API service `src/api/services/sales.api.ts` (tag `Quotes`), types `src/api/types/sales.ts`, texts `src/i18n/areas/sales/` (`t("sales.…")`).
+
+- **Live price**: the inputs are sent (debounced) to `POST /quotes/preview`, which runs the same engine as the project estimate with area-based rooms; the internal panel shows price, per sq ft, cost, margin, cost by section and quantities; the customer panel shows only what the quotation PDF shows.
+- **Mark as won** creates the pre-filled DRAFT project on the server and opens it in the wizard (`/projects/new?id=…&tab=5` — tabs 1–4 are already done, rooms are next).
+- **Access**: nav items `sales.quote.view` (pipeline, insights) and `sales.quote.create` (New quote); buttons `sales.quote.edit` (revision, negotiation, lost), send / WhatsApp / customer PDF also `fields.contract`, internal PDF `fields.rates`, Mark as won `sales.quote.approve` + `projects.project.create`, delete `sales.quote.manage`. Money the API leaves out shows "Hidden for your role".
+- Tests: `tests/unit/components/Sales.test.tsx` (nav gating, board / table, Roman Urdu, live calc display, PM gating, detail compare / activity / won → wizard, lost, Urdu insights).
+
 ## Onboarding & data import (Pilot · Part 7)
 
 `src/features/onboarding`, API `src/api/services/onboarding.api.ts`.
