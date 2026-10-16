@@ -185,8 +185,9 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
   );
 }
 
+/** Contract value (or labour rate) — optional until activation; running bills also need a rate per sq ft. */
 function ValueFields({ coveredArea, seesMoney, disabled }: { coveredArea: number | null; seesMoney: boolean; disabled: boolean }) {
-  const contractType = useWatch({ name: "contractType" }) as ContractType;
+  const [contractType, billingModel] = useWatch({ name: ["contractType", "billingModel"] }) as [ContractType, string];
   const rate = useWatch({ name: "ratePerSqftPaisa" }) as string | null;
   const t = useT();
   if (!seesMoney) {
@@ -201,16 +202,37 @@ function ValueFields({ coveredArea, seesMoney, disabled }: { coveredArea: number
     const total = rate && coveredArea ? multiplyPaisa(rate, coveredArea) : null;
     return (
       <div className="space-y-2">
-        <MoneyField name="ratePerSqftPaisa" label={t("projects.section.ratePerSqft")} required suffix={t("projects.unit.perSqft")} disabled={disabled} />
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          {total && rate && coveredArea
-            ? t("projects.contract.rateCalc", { rate: formatPKR(rate), area: coveredArea.toLocaleString("en-PK"), total: formatPKR(total) })
-            : t("projects.contract.setCoveredFirst")}
-        </p>
+        <MoneyField
+          name="ratePerSqftPaisa"
+          label={t("projects.section.ratePerSqft")}
+          suffix={t("projects.unit.perSqft")}
+          hint={t("projects.contract.valueLater")}
+          disabled={disabled}
+        />
+        {!coveredArea ? (
+          <p className="text-sm text-muted-foreground">{t("projects.contract.setCoveredFirst")}</p>
+        ) : total && rate ? (
+          <p className="text-sm text-muted-foreground" aria-live="polite" data-testid="labour-total">
+            {t("projects.contract.rateCalc", { rate: formatPKR(rate), area: coveredArea.toLocaleString("en-PK"), total: formatPKR(total) })}
+          </p>
+        ) : null}
       </div>
     );
   }
-  return <MoneyField name="contractValuePaisa" label={t("projects.section.contractValue")} required disabled={disabled} />;
+  return (
+    <div className="space-y-4">
+      <MoneyField name="contractValuePaisa" label={t("projects.section.contractValue")} hint={t("projects.contract.valueLater")} disabled={disabled} />
+      {billingModel === "RUNNING_BILLS" ? (
+        <MoneyField
+          name="ratePerSqftPaisa"
+          label={t("projects.contract.runningRate")}
+          suffix={t("projects.unit.perSqft")}
+          hint={t("projects.contract.runningRateHint")}
+          disabled={disabled}
+        />
+      ) : null}
+    </div>
+  );
 }
 
 function Schedule({ templates, seesMoney, coveredArea, disabled }: { templates: Array<{ id: string; name: string; stages: Values["stages"] }>; seesMoney: boolean; coveredArea: number | null; disabled: boolean }) {
@@ -298,8 +320,9 @@ export function ContractTab() {
           body: {
             contractType: v.contractType,
             billingModel: v.billingModel,
-            ...(seesMoney && v.contractType !== "LABOR_ONLY" && v.contractValuePaisa ? { contractValuePaisa: v.contractValuePaisa } : {}),
-            ...(seesMoney && v.contractType === "LABOR_ONLY" && v.ratePerSqftPaisa ? { ratePerSqftPaisa: v.ratePerSqftPaisa } : {}),
+            // Empty = null (cleared; fine while DRAFT, CONTRACT_VALUE_REQUIRED once active). Without fields.contract nothing is sent (kept).
+            ...(seesMoney && v.contractType !== "LABOR_ONLY" ? { contractValuePaisa: v.contractValuePaisa || null } : {}),
+            ...(seesMoney && (v.contractType === "LABOR_ONLY" || v.billingModel === "RUNNING_BILLS") ? { ratePerSqftPaisa: v.ratePerSqftPaisa || null } : {}),
             retentionPercent: v.retentionPercent,
             defectPeriodMonths: v.defectPeriodMonths,
             supplyRules: v.supplyRules

@@ -43,6 +43,14 @@ export const companySettingsSchema = z.object({
     .nullable()
     .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 90, msg("teamCompany.v.daysRange", { min: 0, max: 90 })),
   pmCanRecordPayments: z.boolean(),
+  defaultMarginPercent: z
+    .number({ error: msg("teamCompany.v.enterPercent") })
+    .nullable()
+    .refine((v): v is number => v !== null && v >= 0 && v <= 100, msg("teamCompany.v.percentRange", { min: 0, max: 100 })),
+  defaultFinishingAllowancePercent: z
+    .number({ error: msg("teamCompany.v.enterPercent") })
+    .nullable()
+    .refine((v): v is number => v !== null && v >= 0 && v <= 200, msg("teamCompany.v.percentRange", { min: 0, max: 200 })),
   pmCanSeeFinancials: z.boolean(),
   defaultLanguage: z.enum(["ENGLISH", "ROMAN_URDU", "URDU"]),
 });

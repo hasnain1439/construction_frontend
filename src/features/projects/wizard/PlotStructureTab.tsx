@@ -24,12 +24,15 @@ import { useMe } from "@/store/hooks";
 import { DEFAULT_CEILING, FLOOR_ORDER, PLOT_UNITS, STRUCTURE_TYPES } from "../constants";
 import { formatArea, plotCalc } from "../utils/calc";
 import { foundationToBody, foundationToForm } from "../utils/foundation";
+import { ROOF_DEFAULTS, roofToBody, roofToForm } from "../utils/roof";
 import { FoundationCard } from "./FoundationCard";
+import { RoofCard } from "./RoofCard";
 import { plotStructureSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
 type Values = z.input<typeof plotStructureSchema>;
 type Output = z.output<typeof plotStructureSchema>;
+type RoofFormValuesOut = Parameters<typeof roofToBody>[0];
 
 const ADDABLE: FloorLevel[] = ["FIRST", "SECOND", "THIRD", "MUMTY"];
 const sortFloors = <T extends { level: FloorLevel }>(floors: T[]) =>
@@ -37,7 +40,7 @@ const sortFloors = <T extends { level: FloorLevel }>(floors: T[]) =>
 
 function toValues(p: ProjectDetail | null, companyMarla: number): Values {
   const floors = sortFloors(
-    (p?.floors ?? []).map((f) => ({ level: f.level, ceilingHeightFt: f.ceilingHeightFt as number | null })),
+    (p?.floors ?? []).map((f) => ({ level: f.level, ceilingHeightFt: f.ceilingHeightFt as number | null, roof: roofToForm(f.roof) })),
   );
   return {
     plotUnit: p?.plot?.plotUnit ?? "MARLA",
@@ -49,7 +52,9 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
     structureType: p?.structure?.structureType ?? "FRAMED",
     hasBasement: p?.structure?.hasBasement ?? false,
     basementHeightFt: p?.structure?.basementHeightFt ?? null,
-    floors: floors.length ? floors.filter((f) => f.level !== "BASEMENT") : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND }],
+    floors: floors.length
+      ? floors.filter((f) => f.level !== "BASEMENT")
+      : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND, roof: { ...ROOF_DEFAULTS } }],
     // Pakistani defaults (brick strip footing) until a foundation is saved
     foundation: foundationToForm(p?.foundation),
   };
@@ -143,7 +148,7 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
         variant="outline"
         size="sm"
         disabled={disabled || !next}
-        onClick={() => next && append({ level: next, ceilingHeightFt: DEFAULT_CEILING[next] })}
+        onClick={() => next && append({ level: next, ceilingHeightFt: DEFAULT_CEILING[next], roof: { ...ROOF_DEFAULTS } })}
       >
         <Plus data-icon="inline-start" />
         {next ? t("projects.plot.addFloor", { floor: te("projectFloorLevel", next).toLowerCase() }) : t("projects.plot.allFloorsAdded")}
@@ -164,6 +169,26 @@ function BasementHeight({ disabled }: { disabled: boolean }) {
   return <NumberField name="basementHeightFt" label={t("projects.plot.basementHeight")} required unit={t("projects.unit.ft")} disabled={disabled} />;
 }
 
+/** One "Roof / Lenter" card per floor in the form (the basement's roof is the ground floor's floor slab — not asked). */
+function RoofCards({ project, disabled }: { project: ProjectDetail | null; disabled: boolean }) {
+  const floors = (useWatch({ name: "floors" }) as Values["floors"]) ?? [];
+  const structure = useWatch({ name: "structureType" }) as Values["structureType"];
+  return (
+    <>
+      {floors.map((f, index) => (
+        <RoofCard
+          key={f.level}
+          index={index}
+          level={f.level}
+          suggestion={project?.floors?.find((x) => x.level === f.level)?.slabSuggestion}
+          structure={structure ?? null}
+          disabled={disabled}
+        />
+      ))}
+    </>
+  );
+}
+
 /** Tab 3 — PATCH /projects/:id/plot-structure (floors upserted by level). */
 export function PlotStructureTab() {
   const { projectId, project, locked, onSaved } = useWizard();
@@ -181,7 +206,7 @@ export function PlotStructureTab() {
   const send = async (v: Output, force: boolean) => {
     const floors = sortFloors([
       ...(v.hasBasement ? [{ level: "BASEMENT" as const, ceilingHeightFt: v.basementHeightFt as number }] : []),
-      ...v.floors.map((f) => ({ level: f.level, ceilingHeightFt: f.ceilingHeightFt })),
+      ...v.floors.map((f) => ({ level: f.level, ceilingHeightFt: f.ceilingHeightFt, roof: roofToBody(f.roof as RoofFormValuesOut, v.structureType) })),
     ]);
     const saved = await run(
       () =>
@@ -264,6 +289,7 @@ export function PlotStructureTab() {
           </div>
         </SectionCard>
         <FoundationCard disabled={locked} />
+        <RoofCards project={project} disabled={locked} />
       </Form>
       <ConfirmDialog
         open={pendingForce !== null}

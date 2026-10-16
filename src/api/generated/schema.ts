@@ -2217,6 +2217,8 @@ export interface paths {
                          *         "taxRatePercent": 0,
                          *         "taxLabel": null,
                          *         "pmCanRecordPayments": false,
+                         *         "defaultMarginPercent": 20,
+                         *         "defaultFinishingAllowancePercent": 0,
                          *         "defaultLanguage": "ROMAN_URDU"
                          *       }
                          *     }
@@ -2267,6 +2269,8 @@ export interface paths {
          *     Labour: `settlementWeekStart`, `workingDays`, `hoursPerDay` (1–16), `overtimeMultiplier` (1–3, null = the DAILY labour rate multiplier) and `subcontractPaymentsByPm`.
          *
          *     Billing: `paymentTermsDays` (0–90), `taxRatePercent` (0–30) and `taxLabel` (used only when `taxEnabled`), `pmCanRecordPayments`.
+         *
+         *     Estimate → contract value: `defaultMarginPercent` (0–100, default 20) and `defaultFinishingAllowancePercent` (0–200, default 0, FULL contracts only) pre-fill the “contract value from this estimate” card and POST /projects/{id}/contract/from-estimate; a project may override both.
          */
         patch: {
             parameters: {
@@ -2299,6 +2303,8 @@ export interface paths {
                         taxRatePercent?: number;
                         taxLabel?: string | null;
                         pmCanRecordPayments?: boolean;
+                        defaultMarginPercent?: number;
+                        defaultFinishingAllowancePercent?: number;
                         /** @enum {string} */
                         defaultLanguage?: "ENGLISH" | "ROMAN_URDU" | "URDU";
                     };
@@ -14949,7 +14955,7 @@ export interface paths {
         head?: never;
         /**
          * Tab 2 — contract, supply rules, billing stages
-         * @description `contractValuePaisa` is required for FULL / GREY_OWNER_FINISHING, `ratePerSqftPaisa` for LABOR_ONLY. Supply rules start from the contract-type preset (see /supply-presets; contractor rows get the default quality category) and `supplyRules` override single categories: CONTRACTOR rows need `qualityCategoryId`, OWNER rows must not have one; locked rows → 409 SUPPLY_RULE_LOCKED. Stages from `billingStages`, a `templateId`, or (first time) the company default template; total exactly 100 % (400 PERCENT_TOTAL_INVALID `{total}`), one retention stage max. Amounts = contract value × % (labour-only: rate × covered area), rounded to the rupee, last stage absorbs the rounding.
+         * @description `contractValuePaisa` (FULL / GREY_OWNER_FINISHING) and `ratePerSqftPaisa` (LABOR_ONLY) are **optional while the project is DRAFT** — the value is usually set after seeing the estimate (wizard step 6, or POST /projects/{id}/contract/from-estimate); the review reports CONTRACT_VALUE_MISSING and blocks activation until it is set. Omitted = unchanged (same contract type), `null` = cleared. Once the project is not DRAFT, a save that would leave no value → 400 CONTRACT_VALUE_REQUIRED / RATE_REQUIRED. RUNNING_BILLS on any contract type keeps `ratePerSqftPaisa` as the billing rate per sq ft of progress (review error RUNNING_BILLS_RATE_MISSING without it; required once active). Without fields.contract the value fields are hidden in responses; such a user can still save the rest of the tab (omit the values). Supply rules start from the contract-type preset (see /supply-presets; contractor rows get the default quality category) and `supplyRules` override single categories: CONTRACTOR rows need `qualityCategoryId`, OWNER rows must not have one; locked rows → 409 SUPPLY_RULE_LOCKED. Stages from `billingStages`, a `templateId`, or (first time) the company default template; total exactly 100 % (400 PERCENT_TOTAL_INVALID `{total}`), one retention stage max. Amounts = contract value × % (labour-only: rate × covered area), rounded to the rupee, last stage absorbs the rounding.
          *
          *     Only while DRAFT or ACTIVE (else 409 PROJECT_LOCKED). THEKEDAR, or a PM assigned to the project (others get 404).
          */
@@ -14971,15 +14977,15 @@ export interface paths {
                         /** @enum {string} */
                         billingModel: "STAGE_SCHEDULE" | "RUNNING_BILLS";
                         /**
-                         * @description Required for FULL and GREY_OWNER_FINISHING
+                         * @description FULL / GREY_OWNER_FINISHING. Optional while DRAFT (set it after the estimate; activation needs it); required once ACTIVE. Omitted = unchanged, null = cleared (DRAFT only)
                          * @example 1850000000
                          */
-                        contractValuePaisa?: string | number;
+                        contractValuePaisa?: string | number | null;
                         /**
-                         * @description Required for LABOR_ONLY
+                         * @description LABOR_ONLY: the contract rate per sq ft of covered area. RUNNING_BILLS (any type): the billing rate per sq ft of progress. Optional while DRAFT, required once ACTIVE. Omitted = unchanged, null = cleared (DRAFT only)
                          * @example 45000
                          */
-                        ratePerSqftPaisa?: string | number;
+                        ratePerSqftPaisa?: string | number | null;
                         retentionPercent?: number;
                         defectPeriodMonths?: number;
                         /** @description Overrides on top of the contract-type preset */
@@ -15253,6 +15259,8 @@ export interface paths {
          *
          *     `foundation` (bunyaad, optional — omitted = unchanged, `null` = cleared): `type` STRIP / ISOLATED / COMBINED / RAFT / PILE; excavation depth 1–30 ft, footing thickness 3–36 in, plinth above natural ground 0–6 ft, DPC 0.5–6 in, PCC (lean concrete) mix + 2–12 in, masonry BRICK / STONE / RCC_ONLY, termite (deemak) treatment, DPC material, soil type, water table, dewatering, soil test + note, notes. Required by type: `footingWidthFt` for STRIP / ISOLATED / COMBINED; `footingCount` + `footingLengthFt` for ISOLATED / COMBINED; `pileCount`, `pileDiameterIn`, `pileDepthFt` for PILE; `rccMix` + `mainBarMm` (10 / 12 / 16 / 20 = #3–#6) wherever RCC applies (every type except a BRICK / STONE strip footing). Fields that don’t apply are stored as null. The excavation must be at least the PCC + footing thickness deep.
          *
+         *     `floors[].roof` (roof / slab — lenter — over that floor, optional — omitted = unchanged, `null` = cleared → the estimate uses the % method): `type` RCC_SLAB (default) / T_IRON_TILE (garder + bricks or tiles) / PRECAST / STEEL_DECK; only `type` is required, everything else gets the Pakistani default. RCC: `thicknessIn` 5 (3–12), `concreteMix` 1:2:4 / 1:1.5:3, `steelGrade` G60 / G40, `mainBar` #4 @ `mainSpacingIn` 6″ (along the short span), `distBar` #3 @ `distSpacingIn` 9″ (bars 3–6 = 10 / 12 / 16 / 20 mm; spacing 3–18″), `topBars` true, `coverIn` 0.75, sunshade `chajjaLengthFt` × `chajjaWidthFt` 2. RCC frame (used for FRAMED): beams `beamWidthIn` 9 × `beamDepthIn` 15 (deeper than the slab), `beamBars` 4 × `beamBar` #5, stirrups #3 @ 6″, `beamRunFt` (default the floor’s wall run); columns `columnCount` (default from the footprint), 12 × 12″, 6 #5, ties #3 @ 6″. T-iron: `tIronSection` T3X3 / T4X4 / G4X3 / G5X3 / G6X3, `tIronSpacingFt` 3, `infill` BRICK / TILE, `screedThicknessIn` 3, `earthFillIn` 4. PRECAST / STEEL_DECK: `plankAreaSqft` / `deckAreaSqft` (default the footprint), `toppingIn` 2 / 4, `mesh`. Each floor in the response has `roof` and `slabSuggestion` { spanFt, suggestedIn, minIn, beamAdvised } (largest room short span: ≤ 12 ft → 4.5–5″, 12–15 → 5″, 15–18 → 6″, > 18 → 6–7″ or a beam).
+         *
          *     Only while DRAFT or ACTIVE (else 409 PROJECT_LOCKED). THEKEDAR, or a PM assigned to the project (others get 404).
          */
         patch: {
@@ -15285,6 +15293,128 @@ export interface paths {
                             /** @enum {string} */
                             level: "BASEMENT" | "GROUND" | "FIRST" | "SECOND" | "THIRD" | "MUMTY";
                             ceilingHeightFt: number;
+                            /** @description Roof / slab (lenter) over this floor. Omitted = unchanged, null = cleared (estimate uses the % method) */
+                            roof?: {
+                                /**
+                                 * @description RCC_SLAB (lenter, default), T_IRON_TILE (garder / T-iron + bricks or tiles), PRECAST (hollow-core planks), STEEL_DECK
+                                 * @enum {string}
+                                 */
+                                type: "RCC_SLAB" | "T_IRON_TILE" | "PRECAST" | "STEEL_DECK";
+                                /**
+                                 * @description RCC slab thickness. Default 5″ (suggested from the largest room span)
+                                 * @example 5
+                                 */
+                                thicknessIn?: number;
+                                /**
+                                 * @description Slab / topping / screed concrete. Default 1:2:4
+                                 * @enum {string}
+                                 */
+                                concreteMix?: "1:2:4" | "1:1.5:3";
+                                /**
+                                 * @description Steel grade (price list lookup). Default G60
+                                 * @enum {string}
+                                 */
+                                steelGrade?: "G60" | "G40";
+                                /** @description Main bars (along the short span). Default #4 (12 mm) */
+                                mainBar?: 3 | 4 | 5 | 6;
+                                /**
+                                 * @description Main bar spacing c/c. Default 6″
+                                 * @example 6
+                                 */
+                                mainSpacingIn?: number;
+                                /** @description Distribution bars. Default #3 (10 mm) */
+                                distBar?: 3 | 4 | 5 | 6;
+                                /**
+                                 * @description Distribution bar spacing. Default 9″
+                                 * @example 9
+                                 */
+                                distSpacingIn?: number;
+                                /** @description Extra top bars over the supports (main size, every other bar, 0.25 × short span). Default true */
+                                topBars?: boolean;
+                                /**
+                                 * @description Clear cover. Default 0.75″
+                                 * @example 0.75
+                                 */
+                                coverIn?: number;
+                                /** @description Sunshade (chajja) total length, ft. Optional */
+                                chajjaLengthFt?: number | null;
+                                /** @description Sunshade projection. Default 2 ft */
+                                chajjaWidthFt?: number | null;
+                                /**
+                                 * @description Beam width. Default 9″
+                                 * @example 9
+                                 */
+                                beamWidthIn?: number;
+                                /**
+                                 * @description Beam overall depth (incl. slab). Default 15″
+                                 * @example 15
+                                 */
+                                beamDepthIn?: number;
+                                /** @description Main bars per beam (top + bottom). Default 4 */
+                                beamBars?: number;
+                                /** @description Beam main bar. Default #5 (16 mm) */
+                                beamBar?: 3 | 4 | 5 | 6;
+                                /** @description Stirrups. Default #3 */
+                                stirrupBar?: 3 | 4 | 5 | 6;
+                                /**
+                                 * @description Stirrup spacing. Default 6″
+                                 * @example 6
+                                 */
+                                stirrupSpacingIn?: number;
+                                /** @description Total beam length on this floor. Omitted = the floor’s wall run */
+                                beamRunFt?: number | null;
+                                /** @description Columns under this slab. Omitted = derived from the footprint (one per ~15 ft grid) */
+                                columnCount?: number | null;
+                                /**
+                                 * @description Column width. Default 12″
+                                 * @example 12
+                                 */
+                                columnWidthIn?: number;
+                                /**
+                                 * @description Column depth. Default 12″
+                                 * @example 12
+                                 */
+                                columnDepthIn?: number;
+                                /** @description Vertical bars per column. Default 6 */
+                                columnBars?: number;
+                                /** @description Column bar. Default #5 */
+                                columnBar?: 3 | 4 | 5 | 6;
+                                /** @description Column ties. Default #3 */
+                                tieBar?: 3 | 4 | 5 | 6;
+                                /**
+                                 * @description Tie spacing. Default 6″
+                                 * @example 6
+                                 */
+                                tieSpacingIn?: number;
+                                /**
+                                 * @description T3X3, T4X4, G4X3, G5X3 (default), G6X3 — garder / T-iron section
+                                 * @enum {string}
+                                 */
+                                tIronSection?: "T3X3" | "T4X4" | "G4X3" | "G5X3" | "G6X3";
+                                /**
+                                 * @description Garder spacing. Default 3 ft
+                                 * @example 3
+                                 */
+                                tIronSpacingFt?: number;
+                                /**
+                                 * @description BRICK (laid flat, default) or TILE (12″×6″) between the garders
+                                 * @enum {string}
+                                 */
+                                infill?: "BRICK" | "TILE";
+                                /** @description Concrete screed on top. Default 3″ */
+                                screedThicknessIn?: number;
+                                /** @description Earth filling (mitti) on top. Default 4″ */
+                                earthFillIn?: number;
+                                /** @description PRECAST planks area. Omitted = the floor footprint */
+                                plankAreaSqft?: number | null;
+                                /** @description STEEL_DECK sheet area. Omitted = the floor footprint */
+                                deckAreaSqft?: number | null;
+                                /** @description Concrete topping. Default 2″ (precast) / 4″ (steel deck, average over the flutes) */
+                                toppingIn?: number;
+                                /** @description Mesh in the topping (#3 @ 12″ both ways). Default true */
+                                mesh?: boolean;
+                                notes?: string | null;
+                            } | null;
                         }[];
                         /**
                          * @description Remove floors that still have rooms (their rooms are deleted)
@@ -16012,14 +16142,58 @@ export interface paths {
                          *                     "type": "DOOR",
                          *                     "widthFt": 3.5,
                          *                     "heightFt": 7,
-                         *                     "quantity": 1
+                         *                     "quantity": 1,
+                         *                     "side": "RIGHT"
                          *                   },
                          *                   {
                          *                     "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *                     "type": "WINDOW",
                          *                     "widthFt": 5,
                          *                     "heightFt": 4,
-                         *                     "quantity": 1
+                         *                     "quantity": 1,
+                         *                     "side": "TOP"
+                         *                   }
+                         *                 ],
+                         *                 "walls": [
+                         *                   {
+                         *                     "side": "TOP",
+                         *                     "type": "EXTERNAL",
+                         *                     "thicknessIn": 9,
+                         *                     "innerLeafIn": null,
+                         *                     "cavityIn": null,
+                         *                     "sharedWithRoomId": null,
+                         *                     "sharedWithSide": null,
+                         *                     "existing": false
+                         *                   },
+                         *                   {
+                         *                     "side": "RIGHT",
+                         *                     "type": "SHARED",
+                         *                     "thicknessIn": 4.5,
+                         *                     "innerLeafIn": null,
+                         *                     "cavityIn": null,
+                         *                     "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *                     "sharedWithSide": "LEFT",
+                         *                     "existing": false
+                         *                   },
+                         *                   {
+                         *                     "side": "BOTTOM",
+                         *                     "type": "EXTERNAL",
+                         *                     "thicknessIn": 9,
+                         *                     "innerLeafIn": null,
+                         *                     "cavityIn": null,
+                         *                     "sharedWithRoomId": null,
+                         *                     "sharedWithSide": null,
+                         *                     "existing": false
+                         *                   },
+                         *                   {
+                         *                     "side": "LEFT",
+                         *                     "type": "PARTY",
+                         *                     "thicknessIn": 9,
+                         *                     "innerLeafIn": null,
+                         *                     "cavityIn": null,
+                         *                     "sharedWithRoomId": null,
+                         *                     "sharedWithSide": null,
+                         *                     "existing": true
                          *                   }
                          *                 ],
                          *                 "calculations": {
@@ -16102,7 +16276,9 @@ export interface paths {
         put?: never;
         /**
          * Add a room
-         * @description THEKEDAR, assigned PM. Height defaults to the floor’s ceiling; name defaults to the type ("Bedroom 2" for the second). Bath, powder room and kitchen are wet automatically; `isWet` overrides. Openings larger than the walls → 400 OPENINGS_EXCEED_WALL.
+         * @description THEKEDAR, assigned PM. Height defaults to the floor’s ceiling; name defaults to the type ("Bedroom 2" for the second). Bath, powder room and kitchen are wet automatically; `isWet` overrides. Openings larger than the walls (or than their `side` wall) → 400 OPENINGS_EXCEED_WALL. Optional `walls` (four sides) as in PUT /rooms/{id}/walls.
+         *
+         *     Walls (`walls`, null = not entered): exactly four sides TOP / RIGHT / BOTTOM / LEFT (TOP / BOTTOM run along the length, LEFT / RIGHT along the width). Types: EXTERNAL (default 9″), SHARED with another room on the same floor (`sharedWithRoomId`; default 4.5″ in an RCC frame, 9″ load-bearing — counted once), PARTY with the neighbour (9″; `existing: true` = already built, no brickwork), DOUBLE cavity wall (outer `thicknessIn` 9″ + `cavityIn` 2″ + `innerLeafIn` 4.5″), OPEN (no wall), PASSAGE (to a corridor / stair not entered as a room, 4.5″). Thickness 3–18 in. Fields that do not apply are stored as null / false.
          */
         post: {
             parameters: {
@@ -16134,6 +16310,36 @@ export interface paths {
                             heightFt: number;
                             /** @default 1 */
                             quantity?: number;
+                            /**
+                             * @description Wall the opening is in (deducted from that wall; its lintel takes that wall’s thickness). Omitted / null = not placed
+                             * @enum {string|null}
+                             */
+                            side?: "TOP" | "RIGHT" | "BOTTOM" | "LEFT" | null;
+                        }[];
+                        /** @description Optional four sides (as PUT /rooms/:id/walls). Omitted = not entered */
+                        walls?: {
+                            /** @enum {string} */
+                            side: "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
+                            /** @enum {string} */
+                            type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+                            /** @description Wall (or DOUBLE outer leaf) thickness. Default by type: 9″; SHARED 4.5″ (frame) / 9″ (load-bearing); PASSAGE 4.5″ */
+                            thicknessIn?: number;
+                            /** @description DOUBLE: inner leaf. Default 4.5″ */
+                            innerLeafIn?: number;
+                            /** @description DOUBLE: cavity (no material). Default 2″ */
+                            cavityIn?: number;
+                            /**
+                             * Format: uuid
+                             * @description SHARED: the other room (same floor)
+                             */
+                            sharedWithRoomId?: string | null;
+                            /**
+                             * @description SHARED: the other room’s side. Omitted = the opposite side if free, else a free side
+                             * @enum {string|null}
+                             */
+                            sharedWithSide?: "TOP" | "RIGHT" | "BOTTOM" | "LEFT" | null;
+                            /** @description PARTY: already built by the neighbour → no brickwork */
+                            existing?: boolean;
                         }[];
                     };
                 };
@@ -16165,14 +16371,58 @@ export interface paths {
                          *             "type": "DOOR",
                          *             "widthFt": 3.5,
                          *             "heightFt": 7,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "RIGHT"
                          *           },
                          *           {
                          *             "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *             "type": "WINDOW",
                          *             "widthFt": 5,
                          *             "heightFt": 4,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "TOP"
+                         *           }
+                         *         ],
+                         *         "walls": [
+                         *           {
+                         *             "side": "TOP",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "RIGHT",
+                         *             "type": "SHARED",
+                         *             "thicknessIn": 4.5,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *             "sharedWithSide": "LEFT",
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "BOTTOM",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "LEFT",
+                         *             "type": "PARTY",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": true
                          *           }
                          *         ],
                          *         "calculations": {
@@ -16255,7 +16505,7 @@ export interface paths {
         put?: never;
         /**
          * Copy a floor’s rooms to another floor
-         * @description Copies rooms + openings; heights take the target floor’s ceiling. The target must be empty unless `replace: true`.
+         * @description Copies rooms + openings (with their sides) + walls (shared pairings point at the copies); heights take the target floor’s ceiling. The target must be empty unless `replace: true`.
          */
         post: {
             parameters: {
@@ -16359,7 +16609,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a room
-         * @description Its openings are deleted too.
+         * @description Its openings are deleted too; other rooms’ sides shared with it become EXTERNAL walls.
          */
         delete: {
             parameters: {
@@ -16491,14 +16741,58 @@ export interface paths {
                          *             "type": "DOOR",
                          *             "widthFt": 3.5,
                          *             "heightFt": 7,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "RIGHT"
                          *           },
                          *           {
                          *             "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *             "type": "WINDOW",
                          *             "widthFt": 5,
                          *             "heightFt": 4,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "TOP"
+                         *           }
+                         *         ],
+                         *         "walls": [
+                         *           {
+                         *             "side": "TOP",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "RIGHT",
+                         *             "type": "SHARED",
+                         *             "thicknessIn": 4.5,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *             "sharedWithSide": "LEFT",
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "BOTTOM",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "LEFT",
+                         *             "type": "PARTY",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": true
                          *           }
                          *         ],
                          *         "calculations": {
@@ -16566,6 +16860,282 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/rooms/{id}/walls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set a room’s four walls
+         * @description THEKEDAR, assigned PM (projects.project.edit). Replaces the room’s walls (`walls: null` clears them — the estimate then uses the perimeter method for the floor). A SHARED side is paired with the other room: that room’s matching side is set to SHARED back (the opposite side when free, else the free side closest in length; `sharedWithSide` picks it — must be free, else 409 WALL_SIDE_TAKEN); a room without walls gets four EXTERNAL sides first. Removing / changing a pairing turns the other room’s side back into EXTERNAL; deleting a room does the same. Sharing with itself or a room on another floor → 400 INVALID_SHARED_ROOM. Returns the whole floor with rooms (other rooms may have changed). Audited `project.room_walls`.
+         *
+         *     Walls (`walls`, null = not entered): exactly four sides TOP / RIGHT / BOTTOM / LEFT (TOP / BOTTOM run along the length, LEFT / RIGHT along the width). Types: EXTERNAL (default 9″), SHARED with another room on the same floor (`sharedWithRoomId`; default 4.5″ in an RCC frame, 9″ load-bearing — counted once), PARTY with the neighbour (9″; `existing: true` = already built, no brickwork), DOUBLE cavity wall (outer `thicknessIn` 9″ + `cavityIn` 2″ + `innerLeafIn` 4.5″), OPEN (no wall), PASSAGE (to a corridor / stair not entered as a room, 4.5″). Thickness 3–18 in. Fields that do not apply are stored as null / false.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Room id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetRoomWalls"];
+                };
+            };
+            responses: {
+                /** @description Floor with rooms */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000002f1",
+                         *         "level": "GROUND",
+                         *         "name": "Ground floor",
+                         *         "ceilingHeightFt": 11,
+                         *         "sortOrder": 2,
+                         *         "roof": null,
+                         *         "rooms": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000003a1",
+                         *             "floorId": "0199a8c0-0000-7000-8000-0000000002f1",
+                         *             "type": "DRAWING_ROOM",
+                         *             "name": "Drawing Room",
+                         *             "lengthFt": 16,
+                         *             "widthFt": 14,
+                         *             "heightFt": 11,
+                         *             "isWet": false,
+                         *             "isWetOverridden": false,
+                         *             "sortOrder": 1,
+                         *             "openings": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000004b1",
+                         *                 "type": "DOOR",
+                         *                 "widthFt": 3.5,
+                         *                 "heightFt": 7,
+                         *                 "quantity": 1,
+                         *                 "side": "RIGHT"
+                         *               },
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000004b2",
+                         *                 "type": "WINDOW",
+                         *                 "widthFt": 5,
+                         *                 "heightFt": 4,
+                         *                 "quantity": 1,
+                         *                 "side": "TOP"
+                         *               }
+                         *             ],
+                         *             "walls": [
+                         *               {
+                         *                 "side": "TOP",
+                         *                 "type": "EXTERNAL",
+                         *                 "thicknessIn": 9,
+                         *                 "innerLeafIn": null,
+                         *                 "cavityIn": null,
+                         *                 "sharedWithRoomId": null,
+                         *                 "sharedWithSide": null,
+                         *                 "existing": false
+                         *               },
+                         *               {
+                         *                 "side": "RIGHT",
+                         *                 "type": "SHARED",
+                         *                 "thicknessIn": 4.5,
+                         *                 "innerLeafIn": null,
+                         *                 "cavityIn": null,
+                         *                 "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *                 "sharedWithSide": "LEFT",
+                         *                 "existing": false
+                         *               },
+                         *               {
+                         *                 "side": "BOTTOM",
+                         *                 "type": "EXTERNAL",
+                         *                 "thicknessIn": 9,
+                         *                 "innerLeafIn": null,
+                         *                 "cavityIn": null,
+                         *                 "sharedWithRoomId": null,
+                         *                 "sharedWithSide": null,
+                         *                 "existing": false
+                         *               },
+                         *               {
+                         *                 "side": "LEFT",
+                         *                 "type": "PARTY",
+                         *                 "thicknessIn": 9,
+                         *                 "innerLeafIn": null,
+                         *                 "cavityIn": null,
+                         *                 "sharedWithRoomId": null,
+                         *                 "sharedWithSide": null,
+                         *                 "existing": true
+                         *               }
+                         *             ],
+                         *             "calculations": {
+                         *               "floorAreaSqft": 224,
+                         *               "grossWallAreaSqft": 660,
+                         *               "openingsAreaSqft": 44.5,
+                         *               "netWallAreaSqft": 615.5
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_SHARED_ROOM */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ROOM_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | WALL_SIDE_TAKEN */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/floors/{id}/walls/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auto-set walls for a floor
+         * @description Rooms without walls get four EXTERNAL 9″ sides (room positions are not known, so nothing is guessed as shared — mark the shared sides afterwards). `replace: true` resets every room of the floor (pairings cleared). Returns the floor with rooms. Audited `project.floor_walls_auto`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Floor id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AutoWalls"];
+                };
+            };
+            responses: {
+                /** @description Floor with rooms */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FLOOR_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rooms/{id}/openings": {
         parameters: {
             query?: never;
@@ -16598,6 +17168,11 @@ export interface paths {
                         heightFt: number;
                         /** @default 1 */
                         quantity?: number;
+                        /**
+                         * @description Wall the opening is in (deducted from that wall; its lintel takes that wall’s thickness). Omitted / null = not placed
+                         * @enum {string|null}
+                         */
+                        side?: "TOP" | "RIGHT" | "BOTTOM" | "LEFT" | null;
                     };
                 };
             };
@@ -16628,14 +17203,58 @@ export interface paths {
                          *             "type": "DOOR",
                          *             "widthFt": 3.5,
                          *             "heightFt": 7,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "RIGHT"
                          *           },
                          *           {
                          *             "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *             "type": "WINDOW",
                          *             "widthFt": 5,
                          *             "heightFt": 4,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "TOP"
+                         *           }
+                         *         ],
+                         *         "walls": [
+                         *           {
+                         *             "side": "TOP",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "RIGHT",
+                         *             "type": "SHARED",
+                         *             "thicknessIn": 4.5,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *             "sharedWithSide": "LEFT",
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "BOTTOM",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "LEFT",
+                         *             "type": "PARTY",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": true
                          *           }
                          *         ],
                          *         "calculations": {
@@ -16756,14 +17375,58 @@ export interface paths {
                          *             "type": "DOOR",
                          *             "widthFt": 3.5,
                          *             "heightFt": 7,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "RIGHT"
                          *           },
                          *           {
                          *             "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *             "type": "WINDOW",
                          *             "widthFt": 5,
                          *             "heightFt": 4,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "TOP"
+                         *           }
+                         *         ],
+                         *         "walls": [
+                         *           {
+                         *             "side": "TOP",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "RIGHT",
+                         *             "type": "SHARED",
+                         *             "thicknessIn": 4.5,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *             "sharedWithSide": "LEFT",
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "BOTTOM",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "LEFT",
+                         *             "type": "PARTY",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": true
                          *           }
                          *         ],
                          *         "calculations": {
@@ -16841,6 +17504,11 @@ export interface paths {
                         widthFt?: number;
                         heightFt?: number;
                         quantity?: number;
+                        /**
+                         * @description null = not placed
+                         * @enum {string|null}
+                         */
+                        side?: "TOP" | "RIGHT" | "BOTTOM" | "LEFT" | null;
                     };
                 };
             };
@@ -16871,14 +17539,58 @@ export interface paths {
                          *             "type": "DOOR",
                          *             "widthFt": 3.5,
                          *             "heightFt": 7,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "RIGHT"
                          *           },
                          *           {
                          *             "id": "0199a8c0-0000-7000-8000-0000000004b2",
                          *             "type": "WINDOW",
                          *             "widthFt": 5,
                          *             "heightFt": 4,
-                         *             "quantity": 1
+                         *             "quantity": 1,
+                         *             "side": "TOP"
+                         *           }
+                         *         ],
+                         *         "walls": [
+                         *           {
+                         *             "side": "TOP",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "RIGHT",
+                         *             "type": "SHARED",
+                         *             "thicknessIn": 4.5,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": "0199a8c0-0000-7000-8000-0000000003a2",
+                         *             "sharedWithSide": "LEFT",
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "BOTTOM",
+                         *             "type": "EXTERNAL",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": false
+                         *           },
+                         *           {
+                         *             "side": "LEFT",
+                         *             "type": "PARTY",
+                         *             "thicknessIn": 9,
+                         *             "innerLeafIn": null,
+                         *             "cavityIn": null,
+                         *             "sharedWithRoomId": null,
+                         *             "sharedWithSide": null,
+                         *             "existing": true
                          *           }
                          *         ],
                          *         "calculations": {
@@ -16944,6 +17656,885 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grey-structure estimate (BoQ) with cost
+         * @description Computed live from the project's plot, structure type, foundation (bunyaad), floors / rooms / openings, the estimate settings and the company price list — nothing is stored but the settings.
+         *
+         *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`.
+         *
+         *     **Detailed vs estimated** Every line has `method`: DETAILED when it comes from data the user entered — the floor's roof (`Floor.roof`: RCC slab steel from the actual bars grouped by size as `steel10` / `steel12` / `steel16` / `steel20` kg, beams / columns from their sizes and bars, T-iron garders `tIron`, bricks / `roofTile`, screed, earth, `precastPlank` / `steelDeck` + topping + mesh) or every room's four walls (`Room.walls`: brickwork per wall thickness — lines `WALLS.<floor>.walls.t9`, `.t4_5` … — shared walls once, party walls already built and open sides excluded, double walls both leaves; plaster faces by wall type; lintels at the wall's thickness; the foundation run from the ground-floor walls) — else ESTIMATED (the % / perimeter rules). `basis.methods` { walls, roof } = DETAILED / ESTIMATED / MIXED; `basis.floors[]` has `wallsMethod`, `roofMethod`, `walls` (by thickness, bricks) and `roof` (steel by size, bar runs, beam run, columns). Warnings for the new data carry `floor`: ROOF_TOO_THIN, ROOF_SPAN_NEEDS_BEAM, ROOF_MAIN_SPACING_WIDE, ROOF_DIST_SPACING_WIDE (tab 3), WALLS_PARTIAL, WALLS_UNPAIRED (tab 5).
+         *
+         *     **Costing** Each material is priced from the company price list in the project's quality category for its supply category (cement, bricks, steel, sand & bajri, waterproofing; the company default category otherwise), converted to the rate's unit (kg → ton, nos → thousand, cft → trolley, alt units). No rate → `rateStatus: RATE_MISSING`, left out of every total, warning RATES_MISSING. Steel by size is priced from Steel Grade-60 #3 / #4 / #5 / #6 (a company "Grade-40 #n" material first when a roof is G40); a size without a rate takes the general steel rate (`rateFallback: true`, warning STEEL_RATE_GENERIC). Owner-supplied categories are valued but kept out of the contractor cost (`ownerSuppliedPaisa`). Labour: covered area × `labourRatePerSqftPaisa` when set, else the SUBCONTRACT piece rates BRICK_MASONRY / PLASTER / SHUTTERING / STEEL_FIXING. `cost.marginPercent` = (contract total − estimated cost) ÷ contract total.
+         *
+         *     **Contract value from this estimate** `contractSuggestion` (needs fields.contract + fields.rates; null before the contract type is chosen): `kind` CONTRACT_VALUE (FULL / GREY) = cost × (1 + finishing %) × (1 + margin %) rounded to the nearest Rs 1,000 — the finishing allowance applies to FULL only (`finishingApplies`) because this estimate is grey structure; RATE_PER_SQFT (LABOR_ONLY, the owner buys the material) = estimated labour × (1 + margin %) ÷ covered sq ft rounded to Rs 5. `marginPercent` / `finishingAllowancePercent` come from the project override (`marginSource` / `finishingSource` PROJECT) or the company settings (COMPANY; `companyMarginPercent`, `companyFinishingAllowancePercent`). `basisPaisa` = the cost (labour) used, `suggestedPaisa` (null without a cost / covered area), `currentPaisa` = the value already on the project. Apply it with POST /projects/{id}/contract/from-estimate.
+         *
+         *     **Visibility** Rates, amounts and `cost` need fields.rates; `contractTotalPaisa` fields.contract; the margin fields.profit + fields.contract. Warnings: NO_FLOORS, NO_ROOMS, FOUNDATION_MISSING, STRUCTURE_TYPE_ASSUMED, COVERED_AREA_ESTIMATED, FOUNDATION_LENGTH_UNKNOWN, ROOMS_BELOW_COVERED, RATES_MISSING, LABOUR_RATES_MISSING, CONTRACT_VALUE_MISSING, CONTRACT_INCLUDES_FINISHING. A project with no rooms or foundation answers 200 with warnings.
+         *
+         *     Permission projects.estimate.view (THEKEDAR, Administrator, Project Manager, Accountant); out of scope → 404.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Estimate */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000101",
+                         *         "projectCode": "MSB-2026-020",
+                         *         "projectName": "Johar Town · 5 Marla",
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "generatedAt": "2026-10-15T09:00:00.000Z",
+                         *         "settings": {
+                         *           "externalWallThicknessIn": 9,
+                         *           "internalWallThicknessIn": 4.5,
+                         *           "parapetHeightFt": 3,
+                         *           "bricksPerCft": 13.5,
+                         *           "mortarPerCftBrickwork": 0.25,
+                         *           "masonryMortarMix": "1:6",
+                         *           "slabThicknessIn": 5,
+                         *           "rccMix": "1:2:4",
+                         *           "frameConcretePercent": 45,
+                         *           "slabSteelPercent": 1,
+                         *           "frameSteelPercent": 2.5,
+                         *           "lintelSteelPercent": 1,
+                         *           "footingSteelPercent": 0.8,
+                         *           "lintelWidthIn": 9,
+                         *           "lintelDepthIn": 6,
+                         *           "lintelBearingFt": 1,
+                         *           "internalPlasterMix": "1:4",
+                         *           "internalPlasterThicknessIn": 0.5,
+                         *           "externalPlasterMix": "1:4",
+                         *           "externalPlasterThicknessIn": 0.75,
+                         *           "foundationWallLengthFt": null,
+                         *           "waterproofingKgPerBag": 1,
+                         *           "bitumenKgPerSqft": 0.15,
+                         *           "termiteLitrePerSqft": 0.005,
+                         *           "wastagePercent": 5,
+                         *           "brickWastagePercent": 5,
+                         *           "concreteDryFactor": 1.54,
+                         *           "mortarDryFactor": 1.33,
+                         *           "cementBagCft": 1.25,
+                         *           "includeLabour": true,
+                         *           "labourRatePerSqftPaisa": null
+                         *         },
+                         *         "defaults": {
+                         *           "externalWallThicknessIn": 9,
+                         *           "internalWallThicknessIn": 4.5,
+                         *           "parapetHeightFt": 3,
+                         *           "bricksPerCft": 13.5,
+                         *           "mortarPerCftBrickwork": 0.25,
+                         *           "masonryMortarMix": "1:6",
+                         *           "slabThicknessIn": 5,
+                         *           "rccMix": "1:2:4",
+                         *           "frameConcretePercent": 45,
+                         *           "slabSteelPercent": 1,
+                         *           "frameSteelPercent": 2.5,
+                         *           "lintelSteelPercent": 1,
+                         *           "footingSteelPercent": 0.8,
+                         *           "lintelWidthIn": 9,
+                         *           "lintelDepthIn": 6,
+                         *           "lintelBearingFt": 1,
+                         *           "internalPlasterMix": "1:4",
+                         *           "internalPlasterThicknessIn": 0.5,
+                         *           "externalPlasterMix": "1:4",
+                         *           "externalPlasterThicknessIn": 0.75,
+                         *           "foundationWallLengthFt": null,
+                         *           "waterproofingKgPerBag": 1,
+                         *           "bitumenKgPerSqft": 0.15,
+                         *           "termiteLitrePerSqft": 0.005,
+                         *           "wastagePercent": 5,
+                         *           "brickWastagePercent": 5,
+                         *           "concreteDryFactor": 1.54,
+                         *           "mortarDryFactor": 1.33,
+                         *           "cementBagCft": 1.25,
+                         *           "includeLabour": true,
+                         *           "labourRatePerSqftPaisa": null
+                         *         },
+                         *         "customised": [],
+                         *         "basis": {
+                         *           "structureType": "LOAD_BEARING",
+                         *           "structureTypeAssumed": false,
+                         *           "coveredAreaSqft": 1125,
+                         *           "coveredAreaSource": "PROJECT",
+                         *           "plotAreaSqft": 1125,
+                         *           "aspectRatio": 1.8,
+                         *           "foundationWallLengthFt": 230,
+                         *           "foundationWallLengthAuto": true,
+                         *           "foundationWallLengthSource": "ESTIMATED",
+                         *           "methods": {
+                         *             "walls": "ESTIMATED",
+                         *             "roof": "ESTIMATED"
+                         *           },
+                         *           "floors": [
+                         *             {
+                         *               "level": "GROUND",
+                         *               "name": "Ground floor",
+                         *               "heightFt": 10,
+                         *               "rooms": 7,
+                         *               "roomAreaSqft": 1000,
+                         *               "footprintSqft": 1125,
+                         *               "roomPerimeterFt": 320,
+                         *               "externalWallFt": 140,
+                         *               "internalWallFt": 90,
+                         *               "doorsSqft": 147,
+                         *               "windowsSqft": 86,
+                         *               "wallsMethod": "ESTIMATED",
+                         *               "roofMethod": "ESTIMATED",
+                         *               "walls": null,
+                         *               "roof": null
+                         *             }
+                         *           ]
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "stage": "RCC",
+                         *             "lines": [
+                         *               {
+                         *                 "id": "RCC.GROUND.slab.volume",
+                         *                 "stage": "RCC",
+                         *                 "floor": {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor"
+                         *                 },
+                         *                 "element": "slab",
+                         *                 "kind": "WORK",
+                         *                 "measure": "VOLUME",
+                         *                 "material": null,
+                         *                 "netQuantity": 468.75,
+                         *                 "wastagePercent": 0,
+                         *                 "quantity": 468.75,
+                         *                 "unit": "cft",
+                         *                 "formula": {
+                         *                   "key": "slab",
+                         *                   "params": {
+                         *                     "area": 1125,
+                         *                     "thicknessIn": 5
+                         *                   }
+                         *                 },
+                         *                 "formulaText": "Footprint 1125 sq ft × 5″",
+                         *                 "method": "ESTIMATED",
+                         *                 "suppliedBy": null,
+                         *                 "ratePaisa": null,
+                         *                 "rateUnit": null,
+                         *                 "rateQuantity": null,
+                         *                 "amountPaisa": null,
+                         *                 "rateStatus": null
+                         *               },
+                         *               {
+                         *                 "id": "RCC.GROUND.slab.steel",
+                         *                 "stage": "RCC",
+                         *                 "floor": {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor"
+                         *                 },
+                         *                 "element": "slab",
+                         *                 "kind": "MATERIAL",
+                         *                 "measure": null,
+                         *                 "material": "steel",
+                         *                 "netQuantity": 1040.63,
+                         *                 "wastagePercent": 5,
+                         *                 "quantity": 1092.66,
+                         *                 "unit": "kg",
+                         *                 "formula": {
+                         *                   "key": "steel",
+                         *                   "params": {
+                         *                     "volume": 468.75,
+                         *                     "percent": 1
+                         *                   }
+                         *                 },
+                         *                 "formulaText": "468.75 cft × 1% × 222 kg per cft",
+                         *                 "method": "ESTIMATED",
+                         *                 "suppliedBy": "CONTRACTOR",
+                         *                 "ratePaisa": "28500000",
+                         *                 "rateUnit": "ton",
+                         *                 "rateQuantity": 1.0927,
+                         *                 "amountPaisa": "31140810",
+                         *                 "rateStatus": "OK"
+                         *               }
+                         *             ],
+                         *             "totals": [
+                         *               {
+                         *                 "material": "cement",
+                         *                 "quantity": 90.72
+                         *               },
+                         *               {
+                         *                 "material": "sand",
+                         *                 "quantity": 226.78
+                         *               },
+                         *               {
+                         *                 "material": "crush",
+                         *                 "quantity": 453.57
+                         *               },
+                         *               {
+                         *                 "material": "steel",
+                         *                 "quantity": 1144.23
+                         *               }
+                         *             ],
+                         *             "materialsPaisa": "55516675",
+                         *             "ownerSuppliedPaisa": "0",
+                         *             "missingRates": 0
+                         *           }
+                         *         ],
+                         *         "materials": [
+                         *           {
+                         *             "material": "cement",
+                         *             "unit": "bag",
+                         *             "netQuantity": 275.29,
+                         *             "quantity": 289.04,
+                         *             "suppliedBy": "CONTRACTOR",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000007a1",
+                         *             "materialName": "Cement OPC",
+                         *             "qualityCategory": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *               "name": "A Standard"
+                         *             },
+                         *             "ratePaisa": "145000",
+                         *             "rateUnit": "bag",
+                         *             "rateQuantity": 289.04,
+                         *             "amountPaisa": "41910800",
+                         *             "rateStatus": "OK",
+                         *             "rateFallback": false
+                         *           },
+                         *           {
+                         *             "material": "termite",
+                         *             "unit": "litre",
+                         *             "netQuantity": 5.63,
+                         *             "quantity": 5.91,
+                         *             "suppliedBy": "CONTRACTOR",
+                         *             "materialId": null,
+                         *             "materialName": null,
+                         *             "qualityCategory": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *               "name": "A Standard"
+                         *             },
+                         *             "ratePaisa": null,
+                         *             "rateUnit": null,
+                         *             "rateQuantity": null,
+                         *             "amountPaisa": null,
+                         *             "rateStatus": "RATE_MISSING",
+                         *             "rateFallback": false
+                         *           }
+                         *         ],
+                         *         "labour": {
+                         *           "method": "PIECE_RATES",
+                         *           "lines": [
+                         *             {
+                         *               "item": "BRICK_MASONRY",
+                         *               "quantity": 36999.28,
+                         *               "unit": "nos",
+                         *               "ratePaisa": "900",
+                         *               "amountPaisa": "33299352",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "PLASTER",
+                         *               "quantity": 6179.33,
+                         *               "unit": "sqft",
+                         *               "ratePaisa": "2200",
+                         *               "amountPaisa": "13594526",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "SHUTTERING",
+                         *               "quantity": 1228.25,
+                         *               "unit": "sqft",
+                         *               "ratePaisa": "4500",
+                         *               "amountPaisa": "5527125",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "STEEL_FIXING",
+                         *               "quantity": 1.0898,
+                         *               "unit": "ton",
+                         *               "ratePaisa": "900000",
+                         *               "amountPaisa": "980820",
+                         *               "rateStatus": "OK"
+                         *             }
+                         *           ],
+                         *           "totalPaisa": "53401823"
+                         *         },
+                         *         "cost": {
+                         *           "materialsPaisa": "162550533",
+                         *           "ownerSuppliedPaisa": "0",
+                         *           "labourPaisa": "53401823",
+                         *           "totalPaisa": "215952356",
+                         *           "perSqftPaisa": "191958",
+                         *           "contractTotalPaisa": "300000000",
+                         *           "marginPaisa": "84047644",
+                         *           "marginPercent": 28.02
+                         *         },
+                         *         "warnings": [
+                         *           {
+                         *             "code": "RATES_MISSING",
+                         *             "message": "No price-list rate for: waterproofing, termite — these lines are left out of the cost",
+                         *             "materials": [
+                         *               "waterproofing",
+                         *               "termite"
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/contract/from-estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set the contract value from the estimate
+         * @description Sets the contract value (FULL / GREY: cost × (1 + finishing %) × (1 + margin %), nearest Rs 1,000) or, for LABOR_ONLY, the rate per sq ft (labour × (1 + margin %) ÷ covered sq ft, nearest Rs 5) from the live estimate — the same numbers as `contractSuggestion` of GET /estimate. Omitted percentages = the project override, else the company default (TenantSettings.defaultMarginPercent / defaultFinishingAllowancePercent). A percentage that differs from the company default is stored on the project (it sticks for the next suggestion); one equal to it clears the override. Contract type, billing model, supply rules and stages are unchanged; stage amounts are recomputed. A project that already has a value → 409 CONTRACT_VALUE_EXISTS `{ currentPaisa, suggestedPaisa }` unless `replace: true` (the user confirmed). No contract type yet → 400 CONTRACT_MISSING; no cost (no rooms / rates; labour-only: no labour or covered area) → 400 ESTIMATE_COST_MISSING. Needs projects.project.edit + fields.contract + fields.rates (403 PERMISSION_DENIED); project DRAFT or ACTIVE (409 PROJECT_LOCKED). Audited `project.contract_from_estimate` { costPaisa, marginPercent, marginSource, finishingAllowancePercent, valuePaisa, previousPaisa }. Returns the full project.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ContractFromEstimateInput"];
+                };
+            };
+            responses: {
+                /** @description Saved (full project) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | CONTRACT_MISSING | ESTIMATE_COST_MISSING */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | CONTRACT_VALUE_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/estimate/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change the estimate assumptions
+         * @description Replaces the project's estimate settings: every field is optional — fields sent are kept, fields left out go back to the Pakistani default, `{}` resets everything. Only values that differ from the defaults are stored. Ranges are checked (400 VALIDATION_ERROR). Returns the recomputed estimate (same shape as GET). Permission projects.estimate.manage (THEKEDAR, Administrator, Project Manager); only while the project is DRAFT or ACTIVE (else 409 PROJECT_LOCKED). Audited `project.estimate_settings_update`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EstimateSettingsInput"];
+                };
+            };
+            responses: {
+                /** @description Recomputed estimate */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000101",
+                         *         "projectCode": "MSB-2026-020",
+                         *         "projectName": "Johar Town · 5 Marla",
+                         *         "contractType": "GREY_OWNER_FINISHING",
+                         *         "generatedAt": "2026-10-15T09:00:00.000Z",
+                         *         "settings": {
+                         *           "externalWallThicknessIn": 9,
+                         *           "internalWallThicknessIn": 4.5,
+                         *           "parapetHeightFt": 3,
+                         *           "bricksPerCft": 13.5,
+                         *           "mortarPerCftBrickwork": 0.25,
+                         *           "masonryMortarMix": "1:6",
+                         *           "slabThicknessIn": 5,
+                         *           "rccMix": "1:2:4",
+                         *           "frameConcretePercent": 45,
+                         *           "slabSteelPercent": 1,
+                         *           "frameSteelPercent": 2.5,
+                         *           "lintelSteelPercent": 1,
+                         *           "footingSteelPercent": 0.8,
+                         *           "lintelWidthIn": 9,
+                         *           "lintelDepthIn": 6,
+                         *           "lintelBearingFt": 1,
+                         *           "internalPlasterMix": "1:4",
+                         *           "internalPlasterThicknessIn": 0.5,
+                         *           "externalPlasterMix": "1:4",
+                         *           "externalPlasterThicknessIn": 0.75,
+                         *           "foundationWallLengthFt": null,
+                         *           "waterproofingKgPerBag": 1,
+                         *           "bitumenKgPerSqft": 0.15,
+                         *           "termiteLitrePerSqft": 0.005,
+                         *           "wastagePercent": 5,
+                         *           "brickWastagePercent": 5,
+                         *           "concreteDryFactor": 1.54,
+                         *           "mortarDryFactor": 1.33,
+                         *           "cementBagCft": 1.25,
+                         *           "includeLabour": true,
+                         *           "labourRatePerSqftPaisa": null
+                         *         },
+                         *         "defaults": {
+                         *           "externalWallThicknessIn": 9,
+                         *           "internalWallThicknessIn": 4.5,
+                         *           "parapetHeightFt": 3,
+                         *           "bricksPerCft": 13.5,
+                         *           "mortarPerCftBrickwork": 0.25,
+                         *           "masonryMortarMix": "1:6",
+                         *           "slabThicknessIn": 5,
+                         *           "rccMix": "1:2:4",
+                         *           "frameConcretePercent": 45,
+                         *           "slabSteelPercent": 1,
+                         *           "frameSteelPercent": 2.5,
+                         *           "lintelSteelPercent": 1,
+                         *           "footingSteelPercent": 0.8,
+                         *           "lintelWidthIn": 9,
+                         *           "lintelDepthIn": 6,
+                         *           "lintelBearingFt": 1,
+                         *           "internalPlasterMix": "1:4",
+                         *           "internalPlasterThicknessIn": 0.5,
+                         *           "externalPlasterMix": "1:4",
+                         *           "externalPlasterThicknessIn": 0.75,
+                         *           "foundationWallLengthFt": null,
+                         *           "waterproofingKgPerBag": 1,
+                         *           "bitumenKgPerSqft": 0.15,
+                         *           "termiteLitrePerSqft": 0.005,
+                         *           "wastagePercent": 5,
+                         *           "brickWastagePercent": 5,
+                         *           "concreteDryFactor": 1.54,
+                         *           "mortarDryFactor": 1.33,
+                         *           "cementBagCft": 1.25,
+                         *           "includeLabour": true,
+                         *           "labourRatePerSqftPaisa": null
+                         *         },
+                         *         "customised": [
+                         *           "slabThicknessIn"
+                         *         ],
+                         *         "basis": {
+                         *           "structureType": "LOAD_BEARING",
+                         *           "structureTypeAssumed": false,
+                         *           "coveredAreaSqft": 1125,
+                         *           "coveredAreaSource": "PROJECT",
+                         *           "plotAreaSqft": 1125,
+                         *           "aspectRatio": 1.8,
+                         *           "foundationWallLengthFt": 230,
+                         *           "foundationWallLengthAuto": true,
+                         *           "foundationWallLengthSource": "ESTIMATED",
+                         *           "methods": {
+                         *             "walls": "ESTIMATED",
+                         *             "roof": "ESTIMATED"
+                         *           },
+                         *           "floors": [
+                         *             {
+                         *               "level": "GROUND",
+                         *               "name": "Ground floor",
+                         *               "heightFt": 10,
+                         *               "rooms": 7,
+                         *               "roomAreaSqft": 1000,
+                         *               "footprintSqft": 1125,
+                         *               "roomPerimeterFt": 320,
+                         *               "externalWallFt": 140,
+                         *               "internalWallFt": 90,
+                         *               "doorsSqft": 147,
+                         *               "windowsSqft": 86,
+                         *               "wallsMethod": "ESTIMATED",
+                         *               "roofMethod": "ESTIMATED",
+                         *               "walls": null,
+                         *               "roof": null
+                         *             }
+                         *           ]
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "stage": "RCC",
+                         *             "lines": [
+                         *               {
+                         *                 "id": "RCC.GROUND.slab.volume",
+                         *                 "stage": "RCC",
+                         *                 "floor": {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor"
+                         *                 },
+                         *                 "element": "slab",
+                         *                 "kind": "WORK",
+                         *                 "measure": "VOLUME",
+                         *                 "material": null,
+                         *                 "netQuantity": 468.75,
+                         *                 "wastagePercent": 0,
+                         *                 "quantity": 468.75,
+                         *                 "unit": "cft",
+                         *                 "formula": {
+                         *                   "key": "slab",
+                         *                   "params": {
+                         *                     "area": 1125,
+                         *                     "thicknessIn": 5
+                         *                   }
+                         *                 },
+                         *                 "formulaText": "Footprint 1125 sq ft × 5″",
+                         *                 "method": "ESTIMATED",
+                         *                 "suppliedBy": null,
+                         *                 "ratePaisa": null,
+                         *                 "rateUnit": null,
+                         *                 "rateQuantity": null,
+                         *                 "amountPaisa": null,
+                         *                 "rateStatus": null
+                         *               },
+                         *               {
+                         *                 "id": "RCC.GROUND.slab.steel",
+                         *                 "stage": "RCC",
+                         *                 "floor": {
+                         *                   "level": "GROUND",
+                         *                   "name": "Ground floor"
+                         *                 },
+                         *                 "element": "slab",
+                         *                 "kind": "MATERIAL",
+                         *                 "measure": null,
+                         *                 "material": "steel",
+                         *                 "netQuantity": 1040.63,
+                         *                 "wastagePercent": 5,
+                         *                 "quantity": 1092.66,
+                         *                 "unit": "kg",
+                         *                 "formula": {
+                         *                   "key": "steel",
+                         *                   "params": {
+                         *                     "volume": 468.75,
+                         *                     "percent": 1
+                         *                   }
+                         *                 },
+                         *                 "formulaText": "468.75 cft × 1% × 222 kg per cft",
+                         *                 "method": "ESTIMATED",
+                         *                 "suppliedBy": "CONTRACTOR",
+                         *                 "ratePaisa": "28500000",
+                         *                 "rateUnit": "ton",
+                         *                 "rateQuantity": 1.0927,
+                         *                 "amountPaisa": "31140810",
+                         *                 "rateStatus": "OK"
+                         *               }
+                         *             ],
+                         *             "totals": [
+                         *               {
+                         *                 "material": "cement",
+                         *                 "quantity": 90.72
+                         *               },
+                         *               {
+                         *                 "material": "sand",
+                         *                 "quantity": 226.78
+                         *               },
+                         *               {
+                         *                 "material": "crush",
+                         *                 "quantity": 453.57
+                         *               },
+                         *               {
+                         *                 "material": "steel",
+                         *                 "quantity": 1144.23
+                         *               }
+                         *             ],
+                         *             "materialsPaisa": "55516675",
+                         *             "ownerSuppliedPaisa": "0",
+                         *             "missingRates": 0
+                         *           }
+                         *         ],
+                         *         "materials": [
+                         *           {
+                         *             "material": "cement",
+                         *             "unit": "bag",
+                         *             "netQuantity": 275.29,
+                         *             "quantity": 289.04,
+                         *             "suppliedBy": "CONTRACTOR",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000007a1",
+                         *             "materialName": "Cement OPC",
+                         *             "qualityCategory": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *               "name": "A Standard"
+                         *             },
+                         *             "ratePaisa": "145000",
+                         *             "rateUnit": "bag",
+                         *             "rateQuantity": 289.04,
+                         *             "amountPaisa": "41910800",
+                         *             "rateStatus": "OK",
+                         *             "rateFallback": false
+                         *           },
+                         *           {
+                         *             "material": "termite",
+                         *             "unit": "litre",
+                         *             "netQuantity": 5.63,
+                         *             "quantity": 5.91,
+                         *             "suppliedBy": "CONTRACTOR",
+                         *             "materialId": null,
+                         *             "materialName": null,
+                         *             "qualityCategory": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *               "name": "A Standard"
+                         *             },
+                         *             "ratePaisa": null,
+                         *             "rateUnit": null,
+                         *             "rateQuantity": null,
+                         *             "amountPaisa": null,
+                         *             "rateStatus": "RATE_MISSING",
+                         *             "rateFallback": false
+                         *           }
+                         *         ],
+                         *         "labour": {
+                         *           "method": "PIECE_RATES",
+                         *           "lines": [
+                         *             {
+                         *               "item": "BRICK_MASONRY",
+                         *               "quantity": 36999.28,
+                         *               "unit": "nos",
+                         *               "ratePaisa": "900",
+                         *               "amountPaisa": "33299352",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "PLASTER",
+                         *               "quantity": 6179.33,
+                         *               "unit": "sqft",
+                         *               "ratePaisa": "2200",
+                         *               "amountPaisa": "13594526",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "SHUTTERING",
+                         *               "quantity": 1228.25,
+                         *               "unit": "sqft",
+                         *               "ratePaisa": "4500",
+                         *               "amountPaisa": "5527125",
+                         *               "rateStatus": "OK"
+                         *             },
+                         *             {
+                         *               "item": "STEEL_FIXING",
+                         *               "quantity": 1.0898,
+                         *               "unit": "ton",
+                         *               "ratePaisa": "900000",
+                         *               "amountPaisa": "980820",
+                         *               "rateStatus": "OK"
+                         *             }
+                         *           ],
+                         *           "totalPaisa": "53401823"
+                         *         },
+                         *         "cost": {
+                         *           "materialsPaisa": "162550533",
+                         *           "ownerSuppliedPaisa": "0",
+                         *           "labourPaisa": "53401823",
+                         *           "totalPaisa": "215952356",
+                         *           "perSqftPaisa": "191958",
+                         *           "contractTotalPaisa": "300000000",
+                         *           "marginPaisa": "84047644",
+                         *           "marginPercent": 28.02
+                         *         },
+                         *         "warnings": [
+                         *           {
+                         *             "code": "RATES_MISSING",
+                         *             "message": "No price-list rate for: waterproofing, termite — these lines are left out of the cost",
+                         *             "materials": [
+                         *               "waterproofing",
+                         *               "termite"
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/stock-locations": {
@@ -38084,6 +39675,16 @@ export interface components {
             taxLabel: string | null;
             /** @description A PM with billing.view may record owner payments */
             pmCanRecordPayments: boolean;
+            /**
+             * @description Profit margin % added to the estimated cost when a contract value is set from the estimate (0–100)
+             * @example 20
+             */
+            defaultMarginPercent: number;
+            /**
+             * @description Finishing allowance % added for FULL contracts (the estimate is grey structure only), 0–200
+             * @example 0
+             */
+            defaultFinishingAllowancePercent: number;
             /** @enum {string} */
             defaultLanguage: "ENGLISH" | "ROMAN_URDU" | "URDU";
         };
@@ -38528,6 +40129,211 @@ export interface components {
             urlExpiresAt: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        SetRoomWalls: {
+            /** @description The four sides, or null to clear (the estimate goes back to the perimeter method for this floor) */
+            walls: {
+                /** @enum {string} */
+                side: "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
+                /** @enum {string} */
+                type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+                /** @description Wall (or DOUBLE outer leaf) thickness. Default by type: 9″; SHARED 4.5″ (frame) / 9″ (load-bearing); PASSAGE 4.5″ */
+                thicknessIn?: number;
+                /** @description DOUBLE: inner leaf. Default 4.5″ */
+                innerLeafIn?: number;
+                /** @description DOUBLE: cavity (no material). Default 2″ */
+                cavityIn?: number;
+                /**
+                 * Format: uuid
+                 * @description SHARED: the other room (same floor)
+                 */
+                sharedWithRoomId?: string | null;
+                /**
+                 * @description SHARED: the other room’s side. Omitted = the opposite side if free, else a free side
+                 * @enum {string|null}
+                 */
+                sharedWithSide?: "TOP" | "RIGHT" | "BOTTOM" | "LEFT" | null;
+                /** @description PARTY: already built by the neighbour → no brickwork */
+                existing?: boolean;
+            }[] | null;
+        };
+        AutoWalls: {
+            /**
+             * @description Reset rooms that already have walls too (pairings are cleared)
+             * @default false
+             */
+            replace: boolean;
+        };
+        ContractFromEstimateInput: {
+            /**
+             * @description Profit margin %. Omitted = the project override, else the company default (TenantSettings.defaultMarginPercent)
+             * @example 20
+             */
+            marginPercent?: number;
+            /**
+             * @description FULL contracts only (ignored otherwise). Omitted = the project override, else the company default
+             * @example 0
+             */
+            finishingAllowancePercent?: number;
+            /**
+             * @description Overwrite an existing contract value / rate (the user confirmed). Without it → 409 CONTRACT_VALUE_EXISTS
+             * @default false
+             */
+            replace: boolean;
+        };
+        EstimateSettingsInput: {
+            /**
+             * @description External walls (and foundation walls), inches. Default 9″
+             * @example 9
+             */
+            externalWallThicknessIn?: number;
+            /**
+             * @description Internal partition walls, inches. Default 4.5″
+             * @example 4.5
+             */
+            internalWallThicknessIn?: number;
+            /**
+             * @description Roof parapet height (4.5″ wall on the main roof); 0 = none. Default 3 ft
+             * @example 3
+             */
+            parapetHeightFt?: number;
+            /**
+             * @description Bricks per cft of brickwork including mortar joints. Default 13.5
+             * @example 13.5
+             */
+            bricksPerCft?: number;
+            /**
+             * @description Wet mortar per cft of brickwork. Default 0.25
+             * @example 0.25
+             */
+            mortarPerCftBrickwork?: number;
+            /**
+             * @description Cement : sand for brick masonry. Default 1:6
+             * @enum {string}
+             */
+            masonryMortarMix?: "1:3" | "1:4" | "1:5" | "1:6" | "1:8";
+            /**
+             * @description Roof slab thickness, inches. Default 5″ (6″ for larger spans)
+             * @example 5
+             */
+            slabThicknessIn?: number;
+            /**
+             * @description Cement : sand : crush for slabs, beams, columns, lintels, DPC. Default 1:2:4
+             * @enum {string}
+             */
+            rccMix?: "1:1.5:3" | "1:2:4";
+            /**
+             * @description RCC frame only: beams + columns concrete as a % of the slab concrete of each floor. Default 45 %
+             * @example 45
+             */
+            frameConcretePercent?: number;
+            /**
+             * @description Steel as % of slab concrete volume (1 % ≈ 2.22 kg / cft). Default 1 %
+             * @example 1
+             */
+            slabSteelPercent?: number;
+            /**
+             * @description Steel as % of beam / column concrete. Default 2.5 %
+             * @example 2.5
+             */
+            frameSteelPercent?: number;
+            /**
+             * @description Steel as % of lintel concrete. Default 1 %
+             * @example 1
+             */
+            lintelSteelPercent?: number;
+            /**
+             * @description Steel as % of RCC footing / raft / pile concrete. Default 0.8 %
+             * @example 0.8
+             */
+            footingSteelPercent?: number;
+            /**
+             * @description Lintel width, inches. Default 9″
+             * @example 9
+             */
+            lintelWidthIn?: number;
+            /**
+             * @description Lintel depth, inches. Default 6″
+             * @example 6
+             */
+            lintelDepthIn?: number;
+            /**
+             * @description Extra lintel length over each opening (both sides together), ft. Default 1 ft
+             * @example 1
+             */
+            lintelBearingFt?: number;
+            /**
+             * @description Cement : sand for internal wall + ceiling plaster. Default 1:4
+             * @enum {string}
+             */
+            internalPlasterMix?: "1:3" | "1:4" | "1:5" | "1:6";
+            /**
+             * @description Internal wall + ceiling plaster, inches. Default 0.5″
+             * @example 0.5
+             */
+            internalPlasterThicknessIn?: number;
+            /**
+             * @description Cement : sand for external plaster. Default 1:4 (1:6 option)
+             * @enum {string}
+             */
+            externalPlasterMix?: "1:3" | "1:4" | "1:5" | "1:6";
+            /**
+             * @description External plaster, inches. Default 0.75″
+             * @example 0.75
+             */
+            externalPlasterThicknessIn?: number;
+            /**
+             * @description Total running length of foundation walls, ft. null = automatic (external + internal wall run of the lowest floor)
+             * @example null
+             */
+            foundationWallLengthFt?: number | null;
+            /**
+             * @description Waterproofing compound per cement bag of the DPC concrete, kg. Default 1 kg
+             * @example 1
+             */
+            waterproofingKgPerBag?: number;
+            /**
+             * @description Bitumen on the DPC when the DPC material is BITUMEN, kg per sq ft. Default 0.15
+             * @example 0.15
+             */
+            bitumenKgPerSqft?: number;
+            /**
+             * @description Termite (deemak) chemical concentrate per sq ft of treated area (lowest-floor footprint). Default 0.005 L (1 L per 200 sq ft)
+             * @example 0.005
+             */
+            termiteLitrePerSqft?: number;
+            /**
+             * @description Wastage on every material except bricks. Default 5 %
+             * @example 5
+             */
+            wastagePercent?: number;
+            /**
+             * @description Wastage on bricks. Default 5 %
+             * @example 5
+             */
+            brickWastagePercent?: number;
+            /**
+             * @description Wet → dry volume of concrete. Default 1.54
+             * @example 1.54
+             */
+            concreteDryFactor?: number;
+            /**
+             * @description Wet → dry volume of mortar / plaster. Default 1.33
+             * @example 1.33
+             */
+            mortarDryFactor?: number;
+            /**
+             * @description Volume of one 50 kg cement bag, cft. Default 1.25
+             * @example 1.25
+             */
+            cementBagCft?: number;
+            /** @description Add grey-structure labour to the cost. Default true */
+            includeLabour?: boolean;
+            /**
+             * @description Grey-structure labour rate per sq ft of covered area (paisa). null = use the company sub-contract piece rates (brick masonry, plaster, shuttering, steel fixing)
+             * @example null
+             */
+            labourRatePerSqftPaisa?: string | null;
         };
     };
     responses: never;

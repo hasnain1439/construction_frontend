@@ -5,13 +5,16 @@ import { cleanParams, toPage } from "@/api/transform";
 import type {
   ChangeStatusBody,
   CopyFloorBody,
+  ContractFromEstimateBody,
   CreateOpeningBody,
   CreateProjectBody,
   CreateRoomBody,
   Deleted,
+  EstimateSettingsBody,
   FloorWithRooms,
   Paginated,
   ProjectDetail,
+  ProjectEstimate,
   ProjectFloors,
   ProjectListItem,
   ProjectReview,
@@ -25,6 +28,8 @@ import type {
   UpdateOpeningBody,
   UpdatePlotStructureBody,
   UpdateRoomBody,
+  SetRoomWallsBody,
+  AutoWallsBody,
 } from "@/api/types";
 
 /** Everything a wizard save can change about one project. */
@@ -32,12 +37,14 @@ const projectChanged = (id: string) => [
   { type: "Projects" as const, id },
   { type: "Projects" as const, id: LIST },
   { type: "ProjectReview" as const, id },
+  { type: "ProjectEstimate" as const, id },
 ];
 /** Rooms / openings change floor totals, project totals and the review. */
 const roomsChanged = (projectId: string) => [
   { type: "Floors" as const, id: projectId },
   { type: "Projects" as const, id: projectId },
   { type: "ProjectReview" as const, id: projectId },
+  { type: "ProjectEstimate" as const, id: projectId },
 ];
 
 export const projectsApi = baseApi.injectEndpoints({
@@ -69,6 +76,11 @@ export const projectsApi = baseApi.injectEndpoints({
     }),
     updateContract: build.mutation<ProjectDetail, { id: string; body: UpdateContractBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.projects.contract(id), method: "PATCH", body }),
+      invalidatesTags: (_r, _e, { id }) => projectChanged(id),
+    }),
+    /** Contract value (labour-only: rate) from the estimate; 409 CONTRACT_VALUE_EXISTS unless replace. */
+    contractFromEstimate: build.mutation<ProjectDetail, { id: string; body: ContractFromEstimateBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.projects.contractFromEstimate(id), method: "POST", body }),
       invalidatesTags: (_r, _e, { id }) => projectChanged(id),
     }),
     updatePlotStructure: build.mutation<ProjectDetail, { id: string; body: UpdatePlotStructureBody }>({
@@ -126,6 +138,24 @@ export const projectsApi = baseApi.injectEndpoints({
       query: ({ openingId }) => ({ url: ENDPOINTS.projects.openingById(openingId), method: "DELETE" }),
       invalidatesTags: (_r, _e, { projectId }) => roomsChanged(projectId),
     }),
+    // ─── Estimate (BoQ) ──────────────────────────────────────────────────
+    getEstimate: build.query<ProjectEstimate, string>({
+      query: (projectId) => ENDPOINTS.projects.estimate(projectId),
+      providesTags: (_r, _e, projectId) => [{ type: "ProjectEstimate", id: projectId }],
+    }),
+    updateEstimateSettings: build.mutation<ProjectEstimate, { projectId: string; body: EstimateSettingsBody }>({
+      query: ({ projectId, body }) => ({ url: ENDPOINTS.projects.estimateSettings(projectId), method: "PUT", body }),
+      invalidatesTags: (_r, _e, { projectId }) => [{ type: "ProjectEstimate", id: projectId }],
+    }),
+    /** Sets a room's four walls; the response is the whole floor (shared partners may change too). */
+    setRoomWalls: build.mutation<FloorWithRooms, { projectId: string; roomId: string; body: SetRoomWallsBody }>({
+      query: ({ roomId, body }) => ({ url: ENDPOINTS.projects.roomWalls(roomId), method: "PUT", body }),
+      invalidatesTags: (_r, _e, { projectId }) => roomsChanged(projectId),
+    }),
+    autoFloorWalls: build.mutation<FloorWithRooms, { projectId: string; floorId: string; body: AutoWallsBody }>({
+      query: ({ floorId, body }) => ({ url: ENDPOINTS.projects.floorWallsAuto(floorId), method: "POST", body }),
+      invalidatesTags: (_r, _e, { projectId }) => roomsChanged(projectId),
+    }),
     copyFloor: build.mutation<FloorWithRooms, { projectId: string; floorId: string; body: CopyFloorBody }>({
       query: ({ floorId, body }) => ({ url: ENDPOINTS.projects.floorCopy(floorId), method: "POST", body }),
       invalidatesTags: (_r, _e, { projectId }) => roomsChanged(projectId),
@@ -136,11 +166,14 @@ export const projectsApi = baseApi.injectEndpoints({
 export const {
   useGetProjectsQuery,
   useGetProjectQuery,
+  useGetEstimateQuery,
+  useUpdateEstimateSettingsMutation,
   useCreateProjectMutation,
   useDeleteProjectMutation,
   useUpdateBasicMutation,
   useSetTeamMutation,
   useUpdateContractMutation,
+  useContractFromEstimateMutation,
   useUpdatePlotStructureMutation,
   useUpdateCoverageMutation,
   useGetReviewQuery,
@@ -155,4 +188,6 @@ export const {
   useUpdateOpeningMutation,
   useDeleteOpeningMutation,
   useCopyFloorMutation,
+  useSetRoomWallsMutation,
+  useAutoFloorWallsMutation,
 } = projectsApi;

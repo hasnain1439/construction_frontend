@@ -31,6 +31,8 @@ const defaults = (s: CompanySettings): Values => ({
   taxLabel: s.taxLabel ?? "",
   paymentTermsDays: s.paymentTermsDays,
   pmCanRecordPayments: s.pmCanRecordPayments,
+  defaultMarginPercent: s.defaultMarginPercent,
+  defaultFinishingAllowancePercent: s.defaultFinishingAllowancePercent,
   pmCanSeeFinancials: s.pmCanSeeFinancials,
   defaultLanguage: s.defaultLanguage,
 });
@@ -96,6 +98,12 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
           <NumberField name="taxRatePercent" label={t("teamCompany.settings.taxRate")} hideLabel unit="%" decimals={2} required />
           <TextField name="taxLabel" label={t("teamCompany.settings.taxName")} hideLabel placeholder={t("teamCompany.settings.taxNameExample")} />
         </div>
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.marginTitle")} help={t("teamCompany.settings.marginHelp")}>
+        <NumberField name="defaultMarginPercent" label={t("teamCompany.settings.marginTitle")} hideLabel unit="%" decimals={2} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.finishingTitle")} help={t("teamCompany.settings.finishingHelp")}>
+        <NumberField name="defaultFinishingAllowancePercent" label={t("teamCompany.settings.finishingTitle")} hideLabel unit="%" decimals={2} required />
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.langTitle")} help={t("teamCompany.settings.langHelp")}>
         <SelectField

@@ -11,6 +11,8 @@ export const PERMISSION_KEYS = [
   "projects.project.approve",
   "projects.project.manage",
   "projects.team.manage",
+  "projects.estimate.view",
+  "projects.estimate.manage",
   // clients
   "clients.client.view",
   "clients.client.create",

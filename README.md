@@ -176,6 +176,42 @@ The whole company app is in three languages; the platform admin console (`/admin
 
 ## Recent features
 
+- **Estimate (BoQ)** — Project → Planning → Estimate (BoQ) (`/projects/:id/planning/estimate`, `features/projects/estimate/`).
+  `EstimateView` reads `GET /projects/:id/estimate` (`useGetEstimateQuery`, tag `ProjectEstimate`, invalidated by every wizard /
+  room / opening save): KPI tiles, warnings banner (links to the setup tab, Price List, Labour rates), "what it is based on"
+  (floors, footprint, external / internal wall run), one `SectionCard` + `DataTable` per stage (work lines shaded, material
+  lines indented, formula in a tooltip and printed under the item), material summary, labour, cost summary and the
+  calculation notes. `EstimateSettingsModal` (WideModal + FormTabs) edits the assumptions with `PUT …/estimate/settings`;
+  ranges mirror the API, every field shows its default + unit, Reset sends `{}`; read-only without
+  `projects.estimate.manage` or on a locked project. `labels.ts` translates items, units and formulas (the API sends
+  `formula { key, params }`; keys under `projects.estimate.formula.*`, falling back to the API's English `formulaText`).
+  Amounts are shown to the rupee; money columns hide without `fields.rates`, contract / margin without
+  `fields.contract` / `fields.profit`. Print: `AppShell` hides the top bar, rail and footer and lets the page flow
+  (`print:` classes), so any page prints cleanly. Formulas and defaults: API README → "How the estimate is calculated".
+
+- **Roof / lenter and walls** — `wizard/RoofCard.tsx` (one card per floor inside the Plot & Structure form, fields `floors.<i>.roof.*`; rules, defaults, span suggestion and soft warnings in `utils/roof.ts`, mirroring the API's `roof.ts`; `roofToBody` sends `floors[].roof` — null when the card is off, frame fields only for FRAMED) and `wizard/RoomWalls.tsx` (the room card's "Walls" section, form field `walls`, saved with `PUT /rooms/:id/walls` via `useSetRoomWallsMutation`; a new room sends `walls` with its create). Opening rows have a wall select (`side`). RoomsTab has "Auto-set walls" (`POST /floors/:id/walls/auto`). Pairing of shared walls happens on the API; both mutations invalidate `Floors`, the project, review and estimate. Estimate: `MethodBadge` (DETAILED / ESTIMATED / MIXED), steel by size (`steel10` … `steel20`), `DetailedBasis` (brickwork by wall thickness, slab steel by bar size).
+- **Contract value from the estimate** — the contract value / labour rate is optional in tab 2 (`ContractTab`, hint "fill this after the
+  estimate"; empty is sent as `null`, the review's CONTRACT_VALUE_MISSING blocks activation). `estimate/ContractFromEstimateCard.tsx` (wizard step 6
+  and the Estimate page; needs `projects.project.edit` + `fields.contract` + `fields.rates`) shows estimated cost + finishing allowance (FULL) +
+  margin = suggested value (Rs 1,000) — labour-only: labour + margin ÷ covered sq ft = rate (Rs 5) — recomputed live by
+  `estimate/contractSuggestion.ts` (BigInt, same rules as the API). Margin / finishing start from `contractSuggestion` (project override or company
+  default) and say "Margin from company settings (20%)" / "Custom for this project (25%)". "Use as contract value / rate" and, in the wizard, "Finalize
+  estimate" (then Review) call `POST /projects/:id/contract/from-estimate` (`useContractFromEstimateMutation`, invalidates project, review and
+  estimate); an existing value is replaced only after a ConfirmDialog (current, new, difference). Review shows "Apply company margin (20%) → Rs X"
+  next to CONTRACT_VALUE_MISSING (`ApplyMarginAction`). Company settings has "Default profit margin" and "Default finishing allowance". Running
+  bills on a FULL / GREY contract show "Rate per sq ft (for running bills)" in tab 2.
+- **Estimate step in the project wizard** — steps are now Basic, Contract, Plot & Structure, Coverage, Rooms,
+  **Estimate** (`?tab=6`, `wizard/EstimateTab.tsx`), Review (`?tab=7`). The step reuses the estimate sections exported
+  from `EstimateView` (`EstimateKpis compact`, `EstimateWarnings` with `onGoToTab` → "Go to <step>" buttons that switch
+  wizard tabs, material summary open, stage + labour tables folded, cost summary, basis) plus the Assumptions modal
+  (`projects.estimate.manage`, editable while DRAFT / ACTIVE). Nothing to save — Next goes to Review; the estimate is
+  refetched every time the step opens (and every wizard save already invalidates `ProjectEstimate`). Review shows an
+  "Estimated cost" card (total, per sq ft, margin — quantities without rate access) with "Open estimate".
+  Step ids are stable (`WIZARD_STEPS`, `ESTIMATE_STEP` / `REVIEW_STEP`, `clampWizardTab` in `features/projects/constants.ts`);
+  without `projects.estimate.view` `visibleWizardSteps()` drops the step, Next / Back skip it via `adjacentWizardStep()`,
+  the tab bar numbers the visible steps 1…6 (`Step.number`) and `?tab=6` opens Review. API review / estimate warnings
+  keep pointing at tabs 1–5, so no API change was needed.
+
 - **Foundation (Bunyaad)** card in the project wizard's Plot & Structure tab (`wizard/FoundationCard.tsx`), saved
   with `PATCH /projects/:id/plot-structure` as `foundation`. Starts from Pakistani defaults (brick strip footing,
   5 ft excavation, 3 ft wide, 9″ thick — 12″ for other types —, 2 ft plinth, 1.5″ DPC, PCC 1:4:8 × 3″, RCC 1:2:4 with

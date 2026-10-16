@@ -63,7 +63,12 @@ export const supplyRuleSchema = z.object({
   locked: z.boolean(),
 });
 
-export function contractSchema(seesMoney: boolean) {
+/**
+ * Tab 2. The contract value / rate is optional here: it is usually set after the estimate (step 6);
+ * the review (CONTRACT_VALUE_MISSING) blocks activation until it is there. `seesMoney` is kept for
+ * callers — a user without fields.contract never sends the values.
+ */
+export function contractSchema(_seesMoney: boolean) {
   return z
     .object({
       contractType: z.enum(["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"], { error: msg("projects.v.chooseContractType") }),
@@ -82,12 +87,6 @@ export function contractSchema(seesMoney: boolean) {
       stages: stagesSchema,
     })
     .superRefine((v, ctx) => {
-      if (seesMoney && v.contractType !== "LABOR_ONLY" && !v.contractValuePaisa) {
-        ctx.addIssue({ code: "custom", path: ["contractValuePaisa"], message: required("projects.section.contractValue") });
-      }
-      if (seesMoney && v.contractType === "LABOR_ONLY" && !v.ratePerSqftPaisa) {
-        ctx.addIssue({ code: "custom", path: ["ratePerSqftPaisa"], message: required("projects.section.ratePerSqft") });
-      }
       v.supplyRules.forEach((rule, index) => {
         if (rule.suppliedBy === "CONTRACTOR" && !rule.qualityCategoryId && !rule.locked) {
           ctx.addIssue({ code: "custom", path: ["supplyRules", index, "qualityCategoryId"], message: msg("projects.v.chooseQuality") });
@@ -98,9 +97,95 @@ export function contractSchema(seesMoney: boolean) {
 
 // ─── Tab 3 ──────────────────────────────────────────────────────────────────
 
+const bar = z.enum(["3", "4", "5", "6"]);
+
+/** Roof / lenter card of one floor: ranges as on the backend, checked only when the card is on and the field applies. */
+export const roofSchema = z
+  .object({
+    enabled: z.boolean(),
+    type: z.enum(["RCC_SLAB", "T_IRON_TILE", "PRECAST", "STEEL_DECK"]),
+    thicknessIn: z.number().nullable(),
+    concreteMix: z.enum(["1:2:4", "1:1.5:3"]),
+    steelGrade: z.enum(["G60", "G40"]),
+    mainBar: bar,
+    mainSpacingIn: z.number().nullable(),
+    distBar: bar,
+    distSpacingIn: z.number().nullable(),
+    topBars: z.boolean(),
+    coverIn: z.number().nullable(),
+    chajjaLengthFt: z.number().nullable(),
+    chajjaWidthFt: z.number().nullable(),
+    beamWidthIn: z.number().nullable(),
+    beamDepthIn: z.number().nullable(),
+    beamBars: z.number().nullable(),
+    beamBar: bar,
+    stirrupBar: bar,
+    stirrupSpacingIn: z.number().nullable(),
+    beamRunFt: z.number().nullable(),
+    columnCount: z.number().nullable(),
+    columnWidthIn: z.number().nullable(),
+    columnDepthIn: z.number().nullable(),
+    columnBars: z.number().nullable(),
+    columnBar: bar,
+    tieBar: bar,
+    tieSpacingIn: z.number().nullable(),
+    tIronSection: z.enum(["T3X3", "T4X4", "G4X3", "G5X3", "G6X3"]),
+    tIronSpacingFt: z.number().nullable(),
+    infill: z.enum(["BRICK", "TILE"]),
+    screedThicknessIn: z.number().nullable(),
+    earthFillIn: z.number().nullable(),
+    plankAreaSqft: z.number().nullable(),
+    deckAreaSqft: z.number().nullable(),
+    toppingIn: z.number().nullable(),
+    mesh: z.boolean(),
+  })
+  .superRefine((v, ctx) => {
+    if (!v.enabled) return;
+    const check = (key: keyof typeof v, label: TranslationKey, min: number, max: number, opts: { optional?: boolean; whole?: boolean } = {}) => {
+      const value = v[key] as number | null;
+      if (value === null) {
+        if (!opts.optional) ctx.addIssue({ code: "custom", path: [key], message: required(label) });
+        return;
+      }
+      if (value < min || value > max) ctx.addIssue({ code: "custom", path: [key], message: msg("projects.v.range", { label, min: String(min), max: String(max) }) });
+      else if (opts.whole && !Number.isInteger(value)) ctx.addIssue({ code: "custom", path: [key], message: msg("projects.v.wholeNumber") });
+    };
+    if (v.type === "RCC_SLAB") {
+      check("thicknessIn", "projects.roof.thickness", 3, 12);
+      check("mainSpacingIn", "projects.roof.mainSpacing", 3, 18);
+      check("distSpacingIn", "projects.roof.distSpacing", 3, 18);
+      check("coverIn", "projects.roof.cover", 0.5, 2, { optional: true });
+      check("chajjaLengthFt", "projects.roof.chajjaLength", 0, 1000, { optional: true });
+      if (v.chajjaLengthFt) check("chajjaWidthFt", "projects.roof.chajjaWidth", 1, 4);
+    }
+    if (v.type === "T_IRON_TILE") {
+      check("tIronSpacingFt", "projects.roof.tIronSpacing", 1, 6);
+      check("screedThicknessIn", "projects.roof.screed", 0, 6, { optional: true });
+      check("earthFillIn", "projects.roof.earthFill", 0, 12, { optional: true });
+    }
+    if (v.type === "PRECAST") check("plankAreaSqft", "projects.roof.plankArea", 1, 100000, { optional: true });
+    if (v.type === "STEEL_DECK") check("deckAreaSqft", "projects.roof.deckArea", 1, 100000, { optional: true });
+    if (v.type === "PRECAST" || v.type === "STEEL_DECK") check("toppingIn", "projects.roof.topping", 1, 8, { optional: true });
+    // Beams / columns: always within range (sent only for an RCC frame)
+    check("beamWidthIn", "projects.roof.beamWidth", 6, 24);
+    check("beamDepthIn", "projects.roof.beamDepth", 9, 36);
+    check("beamBars", "projects.roof.beamBars", 2, 12, { whole: true });
+    check("stirrupSpacingIn", "projects.roof.stirrupSpacing", 3, 12);
+    check("beamRunFt", "projects.roof.beamRun", 1, 10000, { optional: true });
+    check("columnCount", "projects.roof.columnCount", 0, 500, { optional: true, whole: true });
+    check("columnWidthIn", "projects.roof.columnWidth", 9, 36);
+    check("columnDepthIn", "projects.roof.columnDepth", 9, 36);
+    check("columnBars", "projects.roof.columnBars", 4, 16, { whole: true });
+    check("tieSpacingIn", "projects.roof.tieSpacing", 3, 12);
+    if (v.type === "RCC_SLAB" && v.beamDepthIn !== null && v.thicknessIn !== null && v.beamDepthIn <= v.thicknessIn) {
+      ctx.addIssue({ code: "custom", path: ["beamDepthIn"], message: msg("projects.v.beamDeeper") });
+    }
+  });
+
 export const floorRowSchema = z.object({
   level: z.enum(["BASEMENT", "GROUND", "FIRST", "SECOND", "THIRD", "MUMTY"]),
   ceilingHeightFt: positive("projects.room.height", 30),
+  roof: roofSchema,
 });
 
 /** Foundation (bunyaad) card: ranges as on the backend; type-specific fields checked only when they apply. */
@@ -217,7 +302,25 @@ export const openingRowSchema = z.object({
     .number({ error: msg("projects.v.enterQty") })
     .nullable()
     .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 1 && v <= 50, "1–50"),
+  side: z.enum(["TOP", "RIGHT", "BOTTOM", "LEFT"]).nullable(),
 });
+
+export const wallRowSchema = z
+  .object({
+    side: z.enum(["TOP", "RIGHT", "BOTTOM", "LEFT"]),
+    type: z.enum(["EXTERNAL", "SHARED", "PARTY", "DOUBLE", "OPEN", "PASSAGE"]),
+    thicknessIn: z.number().nullable(),
+    innerLeafIn: z.number().nullable(),
+    cavityIn: z.number().nullable(),
+    sharedWithRoomId: z.string().nullable(),
+    existing: z.boolean(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.type === "SHARED" && !v.sharedWithRoomId) ctx.addIssue({ code: "custom", path: ["sharedWithRoomId"], message: msg("projects.v.chooseSharedRoom") });
+    if (v.type !== "OPEN" && (v.thicknessIn === null || v.thicknessIn < 3 || v.thicknessIn > 18)) {
+      ctx.addIssue({ code: "custom", path: ["thicknessIn"], message: msg("projects.v.range", { label: "projects.walls.thickness", min: "3", max: "18" }) });
+    }
+  });
 
 export const roomSchema = z.object({
   type: z.enum([
@@ -241,4 +344,6 @@ export const roomSchema = z.object({
   heightFt: positive("projects.room.height", 30),
   wetMode: z.enum(["auto", "wet", "dry"]),
   openings: z.array(openingRowSchema).max(30, msg("projects.v.upTo30Openings")),
+  /** null = not entered. */
+  walls: z.array(wallRowSchema).length(4).nullable(),
 });

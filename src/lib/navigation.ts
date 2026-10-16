@@ -616,12 +616,12 @@ export const PROJECT_NAV: NavSection[] = [
         available: true,
       },
       {
-        ...soon(
-          "p.planning.estimate",
-          L("Estimate (BoQ)", "Estimate (BoQ)", "تخمینہ (BoQ)"),
-          "/planning/estimate",
-        ),
-        comingSoonNote: "Estimate comes in Phase 2.",
+        id: "p.planning.estimate",
+        label: L("Estimate (BoQ)", "Andaza (BoQ)", "تخمینہ (BoQ)"),
+        href: "/planning/estimate",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["boq", "andaza", "material estimate", "cement", "bricks", "steel", "quantity"],
       },
       {
         ...soon(

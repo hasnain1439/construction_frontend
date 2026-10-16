@@ -83,11 +83,34 @@ export const STATUS_TRANSITIONS: Partial<Record<ProjectStatus, StatusTransition[
 /** Statuses where the wizard sections can't change (backend PROJECT_LOCKED). */
 export const LOCKED_STATUSES: ProjectStatus[] = ["CLOSEOUT", "HANDED_OVER", "CLOSED", "READ_ONLY"];
 
+/** Wizard step ids are stable (they are the `?tab=` value and the API review/estimate warning `tab`). */
+export const ROOMS_STEP = 5;
+export const ESTIMATE_STEP = 6;
+export const REVIEW_STEP = 7;
+
 export const WIZARD_STEPS: ReadonlyArray<{ id: number; labelKey: TranslationKey }> = [
   { id: 1, labelKey: "projects.wizard.stepBasic" },
   { id: 2, labelKey: "projects.wizard.stepContract" },
   { id: 3, labelKey: "projects.wizard.stepPlot" },
   { id: 4, labelKey: "projects.wizard.stepCoverage" },
-  { id: 5, labelKey: "projects.wizard.stepRooms" },
-  { id: 6, labelKey: "projects.wizard.stepReview" },
+  { id: ROOMS_STEP, labelKey: "projects.wizard.stepRooms" },
+  { id: ESTIMATE_STEP, labelKey: "projects.wizard.stepEstimate" },
+  { id: REVIEW_STEP, labelKey: "projects.wizard.stepReview" },
 ];
+
+/**
+ * The steps this user sees: Estimate only with `projects.estimate.view`. Hidden steps keep
+ * their id (URLs and API warning tabs stay valid); the tab bar numbers the visible ones 1…n.
+ */
+export function visibleWizardSteps(canViewEstimate: boolean) {
+  return WIZARD_STEPS.filter((s) => s.id !== ESTIMATE_STEP || canViewEstimate);
+}
+
+/** The visible step after / before `tab` (stays put at either end). */
+export function adjacentWizardStep(steps: ReadonlyArray<{ id: number }>, tab: number, dir: 1 | -1): number {
+  const index = steps.findIndex((s) => s.id === tab);
+  return steps[Math.min(steps.length - 1, Math.max(0, index + dir))]?.id ?? tab;
+}
+
+/** Clamp a `?tab=` query value to a real step id. */
+export const clampWizardTab = (value: unknown) => Math.min(REVIEW_STEP, Math.max(1, Math.trunc(Number(value)) || 1));

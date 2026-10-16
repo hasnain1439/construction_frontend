@@ -11,10 +11,11 @@ import {
   useCreateRoomMutation,
   useDeleteOpeningMutation,
   useDeleteRoomMutation,
+  useSetRoomWallsMutation,
   useUpdateOpeningMutation,
   useUpdateRoomMutation,
 } from "@/api/services/projects.api";
-import type { FloorWithRooms, Room } from "@/api/types";
+import type { FloorWithRooms, Room, StructureType, WallSide } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -28,7 +29,12 @@ import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
 import { OPENING_TYPES, ROOM_TYPES } from "../constants";
 import { formatArea, isWetType, roomCalc } from "../utils/calc";
+import { WALL_SIDES } from "../utils/roof";
+import { RoomWalls, rowsToBody, wallsToRows } from "./RoomWalls";
 import { roomSchema } from "./schemas";
+
+/** Select value for "not placed" (an opening on no particular wall). */
+const ANY_WALL = "ANY";
 
 type Values = z.input<typeof roomSchema>;
 type Output = z.output<typeof roomSchema>;
@@ -40,7 +46,8 @@ const toValues = (room: Room | null, floor: FloorWithRooms): Values => ({
   widthFt: room?.widthFt ?? null,
   heightFt: room?.heightFt ?? floor.ceilingHeightFt,
   wetMode: room ? (room.isWetOverridden ? (room.isWet ? "wet" : "dry") : "auto") : "auto",
-  openings: (room?.openings ?? []).map((o) => ({ id: o.id, type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity })),
+  openings: (room?.openings ?? []).map((o) => ({ id: o.id, type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity, side: o.side ?? null })),
+  walls: wallsToRows(room?.walls ?? null),
 });
 
 function NumberCell({ name, label, unit, disabled, decimals = 2 }: { name: string; label: string; unit?: string; disabled?: boolean; decimals?: number }) {
@@ -107,12 +114,15 @@ export function RoomCard({
   projectId,
   floor,
   room,
+  structure = null,
   disabled,
   onCancelNew,
 }: {
   projectId: string;
   floor: FloorWithRooms;
   room: Room | null;
+  /** Project structure type (default thickness of shared walls). */
+  structure?: StructureType | null;
   disabled: boolean;
   onCancelNew?: () => void;
 }) {
@@ -126,6 +136,7 @@ export function RoomCard({
   const [createOpening] = useCreateOpeningMutation();
   const [updateOpening] = useUpdateOpeningMutation();
   const [deleteOpening] = useDeleteOpeningMutation();
+  const [setWalls] = useSetRoomWallsMutation();
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -149,7 +160,8 @@ export function RoomCard({
             widthFt: v.widthFt,
             heightFt: v.heightFt,
             ...(isWet !== null ? { isWet } : {}),
-            openings: v.openings.map((o) => ({ type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity })),
+            openings: v.openings.map((o) => ({ type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity, side: o.side })),
+            ...(v.walls ? { walls: rowsToBody(v.walls) } : {}),
           },
         }).unwrap();
         toast.success(t("projects.room.added", { name: v.name || te("projectRoomType", v.type) }));
@@ -176,14 +188,20 @@ export function RoomCard({
         if (!keptIds.has(old.id)) await deleteOpening({ projectId, openingId: old.id }).unwrap();
       }
       for (const o of v.openings) {
-        const body = { type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity };
+        const body = { type: o.type, widthFt: o.widthFt, heightFt: o.heightFt, quantity: o.quantity, side: o.side };
         if (!o.id) await createOpening({ projectId, roomId: room.id, body }).unwrap();
         else {
           const old = room.openings.find((x) => x.id === o.id);
-          if (old && (old.type !== o.type || old.widthFt !== o.widthFt || old.heightFt !== o.heightFt || old.quantity !== o.quantity)) {
+          if (
+            old &&
+            (old.type !== o.type || old.widthFt !== o.widthFt || old.heightFt !== o.heightFt || old.quantity !== o.quantity || (old.side ?? null) !== o.side)
+          ) {
             await updateOpening({ projectId, openingId: o.id, body }).unwrap();
           }
         }
+      }
+      if (dirty.walls) {
+        await setWalls({ projectId, roomId: room.id, body: { walls: v.walls ? rowsToBody(v.walls) : null } }).unwrap();
       }
       toast.success(t("projects.room.saved", { name: v.name || te("projectRoomType", v.type) }));
     } catch (err) {
@@ -267,7 +285,7 @@ export function RoomCard({
           {fields.length ? (
             <div className="space-y-2">
               {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-[1fr_90px_90px_70px_32px] items-center gap-2">
+                <div key={field.id} className="grid grid-cols-[1fr_90px_90px_70px_32px] items-center gap-2 sm:grid-cols-[1fr_110px_90px_90px_70px_32px]">
                   <Controller
                     name={`openings.${index}.type`}
                     control={form.control}
@@ -280,6 +298,25 @@ export function RoomCard({
                           {OPENING_TYPES.map((value) => (
                             <SelectItem key={value} value={value}>
                               {te("projectOpeningType", value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    name={`openings.${index}.side`}
+                    control={form.control}
+                    render={({ field: f }) => (
+                      <Select value={f.value ?? ANY_WALL} onValueChange={(v) => f.onChange(v === ANY_WALL ? null : (v as WallSide))} disabled={disabled}>
+                        <SelectTrigger size="sm" aria-label={t("projects.room.openingSide", { n: index + 1 })} className="col-span-full w-full sm:col-span-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={ANY_WALL}>{t("projects.room.anyWall")}</SelectItem>
+                          {WALL_SIDES.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {te("projectWallSide", value)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -303,12 +340,18 @@ export function RoomCard({
             variant="ghost"
             size="sm"
             disabled={disabled || fields.length >= 30}
-            onClick={() => append({ type: "DOOR", widthFt: 3.5, heightFt: 7, quantity: 1 })}
+            onClick={() => append({ type: "DOOR", widthFt: 3.5, heightFt: 7, quantity: 1, side: null })}
           >
             <Plus data-icon="inline-start" />
             {t("projects.room.addOpening")}
           </Button>
         </div>
+
+        <RoomWalls
+          otherRooms={floor.rooms.filter((r) => r.id !== room?.id).map((r) => ({ id: r.id, name: r.name }))}
+          structure={structure}
+          disabled={disabled}
+        />
 
         {formError ? <InlineAlert>{formError}</InlineAlert> : null}
 

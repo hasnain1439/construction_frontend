@@ -227,6 +227,38 @@
    "field": false
   },
   {
+   "key": "projects.estimate.view",
+   "module": "projects",
+   "resource": "estimate",
+   "action": "view",
+   "label": {
+    "en": "View estimate (BoQ)",
+    "roman": "Estimate (BoQ) dekhna",
+    "urdu": "تخمینہ (BoQ) دیکھنا"
+   },
+   "description": "Grey-structure material estimate of a project (rates and amounts follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.estimate.manage",
+   "module": "projects",
+   "resource": "estimate",
+   "action": "manage",
+   "label": {
+    "en": "Change estimate settings",
+    "roman": "Estimate ki settings badalna",
+    "urdu": "تخمینے کی سیٹنگز بدلنا"
+   },
+   "description": "Change the assumptions of a project estimate (wall / slab thickness, mixes, steel, wastage, labour rate).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "clients.client.view",
    "module": "clients",
    "resource": "client",
@@ -1972,6 +2004,8 @@
     "projects.project.approve",
     "projects.project.manage",
     "projects.team.manage",
+    "projects.estimate.view",
+    "projects.estimate.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2129,6 +2163,8 @@
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
+    "projects.estimate.view",
+    "projects.estimate.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2230,6 +2266,7 @@
    "description": "Office accounts: billing, owner and supplier payments, cash, receivables and reports across all projects. No project or site changes.",
    "permissions": [
     "projects.project.view",
+    "projects.estimate.view",
     "clients.client.view",
     "labor.settlement.view",
     "labor.advance.view",

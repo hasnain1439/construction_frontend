@@ -45,6 +45,8 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "projects.project.create",
   "projects.project.edit",
   "projects.project.approve",
+  "projects.estimate.view",
+  "projects.estimate.manage",
   "clients.client.view",
   "clients.client.create",
   "clients.client.edit",
@@ -128,6 +130,7 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
 
 export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "projects.project.view",
+  "projects.estimate.view",
   "clients.client.view",
   "labor.settlement.view",
   "labor.advance.view",

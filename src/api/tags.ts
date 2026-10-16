@@ -38,6 +38,7 @@ export const COMPANY_TAGS = [
   "Projects",
   "ProjectReview",
   "Floors",
+  "ProjectEstimate",
   "SupplyPresets",
   "StockLocations",
   "Stock",

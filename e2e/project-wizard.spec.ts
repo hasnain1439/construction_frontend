@@ -2,11 +2,12 @@ import { expect, test } from "@playwright/test";
 import { cleanUpProject, SEED, signIn } from "./helpers";
 
 /**
- * Thekedar creates a project through all 6 tabs and activates it; it then appears in
+ * Thekedar creates a project through all 7 steps (the Estimate step shows the BoQ before
+ * activation) and activates it; it then appears in
  * All Projects. Afterwards the project is moved to "handed over" through the API so
  * repeated runs never use up the plan's active-project limit.
  */
-test("Thekedar creates a project through the 6-tab wizard and activates it", async ({ page }) => {
+test("Thekedar creates a project through the 7-step wizard and activates it", async ({ page }) => {
   test.setTimeout(120_000);
   const name = `E2E Villa ${Date.now().toString().slice(-6)}`;
   await signIn(page, SEED.thekedar);
@@ -38,8 +39,8 @@ test("Thekedar creates a project through the 6-tab wizard and activates it", asy
 
     // Tab 3 — Plot & structure
     await page.getByRole("textbox", { name: "Plot size" }).fill("10");
-    await page.getByRole("textbox", { name: "Front" }).fill("35");
-    await page.getByRole("textbox", { name: "Depth" }).fill("65");
+    await page.getByRole("textbox", { name: "Front", exact: true }).fill("35");
+    await page.getByRole("textbox", { name: "Depth", exact: true }).fill("65");
     await expect(page.getByText(/10 Marla = 2,250 sq ft · 35 × 65 = 2,275 sq ft/)).toBeVisible();
     await page.getByRole("button", { name: "Next" }).first().click();
     await expect(page).toHaveURL(/tab=4/);
@@ -61,7 +62,16 @@ test("Thekedar creates a project through the 6-tab wizard and activates it", asy
     await page.getByRole("button", { name: "Next" }).first().click();
     await expect(page).toHaveURL(/tab=6/);
 
-    // Tab 6 — Review → Activate
+    // Tab 6 — Estimate (read-only): KPIs, then on to Review
+    await expect(page.getByTestId("wizard-estimate")).toBeVisible();
+    await expect(page.getByText("Cost per sq ft")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Assumptions" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save as draft" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Next" }).first().click();
+    await expect(page).toHaveURL(/tab=7/);
+
+    // Tab 7 — Review (with the estimated cost) → Activate
+    await expect(page.getByTestId("review-estimate")).toBeVisible();
     await expect(page.getByText("Everything needed is filled in")).toBeVisible();
     await page.getByRole("button", { name: "Activate project" }).first().click();
     await expect(page).toHaveURL(new RegExp(`/projects/${projectId}/overview$`));
