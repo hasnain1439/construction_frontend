@@ -669,6 +669,9 @@ export const ur: Dictionary = {
       INVITE_ACCEPTED: "دعوت قبول ہوئی",
       PLATFORM_SUPPORT_ACCESS: "پلیٹ فارم سپورٹ نے آپ کا اکاؤنٹ کھولا",
       EQUIPMENT_IDLE: "کرائے کا سامان بیکار کھڑا ہے",
+      MISSING_DAILY_LOG: "روزنامچہ درج نہیں ہوا",
+      RETENTION_RELEASE_DUE: "ریٹینشن کی واپسی کا وقت",
+      SITE_INSTRUCTION_CREATED: "سائٹ ہدایت درج ہوئی",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "منظوری کے لیے اجرت کے حساب",

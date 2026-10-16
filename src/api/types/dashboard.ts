@@ -38,7 +38,11 @@ export type NotificationType =
   | "SUBSCRIPTION_PAYMENT_REJECTED"
   | "INVITE_ACCEPTED"
   | "PLATFORM_SUPPORT_ACCESS"
-  | "EQUIPMENT_IDLE";
+  | "MISSING_DAILY_LOG"
+  | "RETENTION_RELEASE_DUE"
+  | "SITE_INSTRUCTION_CREATED"
+  | "EQUIPMENT_IDLE"
+  | "CONTROL_ALERT";
 
 export interface AppNotification {
   id: Id;

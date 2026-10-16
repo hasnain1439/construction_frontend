@@ -29,6 +29,7 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - **Dashboard**: control alerts (material overuse, behind plan, quota used up, spend ahead, idle rentals) in the alerts list with the rule name; "N delayed" under Active projects; project rows show physical progress and the projected margin (with the permissions).
 - **Settings → Alerts & Limits**: new thresholds — behind-plan points, late-finish grace days, quota %, spend-ahead points — and a switch for control alerts.
 - Permission keys `control.view`, `control.manage` (PM and Accountant templates get `control.view`); API types and the catalogue fixture regenerated from the Step 14 API; texts in `src/i18n/areas/control/` (en · roman-ur · ur).
+- **Dashboard → Alerts**: the type filter also lists Control alert, Daily log missing, Retention release due and Site instruction recorded (with Equipment idle), labelled in English, Roman Urdu and Urdu; the web `NotificationType` union matches the API enum.
 
 ### Step 13
 - **Project → Schedule** pages are live (no more "Coming soon"): **Gantt**, **Milestones & Quotas**, **Stoppage Days** and the new **Plan Versions** — each needs `schedule.plan.view`.

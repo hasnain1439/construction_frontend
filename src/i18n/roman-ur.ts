@@ -669,6 +669,9 @@ export const romanUr: Dictionary = {
       INVITE_ACCEPTED: "Daawat qubool hui",
       PLATFORM_SUPPORT_ACCESS: "Platform support ne aap ka account khola",
       EQUIPMENT_IDLE: "Kiraye ka saman bekaar khara hai",
+      MISSING_DAILY_LOG: "Roznamcha nahi bhara gaya",
+      RETENTION_RELEASE_DUE: "Retention ki wapsi ka waqt",
+      SITE_INSTRUCTION_CREATED: "Site hidayat darj hui",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Manzoori ke liye mazdoori ka hisaab",

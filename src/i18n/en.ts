@@ -668,6 +668,9 @@ export const en = {
       INVITE_ACCEPTED: "Invite accepted",
       PLATFORM_SUPPORT_ACCESS: "Platform support accessed your account",
       EQUIPMENT_IDLE: "Rented equipment idle",
+      MISSING_DAILY_LOG: "Daily log missing",
+      RETENTION_RELEASE_DUE: "Retention release due",
+      SITE_INSTRUCTION_CREATED: "Site instruction recorded",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Wage settlements to approve",
