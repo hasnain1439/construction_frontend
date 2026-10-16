@@ -16,6 +16,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"owned"}], load: () => import("@/app/(company)/equipment/owned/page") },
   { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"rentals"},{"kind":"param","name":"rentalId"}], load: () => import("@/app/(company)/equipment/rentals/[rentalId]/page") },
   { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"rentals"}], load: () => import("@/app/(company)/equipment/rentals/page") },
+  { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"shuttering"}], load: () => import("@/app/(company)/equipment/shuttering/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/finance/[...rest]/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-floats"}], load: () => import("@/app/(company)/finance/cash-floats/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-flow"}], load: () => import("@/app/(company)/finance/cash-flow/page") },

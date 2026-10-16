@@ -304,9 +304,9 @@ describe("Equipment — navigation and language", () => {
     const noEquipment = meFixture("PM", { permissions: ["projects.project.view"] });
     expect(visibleItemIds(noEquipment, COMPANY_NAV).filter((id) => id.startsWith("equipment."))).toEqual([]);
     expect(visibleItemIds(noEquipment, PROJECT_NAV)).not.toContain("p.site.equipment");
-    // Shuttering demand stays a "Coming soon" page until the planner (Wave 3).
+    // Step 16 part 2: the shuttering demand planner is live.
     expect(COMPANY_NAV.flatMap((s) => s.items).find((i) => i.id === "equipment.shuttering")?.available).toBe(
-      false,
+      true,
     );
   });
 

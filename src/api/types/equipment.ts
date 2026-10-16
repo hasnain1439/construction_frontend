@@ -301,3 +301,126 @@ export interface ProjectEquipment {
   hireToDatePaisa?: Paisa;
   rentalToDatePaisa?: Paisa;
 }
+
+// ─── Shuttering demand planner (Step 16 part 2) — no money ─────────────────
+
+export type ShutteringCategory = "SHUTTERING_PLATE" | "PROP";
+export type ShutteringAreaSource = "BOQ" | "ESTIMATE_FOOTPRINT" | "COVERED_AREA";
+export type ShutteringSuggestionType = "EXTEND_RENTAL" | "TRANSFER" | "RENT" | "RETURN_RENTAL";
+export type ShutteringWarningCode = "NO_PLATES" | "NO_COVERAGE" | "NO_SCHEDULE" | "AREA_FALLBACK";
+export type MilestoneStatusValue = "PLANNED" | "IN_PROGRESS" | "CURING" | "DONE" | "BLOCKED";
+
+export interface ShutteringParameters {
+  plateCoverageSqft: number;
+  plateCoverageSource: "EQUIPMENT" | "DEFAULT";
+  propsPerPlate: number;
+  sparePercent: number;
+  beamSidesPercent: number;
+  defaultStrikeDays: number;
+}
+
+export interface ShutteringMilestone {
+  project: ProjectRef;
+  milestone: {
+    id: Id;
+    key: string;
+    name: string;
+    stageKey: string;
+    status: MilestoneStatusValue;
+    plannedStart: IsoDate;
+    plannedEnd: IsoDate;
+    curingDays: number;
+  };
+  holdFrom: IsoDate;
+  holdUntil: IsoDate;
+  area: { slabSqft: number; beamSqft: number; totalSqft: number; source: ShutteringAreaSource };
+  plates: number;
+  props: number;
+}
+
+export interface ShutteringWeek {
+  weekStart: IsoDate;
+  weekEnd: IsoDate;
+  needed: number;
+  ownedAvailable: number;
+  onRent: number;
+  available: number;
+  shortfall: number;
+  surplus: number;
+  demand: Array<{ projectId: Id; milestoneId: Id; qty: number }>;
+}
+
+export interface ShutteringSuggestion {
+  type: ShutteringSuggestionType;
+  category: ShutteringCategory;
+  equipment: EquipmentRef | null;
+  qty: number;
+  fromWeek: IsoDate;
+  toWeek: IsoDate;
+  from: LocationRef | null;
+  fromProject: ProjectRef | null;
+  idleAfterWeek: IsoDate | null;
+  toProject: ProjectRef | null;
+  toLocation: LocationRef | null;
+  rental: NumberRef | null;
+  supplier: NamedRef | null;
+}
+
+export interface ShutteringDemand {
+  scope: "COMPANY" | "PROJECT";
+  project: ProjectRef | null;
+  from: IsoDate;
+  to: IsoDate;
+  today: IsoDate;
+  weeks: number;
+  parameters: ShutteringParameters;
+  equipment: { plates: EquipmentRef[]; props: EquipmentRef[] };
+  milestones: ShutteringMilestone[];
+  series: Array<{ category: ShutteringCategory; weeks: ShutteringWeek[] }>;
+  suggestions: ShutteringSuggestion[];
+  warnings: Array<{ code: ShutteringWarningCode; project?: ProjectRef }>;
+}
+
+export type ShutteringDemandQuery = QueryParams<"/api/v1/equipment/shuttering-demand", "get">;
+
+// ─── Idle rented equipment ──────────────────────────────────────────────────
+
+export interface IdleRental {
+  rental: {
+    id: Id;
+    number: string;
+    status: RentalStatus;
+    startDate: IsoDate;
+    expectedEndDate: IsoDate | null;
+    supplier: NamedRef;
+  };
+  project: ProjectRef;
+  location: LocationRef;
+  items: Array<{ equipment: EquipmentRef; qty: number; ratePaisaPerDay?: Paisa; dailyCostPaisa?: Paisa }>;
+  qty: number;
+  since: IsoDate;
+  lastActivity: { kind: "PROGRESS" | "USAGE" | "MILESTONE_ACTIVE"; date: IsoDate } | null;
+  hasSchedule: boolean;
+  idleDays: number;
+  thresholdDays: number;
+  idle: boolean;
+  dailyCostPaisa?: Paisa;
+  idleCostPaisa?: Paisa;
+}
+
+export interface IdleRentals {
+  today: IsoDate;
+  thresholdDays: number;
+  items: IdleRental[];
+  totalDailyCostPaisa?: Paisa;
+}
+
+export type IdleRentalsQuery = QueryParams<"/api/v1/equipment/idle", "get">;
+
+export interface IdleCheckResult {
+  date: IsoDate;
+  thresholdDays: number;
+  checked: number;
+  idle: number;
+  notified: Array<{ rentalId: Id; number: string; users: number }>;
+}

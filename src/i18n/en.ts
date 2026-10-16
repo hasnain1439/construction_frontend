@@ -658,6 +658,7 @@ export const en = {
       SUBSCRIPTION_PAYMENT_REJECTED: "Subscription payment rejected",
       INVITE_ACCEPTED: "Invite accepted",
       PLATFORM_SUPPORT_ACCESS: "Platform support accessed your account",
+      EQUIPMENT_IDLE: "Rented equipment idle",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Wage settlements to approve",

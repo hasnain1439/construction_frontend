@@ -659,6 +659,7 @@ export const romanUr: Dictionary = {
       SUBSCRIPTION_PAYMENT_REJECTED: "Subscription adaigi radd",
       INVITE_ACCEPTED: "Daawat qubool hui",
       PLATFORM_SUPPORT_ACCESS: "Platform support ne aap ka account khola",
+      EQUIPMENT_IDLE: "Kiraye ka saman bekaar khara hai",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Manzoori ke liye mazdoori ka hisaab",

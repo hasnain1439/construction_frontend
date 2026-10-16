@@ -27,8 +27,17 @@ function withColors(series: Series[]) {
 
 type Colored = Series & { color: string };
 
-/** Hover card: the category, then each series with its colour dot and exact rupees. */
-function MoneyTooltip({ active, label, payload, series }: { active?: boolean; label?: ReactNode; payload?: Array<{ dataKey?: unknown; value?: unknown }>; series: Colored[] }) {
+/** How values are written on the axis and in the hover card (default: rupees). */
+export interface ValueFormat {
+  /** Exact value (hover card). */
+  full: (v: number) => string;
+  /** Short value (axis ticks, bar label). */
+  short: (v: number) => string;
+}
+const RUPEES: ValueFormat = { full: (v) => formatPKR(Math.round(v)), short: (v) => formatPKRShort(Math.round(v)) };
+
+/** Hover card: the category, then each series with its colour dot and exact value (rupees by default). */
+function MoneyTooltip({ active, label, payload, series, format = RUPEES }: { active?: boolean; label?: ReactNode; payload?: Array<{ dataKey?: unknown; value?: unknown }>; series: Colored[]; format?: ValueFormat }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="min-w-40 rounded-xl border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-flyout">
@@ -42,7 +51,7 @@ function MoneyTooltip({ active, label, payload, series }: { active?: boolean; la
                 <span className="size-2.5 rounded-full" style={{ background: s?.color }} aria-hidden />
                 {s?.label ?? String(p.dataKey)}
               </span>
-              <span className="font-semibold tabular">{formatPKR(Math.round(Number(p.value)))}</span>
+              <span className="font-semibold tabular">{format.full(Number(p.value))}</span>
             </li>
           );
         })}
@@ -56,7 +65,7 @@ function MoneyTooltip({ active, label, payload, series }: { active?: boolean; la
  * (one bar series: only its highest bar carries a value label), soft gradient areas or 2px
  * smooth lines, dashed recessive grid; hover card with exact rupees; legend for ≥ 2 series.
  */
-function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { data: Array<Record<string, string | number>>; xKey: string; series: Series[]; height?: number; stacked?: boolean; label?: string }) {
+function MoneyComposed({ data, xKey, series, height = 288, stacked, label, format = RUPEES }: { data: Array<Record<string, string | number>>; xKey: string; series: Series[]; height?: number; stacked?: boolean; label?: string; format?: ValueFormat }) {
   const t = useT();
   const uid = useId().replace(/:/g, "");
   const colored = withColors(series);
@@ -81,10 +90,10 @@ function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { d
           </defs>
           <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 4" />
           <XAxis dataKey={xKey} tickLine={false} axisLine={false} tick={axisTick} tickMargin={8} />
-          <YAxis tickLine={false} axisLine={false} width={64} tickCount={5} tick={axisTick} tickFormatter={(v: number) => formatPKRShort(Math.round(v))} />
+          <YAxis tickLine={false} axisLine={false} width={64} tickCount={5} tick={axisTick} tickFormatter={(v: number) => format.short(v)} />
           <Tooltip
             cursor={bars.length ? { fill: "var(--muted)", opacity: 0.5, radius: 8 } : { stroke: "var(--border)", strokeWidth: 1 }}
-            content={<MoneyTooltip series={colored} />}
+            content={<MoneyTooltip series={colored} format={format} />}
           />
           {colored.map((s) =>
             s.kind === "area" ? (
@@ -105,7 +114,7 @@ function MoneyComposed({ data, xKey, series, height = 288, stacked, label }: { d
               >
                 {singleBar && s.key === singleBar.key && topValue > 0 ? (
                   <LabelList
-                    valueAccessor={(_entry, index) => (index === topIndex ? formatPKRShort(Math.round(topValue)) : "")}
+                    valueAccessor={(_entry, index) => (index === topIndex ? format.short(topValue) : "")}
                     content={(props) => {
                       const { x, y, width, value } = props as { x?: number | string; y?: number | string; width?: number | string; value?: unknown };
                       if (!value) return null;
@@ -136,6 +145,8 @@ export function BarChartCard({
   stacked,
   empty,
   actions,
+  format,
+  footer,
 }: {
   title: ReactNode;
   description?: ReactNode;
@@ -145,11 +156,15 @@ export function BarChartCard({
   stacked?: boolean;
   empty?: boolean;
   actions?: ReactNode;
+  /** Values that are not rupees (counts, quantities). */
+  format?: ValueFormat;
+  footer?: ReactNode;
 }) {
   const colored = withColors(series.map((s) => ({ ...s, kind: s.kind ?? "bar" })));
   return (
     <ChartCard title={title} description={description} actions={actions} empty={empty ?? !data.length} legend={colored.map((s) => ({ label: s.label, color: s.color }))}>
-      <MoneyComposed data={data} xKey={xKey} series={colored} stacked={stacked} label={typeof title === "string" ? title : undefined} />
+      <MoneyComposed data={data} xKey={xKey} series={colored} stacked={stacked} label={typeof title === "string" ? title : undefined} format={format} />
+      {footer}
     </ChartCard>
   );
 }

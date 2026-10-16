@@ -36,6 +36,12 @@ export function formatDate(value: DateInput, fallback = "—"): string {
   return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM yyyy")) : fallback;
 }
 
+/** "15 Oct" (chart axes, week labels). */
+export function formatDayMonth(value: DateInput, fallback = "—"): string {
+  const date = toDate(value);
+  return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM")) : fallback;
+}
+
 /** "15 Oct 2026, 2:30 pm" (Pakistan time). */
 export function formatDateTime(value: DateInput, fallback = "—"): string {
   const date = toDate(value);

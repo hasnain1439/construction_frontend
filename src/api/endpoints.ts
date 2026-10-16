@@ -294,6 +294,9 @@ export const ENDPOINTS = {
     charges: "/equipment/charges",
     accrualsRun: "/equipment/accruals/run",
     project: (projectId: string) => `/projects/${id(projectId)}/equipment`,
+    shutteringDemand: "/equipment/shuttering-demand",
+    idle: "/equipment/idle",
+    idleCheck: "/equipment/idle/check",
   },
 
   labor: {

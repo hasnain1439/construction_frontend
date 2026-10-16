@@ -45,10 +45,13 @@ export function NewRentalSlideOver({
   open,
   onOpenChange,
   defaultProjectId,
+  prefill,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultProjectId?: string;
+  /** Shuttering planner suggestion: yard, item, quantity and expected return. */
+  prefill?: { supplierId?: string | null; equipmentId?: string | null; qty?: number; expectedEndDate?: string; note?: string };
 }) {
   const t = useT();
   const [create, { isLoading }] = useCreateRentalMutation();
@@ -60,15 +63,15 @@ export function NewRentalSlideOver({
   const form = useForm<RentalValues, unknown, z.output<typeof rentalSchema>>({
     resolver: zodResolver(rentalSchema),
     values: {
-      supplierId: null,
+      supplierId: prefill?.supplierId ?? null,
       deliverTo: "SITE",
       projectId: defaultProjectId ?? null,
       startDate: todayPK(),
-      expectedEndDate: "",
+      expectedEndDate: prefill?.expectedEndDate ?? "",
       depositPaisa: null,
       reference: "",
-      note: "",
-      items: [{ equipmentId: null, qty: null, ratePaisaPerDay: null }],
+      note: prefill?.note ?? "",
+      items: [{ equipmentId: prefill?.equipmentId ?? null, qty: prefill?.qty ? String(prefill.qty) : null, ratePaisaPerDay: null }],
     },
   });
   const deliverTo = useWatch({ control: form.control, name: "deliverTo" });

@@ -93,6 +93,8 @@ export const COMPANY_TAGS = [
   "EquipmentLosses",
   "EquipmentCharges",
   "ProjectEquipment",
+  "ShutteringDemand",
+  "EquipmentIdle",
   // Step 11 — estimate revisions + rulebook
   "Estimates",
   "OwnerShoppingList",

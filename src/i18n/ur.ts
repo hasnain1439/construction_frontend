@@ -659,6 +659,7 @@ export const ur: Dictionary = {
       SUBSCRIPTION_PAYMENT_REJECTED: "سبسکرپشن ادائیگی مسترد",
       INVITE_ACCEPTED: "دعوت قبول ہوئی",
       PLATFORM_SUPPORT_ACCESS: "پلیٹ فارم سپورٹ نے آپ کا اکاؤنٹ کھولا",
+      EQUIPMENT_IDLE: "کرائے کا سامان بیکار کھڑا ہے",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "منظوری کے لیے اجرت کے حساب",

@@ -28,6 +28,7 @@ import {
   ReturnRentalSlideOver,
 } from "../components/RentalSlideOvers";
 import { placeName, useSeesRates } from "../options";
+import { IdleEquipmentPanel } from "./IdleEquipmentPanel";
 
 const BASE = "/equipment/rentals";
 const RENTAL_STATUSES = ["ACTIVE", "RETURNED", "CLOSED"] as const;
@@ -142,6 +143,7 @@ export function RentalsView() {
           options={[{ value: "true", label: t("equipment.rental.onlyOverdue") }]}
         />
       </FilterBar>
+      <IdleEquipmentPanel projectId={list.filters.projectId || undefined} />
       <SectionCard flush>
         <DataTable
           rows={data?.items}

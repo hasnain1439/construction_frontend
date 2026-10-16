@@ -35,6 +35,9 @@ const defaults = (s: CompanySettings): Values => ({
   defaultFinishingAllowancePercent: s.defaultFinishingAllowancePercent,
   pmCanSeeFinancials: s.pmCanSeeFinancials,
   defaultLanguage: s.defaultLanguage,
+  equipmentIdleDays: s.equipmentIdleDays,
+  shutteringPropsPerPlate: s.shutteringPropsPerPlate,
+  shutteringSparePercent: s.shutteringSparePercent,
 });
 
 /** One setting per card, with plain-language help. */
@@ -86,6 +89,15 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.logTitle")} help={t("teamCompany.settings.logHelp")}>
         <TextField name="missingLogAlertTime" label={t("teamCompany.settings.logLabel")} hideLabel type="time" required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.idleTitle")} help={t("teamCompany.settings.idleHelp")}>
+        <NumberField name="equipmentIdleDays" label={t("teamCompany.settings.idleTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.propsTitle")} help={t("teamCompany.settings.propsHelp")}>
+        <NumberField name="shutteringPropsPerPlate" label={t("teamCompany.settings.propsTitle")} hideLabel unit={t("teamCompany.settings.perPlate")} decimals={2} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.spareTitle")} help={t("teamCompany.settings.spareHelp")}>
+        <NumberField name="shutteringSparePercent" label={t("teamCompany.settings.spareTitle")} hideLabel unit="%" decimals={0} required />
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.quoteTitle")} help={t("teamCompany.settings.quoteHelp")}>
         <NumberField name="quoteValidityDays" label={t("teamCompany.settings.quoteTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
