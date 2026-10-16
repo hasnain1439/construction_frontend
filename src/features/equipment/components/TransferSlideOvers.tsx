@@ -35,6 +35,7 @@ import {
   splitBucket,
   useBucketOptions,
   useEquipmentPlaces,
+  type Bucket,
 } from "../options";
 import { receiveSchema, transferSchema, type ReceiveValues, type TransferValues } from "../schemas";
 import { ItemLines } from "./ItemLines";
@@ -52,6 +53,7 @@ export function NewTransferSlideOver({
   defaultFromId,
   lockFrom,
   onCreated,
+  prefill,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,22 +61,26 @@ export function NewTransferSlideOver({
   /** Site page: the source is this site. */
   lockFrom?: boolean;
   onCreated?: (transfer: EquipmentTransfer) => void;
+  /** Shuttering planner suggestion: destination project + item and quantity (owned units first, then rented piles). */
+  prefill?: { toProjectId?: string | null; equipmentId?: string | null; qty?: number };
 }) {
   const t = useT();
   const [create, { isLoading }] = useCreateEquipmentTransferMutation();
   const run = useMutationToast();
   const places = useEquipmentPlaces();
   const projects = useSiteProjectOptions();
+  const prefillSource = places.map.find((l) => l.location.id === defaultFromId);
+  const prefillItems = useMemo(() => prefillLines(bucketsOf(prefillSource), prefill), [prefillSource, prefill]);
   const form = useForm<TransferValues, unknown, z.output<typeof transferSchema>>({
     resolver: zodResolver(transferSchema),
     values: {
       fromLocationId: defaultFromId ?? null,
-      to: null,
+      to: prefill?.toProjectId ? `${PROJECT}${prefill.toProjectId}` : null,
       date: todayPK(),
       vehicleNo: "",
       driverName: "",
       note: "",
-      items: [{ key: null, qty: null }],
+      items: prefillItems,
     },
   });
   const fromId = useWatch({ control: form.control, name: "fromLocationId" });
@@ -236,6 +242,26 @@ function applyShortLines(
 }
 
 // ─── Receive with counts ────────────────────────────────────────────────────
+
+/** Item lines for a suggested quantity of one item: owned units first, then each rental's pile. */
+export function prefillLines(
+  buckets: Bucket[],
+  prefill: { equipmentId?: string | null; qty?: number } | undefined,
+): Array<{ key: string | null; qty: string | null }> {
+  if (!prefill?.equipmentId || !prefill.qty) return [{ key: null, qty: null }];
+  let left = prefill.qty;
+  const lines: Array<{ key: string | null; qty: string | null }> = [];
+  const piles = buckets
+    .filter((b) => b.equipment.id === prefill.equipmentId)
+    .sort((a, b) => Number(a.rental !== null) - Number(b.rental !== null));
+  for (const b of piles) {
+    if (left <= 0) break;
+    const qty = Math.min(left, b.qty);
+    lines.push({ key: b.key, qty: String(qty) });
+    left -= qty;
+  }
+  return lines.length ? lines : [{ key: null, qty: String(prefill.qty) }];
+}
 
 export interface LossPreviewRow {
   name: string;

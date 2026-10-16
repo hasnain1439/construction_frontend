@@ -347,13 +347,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("equipment.view"),
         keywords: ["internal hire", "daily", "rent"],
       },
-      // Wave 3: shuttering demand planner (needs the Step 13 schedule) — ComingSoon until then.
-      soon(
-        "equipment.shuttering",
-        L("Shuttering Demand", "Shuttering ki talab", "شٹرنگ کی طلب"),
-        "/equipment/shuttering",
-        P("equipment.view"),
-      ),
+      {
+        id: "equipment.shuttering",
+        label: L("Shuttering Demand", "Shuttering ki talab", "شٹرنگ کی طلب"),
+        href: "/equipment/shuttering",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["plates", "props", "slab", "lenter", "shortfall", "idle"],
+      },
     ],
   },
   {

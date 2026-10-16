@@ -53,6 +53,19 @@ export const companySettingsSchema = z.object({
     .refine((v): v is number => v !== null && v >= 0 && v <= 200, msg("teamCompany.v.percentRange", { min: 0, max: 200 })),
   pmCanSeeFinancials: z.boolean(),
   defaultLanguage: z.enum(["ENGLISH", "ROMAN_URDU", "URDU"]),
+  // Step 16: idle-rent alert + shuttering planner
+  equipmentIdleDays: z
+    .number({ error: msg("teamCompany.v.enterDays") })
+    .nullable()
+    .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 1 && v <= 60, msg("teamCompany.v.daysRange", { min: 1, max: 60 })),
+  shutteringPropsPerPlate: z
+    .number({ error: msg("teamCompany.v.enterNumber") })
+    .nullable()
+    .refine((v): v is number => v !== null && v >= 0 && v <= 5 && Math.abs(Math.round(v * 20) - v * 20) < 1e-9, msg("teamCompany.v.numberRange", { min: 0, max: 5 })),
+  shutteringSparePercent: z
+    .number({ error: msg("teamCompany.v.enterPercent") })
+    .nullable()
+    .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 30, msg("teamCompany.v.percentRange", { min: 0, max: 30 })),
 });
 
 export const holidaySchema = z

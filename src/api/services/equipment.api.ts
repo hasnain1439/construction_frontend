@@ -24,6 +24,9 @@ import type {
   EquipmentTransfer,
   EquipmentTransfersQuery,
   ExtendRentalBody,
+  IdleCheckResult,
+  IdleRentals,
+  IdleRentalsQuery,
   Paginated,
   ProjectEquipment,
   ReceiveEquipmentTransferBody,
@@ -31,6 +34,8 @@ import type {
   RentalsQuery,
   ReportLossBody,
   ReturnRentalBody,
+  ShutteringDemand,
+  ShutteringDemandQuery,
   StockInBody,
   UpdateEquipmentBody,
 } from "@/api/types";
@@ -41,6 +46,9 @@ const MOVED = [
   { type: "EquipmentBalances" as const, id: LIST },
   { type: "EquipmentMovements" as const, id: LIST },
   { type: "ProjectEquipment" as const, id: LIST },
+  // The shuttering planner and the idle list read the same ledger.
+  { type: "ShutteringDemand" as const, id: LIST },
+  { type: "EquipmentIdle" as const, id: LIST },
 ];
 
 const equipmentChanged = (id?: string) => [...MOVED, ...(id ? [{ type: "Equipment" as const, id }] : [])];
@@ -192,6 +200,19 @@ export const equipmentApi = baseApi.injectEndpoints({
       transformResponse: toPage<EquipmentCharge, { totalPaisa?: string }>,
       providesTags: [{ type: "EquipmentCharges", id: LIST }],
     }),
+    // ─── Shuttering demand + idle rent (Step 16 part 2) ─────────────────────
+    getShutteringDemand: build.query<ShutteringDemand, ShutteringDemandQuery | void>({
+      query: (params) => ({ url: ENDPOINTS.equipment.shutteringDemand, params: cleanParams(params ?? undefined) }),
+      providesTags: [{ type: "ShutteringDemand", id: LIST }],
+    }),
+    getEquipmentIdle: build.query<IdleRentals, IdleRentalsQuery | void>({
+      query: (params) => ({ url: ENDPOINTS.equipment.idle, params: cleanParams(params ?? undefined) }),
+      providesTags: [{ type: "EquipmentIdle", id: LIST }],
+    }),
+    runEquipmentIdleCheck: build.mutation<IdleCheckResult, void>({
+      query: () => ({ url: ENDPOINTS.equipment.idleCheck, method: "POST" }),
+      invalidatesTags: [{ type: "EquipmentIdle", id: LIST }, { type: "Notifications", id: LIST }, { type: "Notifications", id: "COUNT" }],
+    }),
     runEquipmentAccrual: build.mutation<AccrualResult, { through?: string } | void>({
       query: (body) => ({ url: ENDPOINTS.equipment.accrualsRun, method: "POST", body: body ?? {} }),
       invalidatesTags: [
@@ -230,4 +251,7 @@ export const {
   useChargeEquipmentLossMutation,
   useGetEquipmentChargesQuery,
   useRunEquipmentAccrualMutation,
+  useGetShutteringDemandQuery,
+  useGetEquipmentIdleQuery,
+  useRunEquipmentIdleCheckMutation,
 } = equipmentApi;

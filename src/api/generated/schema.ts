@@ -2219,7 +2219,10 @@ export interface paths {
                          *         "pmCanRecordPayments": false,
                          *         "defaultMarginPercent": 20,
                          *         "defaultFinishingAllowancePercent": 0,
-                         *         "defaultLanguage": "ROMAN_URDU"
+                         *         "defaultLanguage": "ROMAN_URDU",
+                         *         "equipmentIdleDays": 5,
+                         *         "shutteringPropsPerPlate": 0.75,
+                         *         "shutteringSparePercent": 5
                          *       }
                          *     }
                          */
@@ -2271,6 +2274,8 @@ export interface paths {
          *     Billing: `paymentTermsDays` (0–90), `taxRatePercent` (0–30) and `taxLabel` (used only when `taxEnabled`), `pmCanRecordPayments`.
          *
          *     Estimate → contract value: `defaultMarginPercent` (0–100, default 20) and `defaultFinishingAllowancePercent` (0–200, default 0, FULL contracts only) pre-fill the “contract value from this estimate” card and POST /projects/{id}/contract/from-estimate; a project may override both.
+         *
+         *     Equipment (Step 16): `equipmentIdleDays` (1–60, default 5) — rented units with no milestone activity at their site for this many days raise EQUIPMENT_IDLE; shuttering planner `shutteringPropsPerPlate` (0–5, default 0.75) and `shutteringSparePercent` (0–30, default 5).
          */
         patch: {
             parameters: {
@@ -2314,6 +2319,9 @@ export interface paths {
                             /** @example 2026-12-25 */
                             end: string;
                         }[] | null;
+                        equipmentIdleDays?: number;
+                        shutteringPropsPerPlate?: number;
+                        shutteringSparePercent?: number;
                     };
                 };
             };
@@ -36200,6 +36208,1096 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/equipment/shuttering-demand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shuttering demand planner
+         * @description equipment.view. Every ACTIVE project in scope (or `projectId`), from the week of `from` (Monday) for `weeks` weeks. Weekly shuttering plates / props needed by the slab milestones (GF / F1 / F2 / F3 slab, mumty roof) of the schedule vs owned and rented units, with suggestions. Area per slab from the APPROVED estimate: slab soffit + beam sides from the shuttering BoQ line (BOQ), else the floor footprint + beamSidesPercent (ESTIMATE_FOOTPRINT), else covered area ÷ slab floors (COVERED_AREA). plates = ceil(area ÷ plate coverage × (1 + spare %)), props = ceil(plates × props per plate) (company settings). Plates are held from the start of the slab work until it is struck (end + curing lag, else 14 days). Weekly need = the highest day of the week. Company view: owned available = every owned unit, on rent = rented units on hand; project view: owned at the site + the yard, rented at the site. Suggestions: EXTEND_RENTAL for the site’s own rentals ending while it is still short, TRANSFER from the yard, then from sites that need fewer from that week on (idleAfterWeek), RENT the rest (supplier = yard last rented from); RETURN_RENTAL for rented units nobody needs. No money in the planner. Assumptions need engineer review.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    projectId?: string;
+                    /** @description First week (snapped back to Monday; default this week) */
+                    from?: string;
+                    /** @description Weeks to plan (default 8) */
+                    weeks?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Demand */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "scope": "COMPANY",
+                         *         "project": null,
+                         *         "from": "2026-10-12",
+                         *         "to": "2026-11-08",
+                         *         "today": "2026-10-16",
+                         *         "weeks": 4,
+                         *         "parameters": {
+                         *           "plateCoverageSqft": 6,
+                         *           "plateCoverageSource": "EQUIPMENT",
+                         *           "propsPerPlate": 0.75,
+                         *           "sparePercent": 5,
+                         *           "beamSidesPercent": 20,
+                         *           "defaultStrikeDays": 14
+                         *         },
+                         *         "equipment": {
+                         *           "plates": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             }
+                         *           ],
+                         *           "props": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             }
+                         *           ]
+                         *         },
+                         *         "milestones": [
+                         *           {
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "milestone": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001671",
+                         *               "key": "F1_STRUCTURE.SLAB",
+                         *               "name": "First floor roof slab (lenter)",
+                         *               "stageKey": "F1_STRUCTURE",
+                         *               "status": "IN_PROGRESS",
+                         *               "plannedStart": "2026-10-14",
+                         *               "plannedEnd": "2026-10-28",
+                         *               "curingDays": 14
+                         *             },
+                         *             "holdFrom": "2026-10-14",
+                         *             "holdUntil": "2026-11-11",
+                         *             "area": {
+                         *               "slabSqft": 2250,
+                         *               "beamSqft": 450,
+                         *               "totalSqft": 2700,
+                         *               "source": "ESTIMATE_FOOTPRINT"
+                         *             },
+                         *             "plates": 473,
+                         *             "props": 355
+                         *           }
+                         *         ],
+                         *         "series": [
+                         *           {
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "weeks": [
+                         *               {
+                         *                 "weekStart": "2026-10-12",
+                         *                 "weekEnd": "2026-10-18",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-10-19",
+                         *                 "weekEnd": "2026-10-25",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-10-26",
+                         *                 "weekEnd": "2026-11-01",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-11-02",
+                         *                 "weekEnd": "2026-11-08",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "suggestions": [
+                         *           {
+                         *             "type": "EXTEND_RENTAL",
+                         *             "category": "PROP",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "fromWeek": "2026-11-02",
+                         *             "toWeek": "2026-11-09",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *               "number": "RNT-0001"
+                         *             },
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "TRANSFER",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 20,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "fromProject": null,
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "TRANSFER",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 130,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000504",
+                         *               "type": "SITE",
+                         *               "name": "Johar Town · 5 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000303"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "RENT",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 79,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": null,
+                         *             "fromProject": null,
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *               "name": "Punjab Shuttering Yard"
+                         *             }
+                         *           },
+                         *           {
+                         *             "type": "RETURN_RENTAL",
+                         *             "category": "PROP",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 100,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-10-12",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000504",
+                         *               "type": "SITE",
+                         *               "name": "Johar Town · 5 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000303"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": null,
+                         *             "toLocation": null,
+                         *             "rental": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001623",
+                         *               "number": "RNT-0002"
+                         *             },
+                         *             "supplier": null
+                         *           }
+                         *         ],
+                         *         "warnings": [
+                         *           {
+                         *             "code": "NO_SCHEDULE",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/shuttering-demand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shuttering demand of one project
+         * @description equipment.view + project scope. Same as GET /equipment/shuttering-demand?projectId= (scope PROJECT). Weekly shuttering plates / props needed by the slab milestones (GF / F1 / F2 / F3 slab, mumty roof) of the schedule vs owned and rented units, with suggestions. Area per slab from the APPROVED estimate: slab soffit + beam sides from the shuttering BoQ line (BOQ), else the floor footprint + beamSidesPercent (ESTIMATE_FOOTPRINT), else covered area ÷ slab floors (COVERED_AREA). plates = ceil(area ÷ plate coverage × (1 + spare %)), props = ceil(plates × props per plate) (company settings). Plates are held from the start of the slab work until it is struck (end + curing lag, else 14 days). Weekly need = the highest day of the week. Company view: owned available = every owned unit, on rent = rented units on hand; project view: owned at the site + the yard, rented at the site. Suggestions: EXTEND_RENTAL for the site’s own rentals ending while it is still short, TRANSFER from the yard, then from sites that need fewer from that week on (idleAfterWeek), RENT the rest (supplier = yard last rented from); RETURN_RENTAL for rented units nobody needs. No money in the planner. Assumptions need engineer review.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description First week (snapped back to Monday; default this week) */
+                    from?: string;
+                    /** @description Weeks to plan (default 8) */
+                    weeks?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Demand */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "scope": "PROJECT",
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "from": "2026-10-12",
+                         *         "to": "2026-11-08",
+                         *         "today": "2026-10-16",
+                         *         "weeks": 4,
+                         *         "parameters": {
+                         *           "plateCoverageSqft": 6,
+                         *           "plateCoverageSource": "EQUIPMENT",
+                         *           "propsPerPlate": 0.75,
+                         *           "sparePercent": 5,
+                         *           "beamSidesPercent": 20,
+                         *           "defaultStrikeDays": 14
+                         *         },
+                         *         "equipment": {
+                         *           "plates": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             }
+                         *           ],
+                         *           "props": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             }
+                         *           ]
+                         *         },
+                         *         "milestones": [
+                         *           {
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "milestone": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001671",
+                         *               "key": "F1_STRUCTURE.SLAB",
+                         *               "name": "First floor roof slab (lenter)",
+                         *               "stageKey": "F1_STRUCTURE",
+                         *               "status": "IN_PROGRESS",
+                         *               "plannedStart": "2026-10-14",
+                         *               "plannedEnd": "2026-10-28",
+                         *               "curingDays": 14
+                         *             },
+                         *             "holdFrom": "2026-10-14",
+                         *             "holdUntil": "2026-11-11",
+                         *             "area": {
+                         *               "slabSqft": 2250,
+                         *               "beamSqft": 450,
+                         *               "totalSqft": 2700,
+                         *               "source": "ESTIMATE_FOOTPRINT"
+                         *             },
+                         *             "plates": 473,
+                         *             "props": 355
+                         *           }
+                         *         ],
+                         *         "series": [
+                         *           {
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "weeks": [
+                         *               {
+                         *                 "weekStart": "2026-10-12",
+                         *                 "weekEnd": "2026-10-18",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-10-19",
+                         *                 "weekEnd": "2026-10-25",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-10-26",
+                         *                 "weekEnd": "2026-11-01",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               },
+                         *               {
+                         *                 "weekStart": "2026-11-02",
+                         *                 "weekEnd": "2026-11-08",
+                         *                 "needed": 473,
+                         *                 "ownedAvailable": 394,
+                         *                 "onRent": 0,
+                         *                 "available": 394,
+                         *                 "shortfall": 79,
+                         *                 "surplus": 0,
+                         *                 "demand": [
+                         *                   {
+                         *                     "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *                     "milestoneId": "0199a8c0-0000-7000-8000-000000001671",
+                         *                     "qty": 473
+                         *                   }
+                         *                 ]
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "suggestions": [
+                         *           {
+                         *             "type": "EXTEND_RENTAL",
+                         *             "category": "PROP",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "fromWeek": "2026-11-02",
+                         *             "toWeek": "2026-11-09",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *               "number": "RNT-0001"
+                         *             },
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "TRANSFER",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 20,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "fromProject": null,
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "TRANSFER",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 130,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000504",
+                         *               "type": "SITE",
+                         *               "name": "Johar Town · 5 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000303"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": null
+                         *           },
+                         *           {
+                         *             "type": "RENT",
+                         *             "category": "SHUTTERING_PLATE",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "qty": 79,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-11-08",
+                         *             "from": null,
+                         *             "fromProject": null,
+                         *             "idleAfterWeek": null,
+                         *             "toProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "toLocation": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "rental": null,
+                         *             "supplier": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *               "name": "Punjab Shuttering Yard"
+                         *             }
+                         *           },
+                         *           {
+                         *             "type": "RETURN_RENTAL",
+                         *             "category": "PROP",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 100,
+                         *             "fromWeek": "2026-10-12",
+                         *             "toWeek": "2026-10-12",
+                         *             "from": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000504",
+                         *               "type": "SITE",
+                         *               "name": "Johar Town · 5 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000303"
+                         *             },
+                         *             "fromProject": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             },
+                         *             "idleAfterWeek": null,
+                         *             "toProject": null,
+                         *             "toLocation": null,
+                         *             "rental": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001623",
+                         *               "number": "RNT-0002"
+                         *             },
+                         *             "supplier": null
+                         *           }
+                         *         ],
+                         *         "warnings": [
+                         *           {
+                         *             "code": "NO_SCHEDULE",
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/idle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Idle rented equipment
+         * @description equipment.view (sites in scope). Rented units at a site whose project had no milestone activity (progress update, usage linked to a milestone, a structure milestone IN_PROGRESS / CURING) for at least the company `equipmentIdleDays` (default 5). since = max(last activity, arrival); `all=true` also lists rentals below the threshold. Most idle first. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    projectId?: string;
+                    /** @description true = also rentals below the idle threshold */
+                    all?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Idle rentals */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "today": "2026-10-16",
+                         *         "thresholdDays": 5,
+                         *         "items": [
+                         *           {
+                         *             "rental": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001623",
+                         *               "number": "RNT-0002",
+                         *               "status": "ACTIVE",
+                         *               "startDate": "2026-10-04",
+                         *               "expectedEndDate": "2026-11-03",
+                         *               "supplier": {
+                         *                 "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *                 "name": "Punjab Shuttering Yard"
+                         *               }
+                         *             },
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000303",
+                         *               "code": "MSB-2026-014",
+                         *               "name": "Johar Town · 5 Marla"
+                         *             },
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000504",
+                         *               "type": "SITE",
+                         *               "name": "Johar Town · 5 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000303"
+                         *             },
+                         *             "items": [
+                         *               {
+                         *                 "equipment": {
+                         *                   "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *                   "name": "Steel prop (adjustable)",
+                         *                   "code": "PR-01",
+                         *                   "unit": "nos",
+                         *                   "kind": "BULK",
+                         *                   "category": "PROP"
+                         *                 },
+                         *                 "qty": 100,
+                         *                 "ratePaisaPerDay": "1500",
+                         *                 "dailyCostPaisa": "150000"
+                         *               }
+                         *             ],
+                         *             "qty": 100,
+                         *             "since": "2026-10-04",
+                         *             "lastActivity": null,
+                         *             "hasSchedule": false,
+                         *             "idleDays": 12,
+                         *             "thresholdDays": 5,
+                         *             "idle": true,
+                         *             "dailyCostPaisa": "150000",
+                         *             "idleCostPaisa": "1800000"
+                         *           }
+                         *         ],
+                         *         "totalDailyCostPaisa": "150000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/idle/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run the idle-rent alert now
+         * @description equipment.rental.manage. Same as the daily 09:00 job, for this company: EQUIPMENT_IDLE (WARNING) per idle rental to the holders of equipment.rental.manage for the project + its PMs (the daily rent only for users with fields.rates). At most once per rental per 7 days per user. Audited (equipment.idle.check).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Checked */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "date": "2026-10-16",
+                         *         "thresholdDays": 5,
+                         *         "checked": 2,
+                         *         "idle": 1,
+                         *         "notified": [
+                         *           {
+                         *             "rentalId": "0199a8c0-0000-7000-8000-000000001623",
+                         *             "number": "RNT-0002",
+                         *             "users": 2
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{id}/labor/workers": {
         parameters: {
             query?: never;
@@ -45990,7 +47088,7 @@ export interface paths {
                     limit?: number;
                     /** @description Only unread */
                     unreadOnly?: "true" | "false";
-                    type?: "DISPATCH_CREATED" | "SHORTAGE_CREATED" | "LOW_STOCK" | "PURCHASE_PENDING_RATE" | "SETTLEMENT_SUBMITTED" | "SETTLEMENT_RETURNED" | "EXPENSE_PENDING_APPROVAL" | "TOPUP_REQUESTED" | "FLOAT_SENT" | "MEASUREMENT_RECORDED" | "SUBCONTRACTOR_OVERPAID" | "INVOICE_OVERDUE" | "CHEQUE_BOUNCED" | "STAGE_READY_UNBILLED" | "PREVIOUS_STAGE_UNPAID" | "SUBSCRIPTION_RENEWAL" | "SUBSCRIPTION_PAYMENT_APPROVED" | "SUBSCRIPTION_PAYMENT_REJECTED" | "INVITE_ACCEPTED" | "PLATFORM_SUPPORT_ACCESS";
+                    type?: "DISPATCH_CREATED" | "SHORTAGE_CREATED" | "LOW_STOCK" | "PURCHASE_PENDING_RATE" | "SETTLEMENT_SUBMITTED" | "SETTLEMENT_RETURNED" | "EXPENSE_PENDING_APPROVAL" | "TOPUP_REQUESTED" | "FLOAT_SENT" | "MEASUREMENT_RECORDED" | "SUBCONTRACTOR_OVERPAID" | "INVOICE_OVERDUE" | "CHEQUE_BOUNCED" | "STAGE_READY_UNBILLED" | "PREVIOUS_STAGE_UNPAID" | "SUBSCRIPTION_RENEWAL" | "SUBSCRIPTION_PAYMENT_APPROVED" | "SUBSCRIPTION_PAYMENT_REJECTED" | "INVITE_ACCEPTED" | "PLATFORM_SUPPORT_ACCESS" | "EQUIPMENT_IDLE";
                     severity?: "INFO" | "WARNING" | "CRITICAL";
                     projectId?: string;
                 };
@@ -59100,6 +60198,21 @@ export interface components {
             }[];
             /** @description false = the built-in approximate dates */
             ramadanPeriodsCustom: boolean;
+            /**
+             * @description Rented equipment with no milestone activity at its site for this many days → EQUIPMENT_IDLE alert (1–60)
+             * @example 5
+             */
+            equipmentIdleDays: number;
+            /**
+             * @description Shuttering planner: props needed per plate (0–5, engineer review)
+             * @example 0.75
+             */
+            shutteringPropsPerPlate: number;
+            /**
+             * @description Shuttering planner: extra plates % for cut pieces / damage (0–30)
+             * @example 5
+             */
+            shutteringSparePercent: number;
         };
         Holiday: {
             /** Format: uuid */
