@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 15
+- **Project → Change Orders** (replaces "Coming soon"): list with KPIs (approved changes, revised contract, revised end date, waiting for the owner), status filter, CHANGE_ORDER snags with "Make change order"; **New / Edit** builder (mini BoQ: materials at the estimate / price-list rate, labour rates, other items, markup %, live cost / markup / owner totals, days impact, affected milestones, proof); **detail** with a status stepper (send → approve / reject → work started → completed → billed), approval dialog with proof (WhatsApp screenshot / signed slip file / verbal note), "Bill it" (next stage invoice or variation invoice), slip PDF preview / download / WhatsApp.
+- **Site instructions** page (`/projects/:id/change-orders/instructions`): record an instruction (note + photo), convert to a change order draft or dismiss; the Munshi sees own ones.
+- Project overview: Contract card shows the revised contract, Client & site card the revised end date when change orders are approved.
+- Permission keys `changeorder.*`, nav items gated (Munshi: Site instructions only); money hidden without `fields.rates` / `fields.amounts` / `fields.contract`. API types + catalogue fixture regenerated. Texts in `src/i18n/areas/changeOrders/` (en / roman-ur / ur).
 ### Step 16
 - **Equipment & shuttering** (part 1): Equipment → **Allocation Map** (where every plate, prop and machine is — yard, each site, on the road; owned vs rented), **Owned Equipment** (register, add / edit, stock in, adjust count, detail with movement log), **Rentals** (hire from a yard with rate per day and deposit; extend, return with counts and damage charges, close with deposit refund; overdue badge), **Movements** (send / transfer / return equipment, transfer detail with cancel and receive, movement log), **Loss & Damage** (report with photo; charge to the project, a sub-contractor or write off) and **Hire & Rent Charges** (daily rows by month / project, "Post charges now").
 - Project → Site → **Equipment on Site**: what is at the site (owned vs rented), equipment on the way with **Receive**, the project's rentals and open losses; report a loss, hire equipment, send / return from the site.

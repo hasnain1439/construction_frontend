@@ -320,6 +320,13 @@ Site entries now also come from the **Munshi phone app** (`../construction-mobil
 
 New: `components/common/LateSyncBadge.tsx`, `features/site/DailyLogsView.tsx`, `api/services/dailyLogs.api.ts` (`getDailyLogs`, `getDailyLog`, `getSyncStatus`; tags `DailyLogs`, `SyncStatus`), `api/types/sync.ts`, endpoints `ENDPOINTS.dailyLogs.*` and `ENDPOINTS.sync.status`. `lateSync?: boolean` was added to `AttendanceMark`, today's hazri rows, `CashEntry`, `Purchase`, `PurchaseListRow` and `Dispatch`. Navigation: _Daily Logs & Photos_ is now available. API types regenerated (`npm run api:types`).
 
+## Change Orders (Phase 3 · Step 15)
+
+Project mode → **Change Orders**: `/projects/:id/change-orders` (list), `/change-orders/new`, `/change-orders/:coId` (detail), `/change-orders/:coId/edit` (draft), `/change-orders/instructions` (site instructions) — `src/features/change-orders/`: `ChangeOrdersView`, `ChangeOrderBuilder`, `ChangeOrderDetailView` (stepper, approve / reject / bill dialogs, `PdfActions` slip), `SiteInstructionsView`, `shared.tsx` (status badge, stepper), `calc.ts` (pure: line / price / total maths mirroring the API, `allowedActions(status, can)`, proof rules). API service `src/api/services/changeOrders.api.ts` (tags `ChangeOrders`, `SiteInstructions`; approving invalidates Projects / Receivables / Finance / Dashboard), types `src/api/types/changeOrders.ts`, texts `src/i18n/areas/changeOrders/` (`t("changeOrders.…")`).
+- Gating: list / detail `changeorder.view`, builder + convert `changeorder.create`, edit / send / start / complete `changeorder.edit`, approve / reject `changeorder.approve`, bill `changeorder.manage` + `billing.invoice.create`, site instructions `changeorder.instruction.view|create`. Cost-side money needs `fields.rates` (otherwise the builder hides rates and the API fills them), owner prices `fields.rates` or `fields.amounts`, revised contract `fields.contract`.
+- Overview cards: revised contract (Contract card) and revised end date (Client & site card) from `GET /projects/:id` → `changeOrders`.
+- Tests: `tests/unit/components/ChangeOrders.test.tsx` (builder maths + live totals, rates hidden, stepper actions by status / permission, rejected step, money gating, nav gating, overview cards).
+
 ## Documents & Closeout (Phase 3 · Step 17)
 
 Project mode → **Documents & Closeout**: `/projects/:id/documents/drawings | snags | handover | retention` (`src/features/closeout/`: `DrawingsView`, `SnagsView`, `HandoverView`, `RetentionView`, `schemas.ts`, `shared.tsx`). API service `src/api/services/closeout.api.ts` (tags `Drawings`, `Snags`, `Handover`, `Retention`), types `src/api/types/closeout.ts`, texts `src/i18n/areas/closeout/` (`t("closeout.…")`).

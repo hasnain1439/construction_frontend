@@ -157,6 +157,14 @@ export const PERMISSION_KEYS = [
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
+  // change orders (Step 15)
+  "changeorder.view",
+  "changeorder.create",
+  "changeorder.edit",
+  "changeorder.approve",
+  "changeorder.manage",
+  "changeorder.instruction.create",
+  "changeorder.instruction.view",
   // fields
   "fields.rates",
   "fields.amounts",

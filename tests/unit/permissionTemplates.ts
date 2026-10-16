@@ -100,10 +100,16 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "schedule.plan.view",
   "schedule.progress.edit",
   "schedule.stoppage.create",
+  "changeorder.instruction.create",
   "closeout.drawing.manage",
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
+  "changeorder.view",
+  "changeorder.create",
+  "changeorder.edit",
+  "changeorder.approve",
+  "changeorder.instruction.view",
 ];
 
 export const MUNSHI_TEMPLATE: PermissionKey[] = [
@@ -153,6 +159,7 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
   "schedule.plan.view",
   "schedule.progress.edit",
   "schedule.stoppage.create",
+  "changeorder.instruction.create",
 ];
 
 export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
@@ -186,6 +193,8 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "fields.contract",
   "closeout.snag.view",
   "closeout.retention.view",
+  "changeorder.view",
+  "changeorder.manage",
 ];
 
 export const FINANCIAL_BUNDLE: PermissionKey[] = [

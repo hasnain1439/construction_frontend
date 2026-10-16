@@ -167,6 +167,14 @@
     "roman": "Schedule (kaam ka nizam)",
     "urdu": "شیڈول"
    }
+  },
+  {
+   "key": "changeorder",
+   "label": {
+    "en": "Change orders",
+    "roman": "Tabdeeli orders",
+    "urdu": "تبدیلی آرڈرز"
+   }
   }
  ],
  "permissions": [
@@ -2203,6 +2211,118 @@
    "field": false
   },
   {
+   "key": "changeorder.view",
+   "module": "changeorder",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View change orders",
+    "roman": "Tabdeeli orders dekhna",
+    "urdu": "تبدیلی آرڈرز دیکھنا"
+   },
+   "description": "Change orders of a project, their slip PDF and WhatsApp text (amounts also need fields.rates or fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.create",
+   "module": "changeorder",
+   "resource": "create",
+   "action": "",
+   "label": {
+    "en": "Create change orders",
+    "roman": "Tabdeeli order banana",
+    "urdu": "تبدیلی آرڈر بنانا"
+   },
+   "description": "New change order (mini BoQ: material / labour lines, markup, days), turn a site instruction or a snag into a change order draft, dismiss a site instruction.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.edit",
+   "module": "changeorder",
+   "resource": "edit",
+   "action": "",
+   "label": {
+    "en": "Edit change orders",
+    "roman": "Tabdeeli order badalna",
+    "urdu": "تبدیلی آرڈر بدلنا"
+   },
+   "description": "Edit or delete a draft, send it to the owner, reopen it, mark the work started / completed.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.approve",
+   "module": "changeorder",
+   "resource": "approve",
+   "action": "",
+   "label": {
+    "en": "Record owner approval",
+    "roman": "Maalik ki manzoori darj karna",
+    "urdu": "مالک کی منظوری درج کرنا"
+   },
+   "description": "Record that the owner approved (with proof: WhatsApp screenshot, signed slip or verbal note) or rejected a change order.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.manage",
+   "module": "changeorder",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Bill change orders",
+    "roman": "Tabdeeli orders ka bill",
+    "urdu": "تبدیلی آرڈرز کا بل"
+   },
+   "description": "Put an approved change order on the next stage invoice or make a separate variation invoice (also needs billing.invoice.create).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.create",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "create",
+   "label": {
+    "en": "Record site instructions",
+    "roman": "Site hidayat darj karna",
+    "urdu": "سائٹ ہدایت درج کرنا"
+   },
+   "description": "Record what the owner asked for on site (photo + note) so the office can turn it into a change order; see own instructions.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.view",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "view",
+   "label": {
+    "en": "View site instructions",
+    "roman": "Site hidayat dekhna",
+    "urdu": "سائٹ ہدایات دیکھنا"
+   },
+   "description": "Every site instruction of a project (not only own).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "closeout.drawing.view",
    "module": "closeout",
    "resource": "drawing",
@@ -2514,6 +2634,13 @@
     "equipment.rental.manage",
     "equipment.loss.create",
     "equipment.loss.approve",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.manage",
+    "changeorder.instruction.create",
+    "changeorder.instruction.view",
     "closeout.drawing.view",
     "closeout.drawing.manage",
     "closeout.snag.view",
@@ -2583,6 +2710,7 @@
     "schedule.plan.view",
     "schedule.progress.edit",
     "schedule.stoppage.create",
+    "changeorder.instruction.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
@@ -2635,7 +2763,12 @@
     "closeout.drawing.manage",
     "closeout.snag.manage",
     "closeout.handover.manage",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.instruction.view"
    ]
   },
   {
@@ -2693,7 +2826,8 @@
     "closeout.snag.create",
     "schedule.plan.view",
     "schedule.progress.edit",
-    "schedule.stoppage.create"
+    "schedule.stoppage.create",
+    "changeorder.instruction.create"
    ]
   },
   {
@@ -2735,7 +2869,9 @@
     "fields.amounts",
     "fields.contract",
     "closeout.snag.view",
-    "closeout.retention.view"
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.manage"
    ]
   },
   {

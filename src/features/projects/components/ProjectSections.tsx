@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
+import { formatPKR } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import { SUPPLY_CATEGORIES } from "../constants";
 import { formatArea } from "../utils/calc";
@@ -43,6 +44,7 @@ function useUnits() {
 
 export function ClientCard({ project, canEdit }: { project: ProjectDetail; canEdit?: boolean }) {
   const t = useT();
+  const changes = project.changeOrders;
   return (
     <SectionCard title={t("projects.section.clientSite")} actions={<EditLink project={project} tab={1} canEdit={canEdit} />}>
       <InfoList
@@ -55,6 +57,17 @@ export function ClientCard({ project, canEdit }: { project: ProjectDetail; canEd
           },
           { label: t("field.site"), value: [project.siteAddress, project.city].filter(Boolean).join(", ") || "—" },
           { label: t("projects.section.dates"), value: <bdi>{`${formatDate(project.startDate)} – ${formatDate(project.endDate)}`}</bdi> },
+          // Step 15: approved change orders push the end date.
+          {
+            label: t("changeOrders.project.revisedEnd"),
+            value: (
+              <span className="space-y-0.5">
+                <bdi className="block">{formatDate(changes?.revisedEndDate)}</bdi>
+                <span className="block text-xs text-muted-foreground">{t("changeOrders.project.revisedEndValue", { n: changes?.daysImpact ?? 0 })}</span>
+              </span>
+            ),
+            hidden: !changes?.daysImpact || !changes.revisedEndDate,
+          },
         ]}
       />
     </SectionCard>
@@ -65,6 +78,7 @@ export function ContractCard({ project, canEdit }: { project: ProjectDetail; can
   const t = useT();
   const te = useEnumT();
   const c = project.contract;
+  const changes = project.changeOrders;
   const stages = project.billingStages ?? [];
   return (
     <SectionCard
@@ -85,6 +99,19 @@ export function ContractCard({ project, canEdit }: { project: ProjectDetail; can
             value: <MoneyText paisa={c?.contractType === "LABOR_ONLY" ? c?.ratePerSqftPaisa : c?.contractValuePaisa} />,
           },
           { label: t("projects.section.contractTotal"), value: <MoneyText paisa={c?.contractTotalPaisa} /> },
+          // Step 15: original + approved change orders (fields.contract).
+          {
+            label: t("changeOrders.project.revisedContract"),
+            value: (
+              <span className="space-y-0.5">
+                <MoneyText paisa={changes?.revisedContractPaisa} className="block font-semibold" />
+                <span className="block text-xs text-muted-foreground">
+                  {t("changeOrders.project.revisedContractValue", { changes: formatPKR(changes?.approvedChangesPaisa ?? null), n: changes?.approvedCount ?? 0 })}
+                </span>
+              </span>
+            ),
+            hidden: !changes?.approvedCount || changes.revisedContractPaisa === undefined,
+          },
           {
             label: t("field.retention"),
             value: c ? t("projects.section.retentionValue", { percent: c.retentionPercent, months: c.defectPeriodMonths }) : "—",
