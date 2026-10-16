@@ -208,6 +208,8 @@ export const strings = {
       POSTED: "Done",
     },
     topup: { PENDING: "Pending", APPROVED: "Sent", REJECTED: "Rejected" },
+    estimateRevision: { DRAFT: "Draft", APPROVED: "Approved", SUPERSEDED: "Superseded" },
+    rulebookVersion: { DRAFT: "Draft", PUBLISHED: "Published" },
     severity: { INFO: "Info", WARNING: "Warning", CRITICAL: "Critical" },
   },
 } as const;

@@ -233,6 +233,24 @@ const MESSAGES: Record<string, Message> = {
   ASSIGNMENT_REQUIRED: { en: "Choose the sub-contractor.", ur: "Theke daar chunein.", urdu: "ٹھیکیدار چنیں۔" },
   DATE_NOT_COMPLETE: { en: "Charges can only be posted for days that are over.", ur: "Sirf guzre hue dinon ke charges darj ho sakte hain.", urdu: "صرف گزرے ہوئے دنوں کے چارجز درج ہو سکتے ہیں۔" },
   DEMO_IN_USE: { en: "Some of your real data uses the demo records (for example a demo worker on a real project) — undo that first.", ur: "Aap ka asal data demo records istemal kar raha hai (maslan demo mazdoor asal project par) — pehle usay hatayein.", urdu: "آپ کا اصل ڈیٹا ڈیمو ریکارڈز استعمال کر رہا ہے (مثلاً ڈیمو مزدور اصل پراجیکٹ پر) — پہلے اسے ہٹائیں۔" },
+  // Step 11 — estimate revisions + rulebook
+  ESTIMATE_NOT_FOUND: { en: "Estimate not found.", ur: "Estimate nahi mila.", urdu: "تخمینہ نہیں ملا۔" },
+  ESTIMATE_LINE_NOT_FOUND: { en: "This estimate line no longer exists — reload the page.", ur: "Yeh line ab mojood nahi — page dobara kholein.", urdu: "یہ لائن اب موجود نہیں — صفحہ دوبارہ کھولیں۔" },
+  ESTIMATE_DRAFT_EXISTS: { en: "A draft revision already exists — regenerate or approve it first.", ur: "Ek draft revision pehle se hai — pehle usay dobara banayein ya manzoor karein.", urdu: "ایک مسودہ نظرثانی پہلے سے موجود ہے — پہلے اسے دوبارہ بنائیں یا منظور کریں۔" },
+  ESTIMATE_LOCKED: { en: "Only a draft revision can change — this one is approved or superseded.", ur: "Sirf draft revision badal sakta hai — yeh manzoor ya purana ho chuka.", urdu: "صرف مسودہ نظرثانی بدل سکتی ہے — یہ منظور یا پرانی ہو چکی۔" },
+  ESTIMATE_NOT_DRAFT: { en: "Only a draft revision can be approved.", ur: "Sirf draft revision manzoor ho sakta hai.", urdu: "صرف مسودہ نظرثانی منظور ہو سکتی ہے۔" },
+  RATES_OUTDATED: { en: "The price list changed after this draft — confirm to approve with these rates, or regenerate it.", ur: "Is draft ke baad rate list badal gayi — inhi rates par manzoori ki tasdeeq karein ya dobara banayein.", urdu: "اس مسودے کے بعد ریٹ لسٹ بدل گئی — انہی ریٹ پر منظوری کی تصدیق کریں یا دوبارہ بنائیں۔" },
+  LINE_NOT_EDITABLE: { en: "Overheads and contingency lines follow the rulebook % — change the % instead.", ur: "Upar ke kharche aur ghair mutawaqqa qawaid ke % se chalte hain — % badlein.", urdu: "بالائی اخراجات اور غیر متوقع خرچہ قواعد کے % سے چلتے ہیں — % بدلیں۔" },
+  OWNER_SUPPLIED_NO_RATE: { en: "The owner buys this — it has no rate.", ur: "Yeh maalik khareedta hai — is ka rate nahi.", urdu: "یہ مالک خریدتا ہے — اس کا ریٹ نہیں۔" },
+  DIFFERENT_PROJECTS: { en: "Pick two revisions of the same project.", ur: "Ek hi project ke do revisions chunein.", urdu: "ایک ہی پراجیکٹ کی دو نظرثانیاں چنیں۔" },
+  OUT_OF_SAFE_RANGE: { en: "This value is outside the safe range.", ur: "Yeh value mehfooz had se bahar hai.", urdu: "یہ قدر محفوظ حد سے باہر ہے۔" },
+  UNKNOWN_PARAMETER: { en: "Unknown rulebook parameter.", ur: "Qawaid ki yeh value maloom nahi.", urdu: "قواعد کی یہ قدر معلوم نہیں۔" },
+  OVERRIDE_NOT_FOUND: { en: "There is no company value to remove.", ur: "Hatane ke liye company value nahi.", urdu: "ہٹانے کے لیے کمپنی کی قدر نہیں۔" },
+  RULEBOOK_NOT_FOUND: { en: "Rulebook version not found.", ur: "Qawaid ka version nahi mila.", urdu: "قواعد کا ورژن نہیں ملا۔" },
+  RULEBOOK_PUBLISHED: { en: "This version is published — values can only change in a new draft version.", ur: "Yeh version jaari ho chuka — values sirf naye draft version mein badalti hain.", urdu: "یہ ورژن جاری ہو چکا — قدریں صرف نئے مسودہ ورژن میں بدلتی ہیں۔" },
+  PARAMETER_NOT_FOUND: { en: "Parameter not found.", ur: "Value nahi mili.", urdu: "قدر نہیں ملی۔" },
+  INVALID_RANGE: { en: "The safe minimum must not be above the maximum.", ur: "Kam se kam had zyada se zyada se upar nahi ho sakti.", urdu: "کم سے کم حد زیادہ سے زیادہ سے اوپر نہیں ہو سکتی۔" },
+  INVALID_SOURCE: { en: "Copy from a version of the same region.", ur: "Isi ilaqe ke version se copy karein.", urdu: "اسی علاقے کے ورژن سے نقل کریں۔" },
 };
 
 export function isApiError(value: unknown): value is ApiError {

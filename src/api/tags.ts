@@ -92,6 +92,10 @@ export const COMPANY_TAGS = [
   "EquipmentLosses",
   "EquipmentCharges",
   "ProjectEquipment",
+  // Step 11 — estimate revisions + rulebook
+  "Estimates",
+  "OwnerShoppingList",
+  "Rulebook",
 ] as const;
 
 export const ADMIN_TAGS = [
@@ -106,6 +110,7 @@ export const ADMIN_TAGS = [
   "ActAsSessions",
   "CatalogGroups",
   "CatalogMaterials",
+  "AdminRulebooks",
 ] as const;
 
 export type CompanyTag = (typeof COMPANY_TAGS)[number];

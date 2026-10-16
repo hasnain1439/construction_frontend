@@ -26,7 +26,7 @@ import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useReadOnly } from "@/hooks/useReadOnly";
-import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
+import { isTranslationKey, useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPKR, formatPKRShort } from "@/lib/money";
 import { LOCKED_STATUSES } from "../constants";
@@ -34,6 +34,7 @@ import { ContractFromEstimateCard } from "./ContractFromEstimateCard";
 import { wizardHref } from "../utils/links";
 import { ProjectPageShell } from "../views/ProjectModeViews";
 import { EstimateSettingsModal } from "./EstimateSettingsModal";
+import { BoqWorkspace } from "@/features/estimates/BoqWorkspace";
 import { fmt, fmtUp, formulaText, lineText, materialText, rupees, unitText } from "./labels";
 
 type T = ReturnType<typeof useT>;
@@ -56,16 +57,19 @@ export function MethodBadge({ method }: { method: EstimateMethod | "MIXED" | und
   );
 }
 
-/** Project → Planning → Estimate (BoQ): grey-structure quantities and cost, with editable assumptions. */
-export function EstimateView({ projectId }: { projectId: string }) {
+/**
+ * Project → Planning → Estimate (BoQ): the saved revisions (Step 11) — or, before the first one,
+ * the live preview with its grey-structure working — plus the editable assumptions.
+ */
+export function EstimateView({ projectId, initialRevisionId }: { projectId: string; initialRevisionId?: string }) {
   return (
     <RequireAccess permission="projects.estimate.view">
-      <EstimatePage projectId={projectId} />
+      <EstimatePage projectId={projectId} initialRevisionId={initialRevisionId} />
     </RequireAccess>
   );
 }
 
-function EstimatePage({ projectId }: { projectId: string }) {
+function EstimatePage({ projectId, initialRevisionId }: { projectId: string; initialRevisionId?: string }) {
   const t = useT();
   const { can } = usePermissions();
   const readOnly = useReadOnly();
@@ -92,7 +96,7 @@ function EstimatePage({ projectId }: { projectId: string }) {
         <QueryState query={query} skeleton={<CardsSkeleton count={4} height="h-40" />}>
           {(estimate) => (
             <>
-              <EstimateBody project={project} estimate={estimate} />
+              <EstimateBody project={project} estimate={estimate} initialRevisionId={initialRevisionId} />
               {settingsOpen ? (
                 <EstimateSettingsModal
                   projectId={projectId}
@@ -110,28 +114,51 @@ function EstimatePage({ projectId }: { projectId: string }) {
   );
 }
 
-function EstimateBody({ project, estimate: e }: { project: ProjectDetail; estimate: ProjectEstimate }) {
+function EstimateBody({ project, estimate: e, initialRevisionId }: { project: ProjectDetail; estimate: ProjectEstimate; initialRevisionId?: string }) {
   const t = useT();
   const readOnly = useReadOnly();
   const money = e.cost !== undefined;
-  return (
-    <div className="space-y-6" data-testid="estimate-page">
-      <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.subtitle")}</p>
-      <EstimateWarnings project={project} warnings={e.warnings} />
-      {!money ? <InlineAlert tone="info">{t("projects.estimate.noAccessCost")}</InlineAlert> : null}
-      <EstimateKpis estimate={e} />
+  const greyWorking = (
+    <div className="space-y-6" data-testid="grey-working">
+      {!e.boq ? <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.subtitle")}</p> : null}
+      {!money && !e.boq ? <InlineAlert tone="info">{t("projects.estimate.noAccessCost")}</InlineAlert> : null}
+      {!e.boq ? <EstimateKpis estimate={e} /> : null}
       <EstimateBasis estimate={e} />
       {e.stages.map((stage) => (
         <EstimateStageSection
           key={stage.stage}
           stage={stage}
           money={money}
+          collapsible={Boolean(e.boq)}
           hasFoundation={!e.warnings.some((w) => w.code === "FOUNDATION_MISSING")}
         />
       ))}
       <EstimateMaterialSummary estimate={e} />
-      <EstimateLabour estimate={e} />
+      <EstimateLabour estimate={e} collapsible={Boolean(e.boq)} />
       {e.cost ? <EstimateCostSummary estimate={e} /> : null}
+    </div>
+  );
+  return (
+    <div className="space-y-6" data-testid="estimate-page">
+      <BoqWorkspace
+        project={project}
+        live={e}
+        initialRevisionId={initialRevisionId}
+        previewExtras={
+          e.boq ? (
+            <SectionCard flush>
+              <CollapsibleSection title={t("estimates.boq.greyWorking")} defaultOpen={false}>
+                <div className="p-4">
+                  <p className="mb-4 text-sm text-muted-foreground">{t("estimates.boq.greyWorkingDesc")}</p>
+                  {greyWorking}
+                </div>
+              </CollapsibleSection>
+            </SectionCard>
+          ) : (
+            greyWorking
+          )
+        }
+      />
       <div className="print:hidden">
         <ContractFromEstimateCard projectId={project.id} estimate={e} locked={readOnly || LOCKED_STATUSES.includes(project.status)} />
       </div>
@@ -187,12 +214,14 @@ export function EstimateWarnings({
     if (w.tab && editSetup) return link(wizardHref(project.id, w.tab), t("projects.estimate.warn.openSetup"));
     return null;
   };
+  const keyText = (a: string, b: string, raw: string) => (isTranslationKey(a) ? t(a) : isTranslationKey(b) ? t(b) : raw);
   const text = (w: EstimateWarning) => {
     const vars = {
       ...w.params,
       floor: w.floor ? te("projectFloorLevel", w.floor.level, w.floor.name) : "",
-      materials: (w.materials ?? []).map((m) => materialText(t, m)).join(", "),
-      items: (w.items ?? []).map((i) => t(`projects.estimate.labour.item.${i}` as TranslationKey)).join(", "),
+      // The BoQ's RATES_MISSING lists material keys in `items`.
+      materials: (w.materials ?? (w.code === "RATES_MISSING" ? w.items : undefined) ?? []).map((m) => keyText(`projects.estimate.material.${m}`, `estimates.material.${m}`, m)).join(", "),
+      items: (w.items ?? []).map((i) => keyText(`projects.estimate.labour.item.${i}`, `estimates.item.${i}`, i)).join(", "),
     };
     return t(`projects.estimate.warn.${w.code}` as TranslationKey, vars);
   };

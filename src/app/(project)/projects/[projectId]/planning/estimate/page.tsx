@@ -1,6 +1,7 @@
 import { EstimateView } from "@/features/projects/estimate/EstimateView";
 
-export default async function Page({ params }: PageProps<"/projects/[projectId]/planning/estimate">) {
+export default async function Page({ params, searchParams }: PageProps<"/projects/[projectId]/planning/estimate">) {
   const { projectId } = await params;
-  return <EstimateView projectId={projectId} />;
+  const { rev } = await searchParams;
+  return <EstimateView projectId={projectId} initialRevisionId={typeof rev === "string" ? rev : undefined} />;
 }

@@ -277,6 +277,8 @@ export const strings: Widen<typeof En.strings> = {
     RATES_MISSING: "ریٹ لسٹ میں ان کا ریٹ نہیں: {materials}۔ یہ لاگت میں شامل نہیں۔",
     LABOUR_RATES_MISSING: "ان کی مزدوری کا ریٹ نہیں: {items}۔ مزدوری میں شامل نہیں۔",
     CONTRACT_VALUE_MISSING: "ٹھیکے کی رقم نہیں — منافع نہیں نکل سکتا۔",
+    STEEL_NORM_DEVIATION: "سریا احاطہ شدہ رقبے کے فی مربع فٹ {actual} kg بن رہا ہے، قواعد کے معیار {norm} سے {percent}% فرق — ڈھانچے کی معلومات جانچیں۔",
+    RCC_NORM_DEVIATION: "سریا دار کنکریٹ احاطہ شدہ رقبے کے فی مربع فٹ {actual} مکعب فٹ بن رہا ہے، قواعد کے معیار {norm} سے {percent}% فرق — ڈھانچے کی معلومات جانچیں۔",
     CONTRACT_INCLUDES_FINISHING:
       "پورا ٹھیکہ: ٹھیکے کی رقم میں فنشنگ بھی ہے، جو اس گرے اسٹرکچر تخمینے میں نہیں۔",
     openSetup: "سیٹ اپ کھولیں",

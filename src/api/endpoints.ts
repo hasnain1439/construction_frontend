@@ -205,6 +205,10 @@ export const ENDPOINTS = {
     floors: (projectId: string) => `/projects/${id(projectId)}/floors`,
     estimate: (projectId: string) => `/projects/${id(projectId)}/estimate`,
     estimateSettings: (projectId: string) => `/projects/${id(projectId)}/estimate/settings`,
+    /** Step 11 — saved estimate revisions (BoQ) + owner shopping list. */
+    estimates: (projectId: string) => `/projects/${id(projectId)}/estimates`,
+    shoppingList: (projectId: string) => `/projects/${id(projectId)}/owner-shopping-list`,
+    shoppingListPdf: (projectId: string) => `/projects/${id(projectId)}/owner-shopping-list/pdf`,
     supplyPresets: "/supply-presets",
     floorRooms: (floorId: string) => `/floors/${id(floorId)}/rooms`,
     floorCopy: (floorId: string) => `/floors/${id(floorId)}/copy`,
@@ -372,6 +376,21 @@ export const ENDPOINTS = {
     cashFloats: "/finance/cash-floats",
   },
 
+  /** Step 11 — estimate revisions and the company rulebook. */
+  estimates: {
+    byId: (estimateId: string) => `/estimates/${id(estimateId)}`,
+    regenerate: (estimateId: string) => `/estimates/${id(estimateId)}/regenerate`,
+    line: (estimateId: string, lineId: string) => `/estimates/${id(estimateId)}/lines/${id(lineId)}`,
+    approve: (estimateId: string) => `/estimates/${id(estimateId)}/approve`,
+    compare: (a: string, b: string) => `/estimates/${id(a)}/compare/${id(b)}`,
+    pdf: (estimateId: string) => `/estimates/${id(estimateId)}/pdf`,
+  },
+  rulebook: {
+    resolved: "/rulebook",
+    overrides: "/rulebook/overrides",
+    override: (key: string) => `/rulebook/overrides/${id(key)}`,
+  },
+
   reports: {
     byName: (name: string) => `/reports/${id(name)}`,
   },
@@ -399,5 +418,9 @@ export const ENDPOINTS = {
     materialGroups: "/admin/material-groups",
     materials: "/admin/materials",
     materialById: (materialId: string) => `/admin/materials/${id(materialId)}`,
+    rulebooks: "/admin/rulebooks",
+    rulebookById: (rulebookId: string) => `/admin/rulebooks/${id(rulebookId)}`,
+    rulebookParameter: (rulebookId: string, key: string) => `/admin/rulebooks/${id(rulebookId)}/parameters/${id(key)}`,
+    rulebookPublish: (rulebookId: string) => `/admin/rulebooks/${id(rulebookId)}/publish`,
   },
 } as const;
