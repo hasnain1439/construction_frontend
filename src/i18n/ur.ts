@@ -15,6 +15,7 @@ import * as equipmentUr from "./areas/equipment/ur";
 import * as estimatesUr from "./areas/estimates/ur";
 import * as scheduleUr from "./areas/schedule/ur";
 import * as controlUr from "./areas/control/ur";
+import * as reportsUr from "./areas/reports/ur";
 
 /** Urdu (Nastaliq script, right-to-left) UI strings — same keys as `en.ts`. */
 export const ur: Dictionary = {
@@ -34,6 +35,7 @@ export const ur: Dictionary = {
   estimates: estimatesUr.strings,
   schedule: scheduleUr.strings,
   control: controlUr.strings,
+  reports: reportsUr.strings,
   common: {
     save: "محفوظ کریں",
     saveChanges: "تبدیلیاں محفوظ کریں",
