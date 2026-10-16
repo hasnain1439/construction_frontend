@@ -143,6 +143,22 @@
     "roman": "Kya nazar aaye",
     "urdu": "کیا نظر آئے"
    }
+  },
+  {
+   "key": "estimate",
+   "label": {
+    "en": "Estimates",
+    "roman": "Estimate (takhmeena)",
+    "urdu": "تخمینہ"
+   }
+  },
+  {
+   "key": "rulebook",
+   "label": {
+    "en": "Estimation rulebook",
+    "roman": "Estimate ke qawaid",
+    "urdu": "تخمینے کے قواعد"
+   }
   }
  ],
  "permissions": [
@@ -268,9 +284,57 @@
     "roman": "Estimate ki settings badalna",
     "urdu": "تخمینے کی سیٹنگز بدلنا"
    },
-   "description": "Change the assumptions of a project estimate (wall / slab thickness, mixes, steel, wastage, labour rate).",
+   "description": "Change the assumptions of a project estimate (wall / slab thickness, mixes, steel, wastage, labour rate); generate / regenerate draft estimate revisions and change their lines.",
    "ownerOnly": false,
    "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "estimate.revision.approve",
+   "module": "estimate",
+   "resource": "revision",
+   "action": "approve",
+   "label": {
+    "en": "Approve estimates",
+    "roman": "Estimate manzoor karna",
+    "urdu": "تخمینہ منظور کرنا"
+   },
+   "description": "Approve a draft estimate revision: its rates and rulebook are frozen and the previous approved revision is superseded.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "rulebook.override.view",
+   "module": "rulebook",
+   "resource": "override",
+   "action": "view",
+   "label": {
+    "en": "View estimation rulebook",
+    "roman": "Estimate ke qawaid dekhna",
+    "urdu": "تخمینے کے قواعد دیکھنا"
+   },
+   "description": "The rule-of-thumb values the estimates use (platform rulebook + company values).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "rulebook.override.manage",
+   "module": "rulebook",
+   "resource": "override",
+   "action": "manage",
+   "label": {
+    "en": "Change company rulebook values",
+    "roman": "Company ke qawaid badalna",
+    "urdu": "کمپنی کے قواعد بدلنا"
+   },
+   "description": "Set the company own values for rulebook parameters (within the safe range).",
+   "ownerOnly": false,
+   "scoped": false,
    "limit": false,
    "field": false
   },
@@ -2246,6 +2310,9 @@
     "projects.team.manage",
     "projects.estimate.view",
     "projects.estimate.manage",
+    "estimate.revision.approve",
+    "rulebook.override.view",
+    "rulebook.override.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2425,6 +2492,7 @@
     "projects.project.approve",
     "projects.estimate.view",
     "projects.estimate.manage",
+    "rulebook.override.view",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",

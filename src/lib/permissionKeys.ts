@@ -13,6 +13,10 @@ export const PERMISSION_KEYS = [
   "projects.team.manage",
   "projects.estimate.view",
   "projects.estimate.manage",
+  // estimate revisions + rulebook (Step 11)
+  "estimate.revision.approve",
+  "rulebook.override.view",
+  "rulebook.override.manage",
   // clients
   "clients.client.view",
   "clients.client.create",
@@ -147,14 +151,6 @@ export const PERMISSION_KEYS = [
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
-  // equipment (Step 16)
-  "equipment.view",
-  "equipment.manage",
-  "equipment.transfer.create",
-  "equipment.receiving.create",
-  "equipment.rental.manage",
-  "equipment.loss.create",
-  "equipment.loss.approve",
   // fields
   "fields.rates",
   "fields.amounts",
