@@ -92,6 +92,13 @@ export const COMPANY_TAGS = [
   "EquipmentLosses",
   "EquipmentCharges",
   "ProjectEquipment",
+  // Step 13 — schedule
+  "Schedule",
+  "ScheduleVersions",
+  "ScheduleDelays",
+  "ScheduleQuotas",
+  "Milestones",
+  "Stoppages",
 ] as const;
 
 export const ADMIN_TAGS = [

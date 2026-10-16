@@ -6,6 +6,17 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 13
+- **Project → Schedule** pages are live (no more "Coming soon"): **Gantt**, **Milestones & Quotas**, **Stoppage Days** and the new **Plan Versions** — each needs `schedule.plan.view`.
+- **Gantt** (weeks view): stage rows and milestone bars with progress fill, baseline ghost bars, curing bands, stoppage bands (approved solid, pending hatched), off days / holidays shaded, Ramadan strip, today line, FS / SS dependency arrows and late markers; the timeline always runs left to right (also in Urdu), labels follow the page direction. **Generate schedule** from the approved estimate (or "Approve an estimate first" with a link to the estimate), **Re-plan** (baseline never changes).
+- **Drag a bar** of work not started to move its start: a dry run shows which milestones move and the new planned end before **Save new dates**; the milestone panel's "Start no earlier than" field does the same from the keyboard (`schedule.plan.manage`).
+- **Milestone panel**: dates vs baseline, curing, dependencies, payment stage, material quota, progress history and **Update progress** (progress %, status, date, note — Blocked needs a note; stage-lock and predecessor warnings as toasts) with `schedule.progress.edit`.
+- **Milestones & Quotas**: per material planned vs used vs remaining (project totals and per milestone, stage filter, usage not linked to a milestone). No money.
+- **Stoppage Days**: KPIs, status filter, log a stoppage (range or separate days, reason, site photo required except for a holiday, note required for "Other"), approve with the responsible party (Owner / Excusable / Contractor) or reject with a reason (`schedule.stoppage.approve`).
+- **Project Overview → Schedule & delays**: original, revised and projected end, slippage by cause with reasons, pending stoppage days.
+- **Settings → Alerts & Limits → Ramadan working days**: day factor (0.25–1) and Ramadan dates (built-in or the company's own).
+- All texts in English, Roman Urdu and Urdu (`src/i18n/areas/schedule/`); schedule error messages; status domains `milestone`, `scheduleStage`, `stoppage`.
+
 ### Step 16
 - **Equipment & shuttering** (part 1): Equipment → **Allocation Map** (where every plate, prop and machine is — yard, each site, on the road; owned vs rented), **Owned Equipment** (register, add / edit, stock in, adjust count, detail with movement log), **Rentals** (hire from a yard with rate per day and deposit; extend, return with counts and damage charges, close with deposit refund; overdue badge), **Movements** (send / transfer / return equipment, transfer detail with cancel and receive, movement log), **Loss & Damage** (report with photo; charge to the project, a sub-contractor or write off) and **Hire & Rent Charges** (daily rows by month / project, "Post charges now").
 - Project → Site → **Equipment on Site**: what is at the site (owned vs rented), equipment on the way with **Receive**, the project's rentals and open losses; report a loss, hire equipment, send / return from the site.

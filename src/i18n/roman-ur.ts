@@ -10,6 +10,7 @@ import * as closeoutRoman from "./areas/closeout/roman-ur";
 import * as teamCompanyRoman from "./areas/teamCompany/roman-ur";
 import * as appRoman from "./areas/app/roman-ur";
 import * as equipmentRoman from "./areas/equipment/roman-ur";
+import * as scheduleRoman from "./areas/schedule/roman-ur";
 
 /** Roman Urdu UI strings. */
 export const romanUr: Dictionary = {
@@ -24,6 +25,7 @@ export const romanUr: Dictionary = {
   teamCompany: teamCompanyRoman.strings,
   app: appRoman.strings,
   equipment: equipmentRoman.strings,
+  schedule: scheduleRoman.strings,
   common: {
     save: "Mehfooz karein",
     saveChanges: "Tabdeeliyan mehfooz karein",
@@ -613,6 +615,7 @@ export const romanUr: Dictionary = {
     ...teamCompanyRoman.enums,
     ...appRoman.enums,
     ...equipmentRoman.enums,
+    ...scheduleRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Jari",

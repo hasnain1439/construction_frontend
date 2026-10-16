@@ -5,6 +5,7 @@ import { QueryState } from "@/components/common/QueryState";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RequireAccess } from "@/components/common/RequireAccess";
 import { CompanySettingsForm } from "@/features/company/components/CompanySettingsForm";
+import { RamadanSettingsCard } from "@/features/schedule/components/RamadanSettingsCard";
 import { useT } from "@/i18n/useT";
 
 export default function AlertsLimitsPage() {
@@ -17,7 +18,14 @@ export default function AlertsLimitsPage() {
         description={t("teamCompany.settings.desc")}
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("teamCompany.settings.title") }]}
       />
-      <QueryState query={query}>{(settings) => <CompanySettingsForm settings={settings} />}</QueryState>
+      <QueryState query={query}>
+        {(settings) => (
+          <div className="space-y-6">
+            <CompanySettingsForm settings={settings} />
+            <RamadanSettingsCard settings={settings} />
+          </div>
+        )}
+      </QueryState>
     </RequireAccess>
   );
 }

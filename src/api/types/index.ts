@@ -13,3 +13,4 @@ export * from "./sync";
 export * from "./onboarding";
 export * from "./closeout";
 export * from "./equipment";
+export * from "./schedule";

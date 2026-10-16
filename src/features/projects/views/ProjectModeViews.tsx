@@ -37,6 +37,7 @@ import {
 } from "../components/ProjectSections";
 import { ProjectMoneyCard } from "@/features/billing/components/ProjectMoneyCard";
 import { EstimateOverviewCard } from "../estimate/EstimateOverviewCard";
+import { DelayCards } from "@/features/schedule/components/DelayCards";
 import { LOCKED_STATUSES, STATUS_TRANSITIONS, type StatusTransition } from "../constants";
 import { formatArea } from "../utils/calc";
 import { wizardHref } from "../utils/links";
@@ -192,6 +193,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const canEditTeam = can("projects.team.manage");
   const seesBilling = canAccess(BILLING_ACCESS);
   const canEstimate = can("projects.estimate.view");
+  const canSchedule = can("schedule.plan.view");
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -219,10 +221,13 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
     >
       {(project, { canEdit }) =>
         isMunshi ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ClientCard project={project} />
-            <TeamCard project={project} />
-          </div>
+          <>
+            {canSchedule ? <DelayCards projectId={project.id} /> : null}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ClientCard project={project} />
+              <TeamCard project={project} />
+            </div>
+          </>
         ) : (
           <>
             {project.status === "DRAFT" ? (
@@ -231,6 +236,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
               </InlineAlert>
             ) : null}
             {seesBilling && project.status !== "DRAFT" ? <ProjectMoneyCard projectId={project.id} /> : null}
+            {canSchedule ? <DelayCards projectId={project.id} /> : null}
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               <ClientCard project={project} canEdit={canEdit} />
               <ContractCard project={project} canEdit={canEdit} />
