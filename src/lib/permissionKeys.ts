@@ -139,6 +139,14 @@ export const PERMISSION_KEYS = [
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
+  // equipment (Step 16)
+  "equipment.view",
+  "equipment.manage",
+  "equipment.transfer.create",
+  "equipment.receiving.create",
+  "equipment.rental.manage",
+  "equipment.loss.create",
+  "equipment.loss.approve",
   // fields
   "fields.rates",
   "fields.amounts",

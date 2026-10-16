@@ -93,6 +93,11 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "closeout.snag.manage",
   "closeout.handover.manage",
   "closeout.retention.view",
+  "equipment.view",
+  "equipment.receiving.create",
+  "equipment.loss.create",
+  "equipment.transfer.create",
+  "equipment.rental.manage",
 ];
 
 export const MUNSHI_TEMPLATE: PermissionKey[] = [
@@ -136,6 +141,9 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
   "closeout.drawing.view",
   "closeout.snag.view",
   "closeout.snag.create",
+  "equipment.view",
+  "equipment.receiving.create",
+  "equipment.loss.create",
 ];
 
 export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [

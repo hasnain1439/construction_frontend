@@ -23837,6 +23837,3921 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/equipment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Equipment register
+         * @description equipment.view. Machines and bulk items with company-wide totals (owned / on rent / at sites / at the yard / in transit). Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    search?: string;
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                    kind?: "MACHINE" | "BULK";
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Equipment */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *           "name": "Steel shuttering plate 2×3 ft",
+                         *           "code": "SP-23",
+                         *           "unit": "nos",
+                         *           "kind": "BULK",
+                         *           "category": "SHUTTERING_PLATE",
+                         *           "serialNo": null,
+                         *           "coverageSqftPerUnit": 6,
+                         *           "isActive": true,
+                         *           "notes": null,
+                         *           "hireRatePaisaPerDay": "500",
+                         *           "replacementValuePaisa": "450000",
+                         *           "ownedQty": 400,
+                         *           "rentedQty": 0,
+                         *           "atSitesQty": 380,
+                         *           "atYardQty": 20,
+                         *           "inTransitQty": 0,
+                         *           "createdAt": "2026-09-01T05:00:00.000Z",
+                         *           "updatedAt": "2026-09-01T05:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add equipment
+         * @description equipment.manage. Name unique per company (409 EQUIPMENT_EXISTS). Quantities come in through stock-in (opening / purchase) or rentals.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @example MX-01 */
+                        code?: string;
+                        /** @enum {string} */
+                        kind: "MACHINE" | "BULK";
+                        /** @enum {string} */
+                        category: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                        /** @example nos */
+                        unit?: string;
+                        serialNo?: string;
+                        /**
+                         * @description Internal hire per unit per day (paisa)
+                         * @example 150000
+                         */
+                        hireRatePaisaPerDay?: string | number;
+                        /**
+                         * @description Value of one unit when lost (paisa)
+                         * @example 850000
+                         */
+                        replacementValuePaisa?: string | number;
+                        /**
+                         * @description Shuttering plate face area per unit (sq ft)
+                         * @example 6
+                         */
+                        coverageSqftPerUnit?: number | string;
+                        notes?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *         "name": "Steel shuttering plate 2×3 ft",
+                         *         "code": "SP-23",
+                         *         "unit": "nos",
+                         *         "kind": "BULK",
+                         *         "category": "SHUTTERING_PLATE",
+                         *         "serialNo": null,
+                         *         "coverageSqftPerUnit": 6,
+                         *         "isActive": true,
+                         *         "notes": null,
+                         *         "hireRatePaisaPerDay": "500",
+                         *         "replacementValuePaisa": "450000",
+                         *         "ownedQty": 400,
+                         *         "rentedQty": 0,
+                         *         "atSitesQty": 380,
+                         *         "atYardQty": 20,
+                         *         "inTransitQty": 0,
+                         *         "createdAt": "2026-09-01T05:00:00.000Z",
+                         *         "updatedAt": "2026-09-01T05:00:00.000Z",
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "ownedQty": 20,
+                         *             "rentedQty": 0
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Equipment detail
+         * @description equipment.view. Totals plus quantity per location the caller can see. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Equipment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Equipment */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *         "name": "Steel shuttering plate 2×3 ft",
+                         *         "code": "SP-23",
+                         *         "unit": "nos",
+                         *         "kind": "BULK",
+                         *         "category": "SHUTTERING_PLATE",
+                         *         "serialNo": null,
+                         *         "coverageSqftPerUnit": 6,
+                         *         "isActive": true,
+                         *         "notes": null,
+                         *         "hireRatePaisaPerDay": "500",
+                         *         "replacementValuePaisa": "450000",
+                         *         "ownedQty": 400,
+                         *         "rentedQty": 0,
+                         *         "atSitesQty": 380,
+                         *         "atYardQty": 20,
+                         *         "inTransitQty": 0,
+                         *         "createdAt": "2026-09-01T05:00:00.000Z",
+                         *         "updatedAt": "2026-09-01T05:00:00.000Z",
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "ownedQty": 20,
+                         *             "rentedQty": 0
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit equipment
+         * @description equipment.manage. A new hire rate applies to days not charged yet (posted days keep their rate).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Equipment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        code?: string | null;
+                        /** @enum {string} */
+                        kind?: "MACHINE" | "BULK";
+                        /** @enum {string} */
+                        category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                        unit?: string;
+                        serialNo?: string | null;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        hireRatePaisaPerDay?: string | number;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        replacementValuePaisa?: string | number;
+                        /**
+                         * @description Shuttering plate face area per unit (sq ft)
+                         * @example 6
+                         */
+                        coverageSqftPerUnit?: number | string | null;
+                        notes?: string | null;
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *         "name": "Steel shuttering plate 2×3 ft",
+                         *         "code": "SP-23",
+                         *         "unit": "nos",
+                         *         "kind": "BULK",
+                         *         "category": "SHUTTERING_PLATE",
+                         *         "serialNo": null,
+                         *         "coverageSqftPerUnit": 6,
+                         *         "isActive": true,
+                         *         "notes": null,
+                         *         "hireRatePaisaPerDay": "500",
+                         *         "replacementValuePaisa": "450000",
+                         *         "ownedQty": 400,
+                         *         "rentedQty": 0,
+                         *         "atSitesQty": 380,
+                         *         "atYardQty": 20,
+                         *         "inTransitQty": 0,
+                         *         "createdAt": "2026-09-01T05:00:00.000Z",
+                         *         "updatedAt": "2026-09-01T05:00:00.000Z",
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "ownedQty": 20,
+                         *             "rentedQty": 0
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/equipment/{id}/stock-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stock in (opening / purchase)
+         * @description equipment.manage. Owned units into the yard (default) or a site: OPENING_IN / PURCHASE_IN ledger row.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Equipment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Default: the yard (Central Store)
+                         */
+                        locationId?: string;
+                        /**
+                         * Format: uuid
+                         * @description Shortcut for the project’s site
+                         */
+                        projectId?: string;
+                        /**
+                         * @description Number (or numeric string) with at most 3 decimals
+                         * @example 200
+                         */
+                        qty: number | string;
+                        /** @enum {string} */
+                        type: "OPENING" | "PURCHASE";
+                        /**
+                         * @description Defaults to today
+                         * @example 2026-12-25
+                         */
+                        date?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Stocked in */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *         "name": "Steel shuttering plate 2×3 ft",
+                         *         "code": "SP-23",
+                         *         "unit": "nos",
+                         *         "kind": "BULK",
+                         *         "category": "SHUTTERING_PLATE",
+                         *         "serialNo": null,
+                         *         "coverageSqftPerUnit": 6,
+                         *         "isActive": true,
+                         *         "notes": null,
+                         *         "hireRatePaisaPerDay": "500",
+                         *         "replacementValuePaisa": "450000",
+                         *         "ownedQty": 400,
+                         *         "rentedQty": 0,
+                         *         "atSitesQty": 380,
+                         *         "atYardQty": 20,
+                         *         "inTransitQty": 0,
+                         *         "createdAt": "2026-09-01T05:00:00.000Z",
+                         *         "updatedAt": "2026-09-01T05:00:00.000Z",
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "ownedQty": 20,
+                         *             "rentedQty": 0
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_LOCATION | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_NOT_FOUND | LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/{id}/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adjust a location (count correction, disposal, found)
+         * @description equipment.manage. Signed quantity → ADJUSTMENT ledger row with the reason (audit). Negative needs the units to be there.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Equipment id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        locationId: string;
+                        /**
+                         * @description + found / more counted, − disposed / short
+                         * @example -4
+                         */
+                        qty: number | string;
+                        /** Format: uuid */
+                        rentalId?: string;
+                        reason: string;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Adjusted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *         "name": "Steel shuttering plate 2×3 ft",
+                         *         "code": "SP-23",
+                         *         "unit": "nos",
+                         *         "kind": "BULK",
+                         *         "category": "SHUTTERING_PLATE",
+                         *         "serialNo": null,
+                         *         "coverageSqftPerUnit": 6,
+                         *         "isActive": true,
+                         *         "notes": null,
+                         *         "hireRatePaisaPerDay": "500",
+                         *         "replacementValuePaisa": "450000",
+                         *         "ownedQty": 400,
+                         *         "rentedQty": 0,
+                         *         "atSitesQty": 380,
+                         *         "atYardQty": 20,
+                         *         "inTransitQty": 0,
+                         *         "createdAt": "2026-09-01T05:00:00.000Z",
+                         *         "updatedAt": "2026-09-01T05:00:00.000Z",
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "ownedQty": 20,
+                         *             "rentedQty": 0
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_EQUIPMENT | INVALID_RENTAL */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EQUIPMENT_NOT_FOUND | LOCATION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Allocation map — what is where
+         * @description equipment.view. Per location the caller can see (yard, transit, sites): owned and rented quantity per equipment, with the rentals; plus totals per equipment. Zero rows are left out.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    projectId?: string;
+                    locationId?: string;
+                    equipmentId?: string;
+                    category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Allocation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "locations": [
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *               "type": "STORE",
+                         *               "name": "Central Store",
+                         *               "projectId": null
+                         *             },
+                         *             "project": null,
+                         *             "items": [
+                         *               {
+                         *                 "equipment": {
+                         *                   "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *                   "name": "Steel shuttering plate 2×3 ft",
+                         *                   "code": "SP-23",
+                         *                   "unit": "nos",
+                         *                   "kind": "BULK",
+                         *                   "category": "SHUTTERING_PLATE"
+                         *                 },
+                         *                 "ownedQty": 20,
+                         *                 "rentedQty": 0,
+                         *                 "totalQty": 20,
+                         *                 "rentals": []
+                         *               }
+                         *             ]
+                         *           },
+                         *           {
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "items": [
+                         *               {
+                         *                 "equipment": {
+                         *                   "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *                   "name": "Steel shuttering plate 2×3 ft",
+                         *                   "code": "SP-23",
+                         *                   "unit": "nos",
+                         *                   "kind": "BULK",
+                         *                   "category": "SHUTTERING_PLATE"
+                         *                 },
+                         *                 "ownedQty": 240,
+                         *                 "rentedQty": 0,
+                         *                 "totalQty": 240,
+                         *                 "rentals": []
+                         *               },
+                         *               {
+                         *                 "equipment": {
+                         *                   "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *                   "name": "Steel prop (adjustable)",
+                         *                   "code": "PR-01",
+                         *                   "unit": "nos",
+                         *                   "kind": "BULK",
+                         *                   "category": "PROP"
+                         *                 },
+                         *                 "ownedQty": 60,
+                         *                 "rentedQty": 150,
+                         *                 "totalQty": 210,
+                         *                 "rentals": [
+                         *                   {
+                         *                     "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *                     "number": "RNT-0001",
+                         *                     "qty": 150
+                         *                   }
+                         *                 ]
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "totals": [
+                         *           {
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "ownedQty": 400,
+                         *             "rentedQty": 0,
+                         *             "atYardQty": 20,
+                         *             "atSitesQty": 380,
+                         *             "inTransitQty": 0
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Equipment ledger
+         * @description equipment.view. Append-only movements (signed quantity) at the locations the caller can see.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    equipmentId?: string;
+                    locationId?: string;
+                    projectId?: string;
+                    type?: "OPENING_IN" | "PURCHASE_IN" | "TRANSFER_OUT" | "TRANSIT_IN" | "TRANSIT_OUT" | "RECEIPT_IN" | "RENTAL_IN" | "RENTAL_RETURN_OUT" | "LOSS_OUT" | "ADJUSTMENT";
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Movements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001651",
+                         *           "type": "RECEIPT_IN",
+                         *           "equipment": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *             "name": "Steel shuttering plate 2×3 ft",
+                         *             "code": "SP-23",
+                         *             "unit": "nos",
+                         *             "kind": "BULK",
+                         *             "category": "SHUTTERING_PLATE"
+                         *           },
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "rental": null,
+                         *           "quantity": 96,
+                         *           "refType": "EQUIPMENT_TRANSFER",
+                         *           "refId": "0199a8c0-0000-7000-8000-000000001611",
+                         *           "occurredAt": "2026-10-10T09:00:00.000Z",
+                         *           "note": "ET-0003",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           }
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/equipment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Equipment on site
+         * @description equipment.view + project scope. Owned / rented units at the site, transfers on the way, active rentals, losses not charged yet, hire and rent posted to date. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description On site */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "site": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "items": [
+                         *           {
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "ownedQty": 240,
+                         *             "rentedQty": 0,
+                         *             "hireRatePaisaPerDay": "500",
+                         *             "dailyHirePaisa": "120000"
+                         *           }
+                         *         ],
+                         *         "incoming": [],
+                         *         "rentals": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *             "number": "RNT-0001",
+                         *             "status": "ACTIVE",
+                         *             "supplier": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *               "name": "Punjab Shuttering Yard",
+                         *               "phone": "+923214445566"
+                         *             },
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "startDate": "2026-10-01",
+                         *             "expectedEndDate": "2026-10-31",
+                         *             "returnedDate": null,
+                         *             "closedAt": null,
+                         *             "reference": "PSY-2231",
+                         *             "note": null,
+                         *             "items": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *                 "equipment": {
+                         *                   "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *                   "name": "Steel prop (adjustable)",
+                         *                   "code": "PR-01",
+                         *                   "unit": "nos",
+                         *                   "kind": "BULK",
+                         *                   "category": "PROP"
+                         *                 },
+                         *                 "qty": 150,
+                         *                 "returnedQty": 0,
+                         *                 "missingQty": 0,
+                         *                 "outstandingQty": 150,
+                         *                 "ratePaisaPerDay": "1500"
+                         *               }
+                         *             ],
+                         *             "depositPaisa": "2000000",
+                         *             "depositRefundedPaisa": "0",
+                         *             "damageChargesPaisa": "0",
+                         *             "rentChargedPaisa": "0",
+                         *             "accruedToDatePaisa": "3600000",
+                         *             "postedPaisa": "3375000",
+                         *             "daysOnRent": 16,
+                         *             "overdue": false,
+                         *             "returns": [],
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-10-01T05:00:00.000Z"
+                         *           }
+                         *         ],
+                         *         "openLosses": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *             "number": "EL-0001",
+                         *             "kind": "MISSING",
+                         *             "status": "REPORTED",
+                         *             "source": "REPORT",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "rental": null,
+                         *             "location": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *               "type": "SITE",
+                         *               "name": "DHA Phase 6 · 10 Marla",
+                         *               "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "project": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *               "code": "MSB-2026-012",
+                         *               "name": "DHA Phase 6 · 10 Marla"
+                         *             },
+                         *             "transfer": null,
+                         *             "qty": 6,
+                         *             "valuePaisa": "2700000",
+                         *             "chargedTo": null,
+                         *             "subcontract": null,
+                         *             "note": "6 plates not found after the GF slab de-shuttering",
+                         *             "photoUrl": null,
+                         *             "reportedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "reportedAt": "2026-10-12T10:00:00.000Z",
+                         *             "chargedBy": null,
+                         *             "chargedAt": null,
+                         *             "chargeNote": null
+                         *           }
+                         *         ],
+                         *         "hireToDatePaisa": "1800000",
+                         *         "rentalToDatePaisa": "3375000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Transfers (dispatch / transfer / return)
+         * @description equipment.view. To or from the locations the caller can see. With blind count on, a Munshi does not see sentQty while on the way.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "ON_THE_WAY" | "RECEIVED" | "RECEIVED_WITH_GAP" | "CANCELLED";
+                    kind?: "DISPATCH" | "TRANSFER" | "RETURN";
+                    projectId?: string;
+                    locationId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Transfers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001611",
+                         *           "number": "ET-0003",
+                         *           "kind": "DISPATCH",
+                         *           "status": "RECEIVED_WITH_GAP",
+                         *           "from": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *             "type": "STORE",
+                         *             "name": "Central Store",
+                         *             "projectId": null
+                         *           },
+                         *           "to": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "vehicleNo": "LES-4521",
+                         *           "driverName": "Nadeem",
+                         *           "note": null,
+                         *           "sentAt": "2026-10-10T05:00:00.000Z",
+                         *           "blindCount": false,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001612",
+                         *               "equipment": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *                 "name": "Steel shuttering plate 2×3 ft",
+                         *                 "code": "SP-23",
+                         *                 "unit": "nos",
+                         *                 "kind": "BULK",
+                         *                 "category": "SHUTTERING_PLATE"
+                         *               },
+                         *               "rental": null,
+                         *               "sentQty": 100,
+                         *               "receivedQty": 96,
+                         *               "damagedQty": 2,
+                         *               "gapQty": 4,
+                         *               "note": "4 plates missing, 2 bent",
+                         *               "photoUrl": null,
+                         *               "replacementValuePaisa": "450000"
+                         *             }
+                         *           ],
+                         *           "losses": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *               "number": "EL-0002",
+                         *               "kind": "MISSING",
+                         *               "qty": 4
+                         *             },
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001632",
+                         *               "number": "EL-0003",
+                         *               "kind": "DAMAGED",
+                         *               "qty": 2
+                         *             }
+                         *           ],
+                         *           "receivedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "receivedAt": "2026-10-10T09:00:00.000Z",
+                         *           "receiveNote": null,
+                         *           "cancelledAt": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-10T05:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Send equipment
+         * @description equipment.transfer.create. From the yard (also needs equipment.manage unless ALL_PROJECTS) or a site in scope, to the yard or an ACTIVE / CLOSEOUT site. Kind: DISPATCH (yard → site), RETURN (site → yard), TRANSFER (otherwise). Units go into transit until received. Rented units carry their rentalId.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description The yard (Central Store) or a site
+                         */
+                        fromLocationId: string;
+                        /** Format: uuid */
+                        toLocationId?: string;
+                        /**
+                         * Format: uuid
+                         * @description Shortcut for the project’s site
+                         */
+                        toProjectId?: string;
+                        /**
+                         * @description Defaults to now
+                         * @example 2026-12-25
+                         */
+                        date?: string;
+                        /** @example LES-4521 */
+                        vehicleNo?: string;
+                        driverName?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            equipmentId: string;
+                            /** Format: uuid */
+                            rentalId?: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Sent */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001611",
+                         *         "number": "ET-0003",
+                         *         "kind": "DISPATCH",
+                         *         "status": "ON_THE_WAY",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "note": null,
+                         *         "sentAt": "2026-10-10T05:00:00.000Z",
+                         *         "blindCount": false,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001612",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "rental": null,
+                         *             "sentQty": 100,
+                         *             "receivedQty": 96,
+                         *             "damagedQty": 2,
+                         *             "gapQty": 4,
+                         *             "note": "4 plates missing, 2 bent",
+                         *             "photoUrl": null,
+                         *             "replacementValuePaisa": "450000"
+                         *           }
+                         *         ],
+                         *         "losses": [],
+                         *         "receivedBy": null,
+                         *         "receivedAt": null,
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_EQUIPMENT | INVALID_LOCATION | SAME_LOCATION | INVALID_EQUIPMENT | INVALID_RENTAL | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/transfers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Transfer detail */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transfer id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Transfer */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001611",
+                         *         "number": "ET-0003",
+                         *         "kind": "DISPATCH",
+                         *         "status": "RECEIVED_WITH_GAP",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "note": null,
+                         *         "sentAt": "2026-10-10T05:00:00.000Z",
+                         *         "blindCount": false,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001612",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "rental": null,
+                         *             "sentQty": 100,
+                         *             "receivedQty": 96,
+                         *             "damagedQty": 2,
+                         *             "gapQty": 4,
+                         *             "note": "4 plates missing, 2 bent",
+                         *             "photoUrl": null,
+                         *             "replacementValuePaisa": "450000"
+                         *           }
+                         *         ],
+                         *         "losses": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *             "number": "EL-0002",
+                         *             "kind": "MISSING",
+                         *             "qty": 4
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001632",
+                         *             "number": "EL-0003",
+                         *             "kind": "DAMAGED",
+                         *             "qty": 2
+                         *           }
+                         *         ],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "receivedAt": "2026-10-10T09:00:00.000Z",
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TRANSFER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/transfers/{id}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive with counts
+         * @description equipment.receiving.create (Munshi on his site). Count every item: sent − received → MISSING loss, damaged → DAMAGED loss (source TRANSFER_GAP, REPORTED). A note is required for any gap. Offline: sync mutation EQUIPMENT_RECEIVE.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transfer id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Defaults to now
+                         * @example 2026-12-25
+                         */
+                        date?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            itemId: string;
+                            /**
+                             * @description Everything that arrived, damaged included
+                             * @example 200
+                             */
+                            receivedQty: number | string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            damagedQty?: number | string;
+                            /** @description Required when short or damaged */
+                            note?: string;
+                            /** Format: uuid */
+                            photoAttachmentId?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Received */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001611",
+                         *         "number": "ET-0003",
+                         *         "kind": "DISPATCH",
+                         *         "status": "RECEIVED_WITH_GAP",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "note": null,
+                         *         "sentAt": "2026-10-10T05:00:00.000Z",
+                         *         "blindCount": false,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001612",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "rental": null,
+                         *             "sentQty": 100,
+                         *             "receivedQty": 96,
+                         *             "damagedQty": 2,
+                         *             "gapQty": 4,
+                         *             "note": "4 plates missing, 2 bent",
+                         *             "photoUrl": null,
+                         *             "replacementValuePaisa": "450000"
+                         *           }
+                         *         ],
+                         *         "losses": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *             "number": "EL-0002",
+                         *             "kind": "MISSING",
+                         *             "qty": 4
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001632",
+                         *             "number": "EL-0003",
+                         *             "kind": "DAMAGED",
+                         *             "qty": 2
+                         *           }
+                         *         ],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "receivedAt": "2026-10-10T09:00:00.000Z",
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | ITEMS_MISMATCH | NOTE_REQUIRED | DAMAGED_EXCEEDS_COUNTED | RECEIVED_EXCEEDS_SENT | INVALID_ATTACHMENT | INVALID_DATES */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TRANSFER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TRANSFER_CANCELLED | ALREADY_RECEIVED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/transfers/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a transfer on the way
+         * @description equipment.transfer.create (same rules as sending). Units go back to the source.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transfer id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001611",
+                         *         "number": "ET-0003",
+                         *         "kind": "DISPATCH",
+                         *         "status": "CANCELLED",
+                         *         "from": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000501",
+                         *           "type": "STORE",
+                         *           "name": "Central Store",
+                         *           "projectId": null
+                         *         },
+                         *         "to": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "vehicleNo": "LES-4521",
+                         *         "driverName": "Nadeem",
+                         *         "note": null,
+                         *         "sentAt": "2026-10-10T05:00:00.000Z",
+                         *         "blindCount": false,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001612",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *               "name": "Steel shuttering plate 2×3 ft",
+                         *               "code": "SP-23",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "SHUTTERING_PLATE"
+                         *             },
+                         *             "rental": null,
+                         *             "sentQty": 100,
+                         *             "receivedQty": 96,
+                         *             "damagedQty": 2,
+                         *             "gapQty": 4,
+                         *             "note": "4 plates missing, 2 bent",
+                         *             "photoUrl": null,
+                         *             "replacementValuePaisa": "450000"
+                         *           }
+                         *         ],
+                         *         "losses": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *             "number": "EL-0002",
+                         *             "kind": "MISSING",
+                         *             "qty": 4
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001632",
+                         *             "number": "EL-0003",
+                         *             "kind": "DAMAGED",
+                         *             "qty": 2
+                         *           }
+                         *         ],
+                         *         "receivedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "receivedAt": "2026-10-10T09:00:00.000Z",
+                         *         "receiveNote": null,
+                         *         "cancelledAt": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-10T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TRANSFER_NOT_FOUND | LOCATION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TRANSFER_NOT_CANCELLABLE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/rentals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rentals from yards
+         * @description equipment.view (rentals of projects in scope; yard rentals for equipment managers). accruedToDatePaisa = days × outstanding × rate up to today (live); postedPaisa = daily charges posted. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "ACTIVE" | "RETURNED" | "CLOSED";
+                    supplierId?: string;
+                    projectId?: string;
+                    overdue?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Rentals */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *           "number": "RNT-0001",
+                         *           "status": "ACTIVE",
+                         *           "supplier": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *             "name": "Punjab Shuttering Yard",
+                         *             "phone": "+923214445566"
+                         *           },
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "startDate": "2026-10-01",
+                         *           "expectedEndDate": "2026-10-31",
+                         *           "returnedDate": null,
+                         *           "closedAt": null,
+                         *           "reference": "PSY-2231",
+                         *           "note": null,
+                         *           "items": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *               "equipment": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *                 "name": "Steel prop (adjustable)",
+                         *                 "code": "PR-01",
+                         *                 "unit": "nos",
+                         *                 "kind": "BULK",
+                         *                 "category": "PROP"
+                         *               },
+                         *               "qty": 150,
+                         *               "returnedQty": 0,
+                         *               "missingQty": 0,
+                         *               "outstandingQty": 150,
+                         *               "ratePaisaPerDay": "1500"
+                         *             }
+                         *           ],
+                         *           "depositPaisa": "2000000",
+                         *           "depositRefundedPaisa": "0",
+                         *           "damageChargesPaisa": "0",
+                         *           "rentChargedPaisa": "0",
+                         *           "accruedToDatePaisa": "3600000",
+                         *           "postedPaisa": "3375000",
+                         *           "daysOnRent": 16,
+                         *           "overdue": false,
+                         *           "returns": [],
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-10-01T05:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Hire from a yard
+         * @description equipment.rental.manage. Items arrive at the site (or yard) on startDate (RENTAL_IN). Deposit → supplier ledger credit (ADJUSTMENT, refType RENTAL_DEPOSIT). Rent accrues daily to the project (P&L EQUIPMENT).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        supplierId: string;
+                        /**
+                         * Format: uuid
+                         * @description Delivered to this project’s site; rent is charged to it
+                         */
+                        projectId?: string;
+                        /**
+                         * Format: uuid
+                         * @description Or delivered to the yard (no project)
+                         */
+                        locationId?: string;
+                        /** @example 2026-12-25 */
+                        startDate: string;
+                        /** @example 2026-12-25 */
+                        expectedEndDate?: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        depositPaisa?: string | number;
+                        /** @example PSY-2231 */
+                        reference?: string;
+                        note?: string;
+                        items: {
+                            /** Format: uuid */
+                            equipmentId: string;
+                            /**
+                             * @description Number (or numeric string) with at most 3 decimals
+                             * @example 200
+                             */
+                            qty: number | string;
+                            /**
+                             * @description Paisa as a string (2500000 = Rs 25,000)
+                             * @example 2500000
+                             */
+                            ratePaisaPerDay: string | number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *         "number": "RNT-0001",
+                         *         "status": "ACTIVE",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *           "name": "Punjab Shuttering Yard",
+                         *           "phone": "+923214445566"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "startDate": "2026-10-01",
+                         *         "expectedEndDate": "2026-10-31",
+                         *         "returnedDate": null,
+                         *         "closedAt": null,
+                         *         "reference": "PSY-2231",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "returnedQty": 0,
+                         *             "missingQty": 0,
+                         *             "outstandingQty": 150,
+                         *             "ratePaisaPerDay": "1500"
+                         *           }
+                         *         ],
+                         *         "depositPaisa": "2000000",
+                         *         "depositRefundedPaisa": "0",
+                         *         "damageChargesPaisa": "0",
+                         *         "rentChargedPaisa": "0",
+                         *         "accruedToDatePaisa": "3600000",
+                         *         "postedPaisa": "3375000",
+                         *         "daysOnRent": 16,
+                         *         "overdue": false,
+                         *         "returns": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-01T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_SUPPLIER | INVALID_EQUIPMENT | INVALID_LOCATION | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | PROJECT_IS_DRAFT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/rentals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rental detail */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Rental id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Rental */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *         "number": "RNT-0001",
+                         *         "status": "ACTIVE",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *           "name": "Punjab Shuttering Yard",
+                         *           "phone": "+923214445566"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "startDate": "2026-10-01",
+                         *         "expectedEndDate": "2026-10-31",
+                         *         "returnedDate": null,
+                         *         "closedAt": null,
+                         *         "reference": "PSY-2231",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "returnedQty": 0,
+                         *             "missingQty": 0,
+                         *             "outstandingQty": 150,
+                         *             "ratePaisaPerDay": "1500"
+                         *           }
+                         *         ],
+                         *         "depositPaisa": "2000000",
+                         *         "depositRefundedPaisa": "0",
+                         *         "damageChargesPaisa": "0",
+                         *         "rentChargedPaisa": "0",
+                         *         "accruedToDatePaisa": "3600000",
+                         *         "postedPaisa": "3375000",
+                         *         "daysOnRent": 16,
+                         *         "overdue": false,
+                         *         "returns": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-01T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/rentals/{id}/extend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extend the expected end date */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Rental id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        expectedEndDate: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Extended */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *         "number": "RNT-0001",
+                         *         "status": "ACTIVE",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *           "name": "Punjab Shuttering Yard",
+                         *           "phone": "+923214445566"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "startDate": "2026-10-01",
+                         *         "expectedEndDate": "2026-10-31",
+                         *         "returnedDate": null,
+                         *         "closedAt": null,
+                         *         "reference": "PSY-2231",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "returnedQty": 0,
+                         *             "missingQty": 0,
+                         *             "outstandingQty": 150,
+                         *             "ratePaisaPerDay": "1500"
+                         *           }
+                         *         ],
+                         *         "depositPaisa": "2000000",
+                         *         "depositRefundedPaisa": "0",
+                         *         "damageChargesPaisa": "0",
+                         *         "rentChargedPaisa": "0",
+                         *         "accruedToDatePaisa": "3600000",
+                         *         "postedPaisa": "3375000",
+                         *         "daysOnRent": 16,
+                         *         "overdue": false,
+                         *         "returns": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-01T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_DATES */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_ACTIVE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/rentals/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Return to the yard (partly or fully), with damage charges
+         * @description equipment.rental.manage. `qty` leaves the location (RENTAL_RETURN_OUT); `missingQty` = never handed back and must already be reported as a MISSING loss (400 MISSING_NOT_REPORTED). Damage charges → supplier ledger (RENTAL_DAMAGE). When nothing is outstanding: the remaining days are posted, rent = Σ daily RENTAL charges → supplier ledger (RENTAL_CHARGE), status RETURNED. Return day is not charged.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Rental id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        returnDate: string;
+                        /**
+                         * Format: uuid
+                         * @description Default: where the rental was delivered
+                         */
+                        fromLocationId?: string;
+                        items: {
+                            /** Format: uuid */
+                            rentalItemId: string;
+                            /**
+                             * @description Handed back to the yard
+                             * @example 200
+                             */
+                            qty: number | string;
+                            /**
+                             * @description Of the handed-back qty, damaged
+                             * @example 200
+                             */
+                            damagedQty?: number | string;
+                            /**
+                             * @description Not handed back (must be reported as a MISSING loss first)
+                             * @example 200
+                             */
+                            missingQty?: number | string;
+                        }[];
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 450000
+                         */
+                        damageChargesPaisa?: string | number;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Returned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *         "number": "RNT-0001",
+                         *         "status": "RETURNED",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *           "name": "Punjab Shuttering Yard",
+                         *           "phone": "+923214445566"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "startDate": "2026-10-01",
+                         *         "expectedEndDate": "2026-10-31",
+                         *         "returnedDate": "2026-10-16",
+                         *         "closedAt": null,
+                         *         "reference": "PSY-2231",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "returnedQty": 0,
+                         *             "missingQty": 0,
+                         *             "outstandingQty": 150,
+                         *             "ratePaisaPerDay": "1500"
+                         *           }
+                         *         ],
+                         *         "depositPaisa": "2000000",
+                         *         "depositRefundedPaisa": "0",
+                         *         "damageChargesPaisa": "450000",
+                         *         "rentChargedPaisa": "3375000",
+                         *         "accruedToDatePaisa": "3600000",
+                         *         "postedPaisa": "3375000",
+                         *         "daysOnRent": 16,
+                         *         "overdue": false,
+                         *         "returns": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-01T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_RENTAL_ITEM | RETURN_EXCEEDS_OUTSTANDING | INSUFFICIENT_EQUIPMENT | MISSING_NOT_REPORTED | INVALID_DATES | INVALID_LOCATION | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_FOUND | LOCATION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_ACTIVE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/rentals/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close (settle the deposit)
+         * @description equipment.rental.manage. RETURNED only. Cash refunded by the yard → supplier ledger (RENTAL_DEPOSIT_REFUND); the rest of the deposit stays as credit against the charges.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Rental id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Cash the yard paid back; the rest of the deposit is adjusted against the charges
+                         * @example 2500000
+                         */
+                        depositRefundPaisa?: string | number;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Closed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001621",
+                         *         "number": "RNT-0001",
+                         *         "status": "CLOSED",
+                         *         "supplier": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000f5",
+                         *           "name": "Punjab Shuttering Yard",
+                         *           "phone": "+923214445566"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "startDate": "2026-10-01",
+                         *         "expectedEndDate": "2026-10-31",
+                         *         "returnedDate": null,
+                         *         "closedAt": null,
+                         *         "reference": "PSY-2231",
+                         *         "note": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001622",
+                         *             "equipment": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001602",
+                         *               "name": "Steel prop (adjustable)",
+                         *               "code": "PR-01",
+                         *               "unit": "nos",
+                         *               "kind": "BULK",
+                         *               "category": "PROP"
+                         *             },
+                         *             "qty": 150,
+                         *             "returnedQty": 0,
+                         *             "missingQty": 0,
+                         *             "outstandingQty": 150,
+                         *             "ratePaisaPerDay": "1500"
+                         *           }
+                         *         ],
+                         *         "depositPaisa": "2000000",
+                         *         "depositRefundedPaisa": "0",
+                         *         "damageChargesPaisa": "0",
+                         *         "rentChargedPaisa": "0",
+                         *         "accruedToDatePaisa": "3600000",
+                         *         "postedPaisa": "3375000",
+                         *         "daysOnRent": 16,
+                         *         "overdue": false,
+                         *         "returns": [],
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-10-01T05:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | REFUND_EXCEEDS_DEPOSIT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RENTAL_NOT_RETURNED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/losses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Loss & damage
+         * @description equipment.view (projects in scope; yard losses for equipment managers). Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "REPORTED" | "CHARGED";
+                    kind?: "MISSING" | "DAMAGED";
+                    projectId?: string;
+                    equipmentId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Losses */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *           "number": "EL-0001",
+                         *           "kind": "MISSING",
+                         *           "status": "REPORTED",
+                         *           "source": "REPORT",
+                         *           "equipment": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *             "name": "Steel shuttering plate 2×3 ft",
+                         *             "code": "SP-23",
+                         *             "unit": "nos",
+                         *             "kind": "BULK",
+                         *             "category": "SHUTTERING_PLATE"
+                         *           },
+                         *           "rental": null,
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "transfer": null,
+                         *           "qty": 6,
+                         *           "valuePaisa": "2700000",
+                         *           "chargedTo": null,
+                         *           "subcontract": null,
+                         *           "note": "6 plates not found after the GF slab de-shuttering",
+                         *           "photoUrl": null,
+                         *           "reportedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "reportedAt": "2026-10-12T10:00:00.000Z",
+                         *           "chargedBy": null,
+                         *           "chargedAt": null,
+                         *           "chargeNote": null
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Report missing / damaged equipment
+         * @description equipment.loss.create (Munshi on his site). MISSING takes the units off the location (LOSS_OUT); DAMAGED keeps them there. Value estimate = qty × replacement value. Offline: sync mutation EQUIPMENT_LOSS_REPORT.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description The project’s site (Munshi)
+                         */
+                        projectId?: string;
+                        /** Format: uuid */
+                        locationId?: string;
+                        /** Format: uuid */
+                        equipmentId: string;
+                        /**
+                         * Format: uuid
+                         * @description Rented units of this rental
+                         */
+                        rentalId?: string;
+                        /** @enum {string} */
+                        kind: "MISSING" | "DAMAGED";
+                        /**
+                         * @description Number (or numeric string) with at most 3 decimals
+                         * @example 200
+                         */
+                        qty: number | string;
+                        /** Format: uuid */
+                        photoAttachmentId?: string;
+                        note: string;
+                        /** @example 2026-12-25 */
+                        date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Reported */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *         "number": "EL-0001",
+                         *         "kind": "MISSING",
+                         *         "status": "REPORTED",
+                         *         "source": "REPORT",
+                         *         "equipment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *           "name": "Steel shuttering plate 2×3 ft",
+                         *           "code": "SP-23",
+                         *           "unit": "nos",
+                         *           "kind": "BULK",
+                         *           "category": "SHUTTERING_PLATE"
+                         *         },
+                         *         "rental": null,
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "transfer": null,
+                         *         "qty": 6,
+                         *         "valuePaisa": "2700000",
+                         *         "chargedTo": null,
+                         *         "subcontract": null,
+                         *         "note": "6 plates not found after the GF slab de-shuttering",
+                         *         "photoUrl": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-12T10:00:00.000Z",
+                         *         "chargedBy": null,
+                         *         "chargedAt": null,
+                         *         "chargeNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INSUFFICIENT_EQUIPMENT | INVALID_EQUIPMENT | INVALID_RENTAL | INVALID_ATTACHMENT | INVALID_LOCATION | DATE_IN_FUTURE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOCATION_NOT_FOUND | PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/losses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loss detail */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Loss id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Loss */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *         "number": "EL-0001",
+                         *         "kind": "MISSING",
+                         *         "status": "REPORTED",
+                         *         "source": "REPORT",
+                         *         "equipment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *           "name": "Steel shuttering plate 2×3 ft",
+                         *           "code": "SP-23",
+                         *           "unit": "nos",
+                         *           "kind": "BULK",
+                         *           "category": "SHUTTERING_PLATE"
+                         *         },
+                         *         "rental": null,
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "transfer": null,
+                         *         "qty": 6,
+                         *         "valuePaisa": "2700000",
+                         *         "chargedTo": null,
+                         *         "subcontract": null,
+                         *         "note": "6 plates not found after the GF slab de-shuttering",
+                         *         "photoUrl": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-12T10:00:00.000Z",
+                         *         "chargedBy": null,
+                         *         "chargedAt": null,
+                         *         "chargeNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOSS_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/losses/{id}/charge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Charge a loss
+         * @description equipment.loss.approve. PROJECT → project P&L (LOSSES); SUBCONTRACTOR → sub-contract ledger DEDUCTION; WRITE_OFF → the company (no project cost). valuePaisa defaults to the estimate.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Loss id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        chargedTo: "PROJECT" | "SUBCONTRACTOR" | "WRITE_OFF";
+                        /**
+                         * @description Default: qty × replacement value
+                         * @example 2500000
+                         */
+                        valuePaisa?: string | number;
+                        /** Format: uuid */
+                        subcontractAssignmentId?: string;
+                        note: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Charged */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001631",
+                         *         "number": "EL-0001",
+                         *         "kind": "MISSING",
+                         *         "status": "CHARGED",
+                         *         "source": "REPORT",
+                         *         "equipment": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *           "name": "Steel shuttering plate 2×3 ft",
+                         *           "code": "SP-23",
+                         *           "unit": "nos",
+                         *           "kind": "BULK",
+                         *           "category": "SHUTTERING_PLATE"
+                         *         },
+                         *         "rental": null,
+                         *         "location": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *           "type": "SITE",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla"
+                         *         },
+                         *         "transfer": null,
+                         *         "qty": 6,
+                         *         "valuePaisa": "2700000",
+                         *         "chargedTo": "PROJECT",
+                         *         "subcontract": null,
+                         *         "note": "6 plates not found after the GF slab de-shuttering",
+                         *         "photoUrl": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-12T10:00:00.000Z",
+                         *         "chargedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "chargedAt": "2026-10-13T06:00:00.000Z",
+                         *         "chargeNote": "Lost during the storm"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOTHING_TO_CHARGE | NO_PROJECT | INVALID_ASSIGNMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOSS_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description LOSS_ALREADY_CHARGED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily hire and rent charges
+         * @description equipment.view (projects in scope). One row per day × site × equipment (INTERNAL_HIRE) or day × rental item (RENTAL); correction rows have correction: true. meta.totalPaisa = Σ amount of the filter. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    projectId?: string;
+                    kind?: "INTERNAL_HIRE" | "RENTAL";
+                    equipmentId?: string;
+                    rentalId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Charges */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001661",
+                         *           "date": "2026-10-15",
+                         *           "kind": "INTERNAL_HIRE",
+                         *           "project": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "code": "MSB-2026-012",
+                         *             "name": "DHA Phase 6 · 10 Marla"
+                         *           },
+                         *           "location": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000503",
+                         *             "type": "SITE",
+                         *             "name": "DHA Phase 6 · 10 Marla",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301"
+                         *           },
+                         *           "equipment": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001601",
+                         *             "name": "Steel shuttering plate 2×3 ft",
+                         *             "code": "SP-23",
+                         *             "unit": "nos",
+                         *             "kind": "BULK",
+                         *             "category": "SHUTTERING_PLATE"
+                         *           },
+                         *           "rental": null,
+                         *           "qty": 240,
+                         *           "correction": false,
+                         *           "ratePaisa": "500",
+                         *           "amountPaisa": "120000"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaisa": "120000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/equipment/accruals/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post hire and rent (accrual run)
+         * @description equipment.manage. Same as the daily 01:30 job, for this company: posts complete days through `through` (≤ yesterday). Idempotent — a second run posts nothing.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Last day to post (≤ yesterday); default yesterday
+                         * @example 2026-12-25
+                         */
+                        through?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Posted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "through": "2026-10-15",
+                         *         "internalHire": {
+                         *           "rows": 3,
+                         *           "amountPaisa": "247500"
+                         *         },
+                         *         "rental": {
+                         *           "rows": 1,
+                         *           "amountPaisa": "225000"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | DATE_NOT_COMPLETE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{id}/labor/workers": {
         parameters: {
             query?: never;
@@ -33081,6 +36996,7 @@ export interface paths {
                          *           "subcontractPaisa": "100000000",
                          *           "kharchaPaisa": "10000000",
                          *           "lossesPaisa": "0",
+                         *           "equipmentPaisa": "0",
                          *           "totalPaisa": "640000000"
                          *         },
                          *         "ownMoneyInvestedPaisa": "-175000000",
@@ -40358,7 +44274,7 @@ export interface paths {
                             /** Format: uuid */
                             clientId: string;
                             /** @enum {string} */
-                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "SNAG_CREATE" | "SNAG_FIX";
+                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "EQUIPMENT_RECEIVE" | "EQUIPMENT_LOSS_REPORT" | "SNAG_CREATE" | "SNAG_FIX";
                             /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, snagId). Ids may be clientIds of earlier mutations or attachments. */
                             payload: {
                                 [key: string]: unknown;
