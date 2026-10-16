@@ -5,14 +5,17 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useCreateOwnerDeliveryMutation } from "@/api/services/dispatch.api";
 import { useRecordUsageMutation } from "@/api/services/inventory.api";
+import { useGetScheduleQuery } from "@/api/services/schedule.api";
 import { useGetMaterialsQuery } from "@/api/services/masterData.api";
 import type { SiteStockRow, SupplyRule } from "@/api/types";
 import { LineItemsEditor } from "@/components/common/LineItemsEditor";
+import { useCan } from "@/components/common/PermissionGate";
 import { SlideOver } from "@/components/common/SlideOver";
 import { AttachmentField } from "@/components/forms/AttachmentField";
 import { DateField } from "@/components/forms/DateField";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
+import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { applyLineError } from "@/features/procurement/lineErrors";
 import { ownerDeliverySchema, usageSchema, type OwnerDeliveryValues, type UsageValues } from "@/features/procurement/schemas";
@@ -42,17 +45,21 @@ export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: {
   const [record, { isLoading }] = useRecordUsageMutation();
   const run = useMutationToast();
   const byId = new Map(stock.map((s) => [s.material.id, s]));
+  // Step 13: optional milestone link (counts against its material quota); only with schedule access and a plan.
+  const canSchedule = useCan("schedule.plan.view");
+  const schedule = useGetScheduleQuery(projectId, { skip: !open || !canSchedule });
+  const milestoneOptions = (schedule.data?.milestones ?? []).filter((m) => m.status !== "DONE").map((m) => ({ value: m.id, label: m.name }));
   const form = useForm<UsageValues, unknown, z.output<typeof usageSchema>>({
     resolver: zodResolver(usageSchema),
-    values: { usageDate: todayPK(), note: "", items: [{ materialId: null, qty: null }] },
+    values: { usageDate: todayPK(), note: "", milestoneId: null, items: [{ materialId: null, qty: null }] },
   });
   const onSubmit = async (v: z.output<typeof usageSchema>) => {
     const result = await run(
-      () => record({ projectId, body: { usageDate: v.usageDate, ...(v.note ? { note: v.note } : {}), items: v.items.map((i) => ({ materialId: i.materialId, qty: i.qty })) } }).unwrap(),
+      () => record({ projectId, body: { usageDate: v.usageDate, ...(v.note ? { note: v.note } : {}), ...(v.milestoneId ? { milestoneId: v.milestoneId } : {}), items: v.items.map((i) => ({ materialId: i.materialId, qty: i.qty })) } }).unwrap(),
       {
         success: t("cashSite.site.usageSaved"),
         setError: form.setError,
-        codeFields: { DATE_IN_FUTURE: "usageDate" },
+        codeFields: { DATE_IN_FUTURE: "usageDate", INVALID_MILESTONE: "milestoneId" },
         onError: (_c, error) => applyLineError(error, v.items, form.setError, "items", { INSUFFICIENT_STOCK: "qty" }),
       },
     );
@@ -70,6 +77,9 @@ export function RecordUsageSlideOver({ open, onOpenChange, projectId, stock }: {
     >
       <Form form={form} onSubmit={onSubmit} id="usage-form">
         <DateField name="usageDate" label={t("field.date")} required max={todayPK()} />
+        {milestoneOptions.length > 0 ? (
+          <SelectField name="milestoneId" label={t("cashSite.site.usageMilestone")} hint={t("cashSite.site.usageMilestoneHint")} options={milestoneOptions} placeholder={t("cashSite.site.usageNoMilestone")} noneLabel={t("cashSite.site.usageNoMilestone")} />
+        ) : null}
         <LineItemsEditor
           name="items"
           materialIds={stock.filter((s) => s.inStock > 0).map((s) => s.material.id)}

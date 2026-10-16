@@ -186,6 +186,9 @@ export const strings = {
     inStockQty: "In stock: {qty}",
     onlyInStock: "Only {qty} in stock",
     usagePlaceholder: "Roof slab, first floor",
+    usageMilestone: "Milestone (optional)",
+    usageMilestoneHint: "Counts against this milestone's material quota.",
+    usageNoMilestone: "Not linked",
     // Owner delivery
     ownerDeliveryRecorded: "Owner delivery recorded",
     ownerDeliveryFormDesc: "Material the owner sent himself. It is tracked in the site stock at no cost to you.",
