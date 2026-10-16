@@ -143,6 +143,12 @@ export const PERMISSION_KEYS = [
   "company.holiday.manage",
   // subscription
   "subscription.manage",
+  // schedule (Step 13)
+  "schedule.plan.view",
+  "schedule.plan.manage",
+  "schedule.progress.edit",
+  "schedule.stoppage.create",
+  "schedule.stoppage.approve",
   // closeout (Step 17)
   "closeout.drawing.view",
   "closeout.drawing.manage",

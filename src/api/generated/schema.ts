@@ -2307,6 +2307,13 @@ export interface paths {
                         defaultFinishingAllowancePercent?: number;
                         /** @enum {string} */
                         defaultLanguage?: "ENGLISH" | "ROMAN_URDU" | "URDU";
+                        ramadanDayFactor?: number;
+                        ramadanPeriods?: {
+                            /** @example 2026-12-25 */
+                            start: string;
+                            /** @example 2026-12-25 */
+                            end: string;
+                        }[] | null;
                     };
                 };
             };
@@ -21166,6 +21173,2729 @@ export interface paths {
                     };
                 };
                 /** @description RULEBOOK_PUBLISHED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Schedule (Gantt data)
+         * @description Stages, milestones (planned / baseline / actual dates, curing, dependencies, progress, quotas), the working calendar (off days, holidays in the span, Ramadan), PENDING + APPROVED stoppage days, planned / baseline / projected end. Without a schedule: `schedule: null` and `canGenerate` (an APPROVED estimate exists). Permission schedule.plan.view. Quantities only — nothing in the schedule carries money.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Schedule */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "schedule": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001300",
+                         *           "version": 2,
+                         *           "startDate": "2026-03-16",
+                         *           "teams": 1,
+                         *           "note": null,
+                         *           "changeOrderDays": 0,
+                         *           "estimate": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *             "revision": 1
+                         *           },
+                         *           "generatedAt": "2026-03-10T09:00:00.000Z",
+                         *           "generatedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "replannedAt": null,
+                         *           "planFloor": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE",
+                         *           "startDate": "2026-03-15",
+                         *           "endDate": "2027-02-15"
+                         *         },
+                         *         "approvedEstimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *           "revision": 1,
+                         *           "approvedAt": "2026-03-04T11:30:00.000Z"
+                         *         },
+                         *         "canGenerate": false,
+                         *         "today": "2026-10-16",
+                         *         "plannedEnd": "2027-02-02",
+                         *         "baselineEnd": "2027-01-12",
+                         *         "projectedEnd": "2027-03-01",
+                         *         "calendar": {
+                         *           "workingDays": [
+                         *             "MONDAY",
+                         *             "TUESDAY",
+                         *             "WEDNESDAY",
+                         *             "THURSDAY",
+                         *             "FRIDAY",
+                         *             "SATURDAY"
+                         *           ],
+                         *           "ramadanDayFactor": 0.75,
+                         *           "ramadanPeriods": [
+                         *             {
+                         *               "start": "2026-02-19",
+                         *               "end": "2026-03-20"
+                         *             }
+                         *           ],
+                         *           "holidays": [
+                         *             {
+                         *               "date": "2026-11-09",
+                         *               "name": "Iqbal Day",
+                         *               "type": "NON_WORKING",
+                         *               "source": "PLATFORM"
+                         *             }
+                         *           ]
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "name": "First floor structure",
+                         *             "sortOrder": 3,
+                         *             "plannedStart": "2026-09-08",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-06-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "progressPercent": 62,
+                         *             "status": "IN_PROGRESS"
+                         *           }
+                         *         ],
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *             "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "sortOrder": 6,
+                         *             "workDays": 23,
+                         *             "durationDays": 23,
+                         *             "plannedStart": "2026-10-14",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-07-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "varianceDays": 88,
+                         *             "curingDays": 14,
+                         *             "curingUntil": "2026-11-24",
+                         *             "startNoEarlierThan": null,
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20,
+                         *             "actualStart": "2026-10-14",
+                         *             "actualEnd": null,
+                         *             "late": false,
+                         *             "dependsOn": [
+                         *               {
+                         *                 "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *                 "key": "F1_STRUCTURE.WALLS",
+                         *                 "type": "FS",
+                         *                 "lagDays": 7
+                         *               }
+                         *             ],
+                         *             "billingStage": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *               "label": "Grey structure — first floor & roof",
+                         *               "sortOrder": 4
+                         *             },
+                         *             "quotas": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *                 "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "material": "cement",
+                         *                 "description": "Cement OPC",
+                         *                 "unit": "bag",
+                         *                 "ownerSupplied": false,
+                         *                 "plannedQty": 201.6,
+                         *                 "usedQty": 120,
+                         *                 "remainingQty": 81.6,
+                         *                 "usedPercent": 59.5,
+                         *                 "over": false
+                         *               }
+                         *             ],
+                         *             "basis": [
+                         *               "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *               "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *               "→ 23 days"
+                         *             ],
+                         *             "lastUpdate": {
+                         *               "at": "2026-10-15T12:10:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *                 "name": "Rafaqat Ali"
+                         *               },
+                         *               "note": "Shuttering half done"
+                         *             },
+                         *             "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "stoppages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "dates": [
+                         *               "2026-10-07",
+                         *               "2026-10-08"
+                         *             ],
+                         *             "from": "2026-10-07",
+                         *             "to": "2026-10-08",
+                         *             "days": 2,
+                         *             "reason": "RAIN",
+                         *             "category": "EXCUSABLE",
+                         *             "status": "APPROVED",
+                         *             "note": "Heavy rain, site flooded",
+                         *             "photos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "url": "https://…",
+                         *                 "thumbUrl": "https://…"
+                         *               }
+                         *             ],
+                         *             "clientId": null,
+                         *             "reportedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *             "decidedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *             "decisionNote": null
+                         *           }
+                         *         ],
+                         *         "baseline": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001351",
+                         *           "createdAt": "2026-03-10T09:00:00.000Z",
+                         *           "startDate": "2026-03-16",
+                         *           "plannedEnd": "2027-01-12"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate the schedule from the approved estimate
+         * @description Milestones per build stage from the APPROVED estimate quantities ÷ rulebook productivity (÷ teams), curing as FS lags (columns → slab, slab → next floor, plaster → tiles), dates on the company calendar (weekly off days, platform + company holidays, Ramadan × ramadanDayFactor). Saves the frozen baseline and plan version 1; billing stages are linked by label. Permission schedule.plan.manage; project DRAFT / ACTIVE. Audited `schedule.generate`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GenerateScheduleInput"];
+                };
+            };
+            responses: {
+                /** @description Generated */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "schedule": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001300",
+                         *           "version": 2,
+                         *           "startDate": "2026-03-16",
+                         *           "teams": 1,
+                         *           "note": null,
+                         *           "changeOrderDays": 0,
+                         *           "estimate": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *             "revision": 1
+                         *           },
+                         *           "generatedAt": "2026-03-10T09:00:00.000Z",
+                         *           "generatedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "replannedAt": null,
+                         *           "planFloor": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE",
+                         *           "startDate": "2026-03-15",
+                         *           "endDate": "2027-02-15"
+                         *         },
+                         *         "approvedEstimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *           "revision": 1,
+                         *           "approvedAt": "2026-03-04T11:30:00.000Z"
+                         *         },
+                         *         "canGenerate": false,
+                         *         "today": "2026-10-16",
+                         *         "plannedEnd": "2027-02-02",
+                         *         "baselineEnd": "2027-01-12",
+                         *         "projectedEnd": "2027-03-01",
+                         *         "calendar": {
+                         *           "workingDays": [
+                         *             "MONDAY",
+                         *             "TUESDAY",
+                         *             "WEDNESDAY",
+                         *             "THURSDAY",
+                         *             "FRIDAY",
+                         *             "SATURDAY"
+                         *           ],
+                         *           "ramadanDayFactor": 0.75,
+                         *           "ramadanPeriods": [
+                         *             {
+                         *               "start": "2026-02-19",
+                         *               "end": "2026-03-20"
+                         *             }
+                         *           ],
+                         *           "holidays": [
+                         *             {
+                         *               "date": "2026-11-09",
+                         *               "name": "Iqbal Day",
+                         *               "type": "NON_WORKING",
+                         *               "source": "PLATFORM"
+                         *             }
+                         *           ]
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "name": "First floor structure",
+                         *             "sortOrder": 3,
+                         *             "plannedStart": "2026-09-08",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-06-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "progressPercent": 62,
+                         *             "status": "IN_PROGRESS"
+                         *           }
+                         *         ],
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *             "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "sortOrder": 6,
+                         *             "workDays": 23,
+                         *             "durationDays": 23,
+                         *             "plannedStart": "2026-10-14",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-07-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "varianceDays": 88,
+                         *             "curingDays": 14,
+                         *             "curingUntil": "2026-11-24",
+                         *             "startNoEarlierThan": null,
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20,
+                         *             "actualStart": "2026-10-14",
+                         *             "actualEnd": null,
+                         *             "late": false,
+                         *             "dependsOn": [
+                         *               {
+                         *                 "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *                 "key": "F1_STRUCTURE.WALLS",
+                         *                 "type": "FS",
+                         *                 "lagDays": 7
+                         *               }
+                         *             ],
+                         *             "billingStage": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *               "label": "Grey structure — first floor & roof",
+                         *               "sortOrder": 4
+                         *             },
+                         *             "quotas": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *                 "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "material": "cement",
+                         *                 "description": "Cement OPC",
+                         *                 "unit": "bag",
+                         *                 "ownerSupplied": false,
+                         *                 "plannedQty": 201.6,
+                         *                 "usedQty": 120,
+                         *                 "remainingQty": 81.6,
+                         *                 "usedPercent": 59.5,
+                         *                 "over": false
+                         *               }
+                         *             ],
+                         *             "basis": [
+                         *               "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *               "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *               "→ 23 days"
+                         *             ],
+                         *             "lastUpdate": {
+                         *               "at": "2026-10-15T12:10:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *                 "name": "Rafaqat Ali"
+                         *               },
+                         *               "note": "Shuttering half done"
+                         *             },
+                         *             "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "stoppages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "dates": [
+                         *               "2026-10-07",
+                         *               "2026-10-08"
+                         *             ],
+                         *             "from": "2026-10-07",
+                         *             "to": "2026-10-08",
+                         *             "days": 2,
+                         *             "reason": "RAIN",
+                         *             "category": "EXCUSABLE",
+                         *             "status": "APPROVED",
+                         *             "note": "Heavy rain, site flooded",
+                         *             "photos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "url": "https://…",
+                         *                 "thumbUrl": "https://…"
+                         *               }
+                         *             ],
+                         *             "clientId": null,
+                         *             "reportedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *             "decidedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *             "decisionNote": null
+                         *           }
+                         *         ],
+                         *         "baseline": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001351",
+                         *           "createdAt": "2026-03-10T09:00:00.000Z",
+                         *           "startDate": "2026-03-16",
+                         *           "plannedEnd": "2027-01-12"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NO_START_DATE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description NO_APPROVED_ESTIMATE | SCHEDULE_EXISTS | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/replan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re-plan (baseline kept)
+         * @description Recomputes the plan and records a new plan version; the baseline never changes. `fromToday` (default true): nothing not started is planned before today and in-progress work needs its remaining effort from today. `refreshQuantities`: re-reads the current APPROVED estimate (efforts, quotas, new milestones; unused vanished ones removed). Permission schedule.plan.manage. Audited `schedule.replan`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReplanScheduleInput"];
+                };
+            };
+            responses: {
+                /** @description Re-planned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "schedule": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001300",
+                         *           "version": 2,
+                         *           "startDate": "2026-03-16",
+                         *           "teams": 1,
+                         *           "note": null,
+                         *           "changeOrderDays": 0,
+                         *           "estimate": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *             "revision": 1
+                         *           },
+                         *           "generatedAt": "2026-03-10T09:00:00.000Z",
+                         *           "generatedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "replannedAt": null,
+                         *           "planFloor": null
+                         *         },
+                         *         "project": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "code": "MSB-2026-012",
+                         *           "name": "DHA Phase 6 · 10 Marla",
+                         *           "status": "ACTIVE",
+                         *           "startDate": "2026-03-15",
+                         *           "endDate": "2027-02-15"
+                         *         },
+                         *         "approvedEstimate": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000e11",
+                         *           "revision": 1,
+                         *           "approvedAt": "2026-03-04T11:30:00.000Z"
+                         *         },
+                         *         "canGenerate": false,
+                         *         "today": "2026-10-16",
+                         *         "plannedEnd": "2027-02-02",
+                         *         "baselineEnd": "2027-01-12",
+                         *         "projectedEnd": "2027-03-01",
+                         *         "calendar": {
+                         *           "workingDays": [
+                         *             "MONDAY",
+                         *             "TUESDAY",
+                         *             "WEDNESDAY",
+                         *             "THURSDAY",
+                         *             "FRIDAY",
+                         *             "SATURDAY"
+                         *           ],
+                         *           "ramadanDayFactor": 0.75,
+                         *           "ramadanPeriods": [
+                         *             {
+                         *               "start": "2026-02-19",
+                         *               "end": "2026-03-20"
+                         *             }
+                         *           ],
+                         *           "holidays": [
+                         *             {
+                         *               "date": "2026-11-09",
+                         *               "name": "Iqbal Day",
+                         *               "type": "NON_WORKING",
+                         *               "source": "PLATFORM"
+                         *             }
+                         *           ]
+                         *         },
+                         *         "stages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "name": "First floor structure",
+                         *             "sortOrder": 3,
+                         *             "plannedStart": "2026-09-08",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-06-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "progressPercent": 62,
+                         *             "status": "IN_PROGRESS"
+                         *           }
+                         *         ],
+                         *         "milestones": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *             "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "sortOrder": 6,
+                         *             "workDays": 23,
+                         *             "durationDays": 23,
+                         *             "plannedStart": "2026-10-14",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-07-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "varianceDays": 88,
+                         *             "curingDays": 14,
+                         *             "curingUntil": "2026-11-24",
+                         *             "startNoEarlierThan": null,
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20,
+                         *             "actualStart": "2026-10-14",
+                         *             "actualEnd": null,
+                         *             "late": false,
+                         *             "dependsOn": [
+                         *               {
+                         *                 "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *                 "key": "F1_STRUCTURE.WALLS",
+                         *                 "type": "FS",
+                         *                 "lagDays": 7
+                         *               }
+                         *             ],
+                         *             "billingStage": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *               "label": "Grey structure — first floor & roof",
+                         *               "sortOrder": 4
+                         *             },
+                         *             "quotas": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *                 "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "material": "cement",
+                         *                 "description": "Cement OPC",
+                         *                 "unit": "bag",
+                         *                 "ownerSupplied": false,
+                         *                 "plannedQty": 201.6,
+                         *                 "usedQty": 120,
+                         *                 "remainingQty": 81.6,
+                         *                 "usedPercent": 59.5,
+                         *                 "over": false
+                         *               }
+                         *             ],
+                         *             "basis": [
+                         *               "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *               "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *               "→ 23 days"
+                         *             ],
+                         *             "lastUpdate": {
+                         *               "at": "2026-10-15T12:10:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *                 "name": "Rafaqat Ali"
+                         *               },
+                         *               "note": "Shuttering half done"
+                         *             },
+                         *             "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "stoppages": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "dates": [
+                         *               "2026-10-07",
+                         *               "2026-10-08"
+                         *             ],
+                         *             "from": "2026-10-07",
+                         *             "to": "2026-10-08",
+                         *             "days": 2,
+                         *             "reason": "RAIN",
+                         *             "category": "EXCUSABLE",
+                         *             "status": "APPROVED",
+                         *             "note": "Heavy rain, site flooded",
+                         *             "photos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "url": "https://…",
+                         *                 "thumbUrl": "https://…"
+                         *               }
+                         *             ],
+                         *             "clientId": null,
+                         *             "reportedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *             "decidedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *             "decisionNote": null
+                         *           }
+                         *         ],
+                         *         "baseline": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001351",
+                         *           "createdAt": "2026-03-10T09:00:00.000Z",
+                         *           "startDate": "2026-03-16",
+                         *           "plannedEnd": "2027-01-12"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description NO_APPROVED_ESTIMATE | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/baseline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Frozen baseline
+         * @description The first plan as generated (immutable). Permission schedule.plan.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Baseline */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001351",
+                         *         "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *         "estimateId": "0199a8c0-0000-7000-8000-000000000e11",
+                         *         "startDate": "2026-03-16",
+                         *         "plannedEnd": "2027-01-12",
+                         *         "createdAt": "2026-03-10T09:00:00.000Z",
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "milestones": [
+                         *           {
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "plannedStart": "2026-07-20",
+                         *             "plannedEnd": "2026-08-14",
+                         *             "workDays": 23,
+                         *             "durationDays": 23,
+                         *             "curingDays": 14,
+                         *             "dependsOn": [
+                         *               {
+                         *                 "key": "F1_STRUCTURE.WALLS",
+                         *                 "type": "FS",
+                         *                 "lagDays": 7
+                         *               }
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Plan versions
+         * @description Every revised plan, newest first: GENERATED, REPLANNED, MILESTONE_EDITED, STOPPAGE_APPROVED. Permission schedule.plan.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Versions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001361",
+                         *           "version": 2,
+                         *           "reason": "STOPPAGE_APPROVED",
+                         *           "note": "RAIN · 2026-10-07 – 2026-10-08",
+                         *           "plannedEnd": "2027-02-02",
+                         *           "createdAt": "2026-10-08T15:00:00.000Z",
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "milestones": [
+                         *             {
+                         *               "key": "F1_STRUCTURE.SLAB",
+                         *               "plannedStart": "2026-10-14",
+                         *               "plannedEnd": "2026-11-10"
+                         *             }
+                         *           ]
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/delays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Delay breakdown
+         * @description Original end (contract end date, else baseline), revised end (+ approved OWNER and EXCUSABLE stoppage working days + change-order days — Step 15 hook), projected end (remaining effort from today at the current pace) and the days per category: owner, excusable, contractor (projected past revised: contractor stoppages + SLOW_PROGRESS) with the reasons. Pending stoppages are listed, not counted. Permission schedule.plan.view.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Delays */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "originalEnd": "2027-02-15",
+                         *         "baselineEnd": "2027-01-12",
+                         *         "plannedEnd": "2027-02-02",
+                         *         "revisedEnd": "2027-02-17",
+                         *         "projectedEnd": "2027-03-01",
+                         *         "pace": 0.82,
+                         *         "progressPercent": 41.3,
+                         *         "days": {
+                         *           "owner": 0,
+                         *           "excusable": 2,
+                         *           "contractor": 10,
+                         *           "changeOrders": 0,
+                         *           "total": 12
+                         *         },
+                         *         "aheadDays": 0,
+                         *         "calendarDaysLate": 14,
+                         *         "categories": [
+                         *           {
+                         *             "category": "OWNER",
+                         *             "days": 0,
+                         *             "reasons": []
+                         *           },
+                         *           {
+                         *             "category": "EXCUSABLE",
+                         *             "days": 2,
+                         *             "reasons": [
+                         *               {
+                         *                 "stoppageId": "0199a8c0-0000-7000-8000-000000001311",
+                         *                 "reason": "RAIN",
+                         *                 "dates": [
+                         *                   "2026-10-07",
+                         *                   "2026-10-08"
+                         *                 ],
+                         *                 "days": 2,
+                         *                 "note": "Heavy rain, site flooded"
+                         *               }
+                         *             ]
+                         *           },
+                         *           {
+                         *             "category": "CONTRACTOR",
+                         *             "days": 10,
+                         *             "reasons": [
+                         *               {
+                         *                 "stoppageId": null,
+                         *                 "reason": "SLOW_PROGRESS",
+                         *                 "dates": [],
+                         *                 "days": 10,
+                         *                 "note": "Progress 41.3% at 82% of the planned pace"
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "pending": [
+                         *           {
+                         *             "stoppageId": "0199a8c0-0000-7000-8000-000000001312",
+                         *             "reason": "SMOG_BAN",
+                         *             "category": "EXCUSABLE",
+                         *             "dates": [
+                         *               "2026-10-14"
+                         *             ],
+                         *             "days": 1
+                         *           }
+                         *         ],
+                         *         "changeOrders": {
+                         *           "days": 0,
+                         *           "items": []
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/quotas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Milestones & Quotas
+         * @description Material quota of each milestone (from the APPROVED estimate's lines of its stage, in the material's unit) vs used (usage entries linked to the milestone), project totals and usage not linked to a milestone. Permission schedule.plan.view. Quantities only — nothing in the schedule carries money.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Quotas */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "milestones": [
+                         *           {
+                         *             "milestone": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *               "key": "F1_STRUCTURE.SLAB",
+                         *               "name": "First floor — roof slab (lenter)",
+                         *               "stageKey": "F1_STRUCTURE",
+                         *               "status": "IN_PROGRESS",
+                         *               "progressPercent": 20,
+                         *               "plannedStart": "2026-10-14",
+                         *               "plannedEnd": "2026-11-10"
+                         *             },
+                         *             "quotas": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *                 "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "material": "cement",
+                         *                 "description": "Cement OPC",
+                         *                 "unit": "bag",
+                         *                 "ownerSupplied": false,
+                         *                 "plannedQty": 201.6,
+                         *                 "usedQty": 120,
+                         *                 "remainingQty": 81.6,
+                         *                 "usedPercent": 59.5,
+                         *                 "over": false
+                         *               }
+                         *             ]
+                         *           }
+                         *         ],
+                         *         "materials": [
+                         *           {
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "material": "cement",
+                         *             "description": "Cement OPC",
+                         *             "unit": "bag",
+                         *             "plannedQty": 812.4,
+                         *             "usedQty": 655,
+                         *             "remainingQty": 157.4,
+                         *             "usedPercent": 80.6,
+                         *             "over": false
+                         *           }
+                         *         ],
+                         *         "unlinked": [
+                         *           {
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d5",
+                         *             "name": "Ravi sand",
+                         *             "unit": "cft",
+                         *             "usedQty": 300
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/schedule/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Aaj — today’s milestones
+         * @description For the site: milestones whose window covers the date or that are IN_PROGRESS / CURING / BLOCKED (`today`), PLANNED ones starting in the next 7 days (`upcoming`) and those past their planned end (`late`), with quota left. Permission schedule.plan.view. Quantities only — nothing in the schedule carries money.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    date?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Today */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "date": "2026-10-16",
+                         *         "today": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *             "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *             "stageKey": "F1_STRUCTURE",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "sortOrder": 6,
+                         *             "workDays": 23,
+                         *             "durationDays": 23,
+                         *             "plannedStart": "2026-10-14",
+                         *             "plannedEnd": "2026-11-10",
+                         *             "baselineStart": "2026-07-20",
+                         *             "baselineEnd": "2026-08-14",
+                         *             "varianceDays": 88,
+                         *             "curingDays": 14,
+                         *             "curingUntil": "2026-11-24",
+                         *             "startNoEarlierThan": null,
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20,
+                         *             "actualStart": "2026-10-14",
+                         *             "actualEnd": null,
+                         *             "late": false,
+                         *             "dependsOn": [
+                         *               {
+                         *                 "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *                 "key": "F1_STRUCTURE.WALLS",
+                         *                 "type": "FS",
+                         *                 "lagDays": 7
+                         *               }
+                         *             ],
+                         *             "billingStage": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *               "label": "Grey structure — first floor & roof",
+                         *               "sortOrder": 4
+                         *             },
+                         *             "quotas": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *                 "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *                 "material": "cement",
+                         *                 "description": "Cement OPC",
+                         *                 "unit": "bag",
+                         *                 "ownerSupplied": false,
+                         *                 "plannedQty": 201.6,
+                         *                 "usedQty": 120,
+                         *                 "remainingQty": 81.6,
+                         *                 "usedPercent": 59.5,
+                         *                 "over": false
+                         *               }
+                         *             ],
+                         *             "basis": [
+                         *               "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *               "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *               "→ 23 days"
+                         *             ],
+                         *             "lastUpdate": {
+                         *               "at": "2026-10-15T12:10:00.000Z",
+                         *               "by": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *                 "name": "Rafaqat Ali"
+                         *               },
+                         *               "note": "Shuttering half done"
+                         *             },
+                         *             "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *           }
+                         *         ],
+                         *         "upcoming": [],
+                         *         "late": []
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND | SCHEDULE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/milestones/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Milestone
+         * @description Milestone with its site updates (newest first, 50). Permission schedule.plan.view (project in scope, else 404).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Milestone id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Milestone */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *         "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *         "stageKey": "F1_STRUCTURE",
+                         *         "key": "F1_STRUCTURE.SLAB",
+                         *         "name": "First floor — roof slab (lenter)",
+                         *         "sortOrder": 6,
+                         *         "workDays": 23,
+                         *         "durationDays": 23,
+                         *         "plannedStart": "2026-10-14",
+                         *         "plannedEnd": "2026-11-10",
+                         *         "baselineStart": "2026-07-20",
+                         *         "baselineEnd": "2026-08-14",
+                         *         "varianceDays": 88,
+                         *         "curingDays": 14,
+                         *         "curingUntil": "2026-11-24",
+                         *         "startNoEarlierThan": null,
+                         *         "status": "IN_PROGRESS",
+                         *         "progressPercent": 20,
+                         *         "actualStart": "2026-10-14",
+                         *         "actualEnd": null,
+                         *         "late": false,
+                         *         "dependsOn": [
+                         *           {
+                         *             "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *             "key": "F1_STRUCTURE.WALLS",
+                         *             "type": "FS",
+                         *             "lagDays": 7
+                         *           }
+                         *         ],
+                         *         "billingStage": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *           "label": "Grey structure — first floor & roof",
+                         *           "sortOrder": 4
+                         *         },
+                         *         "quotas": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *             "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "material": "cement",
+                         *             "description": "Cement OPC",
+                         *             "unit": "bag",
+                         *             "ownerSupplied": false,
+                         *             "plannedQty": 201.6,
+                         *             "usedQty": 120,
+                         *             "remainingQty": 81.6,
+                         *             "usedPercent": 59.5,
+                         *             "over": false
+                         *           }
+                         *         ],
+                         *         "basis": [
+                         *           "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *           "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *           "→ 23 days"
+                         *         ],
+                         *         "lastUpdate": {
+                         *           "at": "2026-10-15T12:10:00.000Z",
+                         *           "by": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "note": "Shuttering half done"
+                         *         },
+                         *         "updatedAt": "2026-10-15T12:10:00.000Z",
+                         *         "updates": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001371",
+                         *             "at": "2026-10-15T12:10:00.000Z",
+                         *             "date": "2026-10-15",
+                         *             "status": "IN_PROGRESS",
+                         *             "progressPercent": 20,
+                         *             "previousStatus": "IN_PROGRESS",
+                         *             "previousProgress": 10,
+                         *             "note": "Shuttering half done",
+                         *             "photos": [],
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MILESTONE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a milestone (Gantt drag)
+         * @description Name, effort (`workDays`), curing days, `startNoEarlierThan` (drag), dependencies (FS / SS + lag in calendar days) and the payment stage it starts. The plan is recomputed (successors pushed / pulled) and a plan version is written when dates moved; `dryRun: true` returns the shifts without saving (for the confirmation dialog). Dates of a DONE / CURING milestone come from the site (409 MILESTONE_DONE). Permission schedule.plan.manage. Audited `milestone.update`.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Milestone id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MilestoneEditInput"];
+                };
+            };
+            responses: {
+                /** @description Edited */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "milestone": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *           "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *           "stageKey": "F1_STRUCTURE",
+                         *           "key": "F1_STRUCTURE.SLAB",
+                         *           "name": "First floor — roof slab (lenter)",
+                         *           "sortOrder": 6,
+                         *           "workDays": 23,
+                         *           "durationDays": 23,
+                         *           "plannedStart": "2026-10-14",
+                         *           "plannedEnd": "2026-11-10",
+                         *           "baselineStart": "2026-07-20",
+                         *           "baselineEnd": "2026-08-14",
+                         *           "varianceDays": 88,
+                         *           "curingDays": 14,
+                         *           "curingUntil": "2026-11-24",
+                         *           "startNoEarlierThan": null,
+                         *           "status": "IN_PROGRESS",
+                         *           "progressPercent": 20,
+                         *           "actualStart": "2026-10-14",
+                         *           "actualEnd": null,
+                         *           "late": false,
+                         *           "dependsOn": [
+                         *             {
+                         *               "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *               "key": "F1_STRUCTURE.WALLS",
+                         *               "type": "FS",
+                         *               "lagDays": 7
+                         *             }
+                         *           ],
+                         *           "billingStage": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *             "label": "Grey structure — first floor & roof",
+                         *             "sortOrder": 4
+                         *           },
+                         *           "quotas": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *               "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "material": "cement",
+                         *               "description": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "ownerSupplied": false,
+                         *               "plannedQty": 201.6,
+                         *               "usedQty": 120,
+                         *               "remainingQty": 81.6,
+                         *               "usedPercent": 59.5,
+                         *               "over": false
+                         *             }
+                         *           ],
+                         *           "basis": [
+                         *             "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *             "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *             "→ 23 days"
+                         *           ],
+                         *           "lastUpdate": {
+                         *             "at": "2026-10-15T12:10:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "note": "Shuttering half done"
+                         *           },
+                         *           "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *         },
+                         *         "shifted": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "plannedStart": {
+                         *               "from": "2026-10-14",
+                         *               "to": "2026-10-14"
+                         *             },
+                         *             "plannedEnd": {
+                         *               "from": "2026-11-08",
+                         *               "to": "2026-11-10"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "plannedEnd": {
+                         *           "from": "2027-01-31",
+                         *           "to": "2027-02-02"
+                         *         },
+                         *         "dryRun": false
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | DEPENDENCY_CYCLE | INVALID_DEPENDENCY | INVALID_BILLING_STAGE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MILESTONE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MILESTONE_DONE | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/milestones/{id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update progress / status from site
+         * @description PLANNED → IN_PROGRESS (progress > 0 starts it) → CURING (milestones with curing days) → DONE; progress 100 finishes it; BLOCKED needs a note. `date` = the actual start / end (≤ today). Same `clientId` again → the first update. Also the sync mutation MILESTONE_PROGRESS. Warnings never block: PREDECESSOR_NOT_DONE, and PREVIOUS_STAGE_UNPAID (stage lock) when the milestone starts a payment stage while an earlier stage invoice still has a balance — a billing event + a notification to the owner / PMs with billing; `balancePaisa` only with fields.amounts. Permission schedule.progress.edit. Audited `milestone.progress`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Milestone id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MilestoneProgressInput"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001371",
+                         *         "milestone": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "scheduleId": "0199a8c0-0000-7000-8000-000000001300",
+                         *           "stageId": "0199a8c0-0000-7000-8000-000000001331",
+                         *           "stageKey": "F1_STRUCTURE",
+                         *           "key": "F1_STRUCTURE.SLAB",
+                         *           "name": "First floor — roof slab (lenter)",
+                         *           "sortOrder": 6,
+                         *           "workDays": 23,
+                         *           "durationDays": 23,
+                         *           "plannedStart": "2026-10-14",
+                         *           "plannedEnd": "2026-11-10",
+                         *           "baselineStart": "2026-07-20",
+                         *           "baselineEnd": "2026-08-14",
+                         *           "varianceDays": 88,
+                         *           "curingDays": 14,
+                         *           "curingUntil": "2026-11-24",
+                         *           "startNoEarlierThan": null,
+                         *           "status": "IN_PROGRESS",
+                         *           "progressPercent": 20,
+                         *           "actualStart": "2026-10-14",
+                         *           "actualEnd": null,
+                         *           "late": false,
+                         *           "dependsOn": [
+                         *             {
+                         *               "milestoneId": "0199a8c0-0000-7000-8000-000000001302",
+                         *               "key": "F1_STRUCTURE.WALLS",
+                         *               "type": "FS",
+                         *               "lagDays": 7
+                         *             }
+                         *           ],
+                         *           "billingStage": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *             "label": "Grey structure — first floor & roof",
+                         *             "sortOrder": 4
+                         *           },
+                         *           "quotas": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001321",
+                         *               "materialId": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "material": "cement",
+                         *               "description": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "ownerSupplied": false,
+                         *               "plannedQty": 201.6,
+                         *               "usedQty": 120,
+                         *               "remainingQty": 81.6,
+                         *               "usedPercent": 59.5,
+                         *               "over": false
+                         *             }
+                         *           ],
+                         *           "basis": [
+                         *             "Concrete ≈ crush 988.5 cft ÷ (1.54 dry × 0.6) = 1,123.3 cft",
+                         *             "Shuttering: 3,253.7 sq ft ÷ 300 sq ft per team-day = 10.8 days",
+                         *             "→ 23 days"
+                         *           ],
+                         *           "lastUpdate": {
+                         *             "at": "2026-10-15T12:10:00.000Z",
+                         *             "by": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "note": "Shuttering half done"
+                         *           },
+                         *           "updatedAt": "2026-10-15T12:10:00.000Z"
+                         *         },
+                         *         "warnings": [
+                         *           {
+                         *             "code": "PREVIOUS_STAGE_UNPAID",
+                         *             "message": "\"Grey structure — first floor & roof\" is starting but an earlier stage is still unpaid",
+                         *             "details": {
+                         *               "billingStage": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001341",
+                         *                 "label": "Grey structure — first floor & roof"
+                         *               },
+                         *               "stages": [
+                         *                 {
+                         *                   "stageId": "0199a8c0-0000-7000-8000-000000001342",
+                         *                   "label": "Grey structure — ground floor",
+                         *                   "invoiceId": "0199a8c0-0000-7000-8000-000000001381",
+                         *                   "invoiceNumber": "INV-2026-0012",
+                         *                   "dueDate": "2026-09-03",
+                         *                   "balancePaisa": "110000000"
+                         *                 }
+                         *               ]
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NOTE_REQUIRED | DATE_IN_FUTURE | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MILESTONE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_STATUS_CHANGE | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/stoppages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stoppage days of a project
+         * @description Newest first, with the approved working days per category and the pending count. Permission schedule.plan.view.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "PENDING" | "APPROVED" | "REJECTED";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Stoppages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "dates": [
+                         *               "2026-10-07",
+                         *               "2026-10-08"
+                         *             ],
+                         *             "from": "2026-10-07",
+                         *             "to": "2026-10-08",
+                         *             "days": 2,
+                         *             "reason": "RAIN",
+                         *             "category": "EXCUSABLE",
+                         *             "status": "APPROVED",
+                         *             "note": "Heavy rain, site flooded",
+                         *             "photos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "url": "https://…",
+                         *                 "thumbUrl": "https://…"
+                         *               }
+                         *             ],
+                         *             "clientId": null,
+                         *             "reportedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *             "decidedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *             "decisionNote": null
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "pending": 1,
+                         *           "approvedDays": {
+                         *             "OWNER": 0,
+                         *             "EXCUSABLE": 2,
+                         *             "CONTRACTOR": 0
+                         *           }
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Log a stoppage day
+         * @description Days the site could not work (`dates`, or `from` + `to`, ≤ 31 days, ≤ today + 60). A SITE_PHOTO is required except for HOLIDAY; OTHER needs a note. Category defaults from the reason (RAIN / SMOG_BAN / HOLIDAY → EXCUSABLE, OWNER_HOLD → OWNER, shortages / other → CONTRACTOR). A day already in a PENDING / APPROVED stoppage → 409 STOPPAGE_OVERLAP. Same `clientId` again → 200 with the first one. Also the sync mutation STOPPAGE_LOG. Permission schedule.stoppage.create. Audited `stoppage.create`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StoppageInput"];
+                };
+            };
+            responses: {
+                /** @description Already logged (same clientId) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "dates": [
+                         *           "2026-10-07",
+                         *           "2026-10-08"
+                         *         ],
+                         *         "from": "2026-10-07",
+                         *         "to": "2026-10-08",
+                         *         "days": 2,
+                         *         "reason": "RAIN",
+                         *         "category": "EXCUSABLE",
+                         *         "status": "APPROVED",
+                         *         "note": "Heavy rain, site flooded",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "url": "https://…",
+                         *             "thumbUrl": "https://…"
+                         *           }
+                         *         ],
+                         *         "clientId": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *         "decidedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *         "decisionNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description Logged (PENDING) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "dates": [
+                         *           "2026-10-07",
+                         *           "2026-10-08"
+                         *         ],
+                         *         "from": "2026-10-07",
+                         *         "to": "2026-10-08",
+                         *         "days": 2,
+                         *         "reason": "RAIN",
+                         *         "category": "EXCUSABLE",
+                         *         "status": "PENDING",
+                         *         "note": "Heavy rain, site flooded",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "url": "https://…",
+                         *             "thumbUrl": "https://…"
+                         *           }
+                         *         ],
+                         *         "clientId": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *         "decidedBy": null,
+                         *         "decidedAt": null,
+                         *         "decisionNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | PHOTO_REQUIRED | NOTE_REQUIRED | INVALID_ATTACHMENT | DATE_TOO_FAR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_OVERLAP | PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stoppages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stoppage
+         * @description Permission schedule.plan.view (project in scope, else 404).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Stoppage id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Stoppage */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "dates": [
+                         *           "2026-10-07",
+                         *           "2026-10-08"
+                         *         ],
+                         *         "from": "2026-10-07",
+                         *         "to": "2026-10-08",
+                         *         "days": 2,
+                         *         "reason": "RAIN",
+                         *         "category": "EXCUSABLE",
+                         *         "status": "APPROVED",
+                         *         "note": "Heavy rain, site flooded",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "url": "https://…",
+                         *             "thumbUrl": "https://…"
+                         *           }
+                         *         ],
+                         *         "clientId": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *         "decidedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *         "decisionNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stoppages/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve a stoppage
+         * @description PENDING → APPROVED (optionally another category). The days become non-working for the project: not-done milestones and their successors are pushed and a plan version (STOPPAGE_APPROVED) is written when a date moved; the revised end moves for OWNER / EXCUSABLE days. Permission schedule.stoppage.approve. Audited `stoppage.approve`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Stoppage id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ApproveStoppageInput"];
+                };
+            };
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "stoppage": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *           "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *           "dates": [
+                         *             "2026-10-07",
+                         *             "2026-10-08"
+                         *           ],
+                         *           "from": "2026-10-07",
+                         *           "to": "2026-10-08",
+                         *           "days": 2,
+                         *           "reason": "RAIN",
+                         *           "category": "EXCUSABLE",
+                         *           "status": "APPROVED",
+                         *           "note": "Heavy rain, site flooded",
+                         *           "photos": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *               "url": "https://…",
+                         *               "thumbUrl": "https://…"
+                         *             }
+                         *           ],
+                         *           "clientId": null,
+                         *           "reportedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *             "name": "Rafaqat Ali"
+                         *           },
+                         *           "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *           "decidedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *           "decisionNote": null
+                         *         },
+                         *         "shifted": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001301",
+                         *             "key": "F1_STRUCTURE.SLAB",
+                         *             "name": "First floor — roof slab (lenter)",
+                         *             "plannedStart": {
+                         *               "from": "2026-10-14",
+                         *               "to": "2026-10-14"
+                         *             },
+                         *             "plannedEnd": {
+                         *               "from": "2026-11-08",
+                         *               "to": "2026-11-10"
+                         *             }
+                         *           }
+                         *         ],
+                         *         "plannedEnd": {
+                         *           "from": "2027-01-31",
+                         *           "to": "2027-02-02"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_NOT_PENDING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stoppages/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject a stoppage
+         * @description PENDING → REJECTED with a note. Permission schedule.stoppage.approve. Audited `stoppage.reject`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Stoppage id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RejectStoppageInput"];
+                };
+            };
+            responses: {
+                /** @description Rejected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001311",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "dates": [
+                         *           "2026-10-07",
+                         *           "2026-10-08"
+                         *         ],
+                         *         "from": "2026-10-07",
+                         *         "to": "2026-10-08",
+                         *         "days": 2,
+                         *         "reason": "RAIN",
+                         *         "category": "EXCUSABLE",
+                         *         "status": "REJECTED",
+                         *         "note": "Heavy rain, site flooded",
+                         *         "photos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "url": "https://…",
+                         *             "thumbUrl": "https://…"
+                         *           }
+                         *         ],
+                         *         "clientId": null,
+                         *         "reportedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "reportedAt": "2026-10-07T08:30:00.000Z",
+                         *         "decidedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "decidedAt": "2026-10-08T15:00:00.000Z",
+                         *         "decisionNote": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description STOPPAGE_NOT_PENDING */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -46708,7 +49438,7 @@ export interface paths {
         };
         /**
          * Pull changes (mobile read model)
-         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole, permissionRoles — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays and own notifications. Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
+         * @description Company bearer token of a device that is not revoked (else `401 DEVICE_REVOKED`). No `cursor` → full snapshot of the caller’s scope; with a cursor → rows changed after it (paged by `limit`, `hasMore`), and tombstones (`deletes`) for deleted rows. `resetRequired: true` when the cursor is older than the 30-day retention, the caller’s project access changed or their permissions changed — wipe the local DB and pull without a cursor. Every pull returns `access` (permissions, fieldAccess, scopes, approvalLimits, permissionRole, permissionRoles — same as /auth/me). Tables the caller has no view permission for come back empty (e.g. attendance needs labor.attendance.view); sub-contract rates need fields.rates. Scope: assigned ACTIVE / CLOSEOUT projects (every running project for THEKEDAR), their site stock locations, materials, workers, the company’s worker types (`worker_types`: id, key, label, labelRoman, labelUrdu, ratePaisa, overtimeMultiplier, isActive, updatedAt — active and inactive), attendance (3 weeks), settlements (8 weeks), advances, measurements, incoming dispatches / purchases, owner deliveries, usage, site stock (quantities), counts, daily logs (30 days), the caller’s OWN cash account / entries / top-ups, settings subset, holidays, own notifications, schedule `milestones` (not DONE + DONE in the last 14 days, quota planned / used — never money) and `stoppages` (PENDING + 60 days). Never material rates, purchase amounts, supplier balances, contract values or other people’s cash; a MUNSHI gets no sub-contract rates or measured values, and with blind count on no sent / challan quantities until counted. A change is handed out once it is 30 s old (transactions commit out of order), so the cursor never skips one.
          */
         get: {
             parameters: {
@@ -46901,7 +49631,7 @@ export interface paths {
         put?: never;
         /**
          * Push queued mutations
-         * @description Up to 100 mutations, applied in order, each through the same service and permission checks as its REST endpoint, each in its own transaction. Result per mutation: **APPLIED** (serverId) · **DUPLICATE** (clientId seen before — same serverId, nothing done again) · **REJECTED** (permanent: code, message, details — e.g. PERMISSION_DENIED (details.permission — the mutation type needs the same permission as its REST route), WEEK_LOCKED, INVALID_WORKER_TYPE, INSUFFICIENT_CASH, ALREADY_RECEIVED, INSUFFICIENT_STOCK, VALIDATION_ERROR, DEPENDENCY_REJECTED) · **RETRY** (transient; everything after it is RETRY too). Payload = the REST body plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId); any id may be the clientId of an earlier mutation or of an attachment uploaded with a clientId. Header `X-Pending-Mutations` = items still queued on the phone (shown to the office). Entries reaching the server more than 48 h after `deviceCreatedAt` are flagged `lateSync`.
+         * @description Up to 100 mutations, applied in order, each through the same service and permission checks as its REST endpoint, each in its own transaction. Result per mutation: **APPLIED** (serverId) · **DUPLICATE** (clientId seen before — same serverId, nothing done again) · **REJECTED** (permanent: code, message, details — e.g. PERMISSION_DENIED (details.permission — the mutation type needs the same permission as its REST route), WEEK_LOCKED, INVALID_WORKER_TYPE, INSUFFICIENT_CASH, ALREADY_RECEIVED, INSUFFICIENT_STOCK, VALIDATION_ERROR, DEPENDENCY_REJECTED) · **RETRY** (transient; everything after it is RETRY too). Payload = the REST body plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, milestoneId — MILESTONE_PROGRESS / STOPPAGE_LOG are the schedule site updates); any id may be the clientId of an earlier mutation or of an attachment uploaded with a clientId. Header `X-Pending-Mutations` = items still queued on the phone (shown to the office). Entries reaching the server more than 48 h after `deviceCreatedAt` are flagged `lateSync`.
          */
         post: {
             parameters: {
@@ -46919,8 +49649,8 @@ export interface paths {
                             /** Format: uuid */
                             clientId: string;
                             /** @enum {string} */
-                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "EQUIPMENT_RECEIVE" | "EQUIPMENT_LOSS_REPORT" | "SNAG_CREATE" | "SNAG_FIX";
-                            /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, snagId). Ids may be clientIds of earlier mutations or attachments. */
+                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "EQUIPMENT_RECEIVE" | "EQUIPMENT_LOSS_REPORT" | "SNAG_CREATE" | "SNAG_FIX" | "MILESTONE_PROGRESS" | "STOPPAGE_LOG";
+                            /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, snagId, milestoneId). Ids may be clientIds of earlier mutations or attachments. */
                             payload: {
                                 [key: string]: unknown;
                             };
@@ -49805,6 +52535,18 @@ export interface components {
             defaultFinishingAllowancePercent: number;
             /** @enum {string} */
             defaultLanguage: "ENGLISH" | "ROMAN_URDU" | "URDU";
+            /**
+             * @description Share of a normal day of work during Ramadan (schedule), 0.25–1
+             * @example 0.75
+             */
+            ramadanDayFactor: number;
+            /** @description Ramadan periods the schedule uses (the company own, else built-in approximate Pakistan dates) */
+            ramadanPeriods: {
+                start: string;
+                end: string;
+            }[];
+            /** @description false = the built-in approximate dates */
+            ramadanPeriodsCustom: boolean;
         };
         Holiday: {
             /** Format: uuid */
@@ -50678,6 +53420,113 @@ export interface components {
                 ur?: string;
             };
             description?: string | null;
+        };
+        GenerateScheduleInput: {
+            /**
+             * @description First day of work (default: the project start date)
+             * @example 2026-03-16
+             */
+            startDate?: string;
+            /**
+             * @description Parallel teams per activity (effort ÷ teams), default 1
+             * @example 1
+             */
+            teams?: number;
+            /** @example Plan shared with the owner */
+            note?: string | null;
+        };
+        ReplanScheduleInput: {
+            /** @example Rain week + owner asked to add a store room */
+            note: string;
+            /** @description Default true: nothing not started is planned before today; in-progress work = remaining effort from today */
+            fromToday?: boolean;
+            /** @description Re-read the current APPROVED estimate (efforts, quotas, new milestones) */
+            refreshQuantities?: boolean;
+            /** @description Change the teams (efforts are recomputed) */
+            teams?: number;
+        };
+        MilestoneEditInput: {
+            name?: string;
+            /** @description Effort in team-days */
+            workDays?: number;
+            curingDays?: number;
+            /**
+             * @description Gantt drag: start on or after this date (null clears)
+             * @example 2026-12-25
+             */
+            startNoEarlierThan?: string | null;
+            dependsOn?: {
+                /** Format: uuid */
+                milestoneId: string;
+                /**
+                 * @default FS
+                 * @enum {string}
+                 */
+                type: "FS" | "SS";
+                /**
+                 * @description Calendar days (curing)
+                 * @default 0
+                 */
+                lagDays: number;
+            }[];
+            /**
+             * Format: uuid
+             * @description Payment stage this milestone starts (stage-lock warning)
+             */
+            billingStageId?: string | null;
+            /** @description Preview the shifts without saving */
+            dryRun?: boolean;
+        };
+        MilestoneProgressInput: {
+            /**
+             * Format: uuid
+             * @description Phone-generated id — a retry returns the first update
+             */
+            clientId?: string;
+            /** @example 60 */
+            progressPercent?: number;
+            /** @enum {string} */
+            status?: "PLANNED" | "IN_PROGRESS" | "CURING" | "DONE" | "BLOCKED";
+            /** @example Shuttering complete, steel binding started */
+            note?: string;
+            /**
+             * @description Actual start / end date (≤ today, default today)
+             * @example 2026-12-25
+             */
+            date?: string;
+            /** @description SITE_PHOTO attachments */
+            photoAttachmentIds?: string[];
+            /** Format: date-time */
+            deviceCreatedAt?: string;
+        };
+        StoppageInput: {
+            /** Format: uuid */
+            clientId?: string;
+            /** @description The days (or from + to) */
+            dates?: string[];
+            /** @example 2026-12-25 */
+            from?: string;
+            /** @example 2026-12-25 */
+            to?: string;
+            /** @enum {string} */
+            reason: "RAIN" | "SMOG_BAN" | "HOLIDAY" | "OWNER_HOLD" | "MATERIAL_SHORT" | "LABOUR_SHORT" | "OTHER";
+            /** @example Heavy rain since morning, site flooded */
+            note?: string;
+            /** @description SITE_PHOTO attachments — at least one unless HOLIDAY */
+            photoAttachmentIds?: string[];
+            /** Format: date-time */
+            deviceCreatedAt?: string;
+        };
+        ApproveStoppageInput: {
+            /**
+             * @description Who the days are charged to (default from the reason)
+             * @enum {string}
+             */
+            category?: "OWNER" | "EXCUSABLE" | "CONTRACTOR";
+            note?: string;
+        };
+        RejectStoppageInput: {
+            note: string;
         };
     };
     responses: never;

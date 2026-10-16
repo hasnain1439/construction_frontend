@@ -159,6 +159,14 @@
     "roman": "Estimate ke qawaid",
     "urdu": "تخمینے کے قواعد"
    }
+  },
+  {
+   "key": "schedule",
+   "label": {
+    "en": "Schedule",
+    "roman": "Schedule (kaam ka nizam)",
+    "urdu": "شیڈول"
+   }
   }
  ],
  "permissions": [
@@ -319,6 +327,86 @@
    "description": "The rule-of-thumb values the estimates use (platform rulebook + company values).",
    "ownerOnly": false,
    "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.plan.view",
+   "module": "schedule",
+   "resource": "plan",
+   "action": "view",
+   "label": {
+    "en": "View schedule",
+    "roman": "Schedule dekhna",
+    "urdu": "شیڈول دیکھنا"
+   },
+   "description": "Gantt, milestones, curing, baseline, delays, material quotas (quantities only) and stoppage days.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.plan.manage",
+   "module": "schedule",
+   "resource": "plan",
+   "action": "manage",
+   "label": {
+    "en": "Plan the schedule",
+    "roman": "Schedule banana / badalna",
+    "urdu": "شیڈول بنانا / بدلنا"
+   },
+   "description": "Generate the schedule from the approved estimate, re-plan, change milestone dates, effort, dependencies and payment-stage links.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.progress.edit",
+   "module": "schedule",
+   "resource": "progress",
+   "action": "edit",
+   "label": {
+    "en": "Update site progress",
+    "roman": "Kaam ki progress likhna",
+    "urdu": "کام کی پیش رفت لکھنا"
+   },
+   "description": "Update milestone progress and status from site (start, curing, done, blocked).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.stoppage.create",
+   "module": "schedule",
+   "resource": "stoppage",
+   "action": "create",
+   "label": {
+    "en": "Log stoppage days",
+    "roman": "Kaam band ke din likhna",
+    "urdu": "کام بند کے دن لکھنا"
+   },
+   "description": "Log days the site could not work (rain, smog ban, holiday, owner hold, shortages) with a photo.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.stoppage.approve",
+   "module": "schedule",
+   "resource": "stoppage",
+   "action": "approve",
+   "label": {
+    "en": "Approve stoppage days",
+    "roman": "Kaam band ke din manzoor karna",
+    "urdu": "کام بند کے دن منظور کرنا"
+   },
+   "description": "Approve or reject stoppage days and decide who they are charged to (owner / excusable / contractor); approved days push the schedule.",
+   "ownerOnly": false,
+   "scoped": true,
    "limit": false,
    "field": false
   },
@@ -2312,6 +2400,11 @@
     "projects.estimate.manage",
     "estimate.revision.approve",
     "rulebook.override.view",
+    "schedule.plan.view",
+    "schedule.plan.manage",
+    "schedule.progress.edit",
+    "schedule.stoppage.create",
+    "schedule.stoppage.approve",
     "rulebook.override.manage",
     "clients.client.view",
     "clients.client.create",
@@ -2487,12 +2580,17 @@
     "closeout.drawing.view",
     "closeout.snag.view",
     "closeout.snag.create",
+    "schedule.plan.view",
+    "schedule.progress.edit",
+    "schedule.stoppage.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
     "projects.estimate.view",
     "projects.estimate.manage",
     "rulebook.override.view",
+    "schedule.plan.manage",
+    "schedule.stoppage.approve",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2592,7 +2690,10 @@
     "equipment.loss.create",
     "closeout.drawing.view",
     "closeout.snag.view",
-    "closeout.snag.create"
+    "closeout.snag.create",
+    "schedule.plan.view",
+    "schedule.progress.edit",
+    "schedule.stoppage.create"
    ]
   },
   {
@@ -2607,6 +2708,7 @@
    "permissions": [
     "projects.project.view",
     "projects.estimate.view",
+    "schedule.plan.view",
     "clients.client.view",
     "labor.settlement.view",
     "labor.advance.view",
