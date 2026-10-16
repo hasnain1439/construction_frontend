@@ -36581,6 +36581,3563 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/projects/{id}/drawings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Drawings of a project
+         * @description closeout.drawing.view. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Each drawing with its latest revision (signed file link, 10 min) and counts per folder (ARCHITECTURAL, STRUCTURAL, MEP, SOCIETY_APPROVED, OTHER).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    folder?: "ARCHITECTURAL" | "STRUCTURAL" | "MEP" | "SOCIETY_APPROVED" | "OTHER";
+                    q?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Drawings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "folder": "ARCHITECTURAL",
+                         *             "title": "Ground floor plan",
+                         *             "number": "A-101",
+                         *             "milestoneId": null,
+                         *             "notes": null,
+                         *             "revisionCount": 2,
+                         *             "latest": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *               "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *               "revisionNo": 1,
+                         *               "isLatest": true,
+                         *               "approvedAt": "2026-06-18",
+                         *               "notes": "Kitchen window moved 2 ft east",
+                         *               "file": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *                 "fileName": "A-101 R1.pdf",
+                         *                 "mimeType": "application/pdf",
+                         *                 "sizeBytes": 482113,
+                         *                 "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *                 "thumbUrl": null,
+                         *                 "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *               },
+                         *               "uploadedBy": {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *                 "name": "Khalid Malik"
+                         *               },
+                         *               "createdAt": "2026-06-18T09:30:00.000Z"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z",
+                         *             "updatedAt": "2026-06-18T09:30:00.000Z"
+                         *           }
+                         *         ],
+                         *         "folders": [
+                         *           {
+                         *             "folder": "ARCHITECTURAL",
+                         *             "count": 1
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a drawing with its first revision
+         * @description closeout.drawing.manage. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Upload the file first (`POST /attachments`, kind DOCUMENT — PDF or image). The first revision is R0 and latest. ACTIVE / CLOSEOUT / HANDED_OVER projects only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        folder: "ARCHITECTURAL" | "STRUCTURAL" | "MEP" | "SOCIETY_APPROVED" | "OTHER";
+                        title: string;
+                        /** @example A-101 */
+                        number?: string;
+                        /**
+                         * Format: uuid
+                         * @description Schedule milestone (Step 13)
+                         */
+                        milestoneId?: string;
+                        notes?: string;
+                        revision: {
+                            /**
+                             * Format: uuid
+                             * @description DOCUMENT attachment (PDF or image) uploaded with POST /attachments
+                             */
+                            attachmentId: string;
+                            /**
+                             * @description Date the revision was approved (society / client / engineer)
+                             * @example 2026-12-25
+                             */
+                            approvedAt?: string;
+                            notes?: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "folder": "ARCHITECTURAL",
+                         *         "title": "Ground floor plan",
+                         *         "number": "A-101",
+                         *         "milestoneId": null,
+                         *         "notes": null,
+                         *         "revisionCount": 1,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *           "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *           "revisionNo": 0,
+                         *           "isLatest": true,
+                         *           "approvedAt": "2026-03-02",
+                         *           "notes": "Society approved set",
+                         *           "file": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *             "fileName": "A-101 R0.pdf",
+                         *             "mimeType": "application/pdf",
+                         *             "sizeBytes": 482113,
+                         *             "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *             "thumbUrl": null,
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           },
+                         *           "uploadedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-03-02T07:00:00.000Z"
+                         *         },
+                         *         "createdAt": "2026-03-02T07:00:00.000Z",
+                         *         "updatedAt": "2026-06-18T09:30:00.000Z",
+                         *         "revisions": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 0,
+                         *             "isLatest": true,
+                         *             "approvedAt": "2026-03-02",
+                         *             "notes": "Society approved set",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *               "fileName": "A-101 R0.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drawings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A drawing with every revision
+         * @description closeout.drawing.view. Newest revision first; superseded revisions stay (`isLatest: false`).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Drawing id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Drawing */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "folder": "ARCHITECTURAL",
+                         *         "title": "Ground floor plan",
+                         *         "number": "A-101",
+                         *         "milestoneId": null,
+                         *         "notes": null,
+                         *         "revisionCount": 2,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *           "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *           "revisionNo": 1,
+                         *           "isLatest": true,
+                         *           "approvedAt": "2026-06-18",
+                         *           "notes": "Kitchen window moved 2 ft east",
+                         *           "file": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *             "fileName": "A-101 R1.pdf",
+                         *             "mimeType": "application/pdf",
+                         *             "sizeBytes": 482113,
+                         *             "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *             "thumbUrl": null,
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           },
+                         *           "uploadedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-06-18T09:30:00.000Z"
+                         *         },
+                         *         "createdAt": "2026-03-02T07:00:00.000Z",
+                         *         "updatedAt": "2026-06-18T09:30:00.000Z",
+                         *         "revisions": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 1,
+                         *             "isLatest": true,
+                         *             "approvedAt": "2026-06-18",
+                         *             "notes": "Kitchen window moved 2 ft east",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *               "fileName": "A-101 R1.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-06-18T09:30:00.000Z"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 0,
+                         *             "isLatest": false,
+                         *             "approvedAt": "2026-03-02",
+                         *             "notes": "Society approved set",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *               "fileName": "A-101 R0.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DRAWING_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a drawing
+         * @description closeout.drawing.manage. The drawing and its revisions are removed; the uploaded files stay as attachments. Audited with the revision list.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Drawing id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DRAWING_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change folder / title / number / milestone / notes
+         * @description closeout.drawing.manage. `null` clears number, milestone or notes.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Drawing id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        folder?: "ARCHITECTURAL" | "STRUCTURAL" | "MEP" | "SOCIETY_APPROVED" | "OTHER";
+                        title?: string;
+                        number?: string | null;
+                        /** Format: uuid */
+                        milestoneId?: string | null;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Drawing */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "folder": "ARCHITECTURAL",
+                         *         "title": "Ground floor plan",
+                         *         "number": "A-101",
+                         *         "milestoneId": null,
+                         *         "notes": null,
+                         *         "revisionCount": 2,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *           "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *           "revisionNo": 1,
+                         *           "isLatest": true,
+                         *           "approvedAt": "2026-06-18",
+                         *           "notes": "Kitchen window moved 2 ft east",
+                         *           "file": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *             "fileName": "A-101 R1.pdf",
+                         *             "mimeType": "application/pdf",
+                         *             "sizeBytes": 482113,
+                         *             "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *             "thumbUrl": null,
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           },
+                         *           "uploadedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-06-18T09:30:00.000Z"
+                         *         },
+                         *         "createdAt": "2026-03-02T07:00:00.000Z",
+                         *         "updatedAt": "2026-06-18T09:30:00.000Z",
+                         *         "revisions": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 1,
+                         *             "isLatest": true,
+                         *             "approvedAt": "2026-06-18",
+                         *             "notes": "Kitchen window moved 2 ft east",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *               "fileName": "A-101 R1.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-06-18T09:30:00.000Z"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 0,
+                         *             "isLatest": false,
+                         *             "approvedAt": "2026-03-02",
+                         *             "notes": "Society approved set",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *               "fileName": "A-101 R0.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DRAWING_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/drawings/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a new revision
+         * @description closeout.drawing.manage. Revision number = last + 1; it becomes the latest and the previous latest is superseded (still readable).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Drawing id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description DOCUMENT attachment (PDF or image) uploaded with POST /attachments
+                         */
+                        attachmentId: string;
+                        /**
+                         * @description Date the revision was approved (society / client / engineer)
+                         * @example 2026-12-25
+                         */
+                        approvedAt?: string;
+                        notes?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Drawing with its revisions */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "folder": "ARCHITECTURAL",
+                         *         "title": "Ground floor plan",
+                         *         "number": "A-101",
+                         *         "milestoneId": null,
+                         *         "notes": null,
+                         *         "revisionCount": 2,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *           "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *           "revisionNo": 1,
+                         *           "isLatest": true,
+                         *           "approvedAt": "2026-06-18",
+                         *           "notes": "Kitchen window moved 2 ft east",
+                         *           "file": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *             "fileName": "A-101 R1.pdf",
+                         *             "mimeType": "application/pdf",
+                         *             "sizeBytes": 482113,
+                         *             "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *             "thumbUrl": null,
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           },
+                         *           "uploadedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-06-18T09:30:00.000Z"
+                         *         },
+                         *         "createdAt": "2026-03-02T07:00:00.000Z",
+                         *         "updatedAt": "2026-06-18T09:30:00.000Z",
+                         *         "revisions": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 1,
+                         *             "isLatest": true,
+                         *             "approvedAt": "2026-06-18",
+                         *             "notes": "Kitchen window moved 2 ft east",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *               "fileName": "A-101 R1.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-06-18T09:30:00.000Z"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 0,
+                         *             "isLatest": false,
+                         *             "approvedAt": "2026-03-02",
+                         *             "notes": "Society approved set",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *               "fileName": "A-101 R0.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DRAWING_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drawing-revisions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set a revision’s approval date / notes
+         * @description closeout.drawing.manage. `approvedAt: null` clears the approval.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Revision id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        approvedAt?: string | null;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Drawing with its revisions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001701",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "folder": "ARCHITECTURAL",
+                         *         "title": "Ground floor plan",
+                         *         "number": "A-101",
+                         *         "milestoneId": null,
+                         *         "notes": null,
+                         *         "revisionCount": 2,
+                         *         "latest": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *           "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *           "revisionNo": 1,
+                         *           "isLatest": true,
+                         *           "approvedAt": "2026-06-18",
+                         *           "notes": "Kitchen window moved 2 ft east",
+                         *           "file": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *             "fileName": "A-101 R1.pdf",
+                         *             "mimeType": "application/pdf",
+                         *             "sizeBytes": 482113,
+                         *             "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *             "thumbUrl": null,
+                         *             "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *           },
+                         *           "uploadedBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-06-18T09:30:00.000Z"
+                         *         },
+                         *         "createdAt": "2026-03-02T07:00:00.000Z",
+                         *         "updatedAt": "2026-06-18T09:30:00.000Z",
+                         *         "revisions": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001703",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 1,
+                         *             "isLatest": true,
+                         *             "approvedAt": "2026-06-18",
+                         *             "notes": "Kitchen window moved 2 ft east",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001705",
+                         *               "fileName": "A-101 R1.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001705/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-06-18T09:30:00.000Z"
+                         *           },
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001702",
+                         *             "drawingId": "0199a8c0-0000-7000-8000-000000001701",
+                         *             "revisionNo": 0,
+                         *             "isLatest": false,
+                         *             "approvedAt": "2026-03-02",
+                         *             "notes": "Society approved set",
+                         *             "file": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001704",
+                         *               "fileName": "A-101 R0.pdf",
+                         *               "mimeType": "application/pdf",
+                         *               "sizeBytes": 482113,
+                         *               "url": "https://api.example.com/api/v1/attachments/0199a8c0-0000-7000-8000-000000001704/file?tid=…&exp=…&sig=…",
+                         *               "thumbUrl": null,
+                         *               "expiresAt": "2026-10-16T10:10:00.000Z"
+                         *             },
+                         *             "uploadedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             },
+                         *             "createdAt": "2026-03-02T07:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description REVISION_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/snags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snag list of a project
+         * @description closeout.snag.view. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Newest first, filters status / assignee / room / defect period / overdue (OPEN past the target date) / text. `summary` counts every snag of the project. Money (`amountPaisa`, retention amounts) only with fields.amounts — a Munshi never gets it.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    status?: "OPEN" | "FIXED" | "VERIFIED";
+                    assigneeType?: "WORKER" | "SUBCONTRACTOR";
+                    assigneeId?: string;
+                    roomId?: string;
+                    defectPeriod?: "true" | "false";
+                    overdue?: "true" | "false";
+                    q?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Snags */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *             "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *             "number": 7,
+                         *             "code": "SN-007",
+                         *             "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *             "room": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *               "name": "Master bedroom",
+                         *               "floor": "First floor"
+                         *             },
+                         *             "location": "East wall near the window",
+                         *             "description": "Hairline crack in plaster above the window lintel",
+                         *             "status": "FIXED",
+                         *             "targetDate": "2026-10-20",
+                         *             "overdue": false,
+                         *             "inDefectPeriod": false,
+                         *             "assignee": {
+                         *               "type": "SUBCONTRACTOR",
+                         *               "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *               "name": "Sharif Plaster Works"
+                         *             },
+                         *             "beforePhotos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "mimeType": "image/jpeg",
+                         *                 "url": "https://…/file?sig=…",
+                         *                 "thumbUrl": "https://…/file?w=320&sig=…"
+                         *               }
+                         *             ],
+                         *             "afterPhotos": [
+                         *               {
+                         *                 "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *                 "mimeType": "image/jpeg",
+                         *                 "url": "https://…/file?sig=…",
+                         *                 "thumbUrl": "https://…/file?w=320&sig=…"
+                         *               }
+                         *             ],
+                         *             "fixNote": "Crack opened, filled and re-plastered",
+                         *             "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *             "fixedBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "verifiedAt": null,
+                         *             "verifiedBy": null,
+                         *             "reopenCount": 0,
+                         *             "lastReopenReason": null,
+                         *             "cost": {
+                         *               "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *               "amountPaisa": "450000",
+                         *               "note": "Poor curing by the plaster team",
+                         *               "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *               "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *               "postedAt": "2026-10-14T12:00:00.000Z"
+                         *             },
+                         *             "clientId": null,
+                         *             "createdBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *               "name": "Rafaqat Ali"
+                         *             },
+                         *             "createdAt": "2026-10-10T08:00:00.000Z",
+                         *             "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *           }
+                         *         ],
+                         *         "summary": {
+                         *           "open": 3,
+                         *           "fixed": 1,
+                         *           "verified": 2,
+                         *           "overdue": 1,
+                         *           "defectPeriodOpen": 0,
+                         *           "reworkPaisa": "1200000",
+                         *           "deductionPaisa": "450000",
+                         *           "changeOrderPaisa": "0"
+                         *         }
+                         *       },
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 6,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Log a snag
+         * @description closeout.snag.create (Munshi too). Project scope: the owner sees every project, others need the permission on the project (outside → 404). Room or location required; photos are SITE_PHOTO attachments; assign a worker OR a sub-contractor. ACTIVE / CLOSEOUT / HANDED_OVER projects — after handover the snag is a defect-period snag, refused after the retention due date (`409 DEFECT_PERIOD_ENDED`). A repeated `clientId` returns the saved snag (200). Also pushed offline as `SNAG_CREATE`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        roomId?: string;
+                        /** @example Master bedroom — east wall near window */
+                        location?: string;
+                        description: string;
+                        /** @description SITE_PHOTO attachments */
+                        beforePhotoIds?: string[];
+                        /**
+                         * Format: uuid
+                         * @description Assign to a worker (or subcontractorId, not both)
+                         */
+                        workerId?: string;
+                        /** Format: uuid */
+                        subcontractorId?: string;
+                        /** @example 2026-12-25 */
+                        targetDate?: string;
+                        /**
+                         * Format: uuid
+                         * @description UUID v7 made on the phone. Sending it again returns the saved record (200).
+                         */
+                        clientId?: string;
+                        /**
+                         * Format: date-time
+                         * @example 2026-10-06T08:15:00+05:00
+                         */
+                        deviceCreatedAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created (200 when the clientId was already saved) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "OPEN",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [],
+                         *         "fixNote": null,
+                         *         "fixedAt": null,
+                         *         "fixedBy": null,
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | LOCATION_REQUIRED | INVALID_ATTACHMENT | INVALID_ROOM | INVALID_ASSIGNEE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | DEFECT_PERIOD_ENDED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One snag
+         * @description closeout.snag.view. Money (`amountPaisa`, retention amounts) only with fields.amounts — a Munshi never gets it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "FIXED",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a snag
+         * @description closeout.snag.manage. Only an OPEN snag without a cost attribution.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | SNAG_NOT_DELETABLE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Edit / assign a snag
+         * @description closeout.snag.manage. Setting a worker clears the sub-contractor and the other way round; `null` clears. Not for VERIFIED snags (reopen first).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        roomId?: string | null;
+                        location?: string | null;
+                        description?: string;
+                        beforePhotoIds?: string[];
+                        /** Format: uuid */
+                        workerId?: string | null;
+                        /** Format: uuid */
+                        subcontractorId?: string | null;
+                        /** @example 2026-12-25 */
+                        targetDate?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "FIXED",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | LOCATION_REQUIRED | INVALID_ATTACHMENT | INVALID_ROOM | INVALID_ASSIGNEE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | SNAG_VERIFIED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/snags/{id}/fix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark fixed (after photos)
+         * @description closeout.snag.create (site). OPEN → FIXED. Also pushed offline as `SNAG_FIX`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description SITE_PHOTO attachments after the fix */
+                        afterPhotoIds?: string[];
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "FIXED",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | INVALID_SNAG_STATUS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snags/{id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify the fix
+         * @description closeout.snag.manage. FIXED → VERIFIED.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "VERIFIED",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": "2026-10-15T09:00:00.000Z",
+                         *         "verifiedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | INVALID_SNAG_STATUS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snags/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reopen
+         * @description closeout.snag.manage. FIXED / VERIFIED → OPEN with a reason (`reopenCount` + 1).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "OPEN",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 1,
+                         *         "lastReopenReason": "Crack visible again after a week",
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED | INVALID_SNAG_STATUS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snags/{id}/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Who pays for the fix
+         * @description closeout.snag.manage + fields.amounts. **REWORK** → project cost (cost engine source REWORK, P&L bucket LOSSES). **SUBCONTRACTOR_DEDUCTION** → DEDUCTION on the sub-contract account (refType SNAG; the assignment given, else the snag sub-contractor’s latest one on the project); changing / clearing posts a reversing DEDUCTION (SNAG_REVERSAL) — the ledger stays append-only. **CHANGE_ORDER** → stored flag + amount for the change-order module (Step 15), no ledger. **NONE** clears.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Snag id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        attribution: "NONE" | "REWORK" | "SUBCONTRACTOR_DEDUCTION" | "CHANGE_ORDER";
+                        /**
+                         * @description Required (> 0) for REWORK and SUBCONTRACTOR_DEDUCTION
+                         * @example 2500000
+                         */
+                        amountPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description Deduction: the sub-contract account (default: the snag sub-contractor's latest one on the project)
+                         */
+                        subcontractAssignmentId?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Snag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000001711",
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "number": 7,
+                         *         "code": "SN-007",
+                         *         "roomId": "0199a8c0-0000-7000-8000-000000001712",
+                         *         "room": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000001712",
+                         *           "name": "Master bedroom",
+                         *           "floor": "First floor"
+                         *         },
+                         *         "location": "East wall near the window",
+                         *         "description": "Hairline crack in plaster above the window lintel",
+                         *         "status": "FIXED",
+                         *         "targetDate": "2026-10-20",
+                         *         "overdue": false,
+                         *         "inDefectPeriod": false,
+                         *         "assignee": {
+                         *           "type": "SUBCONTRACTOR",
+                         *           "id": "0199a8c0-0000-7000-8000-000000001714",
+                         *           "name": "Sharif Plaster Works"
+                         *         },
+                         *         "beforePhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "afterPhotos": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000602",
+                         *             "mimeType": "image/jpeg",
+                         *             "url": "https://…/file?sig=…",
+                         *             "thumbUrl": "https://…/file?w=320&sig=…"
+                         *           }
+                         *         ],
+                         *         "fixNote": "Crack opened, filled and re-plastered",
+                         *         "fixedAt": "2026-10-14T11:00:00.000Z",
+                         *         "fixedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "verifiedAt": null,
+                         *         "verifiedBy": null,
+                         *         "reopenCount": 0,
+                         *         "lastReopenReason": null,
+                         *         "cost": {
+                         *           "attribution": "SUBCONTRACTOR_DEDUCTION",
+                         *           "amountPaisa": "450000",
+                         *           "note": "Poor curing by the plaster team",
+                         *           "subcontractAssignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *           "postedTo": "SUBCONTRACTOR_ACCOUNT",
+                         *           "postedAt": "2026-10-14T12:00:00.000Z"
+                         *         },
+                         *         "clientId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000004",
+                         *           "name": "Rafaqat Ali"
+                         *         },
+                         *         "createdAt": "2026-10-10T08:00:00.000Z",
+                         *         "updatedAt": "2026-10-14T12:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | AMOUNT_REQUIRED | NO_SUBCONTRACT_ASSIGNMENT | INVALID_ASSIGNMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SNAG_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/handover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Handover checklist and sign-off
+         * @description closeout.handover.manage. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Items KEYS, ELECTRICITY_CONNECTION, GAS_CONNECTION, WATER_CONNECTION, WARRANTY_CARDS, FINAL_DRAWINGS, FINAL_PHOTOS; `blockers` say what stops completion; `openSnags` = not yet verified.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Handover */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "CLOSEOUT",
+                         *         "items": [
+                         *           {
+                         *             "key": "KEYS",
+                         *             "done": true,
+                         *             "note": "3 sets (main gate, front door, store)",
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "ELECTRICITY_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "GAS_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WATER_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WARRANTY_CARDS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_DRAWINGS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_PHOTOS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           }
+                         *         ],
+                         *         "signOff": null,
+                         *         "handedOverAt": null,
+                         *         "defectPeriodMonths": 6,
+                         *         "retentionDueDate": null,
+                         *         "openSnags": 3,
+                         *         "canComplete": false,
+                         *         "blockers": [
+                         *           "ITEMS_PENDING",
+                         *           "SIGN_OFF_MISSING"
+                         *         ],
+                         *         "certificate": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/handover/items/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Tick / untick a checklist item
+         * @description closeout.handover.manage. ACTIVE / CLOSEOUT projects. Attachments: SITE_PHOTO or DOCUMENT.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                    key: "KEYS" | "ELECTRICITY_CONNECTION" | "GAS_CONNECTION" | "WATER_CONNECTION" | "WARRANTY_CARDS" | "FINAL_DRAWINGS" | "FINAL_PHOTOS";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        done: boolean;
+                        note?: string;
+                        /** @description Photos / documents (SITE_PHOTO or DOCUMENT) */
+                        attachmentIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Handover */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "CLOSEOUT",
+                         *         "items": [
+                         *           {
+                         *             "key": "KEYS",
+                         *             "done": true,
+                         *             "note": "3 sets (main gate, front door, store)",
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "ELECTRICITY_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "GAS_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WATER_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WARRANTY_CARDS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_DRAWINGS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_PHOTOS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           }
+                         *         ],
+                         *         "signOff": null,
+                         *         "handedOverAt": null,
+                         *         "defectPeriodMonths": 6,
+                         *         "retentionDueDate": null,
+                         *         "openSnags": 3,
+                         *         "canComplete": false,
+                         *         "blockers": [
+                         *           "ITEMS_PENDING",
+                         *           "SIGN_OFF_MISSING"
+                         *         ],
+                         *         "certificate": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/handover/sign-off": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the owner sign-off
+         * @description closeout.handover.manage. Name, date (not in the future) and a photo of the signed slip.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        ownerName: string;
+                        /** @example 2026-12-25 */
+                        signedOn: string;
+                        /**
+                         * Format: uuid
+                         * @description Photo of the signed handover slip (SITE_PHOTO or DOCUMENT)
+                         */
+                        signatureAttachmentId?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Handover */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "CLOSEOUT",
+                         *         "items": [
+                         *           {
+                         *             "key": "KEYS",
+                         *             "done": true,
+                         *             "note": "3 sets (main gate, front door, store)",
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "ELECTRICITY_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "GAS_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WATER_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WARRANTY_CARDS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_DRAWINGS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_PHOTOS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           }
+                         *         ],
+                         *         "signOff": null,
+                         *         "handedOverAt": null,
+                         *         "defectPeriodMonths": 6,
+                         *         "retentionDueDate": null,
+                         *         "openSnags": 3,
+                         *         "canComplete": false,
+                         *         "blockers": [
+                         *           "ITEMS_PENDING",
+                         *           "SIGN_OFF_MISSING"
+                         *         ],
+                         *         "certificate": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_LOCKED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/handover/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hand over (CLOSEOUT → HANDED_OVER)
+         * @description closeout.handover.manage + projects.project.manage. Needs every checklist item and the owner sign-off; open snags need `acceptOpenSnags: true`. Sets the handover date, copies the defect period and sets the retention due date = handover + defect period months (draft RETENTION invoices get it as due date).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Default today (Asia/Karachi); not in the future
+                         * @example 2026-12-25
+                         */
+                        handoverDate?: string;
+                        /** @description Hand over although snags are still open (they stay on the list) */
+                        acceptOpenSnags?: boolean;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Handover */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "HANDED_OVER",
+                         *         "items": [
+                         *           {
+                         *             "key": "KEYS",
+                         *             "done": true,
+                         *             "note": "3 sets (main gate, front door, store)",
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "ELECTRICITY_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "GAS_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WATER_CONNECTION",
+                         *             "done": true,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": "2026-10-12T10:00:00.000Z",
+                         *             "doneBy": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *               "name": "Khalid Malik"
+                         *             }
+                         *           },
+                         *           {
+                         *             "key": "WARRANTY_CARDS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_DRAWINGS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           },
+                         *           {
+                         *             "key": "FINAL_PHOTOS",
+                         *             "done": false,
+                         *             "note": null,
+                         *             "attachments": [],
+                         *             "doneAt": null,
+                         *             "doneBy": null
+                         *           }
+                         *         ],
+                         *         "signOff": null,
+                         *         "handedOverAt": "2026-10-16",
+                         *         "defectPeriodMonths": 6,
+                         *         "retentionDueDate": "2027-04-16",
+                         *         "openSnags": 3,
+                         *         "canComplete": false,
+                         *         "blockers": [
+                         *           "PROJECT_NOT_CLOSEOUT"
+                         *         ],
+                         *         "certificate": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_CLOSEOUT | HANDOVER_INCOMPLETE | OPEN_SNAGS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/handover/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Handover certificate PDF
+         * @description closeout.handover.manage. Letterhead, project, handover date, checklist, defect period, owner sign-off — no money. In the user’s language (`?lang=en|roman|ur`, Urdu right-to-left). Returns a signed link (10 min) and a WhatsApp text.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description en = English, roman = Roman Urdu, ur = Urdu (right-to-left) */
+                    lang?: "en" | "roman" | "ur";
+                };
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Certificate */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "attachmentId": "0199a8c0-0000-7000-8000-000000001704",
+                         *         "url": "https://…/file?sig=…",
+                         *         "expiresAt": "2026-10-16T10:10:00.000Z",
+                         *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, …",
+                         *         "clientPhone": "+923001112233"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SIGN_OFF_MISSING */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retention after handover
+         * @description closeout.retention.view. Project scope: the owner sees every project, others need the permission on the project (outside → 404). Owner retention (stage / invoice) and sub-contractor retention held until the retention due date (handover + defect period). A daily job reminds the owner / PMs `reminder.daysBefore` days before and on the due date. Money (`amountPaisa`, retention amounts) only with fields.amounts — a Munshi never gets it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Retention */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "HANDED_OVER",
+                         *         "retentionPercent": 5,
+                         *         "defectPeriodMonths": 6,
+                         *         "handedOverAt": "2026-04-15",
+                         *         "retentionDueDate": "2026-10-15",
+                         *         "daysToDue": -1,
+                         *         "reminder": {
+                         *           "daysBefore": 14,
+                         *           "reminderSentAt": "2026-10-01T21:45:00.000Z",
+                         *           "dueNotifiedAt": null
+                         *         },
+                         *         "client": {
+                         *           "hasRetentionStage": true,
+                         *           "stageLabel": "Retention (after defect period)",
+                         *           "amountPaisa": "21000000",
+                         *           "invoice": null,
+                         *           "canInvoice": true
+                         *         },
+                         *         "subcontractors": [
+                         *           {
+                         *             "assignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *             "subcontractorId": "0199a8c0-0000-7000-8000-000000001714",
+                         *             "name": "Sharif Plaster Works",
+                         *             "trade": "PLASTER",
+                         *             "scope": "Internal plaster",
+                         *             "retentionPercent": 5,
+                         *             "retentionHeldPaisa": "1525000",
+                         *             "retentionReleasedPaisa": "0",
+                         *             "releaseDate": "2026-10-15",
+                         *             "releasable": true
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "clientHeldPaisa": "21000000",
+                         *           "subcontractorHeldPaisa": "1525000"
+                         *         },
+                         *         "defectSnags": {
+                         *           "total": 2,
+                         *           "open": 1
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Reminder lead time
+         * @description closeout.handover.manage. Days before the due date for the reminder (1–90, default 14); a change re-arms the reminder.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Project id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reminderDaysBefore: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Retention */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "projectId": "0199a8c0-0000-7000-8000-000000000301",
+                         *         "projectStatus": "HANDED_OVER",
+                         *         "retentionPercent": 5,
+                         *         "defectPeriodMonths": 6,
+                         *         "handedOverAt": "2026-04-15",
+                         *         "retentionDueDate": "2026-10-15",
+                         *         "daysToDue": -1,
+                         *         "reminder": {
+                         *           "daysBefore": 14,
+                         *           "reminderSentAt": "2026-10-01T21:45:00.000Z",
+                         *           "dueNotifiedAt": null
+                         *         },
+                         *         "client": {
+                         *           "hasRetentionStage": true,
+                         *           "stageLabel": "Retention (after defect period)",
+                         *           "amountPaisa": "21000000",
+                         *           "invoice": null,
+                         *           "canInvoice": true
+                         *         },
+                         *         "subcontractors": [
+                         *           {
+                         *             "assignmentId": "0199a8c0-0000-7000-8000-000000001715",
+                         *             "subcontractorId": "0199a8c0-0000-7000-8000-000000001714",
+                         *             "name": "Sharif Plaster Works",
+                         *             "trade": "PLASTER",
+                         *             "scope": "Internal plaster",
+                         *             "retentionPercent": 5,
+                         *             "retentionHeldPaisa": "1525000",
+                         *             "retentionReleasedPaisa": "0",
+                         *             "releaseDate": "2026-10-15",
+                         *             "releasable": true
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "clientHeldPaisa": "21000000",
+                         *           "subcontractorHeldPaisa": "1525000"
+                         *         },
+                         *         "defectSnags": {
+                         *           "total": 2,
+                         *           "open": 1
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/sync/pull": {
         parameters: {
             query?: never;
@@ -36801,8 +40358,8 @@ export interface paths {
                             /** Format: uuid */
                             clientId: string;
                             /** @enum {string} */
-                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE";
-                            /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId). Ids may be clientIds of earlier mutations or attachments. */
+                            type: "WORKER_CREATE" | "PROJECT_WORKER_ASSIGN" | "ATTENDANCE_UPSERT" | "ADVANCE_CREATE" | "WORK_MEASUREMENT_CREATE" | "SETTLEMENT_GENERATE" | "SETTLEMENT_SUBMIT" | "SETTLEMENT_PAY" | "DISPATCH_RECEIVE" | "PURCHASE_RECEIVE" | "OWNER_DELIVERY_CREATE" | "MATERIAL_USAGE_CREATE" | "STOCK_COUNT_CREATE" | "CASH_EXPENSE_CREATE" | "FLOAT_ACKNOWLEDGE" | "TOPUP_REQUEST_CREATE" | "DAILY_LOG_UPSERT" | "SITE_PURCHASE_CREATE" | "SNAG_CREATE" | "SNAG_FIX";
+                            /** @description The REST body of that action plus its path ids (projectId, settlementId, dispatchId, purchaseId, entryId, snagId). Ids may be clientIds of earlier mutations or attachments. */
                             payload: {
                                 [key: string]: unknown;
                             };

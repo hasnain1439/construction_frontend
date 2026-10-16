@@ -11,3 +11,4 @@ export * from "./billing";
 export * from "./dashboard";
 export * from "./sync";
 export * from "./onboarding";
+export * from "./closeout";

@@ -252,7 +252,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function PhotoLightbox({
+export function PhotoLightbox({
   gallery,
   onChange,
 }: {

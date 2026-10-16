@@ -88,6 +88,26 @@ export const ENDPOINTS = {
     status: "/sync/status",
   },
 
+  /** Step 17 · Closeout: drawings, snags, handover, retention. */
+  closeout: {
+    drawings: (projectId: string) => `/projects/${id(projectId)}/drawings`,
+    drawingById: (drawingId: string) => `/drawings/${id(drawingId)}`,
+    drawingRevisions: (drawingId: string) => `/drawings/${id(drawingId)}/revisions`,
+    revisionById: (revisionId: string) => `/drawing-revisions/${id(revisionId)}`,
+    snags: (projectId: string) => `/projects/${id(projectId)}/snags`,
+    snagById: (snagId: string) => `/snags/${id(snagId)}`,
+    snagFix: (snagId: string) => `/snags/${id(snagId)}/fix`,
+    snagVerify: (snagId: string) => `/snags/${id(snagId)}/verify`,
+    snagReopen: (snagId: string) => `/snags/${id(snagId)}/reopen`,
+    snagCost: (snagId: string) => `/snags/${id(snagId)}/cost`,
+    handover: (projectId: string) => `/projects/${id(projectId)}/handover`,
+    handoverItem: (projectId: string, key: string) => `/projects/${id(projectId)}/handover/items/${id(key)}`,
+    handoverSignOff: (projectId: string) => `/projects/${id(projectId)}/handover/sign-off`,
+    handoverComplete: (projectId: string) => `/projects/${id(projectId)}/handover/complete`,
+    handoverCertificate: (projectId: string) => `/projects/${id(projectId)}/handover/certificate`,
+    retention: (projectId: string) => `/projects/${id(projectId)}/retention`,
+  },
+
   dailyLogs: {
     list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
     byId: (logId: string) => `/daily-logs/${id(logId)}`,

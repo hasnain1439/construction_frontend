@@ -6,6 +6,14 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 17
+- **Project → Documents & Closeout** pages are live (no more "Coming soon"): Drawings, Snag List, Handover, Retention — each shown only with its `closeout.*` permission.
+- **Drawings**: folders (Architectural, Structural, MEP, Society approved, Other) with counts, search, latest revision badge and approval date; revision history slide-over keeps superseded revisions (open any file), upload a new revision, mark approved today, add / edit / delete drawings.
+- **Snag List**: KPIs (open, fixed — to check, verified, rework cost or overdue), filters (status, worker / sub-contractor, overdue / defect period / before handover, search), before / after photos with a lightbox, log a snag (room or location, two photos, assign to a worker or sub-contractor, target date), mark fixed with an after photo, verify, reopen with a reason, edit / assign, delete; **Who pays** (rework → project cost, deduct from the sub-contractor, change order, nobody) with the amount — only for people who see amounts; a Munshi never sees money.
+- **Handover**: checklist (keys, electricity / gas / water connection, warranty cards, final drawings, final photos) with tick, note and photo; owner sign-off (name, date, photo of the signed slip); "Hand over to owner" with the handover date, blockers and open snags (needs the project-status permission); handover certificate PDF — preview, download, WhatsApp.
+- **Retention**: due date (handover + defect period) with days left, owner retention and its invoice, sub-contractor retention held until the same date, open defect snags, reminder lead time; amounts hidden without `fields.amounts`.
+- Texts in English, Roman Urdu and Urdu (`src/i18n/areas/closeout/`); API types regenerated (`src/api/generated/schema.ts`), hand-written response types in `src/api/types/closeout.ts`, service `src/api/services/closeout.api.ts`.
+
 ### Added
 - **Contract value from this estimate** card on the wizard's Estimate step and the project's Estimate page (for people who can edit the project and see contract values and rates): profit margin % (default from company settings) and, for a full contract, a finishing allowance % (the estimate is grey structure only); shows estimated cost + finishing + margin = suggested contract value (nearest Rs 1,000), or for labour-only a suggested rate per sq ft (labour + margin ÷ covered area, nearest Rs 5). "Margin from company settings (20%)" / "Custom for this project (25%)" says where the number came from. "Use as contract value" / "Use as rate" saves it; a value already there shows "Current" and the difference and is replaced only after you confirm.
 - **Finalize estimate** button in the wizard's Estimate step: sets the contract value from the estimate (asks first if one exists) and goes on to Review.
