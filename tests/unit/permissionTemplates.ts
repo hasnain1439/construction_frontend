@@ -6,6 +6,8 @@ import type { PermissionKey } from "@/lib/permissionKeys";
 
 export const PM_TEMPLATE: PermissionKey[] = [
   "projects.project.view",
+  "equipment.transfer.create",
+  "equipment.rental.manage",
   "labor.team.view",
   "labor.team.create",
   "labor.attendance.view",
@@ -34,6 +36,9 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "inventory.usage.create",
   "inventory.ownerdelivery.view",
   "inventory.ownerdelivery.create",
+  "equipment.view",
+  "equipment.receiving.create",
+  "equipment.loss.create",
   "dashboard.site.view",
   "dailylog.log.view",
   "dailylog.log.create",
@@ -130,6 +135,9 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
   "inventory.usage.create",
   "inventory.ownerdelivery.view",
   "inventory.ownerdelivery.create",
+  "equipment.view",
+  "equipment.receiving.create",
+  "equipment.loss.create",
   "dashboard.site.view",
   "dailylog.log.view",
   "dailylog.log.create",

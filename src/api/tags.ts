@@ -83,6 +83,15 @@ export const COMPANY_TAGS = [
   "Reports",
   "Onboarding",
   "OpeningBalances",
+  // Step 16 — equipment & shuttering
+  "Equipment",
+  "EquipmentBalances",
+  "EquipmentMovements",
+  "EquipmentTransfers",
+  "EquipmentRentals",
+  "EquipmentLosses",
+  "EquipmentCharges",
+  "ProjectEquipment",
 ] as const;
 
 export const ADMIN_TAGS = [

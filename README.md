@@ -329,6 +329,25 @@ Project mode → **Documents & Closeout**: `/projects/:id/documents/drawings | s
 - Photos open in the shared lightbox (`PhotoLightbox` from `features/site/DailyLogsView`); the certificate uses `PdfActions` (fresh signed link each time).
 - Tests: `tests/unit/components/Closeout.test.tsx` (nav gating, drawings history, snags with / without money, handover blockers + PM limits, retention gating, Urdu).
 
+## Equipment & shuttering (Phase 2 · Step 16, part 1)
+
+`src/features/equipment`, API `src/api/services/equipment.api.ts`, types `src/api/types/equipment.ts`, texts `src/i18n/areas/equipment/` (en · roman-ur · ur). API contract: `PHASE_2_3_CONTRACTS.md` → Step 16. The Central Store doubles as the **yard**; every site of a non-draft project is a location; one transit bucket in between.
+
+| Where | Page | Keys |
+| --- | --- | --- |
+| Equipment → **Allocation Map** (`/equipment/allocation`) | `GET /equipment/balances`: KPI tiles (owned, on rent, at sites, yard, in transit), one card per place (yard, each site, transit) listing each item with owned / rented and the rental numbers, plus "Totals by item". Category filter | `equipment.view` |
+| Equipment → **Owned Equipment** (`/equipment/owned`, `/equipment/owned/:id`) | Register with owned / sites / yard / transit / on rent, hire rate and replacement value (only with `fields.rates`). Add / edit (SlideOver), **Stock in** (opening or purchase, yard or a project site), **Adjust count** (− disposed / short, + found, at one location). Detail: where it is now + its movement log | view; changes `equipment.manage` |
+| Equipment → **Rentals** (`/equipment/rentals`, `/equipment/rentals/:id`) | Hire from a yard supplier: items × rate/day, deposit, start / expected return, delivered to a site or the yard. **Extend**, **Return** (counts per item, damaged, missing — missing must already be reported as a loss — and damage charges), **Close** (deposit refund). Rent to date / posted / deposit / damage charges only with `fields.rates`. Overdue badge and filter | view; actions `equipment.rental.manage` |
+| Equipment → **Movements** (`/equipment/movements`, `/equipment/movements/:id`) | Tabs **Transfers** (dispatch / transfer / return, status, route) and **Movement log** (append-only ledger). **Send equipment**: from a place that holds equipment, pick piles (owned, or per rental) with "Available: N"; to the yard or a project. Detail: sent / received / damaged / gap per item, losses created, **Cancel** (`equipment.transfer.create`) and **Receive** (`equipment.receiving.create`) | view |
+| Equipment → **Loss & Damage** (`/equipment/loss-damage`) | Losses from counts (`TRANSFER_GAP`) and reports: kind, qty, place, photo, note, value (rates), status. **Report loss** (with photo, `equipment.loss.create`), **Charge** to Project / Sub-contractor (pick the project's sub-contract) / Write off (`equipment.loss.approve`) | view |
+| Equipment → **Hire & Rent Charges** (`/equipment/charges`) | Daily INTERNAL_HIRE and RENTAL rows filtered by month / project / kind; correction rows marked; total and amounts only with `fields.rates`. **Post charges now** (`equipment.manage`, `POST /equipment/accruals/run`) | view |
+| Equipment → **Shuttering Demand** | Still "Coming soon" — the planner and the idle-rent alert need the Step 13 schedule (Wave 3) | view |
+| Project → Site → **Equipment on Site** (`/projects/:id/site/equipment`) | `GET /projects/:id/equipment`: owned / rented here (+ hire per day with rates), hire / rent to date (rates), **On the way here** with **Receive**, rentals of the project, open losses. Buttons: Report loss, Hire equipment, Send / return (from this site) | view (+ action keys) |
+
+**Receiving with counts** (`ReceiveTransferSlideOver`): every item is counted (arrived incl. damaged, damaged, note, photo). Before saving, a **loss preview** lists what will be recorded — sent − arrived → Missing, damaged → Damaged (`previewLosses`). Short or damaged lines need a note (same rule as the API's `NOTE_REQUIRED`). In a blind count (Munshi, company setting) the sent quantity is absent and the preview says the gap is worked out on save.
+
+**Money**: the API leaves out every rate / value / amount without `fields.rates`; the pages also hide those columns, KPI tiles and form fields (`useSeesRates`), so the Munshi never sees them. New status domains `equipmentTransfer`, `rental`, `equipmentLoss`, `equipmentLossKind` (`lib/status.ts`, translated in `areas/shared`), enum groups `equipmentCategory`, `equipmentKind`, `equipmentMovementType`, `equipmentTransferKind`, `equipmentChargedTo(Desc)`, `equipmentLossSource`, `equipmentChargeKind`; equipment error codes in `lib/apiErrors.ts`. Navigation entries are gated by `equipment.view`; permission keys `equipment.view|manage`, `equipment.transfer.create`, `equipment.receiving.create`, `equipment.rental.manage`, `equipment.loss.create|approve` were added to `lib/permissionKeys.ts` and the catalogue fixture.
+
 ## Onboarding & data import (Pilot · Part 7)
 
 `src/features/onboarding`, API `src/api/services/onboarding.api.ts`.

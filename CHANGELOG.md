@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 16
+- **Equipment & shuttering** (part 1): Equipment → **Allocation Map** (where every plate, prop and machine is — yard, each site, on the road; owned vs rented), **Owned Equipment** (register, add / edit, stock in, adjust count, detail with movement log), **Rentals** (hire from a yard with rate per day and deposit; extend, return with counts and damage charges, close with deposit refund; overdue badge), **Movements** (send / transfer / return equipment, transfer detail with cancel and receive, movement log), **Loss & Damage** (report with photo; charge to the project, a sub-contractor or write off) and **Hire & Rent Charges** (daily rows by month / project, "Post charges now").
+- Project → Site → **Equipment on Site**: what is at the site (owned vs rented), equipment on the way with **Receive**, the project's rentals and open losses; report a loss, hire equipment, send / return from the site.
+- **Receive with counts**: every item is counted; before saving a preview shows the losses that will be recorded (sent − arrived → missing, damaged → damaged). Blind count hides the sent quantity.
+- Rates, values and amounts appear only for people who can see rates (the Munshi never does). Menu items need `equipment.view`; actions their own keys. Shuttering Demand stays "Coming soon" until the planner (Wave 3). All texts in English, Roman Urdu and Urdu; API types regenerated; equipment permission keys added to the key list, role templates in tests and the catalogue fixture.
 ### Step 17
 - **Project → Documents & Closeout** pages are live (no more "Coming soon"): Drawings, Snag List, Handover, Retention — each shown only with its `closeout.*` permission.
 - **Drawings**: folders (Architectural, Structural, MEP, Society approved, Other) with counts, search, latest revision badge and approval date; revision history slide-over keeps superseded revisions (open any file), upload a new revision, mark approved today, add / edit / delete drawings.
