@@ -132,6 +132,26 @@ const DOMAINS = {
     EXCESS: S("info", "Excess", CircleDashed),
     SUPPLIER_SHORT: S("warning", "Supplier short", TriangleAlert),
   },
+  // Step 16 — equipment & shuttering
+  equipmentTransfer: {
+    ON_THE_WAY: S("info", "On the way", Truck),
+    RECEIVED: S("success", "Received", CircleCheck),
+    RECEIVED_WITH_GAP: S("warning", "Received — gap", TriangleAlert),
+    CANCELLED: S("neutral", "Cancelled", Ban),
+  },
+  rental: {
+    ACTIVE: S("info", "On rent", Clock),
+    RETURNED: S("warning", "Returned", Undo2),
+    CLOSED: S("success", "Closed", CircleCheck),
+  },
+  equipmentLoss: {
+    REPORTED: S("danger", "Reported", TriangleAlert),
+    CHARGED: S("success", "Charged", CircleCheck),
+  },
+  equipmentLossKind: {
+    MISSING: S("warning", "Missing", CircleSlash),
+    DAMAGED: S("danger", "Damaged", CircleX),
+  },
   supplierPayment: {
     CLEARED: S("success", "Cleared", CircleCheck),
     PENDING: S("warning", "Cheque pending", Clock),

@@ -77,6 +77,14 @@ export const PERMISSION_KEYS = [
   "inventory.usage.create",
   "inventory.ownerdelivery.view",
   "inventory.ownerdelivery.create",
+  // equipment (Step 16)
+  "equipment.view",
+  "equipment.manage",
+  "equipment.transfer.create",
+  "equipment.receiving.create",
+  "equipment.rental.manage",
+  "equipment.loss.create",
+  "equipment.loss.approve",
   // billing
   "billing.invoice.view",
   "billing.invoice.create",

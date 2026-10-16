@@ -121,6 +121,14 @@
    }
   },
   {
+   "key": "equipment",
+   "label": {
+    "en": "Equipment & shuttering",
+    "roman": "Machinery aur shuttering",
+    "urdu": "مشینری اور شٹرنگ"
+   }
+  },
+  {
    "key": "fields",
    "label": {
     "en": "Data visibility",
@@ -1923,6 +1931,118 @@
    "field": false
   },
   {
+   "key": "equipment.view",
+   "module": "equipment",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View equipment",
+    "roman": "Machinery / shuttering dekhna",
+    "urdu": "مشینری / شٹرنگ دیکھنا"
+   },
+   "description": "Equipment register, where everything is (allocation map), movements, transfers, rentals, losses, hire charges (rates and amounts need fields.rates).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.manage",
+   "module": "equipment",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Manage equipment",
+    "roman": "Machinery ka intezam",
+    "urdu": "مشینری کا انتظام"
+   },
+   "description": "Add / edit equipment and hire rates, stock in (opening / purchase), adjustments, send from the yard, run the hire accrual.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.transfer.create",
+   "module": "equipment",
+   "resource": "transfer",
+   "action": "create",
+   "label": {
+    "en": "Send equipment",
+    "roman": "Machinery / shuttering bhejna",
+    "urdu": "مشینری / شٹرنگ بھیجنا"
+   },
+   "description": "Dispatch, transfer between sites and return equipment to the yard; cancel a transfer on the way.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.receiving.create",
+   "module": "equipment",
+   "resource": "receiving",
+   "action": "create",
+   "label": {
+    "en": "Receive equipment",
+    "roman": "Machinery / shuttering wasool karna",
+    "urdu": "مشینری / شٹرنگ وصول کرنا"
+   },
+   "description": "Count equipment arriving at a site or the yard (a gap becomes a loss).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.rental.manage",
+   "module": "equipment",
+   "resource": "rental",
+   "action": "manage",
+   "label": {
+    "en": "Manage equipment rentals",
+    "roman": "Kiraye ki shuttering ka intezam",
+    "urdu": "کرائے کی شٹرنگ کا انتظام"
+   },
+   "description": "Hire from yards: create, extend, return with damage charges, close (supplier ledger).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.loss.create",
+   "module": "equipment",
+   "resource": "loss",
+   "action": "create",
+   "label": {
+    "en": "Report equipment loss",
+    "roman": "Gum / toota saman report karna",
+    "urdu": "گم / ٹوٹا سامان رپورٹ کرنا"
+   },
+   "description": "Report missing or damaged equipment with a photo.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.loss.approve",
+   "module": "equipment",
+   "resource": "loss",
+   "action": "approve",
+   "label": {
+    "en": "Charge equipment loss",
+    "roman": "Nuqsan ka faisla",
+    "urdu": "نقصان کا فیصلہ"
+   },
+   "description": "Charge a loss to the project, a sub-contractor or write it off.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -2107,6 +2227,13 @@
     "company.profile.view",
     "company.opening.manage",
     "company.holiday.manage",
+    "equipment.view",
+    "equipment.manage",
+    "equipment.transfer.create",
+    "equipment.receiving.create",
+    "equipment.rental.manage",
+    "equipment.loss.create",
+    "equipment.loss.approve",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -2160,6 +2287,9 @@
     "masterdata.worker.view",
     "masterdata.worker.create",
     "masterdata.subcontractor.view",
+    "equipment.view",
+    "equipment.receiving.create",
+    "equipment.loss.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
@@ -2203,7 +2333,9 @@
     "masterdata.subcontractor.edit",
     "team.member.view",
     "company.profile.view",
-    "fields.rates"
+    "fields.rates",
+    "equipment.transfer.create",
+    "equipment.rental.manage"
    ]
   },
   {
@@ -2252,7 +2384,10 @@
     "masterdata.laborrate.view",
     "masterdata.worker.view",
     "masterdata.worker.create",
-    "masterdata.subcontractor.view"
+    "masterdata.subcontractor.view",
+    "equipment.view",
+    "equipment.receiving.create",
+    "equipment.loss.create"
    ]
   },
   {
@@ -2322,7 +2457,11 @@
     "dashboard.site.view",
     "dailylog.log.view",
     "dailylog.log.create",
-    "masterdata.material.view"
+    "masterdata.material.view",
+    "equipment.view",
+    "equipment.manage",
+    "equipment.transfer.create",
+    "equipment.receiving.create"
    ]
   }
  ],

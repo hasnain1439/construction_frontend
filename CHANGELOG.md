@@ -6,6 +6,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 16
+- **Equipment & shuttering** (part 1): Equipment → **Allocation Map** (where every plate, prop and machine is — yard, each site, on the road; owned vs rented), **Owned Equipment** (register, add / edit, stock in, adjust count, detail with movement log), **Rentals** (hire from a yard with rate per day and deposit; extend, return with counts and damage charges, close with deposit refund; overdue badge), **Movements** (send / transfer / return equipment, transfer detail with cancel and receive, movement log), **Loss & Damage** (report with photo; charge to the project, a sub-contractor or write off) and **Hire & Rent Charges** (daily rows by month / project, "Post charges now").
+- Project → Site → **Equipment on Site**: what is at the site (owned vs rented), equipment on the way with **Receive**, the project's rentals and open losses; report a loss, hire equipment, send / return from the site.
+- **Receive with counts**: every item is counted; before saving a preview shows the losses that will be recorded (sent − arrived → missing, damaged → damaged). Blind count hides the sent quantity.
+- Rates, values and amounts appear only for people who can see rates (the Munshi never does). Menu items need `equipment.view`; actions their own keys. Shuttering Demand stays "Coming soon" until the planner (Wave 3). All texts in English, Roman Urdu and Urdu; API types regenerated; equipment permission keys added to the key list, role templates in tests and the catalogue fixture.
+
 ### Added
 - **Contract value from this estimate** card on the wizard's Estimate step and the project's Estimate page (for people who can edit the project and see contract values and rates): profit margin % (default from company settings) and, for a full contract, a finishing allowance % (the estimate is grey structure only); shows estimated cost + finishing + margin = suggested contract value (nearest Rs 1,000), or for labour-only a suggested rate per sq ft (labour + margin ÷ covered area, nearest Rs 5). "Margin from company settings (20%)" / "Custom for this project (25%)" says where the number came from. "Use as contract value" / "Use as rate" saves it; a value already there shows "Current" and the difference and is replaced only after you confirm.
 - **Finalize estimate** button in the wizard's Estimate step: sets the contract value from the estimate (asks first if one exists) and goes on to Review.

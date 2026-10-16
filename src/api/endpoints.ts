@@ -232,6 +232,31 @@ export const ENDPOINTS = {
     ownerDeliveries: (projectId: string) => `/projects/${id(projectId)}/owner-deliveries`,
   },
 
+  /** Step 16 — equipment & shuttering. */
+  equipment: {
+    list: "/equipment",
+    byId: (equipmentId: string) => `/equipment/${id(equipmentId)}`,
+    stockIn: (equipmentId: string) => `/equipment/${id(equipmentId)}/stock-in`,
+    adjust: (equipmentId: string) => `/equipment/${id(equipmentId)}/adjust`,
+    balances: "/equipment/balances",
+    movements: "/equipment/movements",
+    transfers: "/equipment/transfers",
+    transferById: (transferId: string) => `/equipment/transfers/${id(transferId)}`,
+    transferReceive: (transferId: string) => `/equipment/transfers/${id(transferId)}/receive`,
+    transferCancel: (transferId: string) => `/equipment/transfers/${id(transferId)}/cancel`,
+    rentals: "/equipment/rentals",
+    rentalById: (rentalId: string) => `/equipment/rentals/${id(rentalId)}`,
+    rentalExtend: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/extend`,
+    rentalReturn: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/return`,
+    rentalClose: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/close`,
+    losses: "/equipment/losses",
+    lossById: (lossId: string) => `/equipment/losses/${id(lossId)}`,
+    lossCharge: (lossId: string) => `/equipment/losses/${id(lossId)}/charge`,
+    charges: "/equipment/charges",
+    accrualsRun: "/equipment/accruals/run",
+    project: (projectId: string) => `/projects/${id(projectId)}/equipment`,
+  },
+
   labor: {
     projectWorkers: (projectId: string) => `/projects/${id(projectId)}/labor/workers`,
     projectWorkerById: (projectWorkerId: string) => `/project-workers/${id(projectWorkerId)}`,
