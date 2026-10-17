@@ -7,6 +7,7 @@ import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMonth } from "@/lib/dates";
 import { addDays } from "@/lib/weeks";
+import { useMilestoneName } from "../labels";
 import {
   BAR_H,
   BAR_TOP,
@@ -16,7 +17,6 @@ import {
   type GanttModel,
   type MilestoneRow,
 } from "./ganttModel";
-import { useMilestoneName } from "../labels";
 
 const HEADER_H = 44;
 
@@ -61,7 +61,7 @@ export interface GanttChartProps {
  */
 export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartProps) {
   const t = useT();
-  const msName = useMilestoneName();
+  const milestoneName = useMilestoneName();
   const ts = useStatusT();
   const te = useEnumT();
   const scroller = useRef<HTMLDivElement>(null);
@@ -107,7 +107,8 @@ export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartPr
   return (
     <div className="flex overflow-hidden rounded-xl border bg-card" data-testid="gantt">
       {/* Labels (inline start: left in English, right in Urdu) */}
-      <div className="w-44 shrink-0 border-e sm:w-60">
+      {/* Phones: a narrow label column leaves room for the timeline (QA-B-27); names truncate with a tooltip. */}
+      <div className="w-28 shrink-0 border-e sm:w-60">
         <div
           className="flex items-end border-b px-3 pb-1.5 text-xs font-medium text-muted-foreground"
           style={{ height: HEADER_H }}
@@ -136,7 +137,9 @@ export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartPr
               style={{ height: row.height }}
               tabIndex={-1}
             >
-              <bdi className="truncate">{msName(row.milestone)}</bdi>
+              <bdi className="truncate" title={milestoneName(row.milestone)}>
+                {milestoneName(row.milestone)}
+              </bdi>
               {row.milestone.late ? (
                 <TriangleAlert
                   className="size-3.5 shrink-0 text-danger"
@@ -261,7 +264,7 @@ export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartPr
                   onPointerUp={() => onPointerUp(row)}
                   onClick={() => onClick(row)}
                   label={t("schedule.gantt.barLabel", {
-                    name: msName(row.milestone),
+                    name: milestoneName(row.milestone),
                     from: formatDate(row.milestone.plannedStart),
                     to: formatDate(row.milestone.plannedEnd),
                     status: ts("milestone", row.milestone.status),

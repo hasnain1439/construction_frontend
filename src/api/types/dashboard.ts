@@ -267,10 +267,13 @@ export interface PnlProject {
   marginToDatePercent: number | null;
   percentBilled: number;
   percentCostOfContract: number;
-  /** Step 14: at completion = revised contract − estimate at completion (null when it can't be computed yet). */
-  projectedMarginPercent: number | null;
-  projectedMarginPaisa: Paisa | null;
-  estimateAtCompletionPaisa: Paisa | null;
+  /**
+   * Step 14: at completion = revised contract − estimate at completion (null when it can't be computed yet).
+   * Left out for users without amounts + rates + contract + profit (QA-B-17).
+   */
+  projectedMarginPercent?: number | null;
+  projectedMarginPaisa?: Paisa | null;
+  estimateAtCompletionPaisa?: Paisa | null;
   projectedMarginBasis: "EARNED_VALUE" | "PROGRESS_ONLY" | "NOT_ENOUGH_PROGRESS" | "NO_CONTRACT";
   projectedMarginNote: string;
 }
@@ -286,8 +289,8 @@ export interface ProfitAndLoss {
     cost: CostBuckets;
     grossProfitToDatePaisa: Paisa;
     marginToDatePercent: number | null;
-    projectedMarginPaisa: Paisa | null;
-    projectedMarginPercent: number | null;
+    projectedMarginPaisa?: Paisa | null;
+    projectedMarginPercent?: number | null;
   };
   trend: Array<{ month: string; billedPaisa: Paisa; costPaisa: Paisa; grossProfitPaisa: Paisa }>;
   projectedMarginNote: string;
@@ -401,6 +404,9 @@ export interface ReportFile {
   format: Exclude<ReportFormat, "json">;
   mimeType: string;
   sizeBytes: number;
+  /** Opens inline (preview). */
   url: string;
+  /** Same file as an attachment (`dl=1`) — use with `fileName` to save it (QA-B-15). */
+  downloadUrl?: string;
   expiresAt: IsoDateTime;
 }

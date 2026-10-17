@@ -10,7 +10,8 @@ export const strings: Widen<typeof En.strings> = {
   },
   common: {
     asOf: "{date} tak",
-    progress: "Kaam ki taraqqi",
+    progress: "Qeemat ke hisaab se taraqqi",
+    progressTip: "Kiya hua kaam, wazan: {basis}. Schedule ke safhaat milestones ko mehnat (team-din) se tolte hain, is liye un ka % mukhtalif ho sakta hai.",
     progressValue: "{n}% kaam hua",
     basis: "Wazan: {basis}",
     threshold: "{n}% se upar alert",
@@ -135,6 +136,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "Koi khula alert nahi",
     emptyDesc: "Maal, taraqqi aur kharch hadood ke andar hain.",
     since: "{date} se khula",
+    checked: "aakhri jaanch {when}",
     times: "{n} dafa dekha",
     runNow: "Abhi check karein",
     ran: "Check hua: {opened} naye, {resolved} band",

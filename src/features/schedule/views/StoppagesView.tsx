@@ -179,8 +179,8 @@ export function StoppagesBoard({
               ? range(s.from, s.to)
               : s.dates.map((d) => formatDate(d)).join(", ")}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {t("schedule.stoppages.workingDays", { n: s.days })}
+          <p className={s.warning === "NO_WORKING_DAYS" ? "text-xs text-warning" : "text-xs text-muted-foreground"}>
+            {s.warning === "NO_WORKING_DAYS" ? t("schedule.stoppages.noWorkingDays") : t("schedule.stoppages.workingDays", { n: s.days })}
           </p>
         </div>
       ),

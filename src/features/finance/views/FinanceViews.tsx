@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useGetCashFlowQuery, useGetProfitAndLossQuery } from "@/api/services/finance.api";
 import type { CashFlowMonth, CostBuckets, PnlBucket, PnlProject } from "@/api/types";
 import { AreaChartCard, BarChartCard, DonutChartCard, plotPaisa } from "@/components/common/Charts";
-import { DataTable, type Column } from "@/components/common/DataTable";
+import { DataTable, DENSE_TABLE, type Column } from "@/components/common/DataTable";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
@@ -145,7 +145,7 @@ function PnlKpis({ totals }: { totals: { billedToDatePaisa: string; costToDatePa
       <KpiCard label={t("billing.finance.billedToDate")} icon={CircleDollarSign} value={formatPKRShort(totals.billedToDatePaisa)} hint={t("billing.finance.beforeSalesTax")} />
       <KpiCard label={t("billing.finance.costToDate")} icon={Calculator} tone="warning" value={formatPKRShort(totals.costToDatePaisa)} />
       <KpiCard label={t("billing.finance.grossProfitToDate")} icon={TrendingUp} tone={negative(totals.grossProfitToDatePaisa) ? "danger" : "success"} value={formatPKRShort(totals.grossProfitToDatePaisa)} />
-      <KpiCard label={t("billing.finance.marginToDate")} icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={t("billing.finance.projectedMarginHint", { value: projected(totals.projectedMarginPercent, totals.projectedMarginPaisa) })} />
+      <KpiCard label={t("billing.finance.marginToDate")} icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={totals.projectedMarginPercent === undefined ? undefined : t("billing.finance.projectedMarginHint", { value: projected(totals.projectedMarginPercent, totals.projectedMarginPaisa) })} />
     </div>
   );
 }
@@ -188,9 +188,11 @@ export function ProfitLossView() {
       id: "projected",
       header: t("billing.finance.projectedMargin"),
       align: "right",
+      // QA-B-17: the API leaves the projection out for roles without the profit field.
+      hidden: !q.data?.projects.some((r) => r.projectedMarginPercent !== undefined),
       sortValue: (r) => r.projectedMarginPercent ?? -999,
       cell: (r) =>
-        r.projectedMarginPercent === null ? (
+        r.projectedMarginPercent === null || r.projectedMarginPercent === undefined ? (
           <span className="text-xs text-muted-foreground" title={r.projectedMarginNote}>{t("billing.finance.projectedNotYet")}</span>
         ) : (
           <span className={cn("font-semibold", r.projectedMarginPercent < 0 ? "text-danger" : undefined)} title={r.projectedMarginNote}>
@@ -235,6 +237,7 @@ export function ProfitLossView() {
                 onRowClick={(r) => router.push(`/finance/profit-loss/${r.project.id}`)}
                 empty={{ title: t("billing.finance.noProjects") }}
                 defaultSort={{ id: "gp", direction: "desc" }}
+                className={DENSE_TABLE}
               />
             </SectionCard>
           </>
@@ -284,6 +287,7 @@ export function ProjectProfitView({ projectId }: { projectId: string }) {
                       <dt className="mb-1 text-muted-foreground">{t("billing.finance.billedVsSpentContract")}</dt>
                       <dd><ProgressPair billed={row.percentBilled} spent={row.percentCostOfContract} /></dd>
                     </div>
+                    {row.projectedMarginPercent === undefined ? null : (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">{t("billing.finance.projectedMargin")}</dt>
                       <dd className={cn("text-lg font-semibold", (row.projectedMarginPercent ?? 0) < 0 && "text-danger")} data-testid="projected-margin">
@@ -291,6 +295,7 @@ export function ProjectProfitView({ projectId }: { projectId: string }) {
                       </dd>
                       <dd className="text-xs text-muted-foreground">{row.projectedMarginNote}</dd>
                     </div>
+                    )}
                   </dl>
                 </SectionCard>
               </div>

@@ -5792,7 +5792,7 @@ export interface paths {
         };
         /**
          * Download the file through a signed link
-         * @description No login needed — use the `url` returned by the API as-is (e.g. in an `<img>` tag). Expired or edited links answer 403.
+         * @description No login needed — use the `url` returned by the API as-is (e.g. in an `<img>` tag). Expired or edited links answer 403. Exports and documents come as `/attachments/{id}/file/<file name>?…` (the name is ignored by the server; browsers save the file under it) and `Content-Disposition` carries the name; `dl=1` (the `downloadUrl` of report exports) makes it an attachment (save instead of preview).
          */
         get: {
             parameters: {
@@ -5803,6 +5803,8 @@ export interface paths {
                     exp: number;
                     /** @description HMAC signature */
                     sig: string;
+                    /** @description 1 = Content-Disposition: attachment (not signed) */
+                    dl?: "1";
                 };
                 header?: never;
                 path: {
@@ -5840,6 +5842,89 @@ export interface paths {
                 };
                 /** @description ATTACHMENT_NOT_FOUND */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open a shared document (WhatsApp link)
+         * @description The durable link the share payloads put in `url` / `whatsappText` (invoice, receipt, statement, change-order slip, handover certificate, estimate, quote). No login: the link carries its own HMAC (purpose `share:`, different from file links) and is valid for SHARE_LINK_TTL_DAYS (default 30). A valid link answers **302** to a fresh short-lived signed storage URL of the PDF. Only server-made PDFs open this way. 30 requests / min per IP.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Company id (part of the signed link) */
+                    tid: string;
+                    /** @description Expiry, unix seconds */
+                    exp: number;
+                    /** @description HMAC signature (share:) */
+                    sig: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Attachment id (from the upload response) */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Redirect to the PDF (short-lived signed URL) */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVALID_SIGNATURE | LINK_EXPIRED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ATTACHMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RATE_LIMITED */
+                429: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -21399,6 +21484,7 @@ export interface paths {
                          *             "from": "2026-10-07",
                          *             "to": "2026-10-08",
                          *             "days": 2,
+                         *             "warning": null,
                          *             "reason": "RAIN",
                          *             "category": "EXCUSABLE",
                          *             "status": "APPROVED",
@@ -21672,6 +21758,7 @@ export interface paths {
                          *             "from": "2026-10-07",
                          *             "to": "2026-10-08",
                          *             "days": 2,
+                         *             "warning": null,
                          *             "reason": "RAIN",
                          *             "category": "EXCUSABLE",
                          *             "status": "APPROVED",
@@ -21961,6 +22048,7 @@ export interface paths {
                          *             "from": "2026-10-07",
                          *             "to": "2026-10-08",
                          *             "days": 2,
+                         *             "warning": null,
                          *             "reason": "RAIN",
                          *             "category": "EXCUSABLE",
                          *             "status": "APPROVED",
@@ -23276,6 +23364,7 @@ export interface paths {
                          *             "from": "2026-10-07",
                          *             "to": "2026-10-08",
                          *             "days": 2,
+                         *             "warning": null,
                          *             "reason": "RAIN",
                          *             "category": "EXCUSABLE",
                          *             "status": "APPROVED",
@@ -23397,6 +23486,7 @@ export interface paths {
                          *         "from": "2026-10-07",
                          *         "to": "2026-10-08",
                          *         "days": 2,
+                         *         "warning": null,
                          *         "reason": "RAIN",
                          *         "category": "EXCUSABLE",
                          *         "status": "APPROVED",
@@ -23449,6 +23539,7 @@ export interface paths {
                          *         "from": "2026-10-07",
                          *         "to": "2026-10-08",
                          *         "days": 2,
+                         *         "warning": null,
                          *         "reason": "RAIN",
                          *         "category": "EXCUSABLE",
                          *         "status": "PENDING",
@@ -23574,6 +23665,7 @@ export interface paths {
                          *         "from": "2026-10-07",
                          *         "to": "2026-10-08",
                          *         "days": 2,
+                         *         "warning": null,
                          *         "reason": "RAIN",
                          *         "category": "EXCUSABLE",
                          *         "status": "APPROVED",
@@ -23693,6 +23785,7 @@ export interface paths {
                          *           "from": "2026-10-07",
                          *           "to": "2026-10-08",
                          *           "days": 2,
+                         *           "warning": null,
                          *           "reason": "RAIN",
                          *           "category": "EXCUSABLE",
                          *           "status": "APPROVED",
@@ -23847,6 +23940,7 @@ export interface paths {
                          *         "from": "2026-10-07",
                          *         "to": "2026-10-08",
                          *         "days": 2,
+                         *         "warning": null,
                          *         "reason": "RAIN",
                          *         "category": "EXCUSABLE",
                          *         "status": "REJECTED",
@@ -45798,8 +45892,10 @@ export interface paths {
                          *       "success": true,
                          *       "data": {
                          *         "attachmentId": "0199a8c0-0000-7000-8000-000000000e51",
-                         *         "url": "https://res.cloudinary.com/demo/raw/upload/s--sig--/INV-2026-0010.pdf",
-                         *         "expiresAt": "2026-10-06T10:15:00.000Z",
+                         *         "url": "http://localhost:4000/api/v1/public/files/0199a8c0-0000-7000-8000-000000000e51?tid=…&exp=1764460800&sig=…",
+                         *         "expiresAt": "2026-11-30T10:05:00.000Z",
+                         *         "fileUrl": "http://localhost:4000/api/v1/attachments/0199a8c0-0000-7000-8000-000000000e51/file/INV-2026-0010.pdf?tid=…&exp=…&sig=…",
+                         *         "fileUrlExpiresAt": "2026-10-06T10:15:00.000Z",
                          *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, DHA Phase 6 · 10 Marla ka invoice INV-2026-0010 (Rs 37,00,000), due 3 Sept. Link: https://…",
                          *         "clientPhone": "+923001112222"
                          *       }
@@ -46649,8 +46745,10 @@ export interface paths {
                          *       "success": true,
                          *       "data": {
                          *         "attachmentId": "0199a8c0-0000-7000-8000-000000000e51",
-                         *         "url": "https://res.cloudinary.com/demo/raw/upload/s--sig--/INV-2026-0010.pdf",
-                         *         "expiresAt": "2026-10-06T10:15:00.000Z",
+                         *         "url": "http://localhost:4000/api/v1/public/files/0199a8c0-0000-7000-8000-000000000e51?tid=…&exp=1764460800&sig=…",
+                         *         "expiresAt": "2026-11-30T10:05:00.000Z",
+                         *         "fileUrl": "http://localhost:4000/api/v1/attachments/0199a8c0-0000-7000-8000-000000000e51/file/INV-2026-0010.pdf?tid=…&exp=…&sig=…",
+                         *         "fileUrlExpiresAt": "2026-10-06T10:15:00.000Z",
                          *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, … ki receipt RV-2026-0013. Link: https://…",
                          *         "clientPhone": "+923001112222"
                          *       }
@@ -47239,8 +47337,10 @@ export interface paths {
                          *       "success": true,
                          *       "data": {
                          *         "attachmentId": "0199a8c0-0000-7000-8000-000000000e51",
-                         *         "url": "https://res.cloudinary.com/demo/raw/upload/s--sig--/INV-2026-0010.pdf",
-                         *         "expiresAt": "2026-10-06T10:15:00.000Z",
+                         *         "url": "http://localhost:4000/api/v1/public/files/0199a8c0-0000-7000-8000-000000000e51?tid=…&exp=1764460800&sig=…",
+                         *         "expiresAt": "2026-11-30T10:05:00.000Z",
+                         *         "fileUrl": "http://localhost:4000/api/v1/attachments/0199a8c0-0000-7000-8000-000000000e51/file/INV-2026-0010.pdf?tid=…&exp=…&sig=…",
+                         *         "fileUrlExpiresAt": "2026-10-06T10:15:00.000Z",
                          *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, DHA Phase 6 · 10 Marla ka hisaab (…): baqaya Rs 11,00,000. Link: https://…",
                          *         "clientPhone": "+923001112222"
                          *       }
@@ -49456,6 +49556,7 @@ export interface paths {
                          *             "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
                          *             "openedAt": "2026-10-14T01:30:00.000Z",
                          *             "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *             "lastEvaluatedAt": "2026-10-16T01:30:00.000Z",
                          *             "resolvedAt": null,
                          *             "notifiedAt": "2026-10-14T01:30:00.000Z",
                          *             "occurrences": 1
@@ -49695,6 +49796,7 @@ export interface paths {
                          *           "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
                          *           "openedAt": "2026-10-14T01:30:00.000Z",
                          *           "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *           "lastEvaluatedAt": "2026-10-16T01:30:00.000Z",
                          *           "resolvedAt": null,
                          *           "notifiedAt": "2026-10-14T01:30:00.000Z",
                          *           "occurrences": 1
@@ -49951,6 +50053,7 @@ export interface paths {
                          *             "actionUrl": "/projects/0199a8c0-0000-7000-8000-000000000301/control/material-variance",
                          *             "openedAt": "2026-10-14T01:30:00.000Z",
                          *             "lastSeenAt": "2026-10-16T01:30:00.000Z",
+                         *             "lastEvaluatedAt": "2026-10-16T01:30:00.000Z",
                          *             "resolvedAt": null,
                          *             "notifiedAt": "2026-10-14T01:30:00.000Z",
                          *             "occurrences": 1
@@ -50180,7 +50283,7 @@ export interface paths {
         };
         /**
          * Project summary
-         * @description THEKEDAR, PM with billing.view (own projects). Per project: contract, billed, received, outstanding, cost by bucket, cost to date, own money invested. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR, PM with billing.view (own projects). Per project: contract, billed, received, outstanding, cost by bucket, cost to date, own money invested. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50314,7 +50417,7 @@ export interface paths {
         };
         /**
          * Material audit
-         * @description THEKEDAR, PM (own projects); the value column needs rates.view. Per project × material: delivered (contractor / owner), used, sent away, count adjustments, losses written off, in stock and value. The period limits the movement columns; stock and value are as of `to`. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR, PM (own projects); the value column needs rates.view. Per project × material: delivered (contractor / owner), used, sent away, count adjustments, losses written off, in stock and value. The period limits the movement columns; stock and value are as of `to`. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50448,7 +50551,7 @@ export interface paths {
         };
         /**
          * Labour & peshgi
-         * @description THEKEDAR, PM (own projects). Per worker / sub-contractor and project: days, wages (or work value), peshgi given / adjusted / outstanding, paid, retention and balance due. The period limits days and wages. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR, PM (own projects). Per worker / sub-contractor and project: days, wages (or work value), peshgi given / adjusted / outstanding, paid, retention and balance due. The period limits days and wages. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50582,7 +50685,7 @@ export interface paths {
         };
         /**
          * Cash book
-         * @description THEKEDAR, PM (own projects). Per holder and project: floats, kharcha by category, other payments, waiting approval, owed back, count differences and net. Without a period, net adds up to cash in hand. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR, PM (own projects). Per holder and project: floats, kharcha by category, other payments, waiting approval, owed back, count differences and net. Without a period, net adds up to cash in hand. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50716,7 +50819,7 @@ export interface paths {
         };
         /**
          * Supplier ageing
-         * @description THEKEDAR. Udhaar per supplier in 0–15 / 16–30 / 31–60 / 60+ day buckets (FIFO), oldest unpaid days and the last payment. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR. Udhaar per supplier in 0–15 / 16–30 / 31–60 / 60+ day buckets (FIFO), oldest unpaid days and the last payment. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50750,7 +50853,8 @@ export interface paths {
                          *         "format": "xlsx",
                          *         "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                          *         "sizeBytes": 7393,
-                         *         "url": "https://res.cloudinary.com/demo/raw/upload/s--sig--/supplier-ageing-2026-10-06.xlsx",
+                         *         "url": "http://localhost:4000/api/v1/attachments/0199a8c0-0000-7000-8000-000000000f51/file/supplier-ageing-2026-10-06.xlsx?tid=…&exp=…&sig=…",
+                         *         "downloadUrl": "http://localhost:4000/api/v1/attachments/0199a8c0-0000-7000-8000-000000000f51/file/supplier-ageing-2026-10-06.xlsx?tid=…&exp=…&sig=…&dl=1",
                          *         "expiresAt": "2026-10-06T10:15:00.000Z"
                          *       }
                          *     }
@@ -50826,7 +50930,7 @@ export interface paths {
         };
         /**
          * Receivables ageing
-         * @description THEKEDAR. Outstanding per project / client in the same buckets (days since the invoice was issued), overdue and pending cheques. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR. Outstanding per project / client in the same buckets (days since the invoice was issued), overdue and pending cheques. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -50960,7 +51064,7 @@ export interface paths {
         };
         /**
          * Stock valuation
-         * @description THEKEDAR. Store, sites and transit: quantity × weighted-average cost; owner-supplied stock shown without value. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description THEKEDAR. Store, sites and transit: quantity × weighted-average cost; owner-supplied stock shown without value. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -51094,7 +51198,7 @@ export interface paths {
         };
         /**
          * Delay analysis — all projects
-         * @description finance.reports.view + control.view (its project scope); no money. One row per project with a schedule: original / revised / projected end, progress, working days of delay by owner / excusable / contractor, change-order days, total, calendar days late, days ahead, late and behind milestones, top reasons (in the file language). `extra.projects[]` (JSON only): days per category and every reason with its days. The per-project book with stoppages, change orders and milestones: GET /reports/delay-analysis/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + control.view (its project scope); no money. One row per project with a schedule: original / revised / projected end, progress, working days of delay by owner / excusable / contractor, change-order days, total, calendar days late, days ahead, late and behind milestones, top reasons (in the file language). `extra.projects[]` (JSON only): days per category and every reason with its days. The per-project book with stoppages, change orders and milestones: GET /reports/delay-analysis/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -51236,7 +51340,7 @@ export interface paths {
         };
         /**
          * Variance — company summary
-         * @description finance.reports.view + control.view (its project scope). One row per ACTIVE / CLOSEOUT project: physical vs planned progress, materials over / under / not in the estimate; material PKR impact (fields.rates); cost estimate to date, actual, variance and % (fields.amounts + fields.rates); spent % of contract and the gap to progress (fields.amounts + fields.contract); revised contract (fields.contract); estimate at completion and projected margin (fields.amounts + rates + contract + profit). Money columns are left out without the permission. Plan + estimate are loaded once per project and the cost rows in one query. Per project: GET /reports/variance/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + control.view (its project scope). One row per ACTIVE / CLOSEOUT project: physical vs planned progress, materials over / under / not in the estimate; material PKR impact (fields.rates); cost estimate to date, actual, variance and % (fields.amounts + fields.rates); spent % of contract and the gap to progress (fields.amounts + fields.contract); revised contract (fields.contract); estimate at completion and projected margin (fields.amounts + rates + contract + profit). Money columns are left out without the permission. Plan + estimate are loaded once per project and the cost rows in one query. Per project: GET /reports/variance/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -51378,7 +51482,7 @@ export interface paths {
         };
         /**
          * Change order register
-         * @description finance.reports.view + changeorder.view (its project scope); the total needs fields.rates or fields.amounts. Every change order across the projects: project, code, title, type, status, total (signed; left out without the price permission), days, proof type, the invoice that billed it, created and approved dates. Filters: projectId, status, type, from / to (created date). Totals count the approved set only (APPROVED / IN_PROGRESS / COMPLETED / BILLED). `extra`: count per status, approved count / total. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + changeorder.view (its project scope); the total needs fields.rates or fields.amounts. Every change order across the projects: project, code, title, type, status, total (signed; left out without the price permission), days, proof type, the invoice that billed it, created and approved dates. Filters: projectId, status, type, from / to (created date). Totals count the approved set only (APPROVED / IN_PROGRESS / COMPLETED / BILLED). `extra`: count per status, approved count / total. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -51520,7 +51624,7 @@ export interface paths {
         };
         /**
          * Equipment utilisation
-         * @description finance.reports.view + equipment.view (sites of its project scope); hire / rent / loss value need fields.rates. Per item (`group=item`, default) or category: owned at the end of the period, days on site / idle, unit-days on site / idle (end-of-day ledger balances, Karachi days; idle = owned units at the yard or in transit), utilisation % (unit-days on site ÷ owned unit-days), rented unit-days, internal hire charged and rent of the period (EquipmentCharge), lost / damaged quantity and value (EquipmentLoss reported in the period). Filters: from / to (default the last 30 days, at most 366), projectId (that site only), category. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + equipment.view (sites of its project scope); hire / rent / loss value need fields.rates. Per item (`group=item`, default) or category: owned at the end of the period, days on site / idle, unit-days on site / idle (end-of-day ledger balances, Karachi days; idle = owned units at the yard or in transit), utilisation % (unit-days on site ÷ owned unit-days), rented unit-days, internal hire charged and rent of the period (EquipmentCharge), lost / damaged quantity and value (EquipmentLoss reported in the period). Filters: from / to (default the last 30 days, at most 366), projectId (that site only), category. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -51662,7 +51766,7 @@ export interface paths {
         };
         /**
          * Snag summary — all projects
-         * @description finance.reports.view + closeout.snag.view (its project scope); cost attribution needs fields.amounts. One row per project with snags: total, open / fixed / verified, overdue (open past the target date), open snags by days open (0–7 / 8–30 / 31+), oldest open, defect-period snags (and still open), cost attributed to rework / sub-contractors / change orders (fields.amounts). Filters: projectId, from / to (logged date). Per project (by assignee, open list, defect-period list): GET /reports/snags/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ url, expiresAt }` — a signed link, never the raw file. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + closeout.snag.view (its project scope); cost attribution needs fields.amounts. One row per project with snags: total, open / fixed / verified, overdue (open past the target date), open snags by days open (0–7 / 8–30 / 31+), oldest open, defect-period snags (and still open), cost attributed to rework / sub-contractors / change orders (fields.amounts). Filters: projectId, from / to (logged date). Per project (by assignee, open list, defect-period list): GET /reports/snags/{projectId}. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -52770,6 +52874,12 @@ export interface paths {
                          *         },
                          *         "notes": [
                          *           "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *         ],
+                         *         "noteCodes": [
+                         *           {
+                         *             "code": "TAX_ADVISER",
+                         *             "params": {}
+                         *           }
                          *         ]
                          *       }
                          *     }
@@ -52909,6 +53019,12 @@ export interface paths {
                          *         },
                          *         "notes": [
                          *           "Default rates and rules are a starting point only — verify the rate, the taxable base and WHT with your tax adviser before switching tax on."
+                         *         ],
+                         *         "noteCodes": [
+                         *           {
+                         *             "code": "TAX_ADVISER",
+                         *             "params": {}
+                         *           }
                          *         ]
                          *       }
                          *     }
@@ -59498,7 +59614,7 @@ export interface paths {
         };
         /**
          * Change order slip PDF (owner) + WhatsApp text
-         * @description changeorder.view + fields.rates or fields.amounts. Letterhead, project, CO code / title / details, items at the owner price (no cost or markup), total (minus for a deduction), days impact, approval and signature lines. `?lang=en|roman|ur` (Urdu right-to-left). Signed link (10 min) + WhatsApp text + the owner’s phone.
+         * @description changeorder.view + fields.rates or fields.amounts. Letterhead, project, CO code / title / details, items at the owner price (no cost or markup), total (minus for a deduction), days impact, approval and signature lines. `?lang=en|roman|ur` (Urdu right-to-left). Durable share link (`url`, SHARE_LINK_TTL_DAYS) + short-lived `fileUrl` + WhatsApp text (asks for approval only while DRAFT / SENT, else states the status) + the owner’s phone.
          */
         get: {
             parameters: {
@@ -59526,8 +59642,10 @@ export interface paths {
                          *       "success": true,
                          *       "data": {
                          *         "attachmentId": "0199a8c0-0000-7000-8000-000000001506",
-                         *         "url": "https://…/file?sig=…",
-                         *         "expiresAt": "2026-10-16T10:10:00.000Z",
+                         *         "url": "https://…/api/v1/public/files/…?tid=…&exp=…&sig=…",
+                         *         "expiresAt": "2026-11-15T10:00:00.000Z",
+                         *         "fileUrl": "https://…/file/CO-001 MSB-2026-012.pdf?sig=…",
+                         *         "fileUrlExpiresAt": "2026-10-16T10:10:00.000Z",
                          *         "whatsappText": "Assalam o Alaikum Ahmed Raza sahib, DHA Phase 6 · 10 Marla ka tabdeeli order CO-001: …",
                          *         "clientPhone": "+923001112233"
                          *       }

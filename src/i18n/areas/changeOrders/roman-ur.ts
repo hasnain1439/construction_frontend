@@ -62,7 +62,7 @@ export const strings: Widen<typeof En.strings> = {
     kpiRevisedHint: "Asal {amount}",
     kpiDays: "Izafi waqt",
     kpiDaysValue: "+{n} kaam ke din",
-    kpiEnd: "Nayi mukammal tareekh",
+    kpiEnd: "Change orders ke saath mukammal tareekh",
     kpiEndHint: "Theke ki tareekh {date}",
     kpiPending: "Maalik ke jawab ka intezar",
     kpiPendingHint: "Draft aur bheje gaye orders",
@@ -233,7 +233,7 @@ export const strings: Widen<typeof En.strings> = {
   project: {
     revisedContract: "Nayi theke ki raqam",
     revisedContractValue: "{n} tabdeeli orders se {changes}",
-    revisedEnd: "Nayi mukammal tareekh",
+    revisedEnd: "Change orders ke saath mukammal tareekh",
     revisedEndValue: "Tabdeeli orders se +{n} kaam ke din",
   },
 };

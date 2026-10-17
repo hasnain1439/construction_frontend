@@ -20,6 +20,7 @@ import { InfoList } from "@/components/common/InfoList";
 import { MoneyText } from "@/components/common/MoneyText";
 import { PdfActions } from "@/components/common/PdfActions";
 import { usePermissions } from "@/components/common/PermissionGate";
+import { QtyUnitText } from "@/components/common/QtyText";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
@@ -31,7 +32,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { PhotoStrip } from "@/features/closeout/shared";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { boqUnit } from "@/features/estimates/labels";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate, todayPK } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
@@ -136,13 +136,13 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
                   {co.lines.map((l) => (
                     <tr key={l.id}>
                       <td className="px-4 py-2">
-                        <p className="font-medium">{l.description}</p>
+                        <p dir="auto" className="font-medium">{l.description}</p>
                         <p className="text-xs text-muted-foreground">
                           {t(`changeOrders.kind.${l.kind}`)} · {t(`changeOrders.rateSource.${l.rateSource}`)}
                         </p>
                       </td>
-                      <td className="px-4 py-2 text-end whitespace-nowrap" dir="ltr">
-                        {Number(l.quantity).toLocaleString("en-PK", { maximumFractionDigits: 3 })} {boqUnit(t, l.unit)}
+                      <td className="px-4 py-2 text-end whitespace-nowrap">
+                        <QtyUnitText quantity={l.quantity} unit={l.unit} />
                       </td>
                       {canSee("rates") ? (
                         <td className="px-4 py-2 text-end">

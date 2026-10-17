@@ -579,7 +579,7 @@ describe("Schedule — delay cards", () => {
       within(screen.getByTestId("delay-CONTRACTOR")).getByText("Slow progress · 12 days"),
     ).toBeInTheDocument();
     expect(within(screen.getByTestId("delay-OWNER")).getByText("No days")).toBeInTheDocument();
-    expect(screen.getByText(/1 stoppage days waiting for approval/)).toBeInTheDocument();
+    expect(screen.getByText(/1 stoppage day waiting for approval is/)).toBeInTheDocument();
   });
 });
 

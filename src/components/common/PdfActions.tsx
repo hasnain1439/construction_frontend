@@ -2,10 +2,12 @@
 
 import { Download, Eye, Loader2, MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import type { SharedPdf } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
+import { formatDate } from "@/lib/dates";
 import { DocumentPreview } from "./DocumentPreview";
 
 /** WhatsApp click-to-chat link: digits only (no +), message URL-encoded. Without a phone, the share sheet picks the chat. */
@@ -45,6 +47,7 @@ export type PdfAction = "preview" | "download" | "share";
 
 /** The logic behind `PdfActions` (for menus): `act(kind)` runs one action, render `preview` somewhere. */
 export function usePdfActions({ load, title, phone }: { load: () => Promise<SharedPdf>; title: string; phone?: string | null }) {
+  const t = useT();
   const run = useMutationToast();
   const [busy, setBusy] = useState<PdfAction | null>(null);
   const [preview, setPreview] = useState<SharedPdf | null>(null);
@@ -54,12 +57,15 @@ export function usePdfActions({ load, title, phone }: { load: () => Promise<Shar
     setBusy(null);
     if (!pdf) return;
     if (kind === "preview") setPreview(pdf);
-    if (kind === "download") window.open(pdf.url, "_blank", "noopener");
-    if (kind === "share") window.open(whatsappUrl(phone ?? pdf.clientPhone, pdf.whatsappText), "_blank", "noopener");
+    if (kind === "download") window.open(pdf.fileUrl ?? pdf.url, "_blank", "noopener");
+    if (kind === "share") {
+      window.open(whatsappUrl(phone ?? pdf.clientPhone, pdf.whatsappText), "_blank", "noopener");
+      toast.info(t("app.components.pdf.linkUntil", { date: formatDate(pdf.expiresAt) }));
+    }
   };
   return {
     busy,
     act,
-    preview: preview ? <DocumentPreview url={preview.url} title={title} onClose={() => setPreview(null)} /> : null,
+    preview: preview ? <DocumentPreview url={preview.fileUrl ?? preview.url} title={title} onClose={() => setPreview(null)} /> : null,
   };
 }

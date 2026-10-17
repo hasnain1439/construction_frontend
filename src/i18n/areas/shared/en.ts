@@ -219,6 +219,7 @@ export const strings = {
 
 /** Enum groups from `src/lib/options.ts`, read with `useEnumT()`. */
 export const enums = {
+  measureUnit: { bag: "bag", day: "day", job: "job", nos: "nos", cft: "cft", kg: "kg", sqft: "sq ft", sft: "sq ft", rft: "rft", gallon: "gallon", litre: "litre", ton: "ton", ls: "lump sum", hour: "hour", trip: "trip", month: "month", week: "week", point: "point", set: "set", coil: "coil", drum: "drum", trolley: "trolley", lot: "lot", piece: "piece" },
   region: { PUNJAB_KP: "Punjab / KP", KARACHI_SINDH: "Karachi / Sindh" },
   regionDesc: { PUNJAB_KP: "Brick construction", KARACHI_SINDH: "Block construction" },
   userLanguage: { ENGLISH: "English", ROMAN_URDU: "Roman Urdu", URDU: "Urdu" },

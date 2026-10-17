@@ -64,6 +64,12 @@ describe("formatPKRShort", () => {
     expect(formatPKRShort("950000")).toBe("Rs 9,500");
     expect(formatPKRShort("685050")).toBe("Rs 6,851");
   });
+
+  it("puts the minus before Rs like formatPKR (QA-B-13)", () => {
+    expect(formatPKRShort("-57800000")).toBe("-Rs 5.78 L");
+    expect(formatPKRShort("-1850000000")).toBe("-Rs 1.85 Cr");
+    expect(formatPKRShort("-4325000")).toBe("-Rs 43,250");
+  });
 });
 
 describe("rupees ↔ paisa", () => {

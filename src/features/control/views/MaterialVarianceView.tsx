@@ -8,6 +8,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
+import { ltrIsolate, QtyText } from "@/components/common/QtyText";
 import { SectionCard } from "@/components/common/SectionCard";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +21,7 @@ import { ControlAlertsCard, ControlSetupHints, SignedPercent, VarianceBadge } fr
 
 const ALL = "ALL";
 
-const qtyOr = (v: number | null, unit: string) => (v === null ? "—" : formatQty(v, unit));
+const qtyOr = (v: number | null, unit: string) => (v === null ? "—" : <QtyText value={v} unit={unit} />);
 
 /** Material variance content (fixture-testable). Rupee columns only when the API sent them. */
 export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data: MaterialVariance; milestoneId: string; onMilestone: (id: string) => void }) {
@@ -47,13 +48,13 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
       align: "right",
       cell: (r) => (
         <div>
-          <span className="tabular">{qtyOr(r.estimatedToDateQty, r.unit)}</span>
-          <p className="text-xs text-muted-foreground">{t("control.material.estimatedTotal", { total: formatQty(r.estimatedTotalQty, r.unit) })}</p>
+          {qtyOr(r.estimatedToDateQty, r.unit)}
+          <p className="text-xs text-muted-foreground">{t("control.material.estimatedTotal", { total: ltrIsolate(formatQty(r.estimatedTotalQty, r.unit)) })}</p>
         </div>
       ),
     },
     { id: "delivered", header: t("control.material.delivered"), align: "right", hidden: perMilestone, cell: (r) => qtyOr(r.deliveredQty, r.unit) },
-    { id: "used", header: t("control.material.used"), align: "right", cell: (r) => formatQty(r.usedQty, r.unit) },
+    { id: "used", header: t("control.material.used"), align: "right", cell: (r) => <QtyText value={r.usedQty} unit={r.unit} /> },
     { id: "loss", header: t("control.material.loss"), align: "right", hidden: perMilestone, cell: (r) => qtyOr(r.lossQty, r.unit) },
     { id: "stock", header: t("control.material.stock"), align: "right", hidden: perMilestone, cell: (r) => qtyOr(r.inStockQty, r.unit) },
     {
@@ -63,7 +64,7 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
       sortValue: (r) => r.variancePercent ?? -999,
       cell: (r) => (
         <div>
-          <span className="tabular">{r.varianceQty === null ? "—" : formatQty(r.varianceQty, r.unit)}</span>
+          {qtyOr(r.varianceQty, r.unit)}
           <p className="text-xs">
             <SignedPercent value={r.variancePercent} />
           </p>
@@ -138,7 +139,7 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
             hint={t("control.material.totalImpactHint", { qty: formatPKRShort(data.totals!.quantityImpactPaisa), price: formatPKRShort(data.totals!.priceImpactPaisa) })}
           />
         ) : (
-          <KpiCard variant="tile" label={t("control.common.progress")} value={t("control.common.progressValue", { n: data.progress.percent })} hint={t("control.common.moneyHidden")} />
+          <KpiCard variant="tile" label={t("control.common.progress")} value={t("control.common.progressValue", { n: data.progress.percent })} hint={<span title={t("control.common.progressTip", { basis: te("progressBasis", data.progress.basis) })}>{t("control.common.moneyHidden")}</span>} />
         )}
       </KpiGroup>
 

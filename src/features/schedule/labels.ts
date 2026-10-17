@@ -1,8 +1,21 @@
 "use client";
 
 import { useCallback } from "react";
-import { isTranslationKey, translate, translateEnum, useEnumT, useT } from "@/i18n/useT";
+import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
+
+/**
+ * A milestone's name in the UI language: generated milestones (`templateKey` set) are translated,
+ * renamed or custom ones show the stored name (QA-B-26; also covers QA-A-10). The single mechanism for
+ * milestone names: keys live in enum.milestoneTemplate (en / roman-ur / ur).
+ */
+export function useMilestoneName() {
+  const te = useEnumT();
+  return useCallback(
+    (m: { name: string; templateKey?: string | null }) => (m.templateKey ? te("milestoneTemplate", m.templateKey, m.name) : m.name),
+    [te],
+  );
+}
 
 /** "+3 days" / "2 days early" / "No change" for a calendar-day shift. */
 export function useDayShift() {
@@ -32,26 +45,3 @@ export function useDateRange() {
 
 /** Generate / re-plan are allowed on DRAFT and ACTIVE projects only (409 PROJECT_LOCKED otherwise). */
 export const PLAN_EDITABLE = ["DRAFT", "ACTIVE"];
-
-const FLOOR_OF_STAGE: Record<string, string> = { GF_STRUCTURE: "GROUND", F1_STRUCTURE: "FIRST", F2_STRUCTURE: "SECOND", F3_STRUCTURE: "THIRD" };
-
-/**
- * A generated milestone's name in the UI language (QA-A-10), from its key ("GF_STRUCTURE.WALLS" →
- * "{floor} — columns & brickwork"). The API stores the English name; a milestone whose name differs
- * from the English default (renamed) keeps its own name.
- */
-export function useMilestoneName() {
-  const t = useT();
-  const te = useEnumT();
-  return useCallback(
-    (m: { key: string; name: string }) => {
-      const [stageKey = "", suffix] = m.key.split(".");
-      const key = `schedule.milestoneName.${suffix ?? ""}`;
-      if (!suffix || !isTranslationKey(key)) return m.name;
-      const level = FLOOR_OF_STAGE[stageKey];
-      if (translate("en", key, { floor: level ? translateEnum("en", "projectFloorLevel", level) : "" }) !== m.name) return m.name;
-      return t(key, { floor: level ? te("projectFloorLevel", level) : "" });
-    },
-    [t, te],
-  );
-}

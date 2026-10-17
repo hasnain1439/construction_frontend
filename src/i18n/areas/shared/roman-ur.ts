@@ -215,6 +215,7 @@ export const strings: Widen<typeof En.strings> = {
 };
 
 export const enums: Widen<typeof En.enums> = {
+  measureUnit: { bag: "bori", day: "din", job: "kaam", nos: "adad", cft: "cft", kg: "kg", sqft: "sq ft", sft: "sq ft", rft: "rft", gallon: "gallon", litre: "litre", ton: "ton", ls: "yakmusht", hour: "ghanta", trip: "chakkar", month: "maheena", week: "hafta", point: "point", set: "set", coil: "coil", drum: "drum", trolley: "trolley", lot: "lot", piece: "adad" },
   region: { PUNJAB_KP: "Punjab / KP", KARACHI_SINDH: "Karachi / Sindh" },
   regionDesc: { PUNJAB_KP: "Eent ki tameer", KARACHI_SINDH: "Block ki tameer" },
   userLanguage: { ENGLISH: "English", ROMAN_URDU: "Roman Urdu", URDU: "Urdu" },

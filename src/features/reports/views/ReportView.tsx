@@ -11,9 +11,10 @@ import { MoneyText } from "@/components/common/MoneyText";
 import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
 import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useT } from "@/i18n/useT";
+import { isTranslationKey, useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
+import { roundToRupee } from "@/lib/money";
 import { REPORTS } from "../reports.config";
 
 /** One table cell by column type (money in rupees, quantities with up to 3 decimals). */
@@ -21,7 +22,8 @@ export function ReportValue({ type, value }: { type: ReportColumnType; value: Re
   if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">—</span>;
   switch (type) {
     case "money":
-      return <MoneyText paisa={String(value)} className={cn(String(value).startsWith("-") && "text-danger")} />;
+      // Reports show whole rupees (QA-B-13); exact paisa stay in the CSV / Excel export.
+      return <MoneyText paisa={roundToRupee(String(value)) ?? String(value)} className={cn(String(value).startsWith("-") && "text-danger")} />;
     case "qty":
     case "int":
       return <span className="tabular">{Number(value).toLocaleString("en-PK", { maximumFractionDigits: 3 })}</span>;
@@ -36,6 +38,19 @@ export function ReportValue({ type, value }: { type: ReportColumnType; value: Re
 
 type Row = ReportTable["rows"][number] & { __id: string };
 
+/** Reports whose headers the web translates by column key (`tax.reports.col.<key>`) — QA-B-05. */
+const TAX_REPORTS: ReadonlySet<ReportName> = new Set<ReportName>(["wht-summary", "tax-invoice-register"]);
+
+/** Column header in the reader's language for the tax reports; the API label otherwise. */
+export function useReportHeader(name: ReportName) {
+  const t = useT();
+  return (c: { key: string; label: string }) => {
+    if (!TAX_REPORTS.has(name)) return c.label;
+    const key = `tax.reports.col.${c.key}`;
+    return isTranslationKey(key) ? t(key) : c.label;
+  };
+}
+
 /**
  * Reports → one report: filters (project / dates where they apply), the table from the API's
  * columns, totals, notes and CSV / Excel / PDF export with the same filters.
@@ -43,6 +58,8 @@ type Row = ReportTable["rows"][number] & { __id: string };
 export function ReportView({ name }: { name: ReportName }) {
   const t = useT();
   const def = REPORTS[name];
+  const ts = useStatusT();
+  const header = useReportHeader(name);
   const title = t(def.titleKey);
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
   const params = reportParams({ projectId: def.project ? filters.projectId : "", from: def.dates ? filters.from : "", to: def.dates ? filters.to : "" });
@@ -50,10 +67,11 @@ export function ReportView({ name }: { name: ReportName }) {
   const report = q.data;
   const columns: Column<Row>[] = (report?.columns ?? []).map((c) => ({
     id: c.key,
-    header: c.label,
+    header: header(c),
     align: c.type === "text" || c.type === "date" ? "left" : "right",
     sortValue: (r) => (c.type === "money" || c.type === "qty" || c.type === "int" ? Number(r[c.key] ?? 0) : String(r[c.key] ?? "")),
-    cell: (r) => <ReportValue type={c.type} value={r[c.key]} />,
+    cell: (r) =>
+      c.key === "invoiceStatus" && typeof r[c.key] === "string" ? <bdi>{ts("invoice", String(r[c.key]))}</bdi> : <ReportValue type={c.type} value={r[c.key]} />,
   }));
   const rows: Row[] | undefined = report?.rows.map((r, i) => ({ ...r, __id: String(i) }));
   const totals = report?.totals ? report.columns.filter((c) => report.totals![c.key] !== null && report.totals![c.key] !== undefined && c.type !== "text") : [];
@@ -66,7 +84,9 @@ export function ReportView({ name }: { name: ReportName }) {
         <InlineAlert tone="info">
           <ul className="space-y-0.5">
             {report.notes.map((n) => (
-              <li key={n}>{n}</li>
+              <li key={n} dir="auto">
+                {n}
+              </li>
             ))}
           </ul>
         </InlineAlert>
@@ -76,7 +96,7 @@ export function ReportView({ name }: { name: ReportName }) {
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {totals.map((c) => (
               <div key={c.key}>
-                <dt className="text-xs text-muted-foreground">{c.label}</dt>
+                <dt className="text-xs text-muted-foreground">{header(c)}</dt>
                 <dd className="text-lg font-semibold">
                   <ReportValue type={c.type} value={report!.totals![c.key]} />
                 </dd>

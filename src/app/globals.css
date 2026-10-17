@@ -5,6 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * Right-to-left only by the dir attribute. Tailwind's default uses :dir(rtl), which the CSS build
+ * lowers to :lang(ur, …) — that also matched Roman Urdu (lang="ur-Latn", dir="ltr") and mirrored
+ * its arrows (QA-B-19).
+ */
+@custom-variant rtl (&:where([dir="rtl"], [dir="rtl"] *));
+
+/*
  * Design tokens (docs/design-brief.md §1). Every colour lives here as a CSS variable;
  * shadcn's theme variables map onto them so primitives and our components share one palette.
  */
@@ -354,7 +361,7 @@
 }
 
 /* Urdu: Nastaliq font with room for its tall letters; the page runs right-to-left (dir="rtl"). */
-html:lang(ur) body {
+html[lang="ur"] body {
   /* Cabin has no Urdu letters, so Latin text (names, codes) stays in Cabin and Urdu falls through to Nastaliq. */
   font-family: var(--font-cabin), var(--font-urdu), ui-sans-serif, system-ui, sans-serif;
   line-height: 1.9;
@@ -368,8 +375,8 @@ html:lang(ur) body {
   --shadow-rail: -1px 0 0 rgb(255 255 255 / 0.05), -8px 0 24px rgb(0 0 0 / 0.5);
 }
 /* Numbers, codes and amounts stay in the Latin font so digits line up. */
-html:lang(ur) .tabular,
-html:lang(ur) code,
-html:lang(ur) kbd {
+html[lang="ur"] .tabular,
+html[lang="ur"] code,
+html[lang="ur"] kbd {
   font-family: var(--font-cabin), ui-sans-serif, system-ui, sans-serif;
 }

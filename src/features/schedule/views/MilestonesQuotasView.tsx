@@ -60,7 +60,7 @@ function ProgressBar({ value, label }: { value: number; label: string }) {
 /** Milestones & Quotas content (separate from the page shell so it can be tested on a fixture). */
 export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
   const t = useT();
-  const msName = useMilestoneName();
+  const milestoneName = useMilestoneName();
   const te = useEnumT();
   const range = useDateRange();
   const [stage, setStage] = useState<string>("ALL");
@@ -150,7 +150,7 @@ export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
             key={m.id}
             title={
               <span className="flex flex-wrap items-center gap-2">
-                <bdi>{msName(m)}</bdi>
+                <bdi>{milestoneName(m)}</bdi>
                 <StatusBadge domain="milestone" value={m.status} />
               </span>
             }

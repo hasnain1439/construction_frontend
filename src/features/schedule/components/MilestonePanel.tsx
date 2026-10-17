@@ -96,14 +96,14 @@ export function MilestonePanel({
   seesBilling,
 }: MilestonePanelProps) {
   const t = useT();
-  const msName = useMilestoneName();
+  const milestoneName = useMilestoneName();
   const ts = useStatusT();
   const te = useEnumT();
   const dayShift = useDayShift();
   const fromList = milestones.find((m) => m.id === milestoneId) ?? null;
   const { data } = useGetMilestoneQuery(milestoneId ?? "", { skip: !milestoneId });
   const m = data && data.id === milestoneId ? data : fromList;
-  const names = new Map(milestones.map((x) => [x.id, msName(x)]));
+  const names = new Map(milestones.map((x) => [x.id, milestoneName(x)]));
   const [limit, setLimit] = useState<string | null>(null);
   const limitValue = limit ?? m?.startNoEarlierThan ?? m?.plannedStart ?? "";
 
@@ -117,7 +117,7 @@ export function MilestonePanel({
         }
       }}
       size="lg"
-      title={m ? <bdi>{msName(m)}</bdi> : t("common.loading")}
+      title={m ? <bdi>{milestoneName(m)}</bdi> : t("common.loading")}
       description={
         m ? (
           <span className="inline-flex flex-wrap items-center gap-2">

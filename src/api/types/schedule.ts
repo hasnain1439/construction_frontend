@@ -55,6 +55,8 @@ export interface Milestone {
   stageKey: ScheduleStageKey;
   key: string;
   name: string;
+  /** Generator template ("F1_STRUCTURE.SLAB") while the name is unchanged, else null — translate by it. */
+  templateKey?: string | null;
   sortOrder: number;
   workDays: number;
   durationDays: number;
@@ -125,6 +127,8 @@ export interface Stoppage {
   to: IsoDate;
   /** Working days among the dates. */
   days: number;
+  /** NO_WORKING_DAYS: every date is an off day / holiday, so it moves nothing (QA-B-22). */
+  warning?: "NO_WORKING_DAYS" | null;
   reason: StoppageReason;
   category: DelayCategory;
   status: StoppageStatus;
@@ -282,8 +286,8 @@ export interface PlanVersion {
 
 export interface DelayReason {
   stoppageId: Id | null;
-  /** A stoppage reason or SLOW_PROGRESS. */
-  reason: StoppageReason | "SLOW_PROGRESS";
+  /** A stoppage reason, SLOW_PROGRESS or CHANGE_ORDER (Step 15: approved change-order days). */
+  reason: StoppageReason | "SLOW_PROGRESS" | "CHANGE_ORDER";
   dates: IsoDate[];
   days: number;
   note: string | null;
@@ -327,7 +331,7 @@ export interface ScheduleQuotas {
   milestones: {
     milestone: Pick<
       Milestone,
-      "id" | "key" | "name" | "stageKey" | "status" | "progressPercent" | "plannedStart" | "plannedEnd"
+      "id" | "key" | "name" | "templateKey" | "stageKey" | "status" | "progressPercent" | "plannedStart" | "plannedEnd"
     >;
     quotas: Quota[];
   }[];

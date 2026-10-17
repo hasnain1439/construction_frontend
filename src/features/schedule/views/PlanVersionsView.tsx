@@ -112,10 +112,10 @@ export function PlanVersionsBoard({
   currentEnd: string | null;
 }) {
   const t = useT();
-  const msName = useMilestoneName();
+  const milestoneName = useMilestoneName();
   const te = useEnumT();
   const [comparing, setComparing] = useState<PlanVersion | null>(null);
-  const names = new Map(milestones.map((m) => [m.key, msName(m)]));
+  const names = new Map(milestones.map((m) => [m.key, milestoneName(m)]));
   const baseEnd = baseline?.plannedEnd ?? null;
 
   const columns: Column<PlanVersion>[] = [
@@ -129,7 +129,7 @@ export function PlanVersionsBoard({
     {
       id: "note",
       header: t("schedule.versions.note"),
-      cell: (v) => (v.note ? <span className="line-clamp-2 max-w-72 text-sm">{v.note}</span> : "—"),
+      cell: (v) => (v.note ? <span dir="auto" title={v.note} className="line-clamp-2 block max-w-72 text-sm">{v.note}</span> : "—"),
     },
     {
       id: "end",

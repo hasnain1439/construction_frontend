@@ -54,10 +54,12 @@ export function DelayBreakdown({ delays }: { delays: ScheduleDelays }) {
           hint={
             <>
               <span className={cn("block font-medium", late ? "text-danger" : "text-success")}>{status}</span>
-              {t("schedule.delays.projectedHint", {
-                pace: Math.round(delays.pace * 100),
-                progress: delays.progressPercent,
-              })}
+              <span title={t("schedule.delays.progressBasisTip")}>
+                {t("schedule.delays.projectedHint", {
+                  pace: Math.round(delays.pace * 100),
+                  progress: delays.progressPercent,
+                })}
+              </span>
             </>
           }
           tone={late ? "danger" : "success"}
@@ -66,7 +68,7 @@ export function DelayBreakdown({ delays }: { delays: ScheduleDelays }) {
       <div>
         <h3 className="mb-2 text-sm font-semibold">{t("schedule.delays.slippage")}</h3>
         <div className="grid gap-3 md:grid-cols-3">
-          {delays.categories.map((c) => (
+          {delays.categories.map(({ reasons, ...c }) => ({ ...c, reasons: reasons.filter((r) => r.days > 0) })).map((c) => (
             <div
               key={c.category}
               className={cn("rounded-lg border border-s-4 bg-card p-3", CATEGORY_TONE[c.category])}
@@ -89,7 +91,11 @@ export function DelayBreakdown({ delays }: { delays: ScheduleDelays }) {
                           {range(r.dates[0]!, r.dates[r.dates.length - 1]!)}
                         </span>
                       ) : null}
-                      {r.note ? <span className="block text-xs text-muted-foreground">{r.note}</span> : null}
+                      {r.note ? (
+                        <span dir="auto" className="block text-xs text-muted-foreground">
+                          {r.note}
+                        </span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

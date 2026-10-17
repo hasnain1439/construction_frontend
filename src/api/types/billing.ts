@@ -234,8 +234,13 @@ export interface OwnerStatement {
 
 export interface SharedPdf {
   attachmentId: Id;
+  /** Durable public share link (about 30 days) — the one in `whatsappText` (QA-B-02). */
   url: string;
+  /** When the share link stops working. */
   expiresAt: IsoDateTime;
+  /** Short-lived signed link with the file name — for preview / download in the app. */
+  fileUrl?: string;
+  fileUrlExpiresAt?: IsoDateTime;
   whatsappText: string;
   clientPhone: string | null;
 }

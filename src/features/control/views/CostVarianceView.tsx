@@ -99,7 +99,13 @@ export function CostVarianceBoard({ data }: { data: CostVariance }) {
       {!money ? <InlineAlert tone="info">{t("control.common.moneyHidden")}</InlineAlert> : null}
 
       <KpiGroup columns="grid-cols-2 lg:grid-cols-4" ariaLabel={t("control.cost.title")}>
-        <KpiCard variant="tile" label={t("control.common.progress")} icon={Percent} value={`${data.progress.percent}%`} />
+        <KpiCard
+          variant="tile"
+          label={t("control.common.progress")}
+          icon={Percent}
+          value={`${data.progress.percent}%`}
+          hint={<span title={t("control.common.progressTip", { basis: te("progressBasis", data.progress.basis) })}>{te("progressBasis", data.progress.basis)}</span>}
+        />
         {tot ? (
           <>
             <KpiCard variant="tile" label={t("control.cost.estimateToDate")} icon={Calculator} value={<MoneyText paisa={tot.estimateToDatePaisa} short />} />

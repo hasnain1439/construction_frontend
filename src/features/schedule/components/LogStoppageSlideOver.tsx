@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { useCreateStoppageMutation } from "@/api/services/schedule.api";
 import type { StoppageBody, StoppageReason } from "@/api/types";
 import { SlideOver } from "@/components/common/SlideOver";
@@ -145,6 +146,8 @@ export function LogStoppageSlideOver({
       },
     });
     if (result) {
+      // QA-B-22: a stoppage on an off day counts 0 working days — say so instead of accepting it silently.
+      if (result.warning === "NO_WORKING_DAYS") toast.warning(t("schedule.log.noWorkingDays"));
       form.reset();
       onOpenChange(false);
     }

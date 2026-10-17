@@ -21,9 +21,19 @@ interface Pending {
  * Moving a milestone's start (Gantt drag or the panel's date field): first a dry run shows which
  * successors move and the new planned end, then "Save new dates" saves it (schedule.plan.manage).
  */
+/** Old date (struck through) and new date — reads the same in both directions. */
+function DateChange({ from, to }: { from: string; to: string }) {
+  if (from === to) return <>{formatDate(to)}</>;
+  return (
+    <>
+      <s className="text-muted-foreground">{formatDate(from)}</s> {formatDate(to)}
+    </>
+  );
+}
+
 export function useMoveMilestone(projectId: string) {
   const t = useT();
-  const msName = useMilestoneName();
+  const milestoneName = useMilestoneName();
   const language = useLanguage();
   const [update, { isLoading }] = useUpdateMilestoneMutation();
   const run = useMutationToast();
@@ -56,7 +66,10 @@ export function useMoveMilestone(projectId: string) {
     if (ok) setPending(null);
   };
 
-  const others = pending ? pending.preview.shifted.filter((s) => s.id !== pending.milestone.id) : [];
+  // QA-B-29: the moved milestone first, then the others; each with its old and new dates.
+  const own = pending ? pending.preview.shifted.filter((s) => s.id === pending.milestone.id) : [];
+  const others = pending ? [...own, ...pending.preview.shifted.filter((s) => s.id !== pending.milestone.id)] : [];
+  const ownId = pending?.milestone.id;
   const end = pending?.preview.plannedEnd;
 
   const dialog = (
@@ -64,7 +77,7 @@ export function useMoveMilestone(projectId: string) {
       open={Boolean(pending)}
       onOpenChange={(o) => !o && setPending(null)}
       tone="default"
-      title={t("schedule.shift.title", { name: pending ? msName(pending.milestone) : "" })}
+      title={t("schedule.shift.title", { name: pending ? milestoneName(pending.milestone) : "" })}
       description={
         pending?.date
           ? t("schedule.shift.desc", { date: formatDate(pending.date) })
@@ -89,21 +102,24 @@ export function useMoveMilestone(projectId: string) {
                 </thead>
                 <tbody>
                   {others.map((s) => (
-                    <tr key={s.id} className="border-t">
+                    <tr key={s.id} className={s.id === ownId ? "border-t bg-sun-soft font-medium" : "border-t"}>
                       <td className="px-2 py-1.5">
-                        <bdi>{msName(s)}</bdi>
+                        <bdi>{milestoneName(s)}</bdi>
                       </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">{formatDate(s.plannedStart.to)}</td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">{formatDate(s.plannedEnd.to)}</td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
+                        <DateChange from={s.plannedStart.from} to={s.plannedStart.to} />
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
+                        <DateChange from={s.plannedEnd.from} to={s.plannedEnd.to} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </>
-        ) : (
-          <p className="text-muted-foreground">{t("schedule.shift.none")}</p>
-        )}
+        ) : null}
+        {others.length === own.length ? <p className="text-muted-foreground">{t("schedule.shift.none")}</p> : null}
         {end && end.from !== end.to ? (
           <p className="font-medium">
             {t("schedule.shift.endChange", { from: formatDate(end.from), to: formatDate(end.to) })}

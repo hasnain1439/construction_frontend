@@ -62,7 +62,7 @@ export const strings: Widen<typeof En.strings> = {
     kpiRevisedHint: "اصل {amount}",
     kpiDays: "اضافی وقت",
     kpiDaysValue: "+{n} کام کے دن",
-    kpiEnd: "تکمیل کی نئی تاریخ",
+    kpiEnd: "تبدیلی آرڈرز کے ساتھ تکمیل کی تاریخ",
     kpiEndHint: "ٹھیکے کی تاریخ {date}",
     kpiPending: "مالک کے جواب کا انتظار",
     kpiPendingHint: "مسودے اور بھیجے گئے آرڈرز",
@@ -233,7 +233,7 @@ export const strings: Widen<typeof En.strings> = {
   project: {
     revisedContract: "ٹھیکے کی نئی رقم",
     revisedContractValue: "{n} تبدیلی آرڈرز سے {changes}",
-    revisedEnd: "تکمیل کی نئی تاریخ",
+    revisedEnd: "تبدیلی آرڈرز کے ساتھ تکمیل کی تاریخ",
     revisedEndValue: "تبدیلی آرڈرز سے +{n} کام کے دن",
   },
 };

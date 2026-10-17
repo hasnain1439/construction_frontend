@@ -60,7 +60,7 @@ export const strings = {
     kpiRevisedHint: "Original {amount}",
     kpiDays: "Extra time",
     kpiDaysValue: "+{n} working days",
-    kpiEnd: "Revised end date",
+    kpiEnd: "End date with change orders",
     kpiEndHint: "Contract end {date}",
     kpiPending: "Waiting for the owner",
     kpiPendingHint: "Drafts and sent change orders",
@@ -231,7 +231,7 @@ export const strings = {
   project: {
     revisedContract: "Revised contract",
     revisedContractValue: "{changes} from {n} change orders",
-    revisedEnd: "Revised end date",
+    revisedEnd: "End date with change orders",
     revisedEndValue: "+{n} working days from change orders",
   },
 };

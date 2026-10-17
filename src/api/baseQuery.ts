@@ -8,6 +8,20 @@ import {
 } from "@reduxjs/toolkit/query/react";
 import { Mutex } from "async-mutex";
 import type { ApiError, PageMeta } from "@/api/types";
+import { normalizeUiLanguage } from "@/store/slices/uiSlice";
+
+/**
+ * The UI language for server-made texts (alert titles, delay notes, report notes …): the API
+ * follows it over the account language (QA-B-20). Values: en | roman | ur.
+ */
+export const LANGUAGE_HEADER = "X-Lang";
+const SERVER_LANG = { en: "en", "roman-ur": "roman", ur: "ur" } as const;
+
+/** X-Lang value for the store's UI language (undefined outside a store with a ui slice). */
+export function languageHeaderValue(state: unknown): string | undefined {
+  const language = (state as { ui?: { language?: unknown } } | null)?.ui?.language;
+  return language === undefined ? undefined : SERVER_LANG[normalizeUiLanguage(language)];
+}
 
 /** Request metadata plus the backend's `meta` (pagination, usage …) when present. */
 export interface ApiMeta extends FetchBaseQueryMeta {
@@ -85,6 +99,11 @@ export function createReauthBaseQuery(options: ReauthOptions): ApiBaseQuery {
   const raw = fetchBaseQuery({
     baseUrl: options.baseUrl,
     credentials: "include",
+    prepareHeaders: (headers, { getState }) => {
+      const lang = languageHeaderValue(getState());
+      if (lang && !headers.has(LANGUAGE_HEADER)) headers.set(LANGUAGE_HEADER, lang);
+      return headers;
+    },
     ...(options.fetchFn ? { fetchFn: options.fetchFn } : {}),
   });
   const mutex = new Mutex();

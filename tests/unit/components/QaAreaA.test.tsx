@@ -58,14 +58,16 @@ describe("QA-A-10 Urdu month names", () => {
 });
 
 describe("QA-A-10 milestone names", () => {
-  it("translated from the key; a renamed milestone keeps its own name", () => {
+  // One mechanism (merged with QA-B-26): the API sends templateKey for a generated milestone that
+  // kept its generated name (null once renamed); the web translates enum.milestoneTemplate.<key>.
+  it("translated from the template key; a renamed or custom milestone keeps its own name", () => {
     const { result: ur } = renderHook(() => useMilestoneName(), {
       wrapper: ({ children }) => <Store language="ur">{children}</Store>,
     });
-    expect(ur.current({ key: "GF_STRUCTURE.WALLS", name: "Ground floor — columns & brickwork" })).toBe(`${translate("ur", "enum.projectFloorLevel.GROUND" as TranslationKey)} — کالم اور چنائی`);
-    expect(ur.current({ key: "FOUNDATION_PLINTH.EXCAVATION", name: "Excavation (khudai)" })).toBe("کھدائی");
-    expect(ur.current({ key: "FOUNDATION_PLINTH.EXCAVATION", name: "Khudai by machine" })).toBe("Khudai by machine");
-    expect(ur.current({ key: "X.UNKNOWN", name: "Something" })).toBe("Something");
+    expect(ur.current({ templateKey: "GF_STRUCTURE.WALLS", name: "Ground floor — columns & brickwork" })).toBe("گراؤنڈ فلور — کالم اور چنائی");
+    expect(ur.current({ templateKey: "FOUNDATION_PLINTH.EXCAVATION", name: "Excavation (khudai)" })).toBe("کھدائی");
+    expect(ur.current({ templateKey: null, name: "Khudai by machine" })).toBe("Khudai by machine");
+    expect(ur.current({ templateKey: "X.UNKNOWN", name: "Something" })).toBe("Something");
   });
 });
 
