@@ -197,7 +197,7 @@ describe("Change orders — stepper actions by status and permission", () => {
     expect(screen.getByTestId("step-SENT")).toHaveAttribute("data-state", "rejected");
     expect(within(screen.getByTestId("co-actions")).getAllByRole("button").map((b) => b.textContent)).toEqual([en("changeOrders.actions.reopen")]);
     const { container } = renderWithStore(
-      <ChangeOrderDetailBody co={{ ...DETAIL, costPaisa: undefined, markupPaisa: undefined, totalPaisa: undefined, markupPercent: undefined, lines: DETAIL.lines.map(({ ratePaisa, amountPaisa, priceRatePaisa, priceAmountPaisa, ...l }) => l) }} projectId="p1" editable />,
+      <ChangeOrderDetailBody co={{ ...DETAIL, costPaisa: undefined, markupPaisa: undefined, totalPaisa: undefined, markupPercent: undefined, lines: DETAIL.lines.map(({ ratePaisa: _r, amountPaisa: _a, priceRatePaisa: _pr, priceAmountPaisa: _pa, ...l }) => l) }} projectId="p1" editable />,
       { me: meFixture("MUNSHI", { permissions: ["projects.project.view", "changeorder.view"] }) },
     );
     expect(within(container).queryByTestId("co-actions")).toBeNull();
@@ -217,7 +217,7 @@ describe("Change orders — builder", () => {
   });
 
   it("without fields.rates: no rate inputs, no totals, a note that the server fills the rates", () => {
-    renderWithStore(<ChangeOrderBuilder projectId="p1" options={{ ...RATES, materials: RATES.materials.map(({ ratePaisa, ...m }) => m) }} initial={DETAIL} />, {
+    renderWithStore(<ChangeOrderBuilder projectId="p1" options={{ ...RATES, materials: RATES.materials.map(({ ratePaisa: _r, ...m }) => m) }} initial={DETAIL} />, {
       me: meFixture("PM", { deny: ["fields.rates"] }),
     });
     expect(screen.queryByTestId("builder-totals")).toBeNull();
