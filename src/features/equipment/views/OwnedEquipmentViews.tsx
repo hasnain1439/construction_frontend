@@ -73,14 +73,21 @@ export function OwnedEquipmentView() {
       sortValue: (e) => e.ownedQty,
     },
     {
+      id: "rented",
+      header: t("equipment.col.onRent"),
+      align: "right",
+      cell: (e) => (e.rentedQty ? formatQty(e.rentedQty, e.unit) : "—"),
+    },
+    // Where the units are: own + rented, so Owned + On rent = At sites + Yard + In transit (QA-C-06).
+    {
       id: "sites",
-      header: t("equipment.col.atSites"),
+      header: t("equipment.qaFixes.atSitesAll"),
       align: "right",
       cell: (e) => formatQty(e.atSitesQty, e.unit),
     },
     {
       id: "yard",
-      header: t("equipment.common.yard"),
+      header: t("equipment.qaFixes.yardAll"),
       align: "right",
       cell: (e) => formatQty(e.atYardQty, e.unit),
     },
@@ -89,12 +96,6 @@ export function OwnedEquipmentView() {
       header: t("equipment.common.inTransit"),
       align: "right",
       cell: (e) => (e.inTransitQty ? formatQty(e.inTransitQty, e.unit) : "—"),
-    },
-    {
-      id: "rented",
-      header: t("equipment.col.onRent"),
-      align: "right",
-      cell: (e) => (e.rentedQty ? formatQty(e.rentedQty, e.unit) : "—"),
     },
     {
       id: "hire",
@@ -304,13 +305,13 @@ function EquipmentBody({ equipment }: { equipment: EquipmentDetail }) {
         party={te("equipmentKind", equipment.kind)}
         meta={[
           { label: t("equipment.col.owned"), value: formatQty(equipment.ownedQty, equipment.unit) },
-          { label: t("equipment.col.atSites"), value: formatQty(equipment.atSitesQty, equipment.unit) },
-          { label: t("equipment.common.yard"), value: formatQty(equipment.atYardQty, equipment.unit) },
+          { label: t("equipment.col.onRent"), value: formatQty(equipment.rentedQty, equipment.unit) },
+          { label: t("equipment.qaFixes.atSitesAll"), value: formatQty(equipment.atSitesQty, equipment.unit) },
+          { label: t("equipment.qaFixes.yardAll"), value: formatQty(equipment.atYardQty, equipment.unit) },
           {
             label: t("equipment.common.inTransit"),
             value: formatQty(equipment.inTransitQty, equipment.unit),
           },
-          { label: t("equipment.col.onRent"), value: formatQty(equipment.rentedQty, equipment.unit) },
           ...(rates
             ? [
                 {

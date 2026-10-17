@@ -35,7 +35,9 @@ export function PurchasesView() {
   const suppliers = useSupplierOptions();
   const list = useListState({ supplierId: "", locationId: "", paymentMode: "", status: "", from: "", to: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetPurchasesQuery(list.query as PurchasesQuery);
-  const locations = useGetStockLocationsQuery();
+  // Stock locations need inventory.stock.view (an Accountant may not have it): no filter, no 403 (QA-C-03).
+  const canSeeLocations = useCan("inventory.stock.view");
+  const locations = useGetStockLocationsQuery(undefined, { skip: !canSeeLocations });
   const locationOptions = (locations.data ?? []).filter((l) => l.type !== "TRANSIT").map((l) => ({ value: l.id, label: l.type === "STORE" ? t("field.centralStore") : l.name }));
 
   const columns: Column<PurchaseListRow>[] = [
@@ -92,7 +94,9 @@ export function PurchasesView() {
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("procurement.purchases.searchPlaceholder")} />
         <FilterSelect label={t("field.supplier")} value={list.filters.supplierId} onChange={(v) => list.setFilter("supplierId", v)} options={suppliers.options.map((o) => ({ value: o.value, label: o.label }))} />
-        <FilterSelect label={t("procurement.purchases.location")} value={list.filters.locationId} onChange={(v) => list.setFilter("locationId", v)} options={locationOptions} />
+        {canSeeLocations ? (
+          <FilterSelect label={t("procurement.purchases.location")} value={list.filters.locationId} onChange={(v) => list.setFilter("locationId", v)} options={locationOptions} />
+        ) : null}
         <FilterSelect label={t("field.payment")} value={list.filters.paymentMode} onChange={(v) => list.setFilter("paymentMode", v)} options={paymentModes} />
         <FilterSelect
           label={t("field.status")}

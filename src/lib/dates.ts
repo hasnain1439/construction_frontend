@@ -60,6 +60,14 @@ export function formatDate(value: DateInput, fallback = "—"): string {
   return date ? isolateLtr(localizeMonths(formatInTimeZone(date, zoneFor(value), "d MMM yyyy"))) : fallback;
 }
 
+/**
+ * "12 Oct 2026 – 18 Oct 2026" as one left-to-right unit: on an Urdu (RTL) page the two dates would
+ * otherwise be laid out end first (QA-C-12).
+ */
+export function formatDateRange(from: DateInput, to: DateInput, fallback = "…"): string {
+  return isolateLtr(`${formatDate(from, fallback)} – ${formatDate(to, fallback)}`);
+}
+
 /** "15 Oct" (chart axes, week labels). */
 export function formatDayMonth(value: DateInput, fallback = "—"): string {
   const date = toDate(value);

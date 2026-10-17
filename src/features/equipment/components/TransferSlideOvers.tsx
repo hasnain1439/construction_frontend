@@ -378,7 +378,9 @@ export function ReceiveTransferSlideOver({
       {
         success: (r) =>
           r.losses.length
-            ? t("equipment.receive.savedWithLosses", { number: r.number, n: r.losses.length })
+            ? r.losses.length === 1
+              ? t("equipment.qaFixes.savedWithOneLoss", { number: r.number })
+              : t("equipment.receive.savedWithLosses", { number: r.number, n: r.losses.length })
             : t("equipment.receive.saved", { number: r.number }),
         onError: (code, error) => {
           const itemId = isApiError(error)

@@ -1180,6 +1180,13 @@ export function visibleSections(me: AccessSubject | null | undefined, sections: 
     .filter((section) => section.items.length > 0);
 }
 
+/**
+ * Does a visible menu item carry this badge? The shell only loads a badge count when it does, so a
+ * user who may not open the page never fires its (forbidden) count query (QA-C-01).
+ */
+export const showsBadge = (sections: NavSection[], badge: NonNullable<NavItem["badge"]>) =>
+  sections.some((section) => section.items.some((item) => item.badge === badge));
+
 /** Item ids the user may see, e.g. for tests and command search. */
 export const visibleItemIds = (me: AccessSubject | null | undefined, sections: NavSection[]) =>
   visibleSections(me, sections).flatMap((section) => section.items.map((item) => item.id));

@@ -8,7 +8,7 @@ export const strings: Widen<typeof En.strings> = {
     pointProjects: "Projects, kamre aur theke ek jagah",
     pointMoney: "PKR mein raqam, lakh / crore ke saath — paise paise ka hisaab",
     pointTeam: "Site par aap ki team Munshi app ke saath",
-    trialNote: "14 din ka muft trial · 1 project · card ki zaroorat nahi",
+    trialNote: "14 din ka muft trial · 2 active projects · card ki zaroorat nahi",
     signingIn: "Sign in ho raha hai",
     emailOrPhone: "Email ya phone",
     loginPlaceholder: "0300 1234567 ya you@company.pk",
@@ -93,7 +93,7 @@ export const strings: Widen<typeof En.strings> = {
     chooseCompanyDesc: "Aap ka number ek se zyada companies mein chalta hai. Kaunsi kholni hai?",
     trialStarted: "Khush aamdeed! Aap ka 14 din ka muft trial shuru ho gaya.",
     createCompanyTitle: "Apni company banayein",
-    createCompanyDesc: "14 din ka muft trial, 1 project, card ki zaroorat nahi.",
+    createCompanyDesc: "14 din ka muft trial, 2 active projects, card ki zaroorat nahi.",
     alreadyRegistered: "Pehle se register hain?",
     companyNamePlaceholder: "Malik & Sons Builders",
     emailHint: "Ikhtiyari — password reset ke liye.",
@@ -335,6 +335,11 @@ export const strings: Widen<typeof En.strings> = {
     agoNYear: "{n} saal pehle",
     inOneYear: "1 saal mein",
     inNYear: "{n} saal mein",
+  },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    invitedBy: "{company} ne aap ko Construction Platform par shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
+    invitedByAs: "{company} ne aap ko {role} ke taur par shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
   },
 };
 

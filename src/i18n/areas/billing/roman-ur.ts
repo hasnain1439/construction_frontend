@@ -245,7 +245,7 @@ export const strings: Widen<typeof En.strings> = {
     materialAudit: "Maal ka Audit",
     materialAuditDesc: "Har site par aaya, laga, wapas bheja, adjust hua aur zaya hua maal — aur stock mein kya hai.",
     laborPeshgi: "Mazdoor aur Peshgi",
-    laborPeshgiDesc: "Har mazdoor aur theke daar ke din, mazdoori, peshgi aur baqaya.",
+    laborPeshgiDesc: "Har mazdoor aur sub-contractor ke din, mazdoori, peshgi aur baqaya.",
     cashBook: "Cash Book",
     cashBookDesc: "Float, category ke hisaab se kharcha aur har holder aur site ka baqaya.",
     supplierAgeing: "Supplier ka Purana Udhaar",

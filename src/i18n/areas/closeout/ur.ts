@@ -262,4 +262,8 @@ export const strings: Widen<typeof En.strings> = {
     dueSent: "واجب ہونے کی اطلاع {date} کو بھیجی",
     notSentYet: "ابھی کوئی یاد دہانی نہیں بھیجی",
   },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    assignedTo: "ذمہ دار",
+  },
 };

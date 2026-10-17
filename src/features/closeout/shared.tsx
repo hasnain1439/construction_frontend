@@ -14,6 +14,8 @@ export const DRAWING_EDIT_STATUSES: ProjectStatus[] = ["ACTIVE", "CLOSEOUT", "HA
 export const SNAG_EDIT_STATUSES: ProjectStatus[] = ["ACTIVE", "CLOSEOUT", "HANDED_OVER"];
 /** The handover checklist and sign-off can change while ACTIVE / CLOSEOUT. */
 export const HANDOVER_EDIT_STATUSES: ProjectStatus[] = ["ACTIVE", "CLOSEOUT"];
+/** Retention is invoiced / followed up in CLOSEOUT and after the handover (mirrors the API's canInvoice). */
+export const RETENTION_EDIT_STATUSES: ProjectStatus[] = ["CLOSEOUT", "HANDED_OVER"];
 
 const SNAG_TONE: Record<SnagStatus, StatusTone> = { OPEN: "warning", FIXED: "info", VERIFIED: "success" };
 

@@ -87,7 +87,7 @@ export function useLossColumns(onCharge?: (loss: EquipmentLoss) => void): Column
     {
       id: "note",
       header: t("field.note"),
-      cell: (l) => <span className="text-sm text-muted-foreground">{l.note ?? ""}</span>,
+      cell: (l) => <span dir="auto" className="text-sm text-muted-foreground">{l.note ?? ""}</span>,
     },
     {
       id: "photo",

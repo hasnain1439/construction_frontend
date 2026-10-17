@@ -125,6 +125,8 @@ export interface TenantDetail {
     action: string;
     actorType: string;
     actorId: Id | null;
+    /** The user's or platform admin's name (null for the system). */
+    actorName: string | null;
     entityType: string | null;
     entityId: Id | null;
     createdAt: IsoDateTime;

@@ -238,9 +238,14 @@ function RentalBody({ rental }: { rental: Rental }) {
         r.items
           .map((x) => {
             const item = rental.items.find((i) => i.id === x.rentalItemId);
-            return item
-              ? `${formatQty(x.qty, item.equipment.unit)} ${item.equipment.name}`
-              : formatQty(x.qty);
+            const unit = item?.equipment.unit;
+            // The damaged and missing counts of the return are part of the line (QA-C-07).
+            const extra = [
+              x.damagedQty ? t("equipment.qaFixes.damagedN", { qty: formatQty(x.damagedQty, unit) }) : null,
+              x.missingQty ? t("equipment.qaFixes.missingN", { qty: formatQty(x.missingQty, unit) }) : null,
+            ].filter(Boolean);
+            const line = item ? `${formatQty(x.qty, unit)} ${item.equipment.name}` : formatQty(x.qty);
+            return extra.length ? `${line} (${extra.join(", ")})` : line;
           })
           .join(", "),
     },
@@ -252,9 +257,20 @@ function RentalBody({ rental }: { rental: Rental }) {
       cell: (r) => <MoneyText paisa={r.damageChargesPaisa} />,
     },
     {
+      id: "missingCharges",
+      header: t("equipment.qaFixes.missingCharges"),
+      align: "right",
+      hidden: !rates,
+      cell: (r) => <MoneyText paisa={r.missingChargesPaisa} />,
+    },
+    {
       id: "note",
       header: t("field.note"),
-      cell: (r) => <span className="text-sm text-muted-foreground">{r.note ?? ""}</span>,
+      cell: (r) => (
+        <span dir="auto" className="text-sm text-muted-foreground">
+          {r.note ?? ""}
+        </span>
+      ),
     },
   ];
   return (
@@ -319,6 +335,10 @@ function RentalBody({ rental }: { rental: Rental }) {
                 {
                   label: t("equipment.field.damageCharges"),
                   value: <MoneyText paisa={rental.damageChargesPaisa} />,
+                },
+                {
+                  label: t("equipment.qaFixes.missingCharges"),
+                  value: <MoneyText paisa={rental.missingChargesPaisa} />,
                 },
                 {
                   label: t("equipment.rental.rentCharged"),

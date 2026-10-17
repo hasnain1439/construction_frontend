@@ -60,6 +60,7 @@ export function SnagsView({ projectId }: { projectId: string }) {
     <ProjectPageShell
       projectId={projectId}
       crumb={t("closeout.snags.crumb")}
+      editableStatuses={SNAG_EDIT_STATUSES}
       actions={(project) => (canCreate && SNAG_EDIT_STATUSES.includes(project.status) ? <NewSnagButton projectId={projectId} /> : null)}
     >
       {(project) => <SnagsList projectId={projectId} editable={SNAG_EDIT_STATUSES.includes(project.status)} />}
@@ -142,7 +143,7 @@ export function SnagsList({ projectId, editable }: { projectId: string; editable
       header: t("closeout.snags.colSnag"),
       cell: (r) => (
         <div className="min-w-0 space-y-0.5">
-          <p className="font-medium">{r.description}</p>
+          <p dir="auto" className="font-medium">{r.description}</p>
           <p className="text-xs text-muted-foreground">{[r.room ? `${r.room.name} · ${r.room.floor}` : null, r.location].filter(Boolean).join(" — ")}</p>
           {r.inDefectPeriod ? <StatusBadge tone="info" label={t("closeout.snags.defectPeriod")} /> : null}
         </div>
@@ -318,7 +319,7 @@ function SnagDetailSlideOver({ snagId, onClose }: { snagId: string | null; onClo
               <dd>{s.location ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">{t("closeout.snags.assignTo")}</dt>
+              <dt className="text-xs text-muted-foreground">{t("closeout.qaFixes.assignedTo")}</dt>
               <dd>{s.assignee?.name ?? t("closeout.snags.unassigned")}</dd>
             </div>
             <div>
@@ -347,7 +348,7 @@ function SnagDetailSlideOver({ snagId, onClose }: { snagId: string | null; onClo
               <CostBadge attribution={s.cost.attribution} />
               {canSee("amounts") && s.cost.attribution !== "NONE" ? <MoneyText paisa={s.cost.amountPaisa} /> : null}
             </div>
-            {s.cost.note ? <p className="text-sm text-muted-foreground">{s.cost.note}</p> : null}
+            {s.cost.note ? <p dir="auto" className="text-sm text-muted-foreground">{s.cost.note}</p> : null}
           </section>
         </div>
       ) : null}

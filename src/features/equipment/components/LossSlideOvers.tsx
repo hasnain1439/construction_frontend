@@ -259,7 +259,7 @@ export function ChargeLossSlideOver({
         </div>
         {loss.note ? (
           <InlineAlert tone="info" title={t("equipment.loss.siteNote")}>
-            {loss.note}
+            <span dir="auto">{loss.note}</span>
           </InlineAlert>
         ) : null}
         <RadioCards<EquipmentLossChargedTo>

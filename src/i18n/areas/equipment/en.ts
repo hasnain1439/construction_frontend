@@ -76,8 +76,8 @@ export const strings = {
     editTitle: "Edit equipment",
     formDesc:
       "Machines are usually one unit with a serial number; plates, props and scaffolding are counted.",
-    namePlaceholder: "Steel shuttering plate 2×3 ft",
-    codePlaceholder: "SP-23",
+    namePlaceholder: "e.g. Steel shuttering plate 2×3 ft",
+    codePlaceholder: "e.g. SP-23",
     unitPlaceholder: "nos",
     kindHint: "Machine = mixer, vibrator. Counted = plates, props, scaffolding.",
     coverageHint: "Face area of one plate — used later to plan plates per slab.",
@@ -149,7 +149,7 @@ export const strings = {
     blindGapNote: "Anything short of what was sent is recorded as missing when you save.",
     save: "Save count",
     saved: "{number} received",
-    savedWithLosses: "{number} received — {n} loss(es) recorded",
+    savedWithLosses: "{number} received — {n} losses recorded",
   },
   rental: {
     title: "Rentals",
@@ -233,8 +233,8 @@ export const strings = {
     lossesTitle: "Open losses",
     noLosses: "No open losses",
     dailyHire: "Hire / day",
-    hireToDate: "Hire to date",
-    rentToDate: "Rent to date",
+    hireToDate: "Hire posted",
+    rentToDate: "Rent posted",
     sendOrReturn: "Send / return",
     loadFailed: "Couldn't load the equipment of this site",
   },
@@ -332,6 +332,16 @@ export const strings = {
     endBeforeStart: "Return date is before the start",
     moreThanOutstanding: "More than is still out",
     returnSomething: "Enter what is being returned",
+  },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    atSitesAll: "At sites (own + rented)",
+    yardAll: "Yard (own + rented)",
+    missingCharges: "Missing pieces charge",
+    missingChargesHint: "What the yard bills for the missing pieces (added to their khata). Leave it empty to use the replacement value.",
+    damagedN: "{qty} damaged",
+    missingN: "{qty} missing",
+    savedWithOneLoss: "{number} received — 1 loss recorded",
   },
 };
 

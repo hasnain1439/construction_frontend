@@ -259,7 +259,7 @@ export const enums: Widen<typeof En.enums> = {
     EXPENSE: "خرچہ",
     PESHGI: "پیشگی",
     WAGE_PAYMENT: "مزدوری",
-    SUBCONTRACT_PAYMENT: "ٹھیکیدار کو ادائیگی",
+    SUBCONTRACT_PAYMENT: "ذیلی ٹھیکیدار کو ادائیگی",
     PURCHASE: "خریداری",
     HANDOVER_OUT: "حوالے کیا",
     HANDOVER_IN: "ملا (حوالگی)",

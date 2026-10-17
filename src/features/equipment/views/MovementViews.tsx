@@ -145,7 +145,7 @@ export function MovementLogTable({
     {
       id: "note",
       header: t("field.note"),
-      cell: (m) => <span className="text-sm text-muted-foreground">{m.note ?? ""}</span>,
+      cell: (m) => <span dir="auto" className="text-sm text-muted-foreground">{m.note ?? ""}</span>,
     },
   ];
   return (
@@ -362,7 +362,7 @@ export function TransferItemsTable({ transfer }: { transfer: EquipmentTransfer }
       id: "note",
       header: t("field.note"),
       hidden: !counted,
-      cell: (i) => <span className="text-sm text-muted-foreground">{i.note ?? ""}</span>,
+      cell: (i) => <span dir="auto" className="text-sm text-muted-foreground">{i.note ?? ""}</span>,
     },
     {
       id: "photo",

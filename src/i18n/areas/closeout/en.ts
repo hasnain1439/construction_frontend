@@ -260,4 +260,8 @@ export const strings = {
     dueSent: "Due notice sent {date}",
     notSentYet: "No reminder sent yet",
   },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    assignedTo: "Assigned to",
+  },
 } as const;
