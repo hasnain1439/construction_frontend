@@ -195,3 +195,18 @@ describe("reauth base query", () => {
     expect(result.error).toMatchObject({ status: 0, code: "NETWORK_ERROR" });
   });
 });
+
+describe("X-Lang header (QA-B-20)", () => {
+  it("sends the UI language in the API's spelling, and normalises bad stored values", async () => {
+    const seen: Array<string | null> = [];
+    const fetchFn = vi.fn(async (input: RequestInfo | URL) => {
+      seen.push(input instanceof Request ? input.headers.get("X-Lang") : null);
+      return json(200, { success: true, data: {} });
+    }) as unknown as typeof fetch;
+    const query = createReauthBaseQuery({ baseUrl: `${ORIGIN}/api/v1`, refreshUrl: "/auth/refresh", noRefreshPaths: [], onSessionExpired: vi.fn(), fetchFn });
+    for (const language of ["roman-ur", "ur", "en", "roman"]) {
+      await query("/projects", { ...apiStub(), getState: () => ({ ui: { language } }) }, {});
+    }
+    expect(seen).toEqual(["roman", "ur", "en", "roman"]);
+  });
+});

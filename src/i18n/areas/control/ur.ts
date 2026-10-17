@@ -10,7 +10,8 @@ export const strings: Widen<typeof En.strings> = {
   },
   common: {
     asOf: "{date} تک",
-    progress: "کام کی پیش رفت",
+    progress: "قیمت کے حساب سے پیش رفت",
+    progressTip: "کیا ہوا کام، وزن: {basis}۔ شیڈول کے صفحات مراحل کو محنت (ٹیم دن) سے تولتے ہیں، اس لیے ان کا % مختلف ہو سکتا ہے۔",
     progressValue: "{n}% کام ہوا",
     basis: "وزن: {basis}",
     threshold: "{n}% سے اوپر الرٹ",
@@ -135,6 +136,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "کوئی کھلا الرٹ نہیں",
     emptyDesc: "مال، پیش رفت اور خرچ حدود کے اندر ہیں۔",
     since: "{date} سے کھلا",
+    checked: "آخری جانچ {when}",
     times: "{n} بار دیکھا",
     runNow: "ابھی چیک کریں",
     ran: "چیک ہوا: {opened} نئے، {resolved} بند",

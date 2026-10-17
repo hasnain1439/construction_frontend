@@ -6,6 +6,26 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### QA fixes (area B)
+- Dashboard alerts, sessions and site dashboard show "2 days ago" again. The relative-time texts were missing in every language, and the hook is now type-checked against the dictionaries.
+- Urdu: negative quantities keep their order ("-155.687 cft") and control alert texts use their own direction. Change-order quantities show Urdu / Roman units ("10 بوری"), and 1-count English texts are singular ("1 working day", "Rain · 1 day").
+- WHT summary and tax invoice register: column headers, totals and invoice status are translated. Notes and subtitles follow the UI language: every API call now sends `X-Lang`, so server texts such as alerts, delay notes and report notes match the page.
+- Overview: "Revised end (all excused days)" on the schedule card and "End date with change orders" on the change-order date. The delay card shows "schedule progress … (by effort)" and control pages show "Value progress", each with a tooltip that explains the basis. The change-order slippage reason is translated, and stoppages with 0 working days are no longer listed.
+- Logging a stoppage on an off day warns that it moves nothing, and the list marks it. Alerts show when they were last checked. Saving progress or dates refreshes the control figures and alerts.
+- WhatsApp shares use the API's long-lived share link and say how long it works; Preview / Download use the short-lived named file link. Report exports save under their real name (`<report>-<project>-<date>.<ext>`).
+- A stored language "roman" (an older build) no longer crashes pages. Roman Urdu no longer mirrors arrows or uses the Urdu line height: RTL styles now follow `dir="rtl"` only.
+- Gantt, Milestones, Delay analysis and the move preview show generated milestone names in the UI language. The move preview lists the moved milestone and old → new dates. The Gantt label column is narrower on phones.
+- Smaller fixes:
+  - P&L hides the projected margin when the API leaves it out.
+  - Compact money puts the minus first ("-Rs 5.78 L"), and report money is whole rupees.
+  - Wide tables (P&L, report books) are denser.
+  - Card action rows wrap on phones.
+  - "Used %" header.
+  - Roman project status "Chalu" everywhere.
+  - "Make change order" is not styled as dangerous.
+  - The tax settings page shows no extra 403 toast for users without access.
+- API types regenerated.
+
 ### Step 18 — Performance and polish
 - Every Phase 2 / 3 page now checks its permission itself (estimate, revisions, shopping list, rulebook, change orders + detail / edit / site instructions, drawings, snags, handover, retention), with the same key as its menu item; a new test walks the whole menu and checks every link opens a real page with a matching gate.
 - Helpful empty states: no change orders → "New change order", no quotes → "New quote", no equipment → "Add equipment", no rentals → "New rental" (each only with the create permission); control pages without a schedule or an approved estimate link to the Gantt / the estimate.

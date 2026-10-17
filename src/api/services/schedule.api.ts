@@ -31,6 +31,10 @@ const planChanged = (projectId: string) => [
   { type: "ScheduleDelays" as const, id: projectId },
   { type: "ScheduleQuotas" as const, id: projectId },
   { type: "Milestones" as const, id: LIST },
+  // Progress and dates feed the control figures and alerts (QA-B-10: a stale overuse alert next to a fresh table).
+  { type: "Control" as const, id: projectId },
+  { type: "ControlAlerts" as const, id: LIST },
+  "Dashboard" as const,
 ];
 const stoppagesChanged = (projectId: string) => [
   ...planChanged(projectId),

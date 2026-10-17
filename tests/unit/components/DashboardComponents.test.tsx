@@ -105,14 +105,20 @@ describe("NotificationBell", () => {
 describe("ExportMenu", () => {
   it("asks the API for the chosen format with the filters and opens the returned link", { timeout: 20_000 }, async () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
-    exportReport.mockReturnValue({ unwrap: () => Promise.resolve({ url: "https://files/supplier-ageing.xlsx", fileName: "supplier-ageing-2026-10-06.xlsx" }) });
+    // The storage refuses a cross-origin fetch here, so the download link opens instead (lib/download).
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("CORS"));
+    exportReport.mockReturnValue({
+      unwrap: () => Promise.resolve({ url: "https://files/supplier-ageing.xlsx", downloadUrl: "https://files/supplier-ageing.xlsx?dl=1", fileName: "supplier-ageing-2026-10-06.xlsx" }),
+    });
     const user = userEvent.setup();
     renderWithStore(<ExportMenu name="supplier-ageing" filters={{ projectId: "p1" }} />);
     await user.click(screen.getByRole("button", { name: /Export/ }));
     await user.click(await screen.findByRole("menuitem", { name: "Excel" }));
     expect(exportReport).toHaveBeenCalledWith({ name: "supplier-ageing", format: "xlsx", projectId: "p1" });
-    await vi.waitFor(() => expect(open).toHaveBeenCalledWith("https://files/supplier-ageing.xlsx", "_blank", "noopener,noreferrer"));
+    await vi.waitFor(() => expect(open).toHaveBeenCalledWith("https://files/supplier-ageing.xlsx?dl=1", "_blank", "noopener,noreferrer"));
+    expect(fetchSpy).toHaveBeenCalledWith("https://files/supplier-ageing.xlsx?dl=1");
     open.mockRestore();
+    fetchSpy.mockRestore();
   });
 });
 

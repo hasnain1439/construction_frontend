@@ -127,6 +127,7 @@ export function SiteInstructionsList({ projectId, editable }: { projectId: strin
         open={Boolean(converting1)}
         onOpenChange={(o) => (!o ? setConverting1(null) : undefined)}
         title={converting1 ? t("changeOrders.instructions.convertTitle", { code: converting1.code }) : ""}
+        tone="default"
         description={t("changeOrders.instructions.convertDesc")}
         confirmLabel={t("changeOrders.instructions.convert")}
         loading={converting}

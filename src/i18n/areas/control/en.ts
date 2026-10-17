@@ -8,7 +8,8 @@ export const strings = {
   },
   common: {
     asOf: "As of {date}",
-    progress: "Physical progress",
+    progress: "Value progress",
+    progressTip: "Work done weighted by {basis}. The schedule pages weigh milestones by effort (team-days), so their % can differ.",
     progressValue: "{n}% done",
     basis: "Weighted by: {basis}",
     threshold: "Alert above {n}%",
@@ -133,6 +134,7 @@ export const strings = {
     empty: "No open alerts",
     emptyDesc: "Material use, progress and spending are within the limits.",
     since: "Open since {date}",
+    checked: "last checked {when}",
     times: "Seen {n} times",
     runNow: "Check now",
     ran: "Checked: {opened} new, {resolved} closed",

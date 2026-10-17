@@ -17,7 +17,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
 import { formatQty } from "@/lib/quantity";
 import { isMovable } from "../gantt/ganttModel";
-import { useDayShift } from "../labels";
+import { useDayShift, useMilestoneName } from "../labels";
 import { ProgressForm } from "./ProgressForm";
 
 export interface MilestonePanelProps {
@@ -96,6 +96,7 @@ export function MilestonePanel({
   seesBilling,
 }: MilestonePanelProps) {
   const t = useT();
+  const milestoneName = useMilestoneName();
   const ts = useStatusT();
   const te = useEnumT();
   const dayShift = useDayShift();
@@ -116,7 +117,7 @@ export function MilestonePanel({
         }
       }}
       size="lg"
-      title={m ? <bdi>{m.name}</bdi> : t("common.loading")}
+      title={m ? <bdi>{milestoneName(m)}</bdi> : t("common.loading")}
       description={
         m ? (
           <span className="inline-flex flex-wrap items-center gap-2">

@@ -137,6 +137,7 @@ export interface DelayMilestone {
   id: Id;
   key: string;
   name: string;
+  templateKey?: string | null;
   stageKey: ScheduleStageKey;
   status: MilestoneStatus;
   plannedStart: IsoDate;
@@ -193,6 +194,8 @@ export interface ControlAlert {
   actionUrl: string;
   openedAt: IsoDateTime;
   lastSeenAt: IsoDateTime;
+  /** When the alert engine last evaluated this alert's rule ("as of", QA-B-10). */
+  lastEvaluatedAt?: IsoDateTime;
   resolvedAt: IsoDateTime | null;
   notifiedAt: IsoDateTime | null;
   occurrences: number;

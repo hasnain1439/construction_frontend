@@ -263,6 +263,7 @@ export const strings: Widen<typeof En.strings> = {
     },
     pdf: {
       preview: "دیکھیں",
+      linkUntil: "بھیجا گیا لنک {date} تک چلے گا۔",
     },
     percentMust100: "{n}% — 100% ہونا ضروری ہے",
     planLimit: {
@@ -308,6 +309,32 @@ export const strings: Widen<typeof En.strings> = {
   pages: {
     notFoundTitle: "صفحہ نہیں ملا",
     notFoundBody: "جو صفحہ آپ ڈھونڈ رہے ہیں وہ موجود نہیں یا کہیں اور منتقل ہو گیا ہے۔",
+  },
+  time: {
+    agoOneSecond: "1 سیکنڈ پہلے",
+    agoNSecond: "{n} سیکنڈ پہلے",
+    inOneSecond: "1 سیکنڈ میں",
+    inNSecond: "{n} سیکنڈ میں",
+    agoOneMinute: "1 منٹ پہلے",
+    agoNMinute: "{n} منٹ پہلے",
+    inOneMinute: "1 منٹ میں",
+    inNMinute: "{n} منٹ میں",
+    agoOneHour: "1 گھنٹہ پہلے",
+    agoNHour: "{n} گھنٹے پہلے",
+    inOneHour: "1 گھنٹہ میں",
+    inNHour: "{n} گھنٹے میں",
+    agoOneDay: "1 دن پہلے",
+    agoNDay: "{n} دن پہلے",
+    inOneDay: "1 دن میں",
+    inNDay: "{n} دن میں",
+    agoOneMonth: "1 مہینہ پہلے",
+    agoNMonth: "{n} مہینے پہلے",
+    inOneMonth: "1 مہینہ میں",
+    inNMonth: "{n} مہینے میں",
+    agoOneYear: "1 سال پہلے",
+    agoNYear: "{n} سال پہلے",
+    inOneYear: "1 سال میں",
+    inNYear: "{n} سال میں",
   },
 };
 

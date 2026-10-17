@@ -638,7 +638,7 @@ export const romanUr: Dictionary = {
     ...taxRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
-      ACTIVE: "Jari",
+      ACTIVE: "Chalu",
       CLOSEOUT: "Ikhtitaam",
       HANDED_OVER: "Hawale kar diya",
       CLOSED: "Band",

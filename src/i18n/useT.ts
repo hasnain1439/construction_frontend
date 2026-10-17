@@ -8,8 +8,12 @@ import { en, type Dictionary } from "./en";
 import { romanUr } from "./roman-ur";
 import { ur } from "./ur";
 import { decodeMsg } from "./message";
+import { EN_SINGULAR } from "./plurals";
 
 const DICTIONARIES: Record<UiLanguage, Dictionary> = { en, "roman-ur": romanUr, ur };
+
+/** Never undefined: an unexpected language value (bad stored preference) reads English. */
+const dictionaryOf = (language: UiLanguage): Dictionary => DICTIONARIES[language] ?? en;
 
 type Leaves<T, Prefix extends string = ""> = {
   [K in keyof T & string]: T[K] extends string ? `${Prefix}${K}` : Leaves<T[K], `${Prefix}${K}.`>;
@@ -34,7 +38,11 @@ const lookup = (dict: Dictionary, key: string): string | undefined => {
 export const isTranslationKey = (text: string): text is TranslationKey => /^[a-z]\w*(\.[\w-]+)+$/.test(text) && lookup(en, text) !== undefined;
 
 export function translate(language: UiLanguage, key: TranslationKey, vars?: TranslationVars): string {
-  const own = lookup(DICTIONARIES[language], key);
+  if (language === "en" && vars && Number(vars.n) === 1) {
+    const singular = EN_SINGULAR[key];
+    if (singular !== undefined) return fill(singular, vars);
+  }
+  const own = lookup(dictionaryOf(language), key);
   if (own !== undefined) return fill(own, vars);
   // Fall back to English, then to the key itself (never crash on a missing string).
   const fallback = lookup(en, key);
@@ -61,7 +69,7 @@ export type EnumGroup = keyof Dictionary["enum"];
 /** Label of an enum value (project status, payment method …); `fallback` (or the raw value) when unknown. */
 export function translateEnum(language: UiLanguage, group: EnumGroup, value: string | null | undefined, fallback?: string): string {
   const key = value ?? "";
-  const own = (DICTIONARIES[language].enum[group] as Record<string, string>)[key];
+  const own = (dictionaryOf(language).enum[group] as Record<string, string>)[key];
   const english = (en.enum[group] as Record<string, string>)[key];
   return own ?? english ?? fallback ?? key;
 }
@@ -69,7 +77,7 @@ export function translateEnum(language: UiLanguage, group: EnumGroup, value: str
 /** Status badge label (`status.<domain>.<VALUE>`); `fallback` when the value has no translation. */
 export function translateStatus(language: UiLanguage, domain: string, value: string, fallback: string): string {
   const key = `status.${domain}.${value}`;
-  return lookup(DICTIONARIES[language], key) ?? lookup(en, key) ?? fallback;
+  return lookup(dictionaryOf(language), key) ?? lookup(en, key) ?? fallback;
 }
 
 /** Label used by navigation config and other static lists: English, Roman Urdu (`ur`) and Urdu script. */

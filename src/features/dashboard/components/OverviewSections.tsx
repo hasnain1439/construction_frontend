@@ -255,7 +255,9 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-muted-foreground">{a.source === "CONTROL_ALERT" ? te("controlRule", a.type, humanize(a.type)) : te("notificationType", a.type, humanize(a.type))}</p>
-                  <p className="truncate text-sm font-medium">{a.title}</p>
+                  <p dir="auto" className="truncate text-start text-sm font-medium" title={a.title}>
+                    {a.title}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {a.project ? `${a.project.name} · ` : ""}
                     {rel(a.at)}

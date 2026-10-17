@@ -18,7 +18,7 @@ import { errorCode } from "@/lib/apiErrors";
 import { projectHref } from "@/lib/navigation";
 import { formatQty } from "@/lib/quantity";
 import { QuotaTable } from "../components/MilestonePanel";
-import { useDateRange } from "../labels";
+import { useDateRange, useMilestoneName } from "../labels";
 
 /** "No schedule yet — open the Gantt" for pages that need one. */
 export function NoSchedule({ projectId }: { projectId: string }) {
@@ -60,6 +60,7 @@ function ProgressBar({ value, label }: { value: number; label: string }) {
 /** Milestones & Quotas content (separate from the page shell so it can be tested on a fixture). */
 export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
   const t = useT();
+  const milestoneName = useMilestoneName();
   const te = useEnumT();
   const range = useDateRange();
   const [stage, setStage] = useState<string>("ALL");
@@ -149,7 +150,7 @@ export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
             key={m.id}
             title={
               <span className="flex flex-wrap items-center gap-2">
-                <bdi>{m.name}</bdi>
+                <bdi>{milestoneName(m)}</bdi>
                 <StatusBadge domain="milestone" value={m.status} />
               </span>
             }

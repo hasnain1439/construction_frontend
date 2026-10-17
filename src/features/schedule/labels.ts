@@ -1,8 +1,20 @@
 "use client";
 
 import { useCallback } from "react";
-import { useT } from "@/i18n/useT";
+import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
+
+/**
+ * A milestone's name in the UI language: generated milestones (`templateKey` set) are translated,
+ * renamed or custom ones show the stored name (QA-B-26).
+ */
+export function useMilestoneName() {
+  const te = useEnumT();
+  return useCallback(
+    (m: { name: string; templateKey?: string | null }) => (m.templateKey ? te("milestoneTemplate", m.templateKey, m.name) : m.name),
+    [te],
+  );
+}
 
 /** "+3 days" / "2 days early" / "No change" for a calendar-day shift. */
 export function useDayShift() {

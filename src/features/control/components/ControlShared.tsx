@@ -7,6 +7,7 @@ import type { BucketStatus, ControlAlert, VarianceStatus } from "@/api/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { useCan } from "@/components/common/PermissionGate";
+import { useRelativeTime } from "@/components/common/useRelativeTime";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export function PercentBar({ value, label, tone = "primary" }: { value: number; 
 
 function AlertRow({ a }: { a: ControlAlert }) {
   const t = useT();
+  const rel = useRelativeTime();
   const te = useEnumT();
   const meta = statusMeta("severity", a.severity);
   const Icon = meta.icon;
@@ -118,10 +120,17 @@ function AlertRow({ a }: { a: ControlAlert }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-muted-foreground">{te("controlRule", a.rule, a.rule)}</p>
-        <p className="text-sm font-medium">{a.title}</p>
-        <p className="text-xs text-muted-foreground">{a.body}</p>
+        {/* Server text: its own direction, so an English sentence keeps its numbers in place on an Urdu page (QA-B-04). */}
+        <p dir="auto" className="text-sm font-medium [unicode-bidi:plaintext]">
+          {a.title}
+        </p>
+        <p dir="auto" className="text-xs text-muted-foreground [unicode-bidi:plaintext]">
+          {a.body}
+        </p>
         <p className="text-xs text-muted-foreground">
           {t("control.alerts.since", { date: formatDate(a.openedAt) })}
+          {/* "As of": when the alert engine last confirmed it (QA-B-10) — "Check now" refreshes it. */}
+          {(a.lastEvaluatedAt ?? a.lastSeenAt) ? ` · ${t("control.alerts.checked", { when: rel(a.lastEvaluatedAt ?? a.lastSeenAt) })}` : ""}
           {a.occurrences > 1 ? ` · ${t("control.alerts.times", { n: a.occurrences })}` : ""}
         </p>
       </div>

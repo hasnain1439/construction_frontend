@@ -263,6 +263,7 @@ export const strings: Widen<typeof En.strings> = {
     },
     pdf: {
       preview: "Dekhein",
+      linkUntil: "Bheja gaya link {date} tak chalega.",
     },
     percentMust100: "{n}% — 100% hona zaroori hai",
     planLimit: {
@@ -308,6 +309,32 @@ export const strings: Widen<typeof En.strings> = {
   pages: {
     notFoundTitle: "Page nahi mila",
     notFoundBody: "Jo page aap dhoond rahe hain woh mojood nahi ya kahin aur chala gaya hai.",
+  },
+  time: {
+    agoOneSecond: "1 second pehle",
+    agoNSecond: "{n} second pehle",
+    inOneSecond: "1 second mein",
+    inNSecond: "{n} second mein",
+    agoOneMinute: "1 minute pehle",
+    agoNMinute: "{n} minute pehle",
+    inOneMinute: "1 minute mein",
+    inNMinute: "{n} minute mein",
+    agoOneHour: "1 ghanta pehle",
+    agoNHour: "{n} ghante pehle",
+    inOneHour: "1 ghanta mein",
+    inNHour: "{n} ghante mein",
+    agoOneDay: "1 din pehle",
+    agoNDay: "{n} din pehle",
+    inOneDay: "1 din mein",
+    inNDay: "{n} din mein",
+    agoOneMonth: "1 maheena pehle",
+    agoNMonth: "{n} maheene pehle",
+    inOneMonth: "1 maheena mein",
+    inNMonth: "{n} maheene mein",
+    agoOneYear: "1 saal pehle",
+    agoNYear: "{n} saal pehle",
+    inOneYear: "1 saal mein",
+    inNYear: "{n} saal mein",
   },
 };
 

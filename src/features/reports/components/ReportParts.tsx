@@ -5,7 +5,7 @@ import { useCallback, type ReactNode } from "react";
 import { useExportReportBookMutation, useGetReportBookQuery } from "@/api/services/reports.api";
 import type { ReportBook, ReportBookName, ReportCell, ReportColumn, ReportFormat, ReportSection } from "@/api/types";
 import type { ValueFormat } from "@/components/common/Charts";
-import { DataTable, type Column } from "@/components/common/DataTable";
+import { DataTable, DENSE_TABLE, type Column } from "@/components/common/DataTable";
 import { EXPORT_FORMATS } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { isTranslationKey, useStatusT, useT } from "@/i18n/useT";
 import { errorCode } from "@/lib/apiErrors";
+import { downloadFile } from "@/lib/download";
 import { ReportValue } from "../views/ReportView";
 
 /** Columns whose cells are enum values (labelled from `reports.v.<column>.<VALUE>`). */
@@ -112,6 +113,7 @@ export function ReportTableCard({
         error={error}
         onRetry={onRetry}
         clientPageSize={pageSize}
+        className={cols.length >= 10 ? DENSE_TABLE : undefined}
         empty={{ title: t("reports.common.nothing"), description: t("reports.common.nothingDesc"), icon: FileBarChart }}
       />
       {shownTotals.length ? (
@@ -137,7 +139,7 @@ export function BookExportMenu({ name, projectId, filters }: { name: ReportBookN
   const run = useMutationToast();
   const download = async (format: Exclude<ReportFormat, "json">) => {
     const file = await run(() => exportBook({ name, projectId, format, ...filters }).unwrap(), { success: (f) => t("app.components.exportMenu.ready", { name: f.fileName }) });
-    if (file) window.open(file.url, "_blank", "noopener,noreferrer");
+    if (file) await downloadFile(file.downloadUrl ?? file.url, file.fileName);
   };
   return (
     <DropdownMenu>

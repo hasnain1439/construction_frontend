@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { DelayBreakdown } from "@/features/schedule/components/DelayCards";
-import { useDateRange } from "@/features/schedule/labels";
+import { useDateRange, useMilestoneName } from "@/features/schedule/labels";
 import { NoSchedule } from "@/features/schedule/views/MilestonesQuotasView";
 import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
@@ -37,7 +37,7 @@ function TimelineItem({ e }: { e: DelayTimelineEvent }) {
         <bdi>{text}</bdi>
       </p>
       {e.plannedEnd ? <p className="text-xs text-muted-foreground">{t("control.delay.newEnd", { date: formatDate(e.plannedEnd) })}</p> : null}
-      {e.detail ? <p className="text-xs text-muted-foreground">{e.detail}</p> : null}
+      {e.detail ? <p dir="auto" title={e.detail} className="line-clamp-2 text-xs text-muted-foreground">{e.detail}</p> : null}
     </li>
   );
 }
@@ -45,6 +45,7 @@ function TimelineItem({ e }: { e: DelayTimelineEvent }) {
 /** Delay analysis content (fixture-testable): Step 13 delay cards + milestones vs plan + timeline. */
 export function DelayAnalysisBoard({ data }: { data: DelayAnalysis }) {
   const t = useT();
+  const milestoneName = useMilestoneName();
   const te = useEnumT();
   const range = useDateRange();
   const columns: Column<DelayMilestone>[] = [
@@ -53,14 +54,14 @@ export function DelayAnalysisBoard({ data }: { data: DelayAnalysis }) {
       header: t("control.delay.milestone"),
       cell: (m) => (
         <div>
-          <bdi className="font-medium">{m.name}</bdi>
+          <bdi className="font-medium">{milestoneName(m)}</bdi>
           <p className="text-xs text-muted-foreground">{te("scheduleStage", m.stageKey)}</p>
         </div>
       ),
     },
     { id: "window", header: t("control.delay.window"), cell: (m) => <span className="text-sm">{range(m.plannedStart, m.plannedEnd)}</span> },
     { id: "planned", header: t("control.delay.planned"), align: "right", cell: (m) => `${m.plannedProgressPercent}%` },
-    { id: "actual", header: t("control.delay.actual"), cell: (m) => <PercentBar value={m.progressPercent} label={m.name} tone={m.behind ? "danger" : "primary"} /> },
+    { id: "actual", header: t("control.delay.actual"), cell: (m) => <PercentBar value={m.progressPercent} label={milestoneName(m)} tone={m.behind ? "danger" : "primary"} /> },
     {
       id: "behind",
       header: t("control.delay.behindBy"),
