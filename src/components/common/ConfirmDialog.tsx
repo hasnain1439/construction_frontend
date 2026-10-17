@@ -21,14 +21,16 @@ export interface ConfirmDialogProps {
   title: string;
   description?: ReactNode;
   confirmLabel: string;
-  /** Destructive actions get a red button and a warning icon. */
-  tone?: "danger" | "default";
+  /** Destructive actions get a red button and a warning icon; "warning" an amber icon with a normal button. */
+  tone?: "danger" | "warning" | "default";
   loading?: boolean;
   /** Disable confirm (e.g. a required reason is empty). */
   confirmDisabled?: boolean;
   onConfirm: () => void | Promise<void>;
   /** Extra content (reason field, consequences list …). */
   children?: ReactNode;
+  /** A second, non-default choice next to the confirm button (e.g. "Keep the current value"). */
+  secondaryAction?: { label: string; onClick: () => void };
 }
 
 /** Every destructive action goes through this dialog. The caller closes it on success. */
@@ -43,6 +45,7 @@ export function ConfirmDialog({
   confirmDisabled,
   onConfirm,
   children,
+  secondaryAction,
 }: ConfirmDialogProps) {
   const t = useT();
   return (
@@ -53,6 +56,10 @@ export function ConfirmDialog({
             <AlertDialogMedia className="bg-danger-soft text-danger">
               <TriangleAlert />
             </AlertDialogMedia>
+          ) : tone === "warning" ? (
+            <AlertDialogMedia className="bg-warning-soft text-warning">
+              <TriangleAlert />
+            </AlertDialogMedia>
           ) : null}
           <AlertDialogTitle className="text-base font-semibold">{title}</AlertDialogTitle>
           {description ? <AlertDialogDescription>{description}</AlertDialogDescription> : null}
@@ -60,6 +67,11 @@ export function ConfirmDialog({
         {children}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>{t("common.cancel")}</AlertDialogCancel>
+          {secondaryAction ? (
+            <Button variant="outline" disabled={loading} onClick={secondaryAction.onClick}>
+              {secondaryAction.label}
+            </Button>
+          ) : null}
           <Button
             variant={tone === "danger" ? "destructive" : "default"}
             disabled={loading || confirmDisabled}

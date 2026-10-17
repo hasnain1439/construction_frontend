@@ -6,8 +6,18 @@ import * as laborUr from "./areas/labor/ur";
 import * as masterDataUr from "./areas/masterData/ur";
 import * as billingUr from "./areas/billing/ur";
 import * as cashSiteUr from "./areas/cashSite/ur";
+import * as closeoutUr from "./areas/closeout/ur";
+import * as salesUr from "./areas/sales/ur";
+import * as changeOrdersUr from "./areas/changeOrders/ur";
 import * as teamCompanyUr from "./areas/teamCompany/ur";
 import * as appUr from "./areas/app/ur";
+import * as equipmentUr from "./areas/equipment/ur";
+import * as estimatesUr from "./areas/estimates/ur";
+import * as rulebookUr from "./areas/estimates/rulebook.ur";
+import * as scheduleUr from "./areas/schedule/ur";
+import * as controlUr from "./areas/control/ur";
+import * as reportsUr from "./areas/reports/ur";
+import * as taxUr from "./areas/tax/ur";
 
 /** Urdu (Nastaliq script, right-to-left) UI strings — same keys as `en.ts`. */
 export const ur: Dictionary = {
@@ -18,8 +28,17 @@ export const ur: Dictionary = {
   masterData: masterDataUr.strings,
   billing: billingUr.strings,
   cashSite: cashSiteUr.strings,
+  closeout: closeoutUr.strings,
+  sales: salesUr.strings,
+  changeOrders: changeOrdersUr.strings,
   teamCompany: teamCompanyUr.strings,
   app: appUr.strings,
+  equipment: equipmentUr.strings,
+  estimates: { ...estimatesUr.strings, ruleDesc: rulebookUr.ruleDesc, ruleUnit: rulebookUr.ruleUnit },
+  schedule: scheduleUr.strings,
+  control: controlUr.strings,
+  reports: reportsUr.strings,
+  tax: taxUr.strings,
   common: {
     save: "محفوظ کریں",
     saveChanges: "تبدیلیاں محفوظ کریں",
@@ -50,6 +69,8 @@ export const ur: Dictionary = {
     optional: "اختیاری",
     noResults: "کوئی نتیجہ نہیں",
     somethingWrong: "کچھ غلط ہو گیا",
+    noAccessTitle: "دستیاب نہیں",
+    noAccessBody: "یہ صفحہ موجود نہیں، یا آپ کو اس تک رسائی نہیں۔ پراجیکٹ کے مالک سے کہیں کہ آپ کو پراجیکٹ میں شامل کریں۔",
     hiddenForRole: "آپ کے عہدے کے لیے پوشیدہ",
     comingSoon: "اگلے مرحلے میں آ رہا ہے",
     comingSoonBody: "یہ صفحہ آنے والی ریلیز کا حصہ ہے۔ آج کی ضرورت کی ہر چیز مینو میں موجود ہے۔",
@@ -501,6 +522,12 @@ export const ur: Dictionary = {
     stepSUPPLIERS: "اپنے سپلائرز شامل کریں",
     stepPROJECT: "پہلا پراجیکٹ بنائیں",
     openingLink: "ابتدائی بیلنس درج کریں (ادھار، کیش، اسٹاک، پیشگی)",
+    moreTitle: "اگلے اختیاری اقدامات",
+    moreDesc: "شروع کرنے کے لیے ضروری نہیں — جب تیار ہوں تب ترتیب دیں۔",
+    moreRULEBOOK: "رول بک کی ویلیوز دیکھ لیں (ویسٹیج، مکس، مزدوری ریٹ)",
+    moreQUOTE: "پہلی کوٹیشن بنائیں",
+    moreEQUIPMENT: "اپنی شٹرنگ اور سامان شامل کریں",
+    moreTAX: "ٹیکس کی ترتیبات چیک کریں (سیلز ٹیکس اور ادائیگی سے کٹوتی)",
   },
   demo: {
     try: "ڈیمو ڈیٹا سے آزمائیں",
@@ -608,10 +635,14 @@ export const ur: Dictionary = {
     ...cashSiteUr.enums,
     ...teamCompanyUr.enums,
     ...appUr.enums,
+    ...equipmentUr.enums,
+    ...scheduleUr.enums,
+    ...controlUr.enums,
+    ...taxUr.enums,
     projectStatus: {
       DRAFT: "مسودہ",
-      ACTIVE: "جاری",
-      CLOSEOUT: "اختتامی مرحلہ",
+      ACTIVE: "فعال",
+      CLOSEOUT: "اختتام پر",
       HANDED_OVER: "حوالے کر دیا",
       CLOSED: "بند",
       READ_ONLY: "صرف دیکھنے کے لیے",
@@ -633,6 +664,7 @@ export const ur: Dictionary = {
       CHEQUE_BOUNCED: "چیک باؤنس",
       INVOICE_OVERDUE: "انوائس کی مدت گزر گئی",
       STAGE_READY_UNBILLED: "مرحلہ تیار، بل نہیں بنا",
+      CONTROL_ALERT: "کنٹرول الرٹ",
       PREVIOUS_STAGE_UNPAID: "پچھلے مرحلے کی ادائیگی باقی",
       SHORTAGE_CREATED: "کمی درج ہوئی",
       LOW_STOCK: "اسٹاک کم",
@@ -650,6 +682,10 @@ export const ur: Dictionary = {
       SUBSCRIPTION_PAYMENT_REJECTED: "سبسکرپشن ادائیگی مسترد",
       INVITE_ACCEPTED: "دعوت قبول ہوئی",
       PLATFORM_SUPPORT_ACCESS: "پلیٹ فارم سپورٹ نے آپ کا اکاؤنٹ کھولا",
+      EQUIPMENT_IDLE: "کرائے کا سامان بیکار کھڑا ہے",
+      MISSING_DAILY_LOG: "روزنامچہ درج نہیں ہوا",
+      RETENTION_RELEASE_DUE: "ریٹینشن کی واپسی کا وقت",
+      SITE_INSTRUCTION_CREATED: "سائٹ ہدایت درج ہوئی",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "منظوری کے لیے اجرت کے حساب",

@@ -1,11 +1,13 @@
 "use client";
 
-import { CircleCheck, CircleX, TriangleAlert } from "lucide-react";
-import { useGetReviewQuery } from "@/api/services/projects.api";
+import { Calculator, CircleCheck, CircleX, TriangleAlert } from "lucide-react";
+import type { ReactNode } from "react";
+import { useGetEstimateQuery, useGetReviewQuery } from "@/api/services/projects.api";
 import type { ProjectReview, ReviewIssue } from "@/api/types";
 import { ErrorState } from "@/components/common/ErrorState";
 import { InfoList } from "@/components/common/InfoList";
 import { MoneyText } from "@/components/common/MoneyText";
+import { useCan } from "@/components/common/PermissionGate";
 import { PercentTotalChip, percentTotal } from "@/components/common/PercentTotalChip";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -13,9 +15,12 @@ import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { strings as projectStrings } from "@/i18n/areas/projects/en";
 import { type TranslationKey, useEnumT, useT } from "@/i18n/useT";
+import { cn } from "@/lib/cn";
 import { formatPhone } from "@/lib/phone";
 import { FoundationSummary } from "../components/FoundationSummary";
-import { WIZARD_STEPS } from "../constants";
+import { ESTIMATE_STEP, WIZARD_STEPS } from "../constants";
+import { ApplyMarginAction } from "../estimate/ContractFromEstimateCard";
+import { fmt, fmtUp, rupees } from "../estimate/labels";
 import { formatArea } from "../utils/calc";
 import { useWizard } from "./WizardContext";
 
@@ -33,7 +38,18 @@ function useIssueText() {
   };
 }
 
-function IssueList({ issues, tone, onGo }: { issues: ReviewIssue[]; tone: "danger" | "warning"; onGo: (tab: number) => void }) {
+function IssueList({
+  issues,
+  tone,
+  onGo,
+  action,
+}: {
+  issues: ReviewIssue[];
+  tone: "danger" | "warning";
+  onGo: (tab: number) => void;
+  /** Extra one-click fix shown next to an issue (e.g. apply the company margin). */
+  action?: (issue: ReviewIssue) => ReactNode;
+}) {
   const Icon = tone === "danger" ? CircleX : TriangleAlert;
   const t = useT();
   const issueText = useIssueText();
@@ -50,6 +66,7 @@ function IssueList({ issues, tone, onGo }: { issues: ReviewIssue[]; tone: "dange
         >
           <Icon className={tone === "danger" ? "size-4 shrink-0 text-danger" : "size-4 shrink-0 text-warning"} aria-hidden />
           <span className="flex-1 text-sm">{issueText(issue)}</span>
+          {action?.(issue)}
           <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onGo(issue.tab)}>
             {t("projects.review.goTo", { step: stepLabel(issue.tab) })}
           </Button>
@@ -145,11 +162,60 @@ function Summary({ review }: { review: ProjectReview }) {
   );
 }
 
-/** Tab 6 — GET /projects/:id/review: errors block activation, warnings don't. */
-export function ReviewTab() {
-  const { projectId, goTo } = useWizard();
+/** Estimate in one card (cost, per sq ft, margin — or quantities without rate access), linking back to tab 6. */
+function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => void }) {
   const t = useT();
+  const { data: e } = useGetEstimateQuery(projectId);
+  if (!e) return null;
+  // The BoQ total (same as the BoQ page and the contract suggestion — QA-A-01)
+  const c = e.boqCost ?? e.cost;
+  const qty = (m: string) => e.materials.find((x) => x.material === m)?.quantity ?? 0;
+  const margin = c?.marginPercent;
+  const stat = (label: string, value: string, className?: string) => (
+    <div className="min-w-32">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={cn("text-lg font-semibold tabular", className)}>{value}</p>
+    </div>
+  );
+  return (
+    <SectionCard
+      title={t("projects.review.estimateTitle")}
+      description={t("projects.review.estimateDesc")}
+      actions={
+        <Button type="button" variant="outline" size="sm" onClick={onOpen}>
+          <Calculator data-icon="inline-start" />
+          {t("projects.review.estimateOpen")}
+        </Button>
+      }
+    >
+      <div className="flex flex-wrap gap-x-8 gap-y-3" data-testid="review-estimate">
+        {c ? (
+          <>
+            {stat(t("projects.review.estimateTitle"), rupees(c.totalPaisa))}
+            {stat(t("projects.review.estimatePerSqft"), c.perSqftPaisa ? rupees(c.perSqftPaisa) : "—")}
+            {margin !== undefined
+              ? stat(t("projects.review.estimateMargin"), margin === null ? "—" : `${fmt(margin)}%`, margin === null ? undefined : margin < 0 ? "text-danger" : "text-success")
+              : null}
+          </>
+        ) : (
+          <p className="text-sm">
+            {t("projects.review.estimateQuantities", { cement: fmtUp(qty("cement")), bricks: fmtUp(qty("bricks")), steel: fmt(Math.round(qty("steel") / 10) / 100) })}
+          </p>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
+
+/** Tab 7 — GET /projects/:id/review: errors block activation, warnings don't. */
+export function ReviewTab() {
+  const { projectId, goTo, locked } = useWizard();
+  const t = useT();
+  const canViewEstimate = useCan("projects.estimate.view");
   const { data, isLoading, error, refetch } = useGetReviewQuery(projectId ?? "", { skip: !projectId, refetchOnMountOrArgChange: true });
+  const hasValueError = Boolean(data?.errors.some((e) => e.code === "CONTRACT_VALUE_MISSING"));
+  // The estimate carries the suggested value for the one-click fix next to CONTRACT_VALUE_MISSING.
+  const estimate = useGetEstimateQuery(projectId ?? "", { skip: !projectId || !canViewEstimate || !hasValueError }).data;
   if (!projectId) return null;
   if (isLoading) return <CardsSkeleton count={4} height="h-40" />;
   if (error || !data) {
@@ -169,7 +235,12 @@ export function ReviewTab() {
       ) : null}
       {data.errors.length ? (
         <SectionCard title={t("projects.review.fixBefore", { n: data.errors.length })}>
-          <IssueList issues={data.errors} tone="danger" onGo={goTo} />
+          <IssueList
+            issues={data.errors}
+            tone="danger"
+            onGo={goTo}
+            action={(issue) => (issue.code === "CONTRACT_VALUE_MISSING" && !locked && projectId ? <ApplyMarginAction projectId={projectId} estimate={estimate} /> : null)}
+          />
         </SectionCard>
       ) : null}
       {data.warnings.length ? (
@@ -177,6 +248,7 @@ export function ReviewTab() {
           <IssueList issues={data.warnings} tone="warning" onGo={goTo} />
         </SectionCard>
       ) : null}
+      {canViewEstimate ? <EstimateCard projectId={projectId} onOpen={() => goTo(ESTIMATE_STEP)} /> : null}
       <Summary review={data} />
     </div>
   );

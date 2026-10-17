@@ -261,6 +261,7 @@ export const strings = {
     },
     pdf: {
       preview: "Preview",
+      linkUntil: "The shared link works until {date}.",
     },
     percentMust100: "{n}% — must be 100%",
     planLimit: {
@@ -306,6 +307,32 @@ export const strings = {
   pages: {
     notFoundTitle: "Page not found",
     notFoundBody: "The page you're looking for doesn't exist or was moved.",
+  },
+  time: {
+    agoOneSecond: "1 second ago",
+    agoNSecond: "{n} seconds ago",
+    inOneSecond: "in 1 second",
+    inNSecond: "in {n} seconds",
+    agoOneMinute: "1 minute ago",
+    agoNMinute: "{n} minutes ago",
+    inOneMinute: "in 1 minute",
+    inNMinute: "in {n} minutes",
+    agoOneHour: "1 hour ago",
+    agoNHour: "{n} hours ago",
+    inOneHour: "in 1 hour",
+    inNHour: "in {n} hours",
+    agoOneDay: "1 day ago",
+    agoNDay: "{n} days ago",
+    inOneDay: "in 1 day",
+    inNDay: "in {n} days",
+    agoOneMonth: "1 month ago",
+    agoNMonth: "{n} months ago",
+    inOneMonth: "in 1 month",
+    inNMonth: "in {n} months",
+    agoOneYear: "1 year ago",
+    agoNYear: "{n} years ago",
+    inOneYear: "in 1 year",
+    inNYear: "in {n} years",
   },
 } as const;
 

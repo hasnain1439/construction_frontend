@@ -37,7 +37,12 @@ export type NotificationType =
   | "SUBSCRIPTION_PAYMENT_APPROVED"
   | "SUBSCRIPTION_PAYMENT_REJECTED"
   | "INVITE_ACCEPTED"
-  | "PLATFORM_SUPPORT_ACCESS";
+  | "PLATFORM_SUPPORT_ACCESS"
+  | "MISSING_DAILY_LOG"
+  | "RETENTION_RELEASE_DUE"
+  | "SITE_INSTRUCTION_CREATED"
+  | "EQUIPMENT_IDLE"
+  | "CONTROL_ALERT";
 
 export interface AppNotification {
   id: Id;
@@ -127,7 +132,8 @@ export interface Period {
 }
 
 export interface DashboardAlert {
-  source: "BILLING_EVENT" | "NOTIFICATION";
+  /** CONTROL_ALERT (Step 14): `type` is the control rule, e.g. MATERIAL_OVERUSE. */
+  source: "BILLING_EVENT" | "NOTIFICATION" | "CONTROL_ALERT";
   id: Id;
   type: string;
   severity: NotificationSeverity;
@@ -151,6 +157,10 @@ export interface OverviewProjectRow {
   percentBilled?: number;
   percentSpentOfContract?: number;
   atRisk?: boolean;
+  /** Step 14 (control.view): value-weighted physical progress. */
+  progressPercent?: number;
+  /** Step 14 (control.view + profit, contract, rates): projected margin at completion. */
+  projectedMarginPercent?: number | null;
   nextBillableStage?: { id: Id; label: string; status: string; amountPaisa: Paisa } | null;
 }
 
@@ -257,7 +267,14 @@ export interface PnlProject {
   marginToDatePercent: number | null;
   percentBilled: number;
   percentCostOfContract: number;
-  projectedMarginPercent: number | null;
+  /**
+   * Step 14: at completion = revised contract − estimate at completion (null when it can't be computed yet).
+   * Left out for users without amounts + rates + contract + profit (QA-B-17).
+   */
+  projectedMarginPercent?: number | null;
+  projectedMarginPaisa?: Paisa | null;
+  estimateAtCompletionPaisa?: Paisa | null;
+  projectedMarginBasis: "EARNED_VALUE" | "PROGRESS_ONLY" | "NOT_ENOUGH_PROGRESS" | "NO_CONTRACT";
   projectedMarginNote: string;
 }
 export interface ProfitAndLoss {
@@ -272,6 +289,8 @@ export interface ProfitAndLoss {
     cost: CostBuckets;
     grossProfitToDatePaisa: Paisa;
     marginToDatePercent: number | null;
+    projectedMarginPaisa?: Paisa | null;
+    projectedMarginPercent?: number | null;
   };
   trend: Array<{ month: string; billedPaisa: Paisa; costPaisa: Paisa; grossProfitPaisa: Paisa }>;
   projectedMarginNote: string;
@@ -311,9 +330,17 @@ export interface CashFloatsOverview {
 
 // ─── Reports ────────────────────────────────────────────────────────────────
 
-export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation";
+/** Step 18 reports (finance.reports.view + the module's view key). */
+export type Step18ReportName = "delay-analysis" | "variance" | "change-orders" | "equipment-utilisation" | "snags";
+/** Step 18 tax reports (tax.view + fields.amounts). */
+export type TaxReportName = "wht-summary" | "tax-invoice-register";
+export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | Step18ReportName | TaxReportName;
+/** Per-project report books (GET /reports/<name>/:projectId). */
+export type ReportBookName = "delay-analysis" | "variance" | "snags";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";
-export type ReportQuery = QueryParams<"/api/v1/reports/project-summary", "get">;
+/** Filters of every report (the Step 18 ones add status / type / category / group; the Phase 1 ones ignore them). */
+export type ReportQuery = QueryParams<"/api/v1/reports/change-orders", "get">;
+export type ReportBookQuery = QueryParams<"/api/v1/reports/snags/{projectId}", "get">;
 export type ReportColumnType = "text" | "money" | "qty" | "int" | "percent" | "date";
 export type ReportCell = string | number | null;
 export interface ReportTable {
@@ -321,11 +348,55 @@ export interface ReportTable {
   title: string;
   subtitle: string;
   generatedAt: IsoDateTime;
-  filters: { projectId: Id | null; from: IsoDate | null; to: IsoDate | null };
-  columns: Array<{ key: string; label: string; type: ReportColumnType }>;
+  filters: { projectId: Id | null; from: IsoDate | null; to: IsoDate | null; status?: string; type?: string; category?: string; group?: string };
+  columns: ReportColumn[];
   rows: Array<Record<string, ReportCell>>;
   totals: Record<string, ReportCell> | null;
   notes?: string[];
+  /** Step 18: extra JSON for charts (never in the files). */
+  extra?: ReportExtra;
+}
+export interface ReportColumn {
+  key: string;
+  label: string;
+  type: ReportColumnType;
+}
+export interface ReportDelayReason {
+  reason: string;
+  category: "OWNER" | "EXCUSABLE" | "CONTRACTOR";
+  days: number;
+}
+/** Step 18 `extra` by report: delay analysis (projects), change orders (byStatus …), equipment (period). */
+export interface ReportExtra {
+  projects?: Array<{ projectId: Id; code: string; categories: Array<{ category: ReportDelayReason["category"]; days: number }>; reasons: ReportDelayReason[] }>;
+  byStatus?: Record<string, number>;
+  approvedCount?: number;
+  approvedTotalPaisa?: Paisa;
+  from?: IsoDate;
+  to?: IsoDate;
+  days?: number;
+}
+export interface ReportSection {
+  key: string;
+  title: string;
+  columns: ReportColumn[];
+  rows: Array<Record<string, ReportCell>>;
+  totals: Record<string, ReportCell> | null;
+  notes?: string[];
+}
+/** Step 18 · one project's report: a summary + several tables. */
+export interface ReportBook {
+  name: string;
+  title: string;
+  subtitle: string;
+  generatedAt: IsoDateTime;
+  filters: { projectId: Id; from: IsoDate | null; to: IsoDate | null };
+  project: { id: Id; code: string; name: string; status: string };
+  summary: Array<{ key: string; label: string; type: ReportColumnType; value: ReportCell }>;
+  sections: ReportSection[];
+  notes?: string[];
+  /** Delay book: the delay days per category and every reason (to label them in the reader's language). */
+  extra?: { categories?: Array<{ category: ReportDelayReason["category"]; days: number }>; reasons?: ReportDelayReason[] };
 }
 export interface ReportFile {
   attachmentId: Id;
@@ -333,6 +404,9 @@ export interface ReportFile {
   format: Exclude<ReportFormat, "json">;
   mimeType: string;
   sizeBytes: number;
+  /** Opens inline (preview). */
   url: string;
+  /** Same file as an attachment (`dl=1`) — use with `fileName` to save it (QA-B-15). */
+  downloadUrl?: string;
   expiresAt: IsoDateTime;
 }

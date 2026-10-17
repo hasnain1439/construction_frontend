@@ -21,10 +21,11 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { errorCode } from "@/lib/apiErrors";
 import { projectHref } from "@/lib/navigation";
 import { useStatusT, useT } from "@/i18n/useT";
-import { LOCKED_STATUSES, WIZARD_STEPS } from "../constants";
+import { adjacentWizardStep, ESTIMATE_STEP, LOCKED_STATUSES, REVIEW_STEP, visibleWizardSteps, WIZARD_STEPS } from "../constants";
 import { BasicTab } from "./BasicTab";
 import { ContractTab } from "./ContractTab";
 import { CoverageTab } from "./CoverageTab";
+import { EstimateTab } from "./EstimateTab";
 import { PlotStructureTab } from "./PlotStructureTab";
 import { ReviewTab } from "./ReviewTab";
 import { RoomsTab } from "./RoomsTab";
@@ -36,7 +37,8 @@ const TABS: Record<number, () => ReactNode> = {
   3: () => <PlotStructureTab />,
   4: () => <CoverageTab />,
   5: () => <RoomsTab />,
-  6: () => <ReviewTab />,
+  [ESTIMATE_STEP]: () => <EstimateTab />,
+  [REVIEW_STEP]: () => <ReviewTab />,
 };
 
 /** Back · Save as draft · Next (or Activate) — shown in the header and the sticky footer. */
@@ -80,7 +82,7 @@ function WizardActions({
           {t("projects.wizard.saveDraft")}
         </Button>
       ) : null}
-      {tab < 6 ? (
+      {tab !== REVIEW_STEP ? (
         formTab && !locked ? (
           <Button type="submit" form={WIZARD_FORM_ID} disabled={saving} onClick={() => onIntent("next")}>
             {saving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : null}
@@ -104,9 +106,10 @@ function WizardActions({
 }
 
 /**
- * New / edit project: full page, 6 numbered tabs. Each tab is its own form that PATCHes
- * its section; the backend records completed steps (green checks) and the review lists
- * what's missing (red dots).
+ * New / edit project: full page, numbered tabs. Tabs 1–4 are forms that PATCH their section,
+ * 5 edits rooms in place, 6 shows the estimate (only with projects.estimate.view — otherwise
+ * the step is hidden and the rest renumber; ids stay stable), 7 reviews and activates. The
+ * backend records completed steps (green checks) and the review lists what's missing (red dots).
  */
 export function ProjectWizard({ projectId, mode, initialTab }: { projectId: string | null; mode: "new" | "edit"; initialTab: number }) {
   const t = useT();
@@ -118,7 +121,11 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
   const review = useGetReviewQuery(projectId ?? "", { skip: !projectId });
   const [activate, { isLoading: activating }] = useActivateProjectMutation();
   const run = useMutationToast();
-  const [tab, setTabState] = useState(projectId ? initialTab : 1);
+  const canViewEstimate = useCan("projects.estimate.view");
+  const visibleSteps = useMemo(() => visibleWizardSteps(canViewEstimate), [canViewEstimate]);
+  const [requestedTab, setTabState] = useState(projectId ? initialTab : 1);
+  // A hidden step (e.g. ?tab=6 without estimate access) opens the next visible one.
+  const tab = visibleSteps.some((s) => s.id === requestedTab) ? requestedTab : adjacentWizardStep(visibleSteps, requestedTab - 1, 1);
   const [visited, setVisited] = useState<number[]>([initialTab]);
   const [formState, setFormStateRaw] = useState({ dirty: false, submitting: false });
   const setFormState = useCallback((next: { dirty: boolean; submitting: boolean }) => {
@@ -144,6 +151,14 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
     [mode, pathname, projectId],
   );
 
+  const stepLabel = useCallback(
+    (id: number) => {
+      const step = WIZARD_STEPS.find((s) => s.id === id);
+      return step ? t(step.labelKey) : "";
+    },
+    [t],
+  );
+
   const goTo = useCallback((next: number) => (dirty ? setPendingTab(next) : setTab(next)), [dirty, setTab]);
 
   const onSaved = useCallback(
@@ -155,11 +170,11 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       }
       if (intent === "draft") toast.success(t("projects.wizard.savedDraft"));
       else {
-        toast.success(t("projects.wizard.stepSaved", { step: t(WIZARD_STEPS[tab - 1].labelKey) }));
-        setTab(Math.min(6, tab + 1));
+        toast.success(t("projects.wizard.stepSaved", { step: stepLabel(tab) }));
+        setTab(adjacentWizardStep(visibleSteps, tab, 1));
       }
     },
-    [projectId, router, setTab, tab, t],
+    [projectId, router, setTab, tab, t, visibleSteps, stepLabel],
   );
 
   const context = useMemo<WizardContextValue>(
@@ -169,8 +184,9 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
 
   const completed = project?.wizardCompletedSteps ?? [];
   const errorTabs = new Set((review.data?.errors ?? []).map((e) => e.tab));
-  const steps: Step[] = WIZARD_STEPS.map((s) => ({
+  const steps: Step[] = visibleSteps.map((s, index) => ({
     id: s.id,
+    number: index + 1,
     label: t(s.labelKey),
     completed: completed.includes(s.id),
     hasError: errorTabs.has(s.id) && (completed.includes(s.id) || visited.includes(s.id) || s.id < tab),
@@ -190,8 +206,15 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       },
     });
     if (result) {
-      toast.success(t("projects.wizard.activated"));
-      router.push(projectHref(projectId, "/overview"));
+      // Step 11: activation offers "Generate estimate" — open Planning → Estimate (BoQ), where the
+      // first revision is one click away.
+      if (result.nextStep && canViewEstimate) {
+        toast.success(t("projects.wizard.activatedEstimate"));
+        router.push(projectHref(projectId, "/planning/estimate"));
+      } else {
+        toast.success(t("projects.wizard.activated"));
+        router.push(projectHref(projectId, "/overview"));
+      }
     }
   };
 
@@ -211,11 +234,11 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
       project={project}
       saving={saving}
       activating={activating}
-      onBack={() => goTo(tab - 1)}
+      onBack={() => goTo(adjacentWizardStep(visibleSteps, tab, -1))}
       onIntent={(intent) => {
         intentRef.current = intent;
       }}
-      onNextNoForm={() => setTab(Math.min(6, tab + 1))}
+      onNextNoForm={() => setTab(adjacentWizardStep(visibleSteps, tab, 1))}
       onActivate={() => void onActivate()}
       showBack={showBack}
     />
@@ -254,7 +277,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
         open={pendingTab !== null}
         onOpenChange={(o) => !o && setPendingTab(null)}
         title={t("projects.wizard.discardTitle")}
-        description={t("projects.wizard.discardDesc", { step: t(WIZARD_STEPS[tab - 1].labelKey) })}
+        description={t("projects.wizard.discardDesc", { step: stepLabel(tab) })}
         confirmLabel={t("action.discard")}
         onConfirm={() => {
           const next = pendingTab;

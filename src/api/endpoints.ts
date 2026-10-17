@@ -88,6 +88,40 @@ export const ENDPOINTS = {
     status: "/sync/status",
   },
 
+  /** Step 17 · Closeout: drawings, snags, handover, retention. */
+  closeout: {
+    drawings: (projectId: string) => `/projects/${id(projectId)}/drawings`,
+    drawingById: (drawingId: string) => `/drawings/${id(drawingId)}`,
+    drawingRevisions: (drawingId: string) => `/drawings/${id(drawingId)}/revisions`,
+    revisionById: (revisionId: string) => `/drawing-revisions/${id(revisionId)}`,
+    snags: (projectId: string) => `/projects/${id(projectId)}/snags`,
+    snagById: (snagId: string) => `/snags/${id(snagId)}`,
+    snagFix: (snagId: string) => `/snags/${id(snagId)}/fix`,
+    snagVerify: (snagId: string) => `/snags/${id(snagId)}/verify`,
+    snagReopen: (snagId: string) => `/snags/${id(snagId)}/reopen`,
+    snagCost: (snagId: string) => `/snags/${id(snagId)}/cost`,
+    handover: (projectId: string) => `/projects/${id(projectId)}/handover`,
+    handoverItem: (projectId: string, key: string) => `/projects/${id(projectId)}/handover/items/${id(key)}`,
+    handoverSignOff: (projectId: string) => `/projects/${id(projectId)}/handover/sign-off`,
+    handoverComplete: (projectId: string) => `/projects/${id(projectId)}/handover/complete`,
+    handoverCertificate: (projectId: string) => `/projects/${id(projectId)}/handover/certificate`,
+    retention: (projectId: string) => `/projects/${id(projectId)}/retention`,
+  },
+
+  /** Step 15 · Change orders + site instructions. */
+  changeOrders: {
+    list: (projectId: string) => `/projects/${id(projectId)}/change-orders`,
+    rates: (projectId: string) => `/projects/${id(projectId)}/change-orders/rates`,
+    byId: (coId: string) => `/change-orders/${id(coId)}`,
+    action: (coId: string, action: "send" | "approve" | "reject" | "reopen" | "start" | "complete" | "bill") => `/change-orders/${id(coId)}/${action}`,
+    pdf: (coId: string) => `/change-orders/${id(coId)}/pdf`,
+    instructions: (projectId: string) => `/projects/${id(projectId)}/site-instructions`,
+    instructionById: (siId: string) => `/site-instructions/${id(siId)}`,
+    convertInstruction: (siId: string) => `/site-instructions/${id(siId)}/convert`,
+    dismissInstruction: (siId: string) => `/site-instructions/${id(siId)}/dismiss`,
+    fromSnag: (snagId: string) => `/snags/${id(snagId)}/change-order`,
+  },
+
   dailyLogs: {
     list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
     byId: (logId: string) => `/daily-logs/${id(logId)}`,
@@ -170,6 +204,21 @@ export const ENDPOINTS = {
     byId: (clientId: string) => `/clients/${id(clientId)}`,
   },
 
+  // Step 12 · quotes / sales pipeline
+  quotes: {
+    list: "/quotes",
+    assumptions: "/quotes/assumptions",
+    preview: "/quotes/preview",
+    insights: "/quotes/insights",
+    byId: (quoteId: string) => `/quotes/${id(quoteId)}`,
+    revisions: (quoteId: string) => `/quotes/${id(quoteId)}/revisions`,
+    send: (quoteId: string) => `/quotes/${id(quoteId)}/send`,
+    negotiation: (quoteId: string) => `/quotes/${id(quoteId)}/negotiation`,
+    lost: (quoteId: string) => `/quotes/${id(quoteId)}/lost`,
+    won: (quoteId: string) => `/quotes/${id(quoteId)}/won`,
+    pdf: (quoteId: string) => `/quotes/${id(quoteId)}/pdf`,
+  },
+
   projects: {
     list: "/projects",
     byId: (projectId: string) => `/projects/${id(projectId)}`,
@@ -179,12 +228,21 @@ export const ENDPOINTS = {
     basic: (projectId: string) => `/projects/${id(projectId)}/basic`,
     team: (projectId: string) => `/projects/${id(projectId)}/team`,
     contract: (projectId: string) => `/projects/${id(projectId)}/contract`,
+    contractFromEstimate: (projectId: string) => `/projects/${id(projectId)}/contract/from-estimate`,
     plotStructure: (projectId: string) => `/projects/${id(projectId)}/plot-structure`,
     coverage: (projectId: string) => `/projects/${id(projectId)}/coverage`,
     floors: (projectId: string) => `/projects/${id(projectId)}/floors`,
+    estimate: (projectId: string) => `/projects/${id(projectId)}/estimate`,
+    estimateSettings: (projectId: string) => `/projects/${id(projectId)}/estimate/settings`,
+    /** Step 11 — saved estimate revisions (BoQ) + owner shopping list. */
+    estimates: (projectId: string) => `/projects/${id(projectId)}/estimates`,
+    shoppingList: (projectId: string) => `/projects/${id(projectId)}/owner-shopping-list`,
+    shoppingListPdf: (projectId: string) => `/projects/${id(projectId)}/owner-shopping-list/pdf`,
     supplyPresets: "/supply-presets",
     floorRooms: (floorId: string) => `/floors/${id(floorId)}/rooms`,
     floorCopy: (floorId: string) => `/floors/${id(floorId)}/copy`,
+    floorWallsAuto: (floorId: string) => `/floors/${id(floorId)}/walls/auto`,
+    roomWalls: (roomId: string) => `/rooms/${id(roomId)}/walls`,
     roomById: (roomId: string) => `/rooms/${id(roomId)}`,
     roomOpenings: (roomId: string) => `/rooms/${id(roomId)}/openings`,
     openingById: (openingId: string) => `/openings/${id(openingId)}`,
@@ -225,6 +283,64 @@ export const ENDPOINTS = {
     shortages: "/shortages",
     resolveShortage: (shortageId: string) => `/shortages/${id(shortageId)}/resolve`,
     ownerDeliveries: (projectId: string) => `/projects/${id(projectId)}/owner-deliveries`,
+  },
+
+  /** Step 13 — schedule: Gantt, milestones, quotas, stoppage days, delays. */
+  schedule: {
+    detail: (projectId: string) => `/projects/${id(projectId)}/schedule`,
+    generate: (projectId: string) => `/projects/${id(projectId)}/schedule/generate`,
+    replan: (projectId: string) => `/projects/${id(projectId)}/schedule/replan`,
+    baseline: (projectId: string) => `/projects/${id(projectId)}/schedule/baseline`,
+    versions: (projectId: string) => `/projects/${id(projectId)}/schedule/versions`,
+    delays: (projectId: string) => `/projects/${id(projectId)}/schedule/delays`,
+    quotas: (projectId: string) => `/projects/${id(projectId)}/schedule/quotas`,
+    milestone: (milestoneId: string) => `/milestones/${id(milestoneId)}`,
+    milestoneProgress: (milestoneId: string) => `/milestones/${id(milestoneId)}/progress`,
+    stoppages: (projectId: string) => `/projects/${id(projectId)}/stoppages`,
+    stoppageApprove: (stoppageId: string) => `/stoppages/${id(stoppageId)}/approve`,
+    stoppageReject: (stoppageId: string) => `/stoppages/${id(stoppageId)}/reject`,
+  },
+
+  /** Step 14 — control: variance, burn rate, delay analysis, alerts, thresholds. */
+  control: {
+    materialVariance: (projectId: string) => `/projects/${id(projectId)}/control/material-variance`,
+    costVariance: (projectId: string) => `/projects/${id(projectId)}/control/cost-variance`,
+    burnRate: (projectId: string) => `/projects/${id(projectId)}/control/burn-rate`,
+    delayAnalysis: (projectId: string) => `/projects/${id(projectId)}/control/delay-analysis`,
+    projectAlerts: (projectId: string) => `/projects/${id(projectId)}/control/alerts`,
+    summary: "/control/summary",
+    alerts: "/control/alerts",
+    rules: "/control/alerts/rules",
+    run: "/control/alerts/run",
+    settings: "/control/settings",
+  },
+
+  /** Step 16 — equipment & shuttering. */
+  equipment: {
+    list: "/equipment",
+    byId: (equipmentId: string) => `/equipment/${id(equipmentId)}`,
+    stockIn: (equipmentId: string) => `/equipment/${id(equipmentId)}/stock-in`,
+    adjust: (equipmentId: string) => `/equipment/${id(equipmentId)}/adjust`,
+    balances: "/equipment/balances",
+    movements: "/equipment/movements",
+    transfers: "/equipment/transfers",
+    transferById: (transferId: string) => `/equipment/transfers/${id(transferId)}`,
+    transferReceive: (transferId: string) => `/equipment/transfers/${id(transferId)}/receive`,
+    transferCancel: (transferId: string) => `/equipment/transfers/${id(transferId)}/cancel`,
+    rentals: "/equipment/rentals",
+    rentalById: (rentalId: string) => `/equipment/rentals/${id(rentalId)}`,
+    rentalExtend: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/extend`,
+    rentalReturn: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/return`,
+    rentalClose: (rentalId: string) => `/equipment/rentals/${id(rentalId)}/close`,
+    losses: "/equipment/losses",
+    lossById: (lossId: string) => `/equipment/losses/${id(lossId)}`,
+    lossCharge: (lossId: string) => `/equipment/losses/${id(lossId)}/charge`,
+    charges: "/equipment/charges",
+    accrualsRun: "/equipment/accruals/run",
+    project: (projectId: string) => `/projects/${id(projectId)}/equipment`,
+    shutteringDemand: "/equipment/shuttering-demand",
+    idle: "/equipment/idle",
+    idleCheck: "/equipment/idle/check",
   },
 
   labor: {
@@ -322,8 +438,32 @@ export const ENDPOINTS = {
     cashFloats: "/finance/cash-floats",
   },
 
+  /** Step 11 — estimate revisions and the company rulebook. */
+  estimates: {
+    byId: (estimateId: string) => `/estimates/${id(estimateId)}`,
+    regenerate: (estimateId: string) => `/estimates/${id(estimateId)}/regenerate`,
+    line: (estimateId: string, lineId: string) => `/estimates/${id(estimateId)}/lines/${id(lineId)}`,
+    approve: (estimateId: string) => `/estimates/${id(estimateId)}/approve`,
+    compare: (a: string, b: string) => `/estimates/${id(a)}/compare/${id(b)}`,
+    pdf: (estimateId: string) => `/estimates/${id(estimateId)}/pdf`,
+  },
+  rulebook: {
+    resolved: "/rulebook",
+    overrides: "/rulebook/overrides",
+    override: (key: string) => `/rulebook/overrides/${id(key)}`,
+  },
+
   reports: {
     byName: (name: string) => `/reports/${id(name)}`,
+    /** Step 18 · one project's report book (delay analysis, variance, snags). */
+    book: (name: string, projectId: string) => `/reports/${id(name)}/${id(projectId)}`,
+  },
+
+  /** Step 18 — tax settings, project override, WHT certificate. */
+  tax: {
+    settings: "/tax/settings",
+    project: (projectId: string) => `/projects/${id(projectId)}/tax`,
+    whtCertificate: (paymentId: string) => `/payments/${id(paymentId)}/wht-certificate`,
   },
 
   admin: {
@@ -349,5 +489,9 @@ export const ENDPOINTS = {
     materialGroups: "/admin/material-groups",
     materials: "/admin/materials",
     materialById: (materialId: string) => `/admin/materials/${id(materialId)}`,
+    rulebooks: "/admin/rulebooks",
+    rulebookById: (rulebookId: string) => `/admin/rulebooks/${id(rulebookId)}`,
+    rulebookParameter: (rulebookId: string, key: string) => `/admin/rulebooks/${id(rulebookId)}/parameters/${id(key)}`,
+    rulebookPublish: (rulebookId: string) => `/admin/rulebooks/${id(rulebookId)}/publish`,
   },
 } as const;

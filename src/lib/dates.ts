@@ -27,25 +27,55 @@ export function isolateLtr(text: string): string {
   return `⁦${text}⁩`;
 }
 
+const URDU_MONTHS: Record<string, string> = {
+  Jan: "جنوری",
+  Feb: "فروری",
+  Mar: "مارچ",
+  Apr: "اپریل",
+  May: "مئی",
+  Jun: "جون",
+  Jul: "جولائی",
+  Aug: "اگست",
+  Sep: "ستمبر",
+  Oct: "اکتوبر",
+  Nov: "نومبر",
+  Dec: "دسمبر",
+};
+
+/**
+ * Month names in the page language (QA-A-10): Urdu script pages (`<html lang="ur">`) get Urdu
+ * month names ("15 اکتوبر 2026"); English and Roman Urdu keep "Oct".
+ */
+export function localizeMonths(text: string): string {
+  if (typeof document === "undefined" || document.documentElement.lang !== "ur") return text;
+  return text.replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (m) => URDU_MONTHS[m] ?? m);
+}
+
 /** Calendar dates are formatted in UTC so "2026-10-15" stays the 15th everywhere. */
 const zoneFor = (value: DateInput) => (typeof value === "string" && DATE_ONLY.test(value) ? "UTC" : TIME_ZONE);
 
 /** "15 Oct 2026" */
 export function formatDate(value: DateInput, fallback = "—"): string {
   const date = toDate(value);
-  return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM yyyy")) : fallback;
+  return date ? isolateLtr(localizeMonths(formatInTimeZone(date, zoneFor(value), "d MMM yyyy"))) : fallback;
+}
+
+/** "15 Oct" (chart axes, week labels). */
+export function formatDayMonth(value: DateInput, fallback = "—"): string {
+  const date = toDate(value);
+  return date ? isolateLtr(localizeMonths(formatInTimeZone(date, zoneFor(value), "d MMM"))) : fallback;
 }
 
 /** "15 Oct 2026, 2:30 pm" (Pakistan time). */
 export function formatDateTime(value: DateInput, fallback = "—"): string {
   const date = toDate(value);
-  return date ? isolateLtr(formatInTimeZone(date, zoneFor(value), "d MMM yyyy, h:mm aaa")) : fallback;
+  return date ? isolateLtr(localizeMonths(formatInTimeZone(date, zoneFor(value), "d MMM yyyy, h:mm aaa"))) : fallback;
 }
 
 /** "Oct 2026" — for month buckets such as "2026-09". */
 export function formatMonth(value: string): string {
   const date = toDate(/^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value);
-  return date ? isolateLtr(formatInTimeZone(date, "UTC", "MMM yyyy")) : value;
+  return date ? isolateLtr(localizeMonths(formatInTimeZone(date, "UTC", "MMM yyyy"))) : value;
 }
 
 /** "3 days ago" / "in 2 hours". */

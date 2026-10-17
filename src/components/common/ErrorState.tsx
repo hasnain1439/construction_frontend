@@ -3,7 +3,7 @@
 import { RefreshCw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage, useT } from "@/i18n/useT";
-import { getErrorMessage } from "@/lib/apiErrors";
+import { getErrorMessage, isApiError } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
 
 export interface ErrorStateProps {
@@ -14,9 +14,15 @@ export interface ErrorStateProps {
   compact?: boolean;
 }
 
+/** A 404 "…_NOT_FOUND" (out of scope looks the same) or a 403: retrying never helps (QA-A-25). */
+export function isNoAccess(error: unknown): boolean {
+  return isApiError(error) && (error.status === 404 || error.status === 403 || /_NOT_FOUND$/.test(error.code));
+}
+
 export function ErrorState({ error, title, onRetry, className, compact }: ErrorStateProps) {
   const t = useT();
   const language = useLanguage();
+  const noAccess = isNoAccess(error);
   return (
     <div
       role="alert"
@@ -30,10 +36,10 @@ export function ErrorState({ error, title, onRetry, className, compact }: ErrorS
         <TriangleAlert className="size-6" aria-hidden />
       </span>
       <div className="space-y-1">
-        <p className="text-base font-semibold">{title ?? t("common.somethingWrong")}</p>
-        <p className="mx-auto max-w-md text-sm text-muted-foreground">{getErrorMessage(error, language)}</p>
+        <p className="text-base font-semibold">{title ?? (noAccess ? t("common.noAccessTitle") : t("common.somethingWrong"))}</p>
+        <p className="mx-auto max-w-md text-sm text-muted-foreground">{noAccess && !title ? t("common.noAccessBody") : getErrorMessage(error, language)}</p>
       </div>
-      {onRetry ? (
+      {onRetry && !noAccess ? (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCw data-icon="inline-start" />
           {t("common.retry")}

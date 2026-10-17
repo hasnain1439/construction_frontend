@@ -121,11 +121,83 @@
    }
   },
   {
+   "key": "equipment",
+   "label": {
+    "en": "Equipment & shuttering",
+    "roman": "Machinery aur shuttering",
+    "urdu": "مشینری اور شٹرنگ"
+   }
+  },
+  {
+   "key": "closeout",
+   "label": {
+    "en": "Closeout & handover",
+    "roman": "Ikhtitaam aur hawalgi",
+    "urdu": "اختتام اور حوالگی"
+   }
+  },
+  {
    "key": "fields",
    "label": {
     "en": "Data visibility",
     "roman": "Kya nazar aaye",
     "urdu": "کیا نظر آئے"
+   }
+  },
+  {
+   "key": "estimate",
+   "label": {
+    "en": "Estimates",
+    "roman": "Estimate (takhmeena)",
+    "urdu": "تخمینہ"
+   }
+  },
+  {
+   "key": "rulebook",
+   "label": {
+    "en": "Estimation rulebook",
+    "roman": "Estimate ke qawaid",
+    "urdu": "تخمینے کے قواعد"
+   }
+  },
+  {
+   "key": "schedule",
+   "label": {
+    "en": "Schedule",
+    "roman": "Schedule (kaam ka nizam)",
+    "urdu": "شیڈول"
+   }
+  },
+  {
+   "key": "sales",
+   "label": {
+    "en": "Sales & quotes",
+    "roman": "Sales aur quotes",
+    "urdu": "سیلز اور کوٹیشن"
+   }
+  },
+  {
+   "key": "changeorder",
+   "label": {
+    "en": "Change orders",
+    "roman": "Tabdeeli orders",
+    "urdu": "تبدیلی آرڈرز"
+   }
+  },
+  {
+   "key": "control",
+   "label": {
+    "en": "Control & alerts",
+    "roman": "Control aur alerts",
+    "urdu": "کنٹرول اور الرٹس"
+   }
+  },
+  {
+   "key": "tax",
+   "label": {
+    "en": "Tax",
+    "roman": "Tax",
+    "urdu": "ٹیکس"
    }
   }
  ],
@@ -223,6 +295,246 @@
    "description": "Choose the PM and munshis of a project.",
    "ownerOnly": false,
    "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.estimate.view",
+   "module": "projects",
+   "resource": "estimate",
+   "action": "view",
+   "label": {
+    "en": "View estimate (BoQ)",
+    "roman": "Estimate (BoQ) dekhna",
+    "urdu": "تخمینہ (BoQ) دیکھنا"
+   },
+   "description": "Grey-structure material estimate of a project (rates and amounts follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "projects.estimate.manage",
+   "module": "projects",
+   "resource": "estimate",
+   "action": "manage",
+   "label": {
+    "en": "Change estimate settings",
+    "roman": "Estimate ki settings badalna",
+    "urdu": "تخمینے کی سیٹنگز بدلنا"
+   },
+   "description": "Change the assumptions of a project estimate (wall / slab thickness, mixes, steel, wastage, labour rate); generate / regenerate draft estimate revisions and change their lines.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "estimate.revision.approve",
+   "module": "estimate",
+   "resource": "revision",
+   "action": "approve",
+   "label": {
+    "en": "Approve estimates",
+    "roman": "Estimate manzoor karna",
+    "urdu": "تخمینہ منظور کرنا"
+   },
+   "description": "Approve a draft estimate revision: its rates and rulebook are frozen and the previous approved revision is superseded.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "rulebook.override.view",
+   "module": "rulebook",
+   "resource": "override",
+   "action": "view",
+   "label": {
+    "en": "View estimation rulebook",
+    "roman": "Estimate ke qawaid dekhna",
+    "urdu": "تخمینے کے قواعد دیکھنا"
+   },
+   "description": "The rule-of-thumb values the estimates use (platform rulebook + company values).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.plan.view",
+   "module": "schedule",
+   "resource": "plan",
+   "action": "view",
+   "label": {
+    "en": "View schedule",
+    "roman": "Schedule dekhna",
+    "urdu": "شیڈول دیکھنا"
+   },
+   "description": "Gantt, milestones, curing, baseline, delays, material quotas (quantities only) and stoppage days.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.plan.manage",
+   "module": "schedule",
+   "resource": "plan",
+   "action": "manage",
+   "label": {
+    "en": "Plan the schedule",
+    "roman": "Schedule banana / badalna",
+    "urdu": "شیڈول بنانا / بدلنا"
+   },
+   "description": "Generate the schedule from the approved estimate, re-plan, change milestone dates, effort, dependencies and payment-stage links.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.progress.edit",
+   "module": "schedule",
+   "resource": "progress",
+   "action": "edit",
+   "label": {
+    "en": "Update site progress",
+    "roman": "Kaam ki progress likhna",
+    "urdu": "کام کی پیش رفت لکھنا"
+   },
+   "description": "Update milestone progress and status from site (start, curing, done, blocked).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.stoppage.create",
+   "module": "schedule",
+   "resource": "stoppage",
+   "action": "create",
+   "label": {
+    "en": "Log stoppage days",
+    "roman": "Kaam band ke din likhna",
+    "urdu": "کام بند کے دن لکھنا"
+   },
+   "description": "Log days the site could not work (rain, smog ban, holiday, owner hold, shortages) with a photo.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "schedule.stoppage.approve",
+   "module": "schedule",
+   "resource": "stoppage",
+   "action": "approve",
+   "label": {
+    "en": "Approve stoppage days",
+    "roman": "Kaam band ke din manzoor karna",
+    "urdu": "کام بند کے دن منظور کرنا"
+   },
+   "description": "Approve or reject stoppage days and decide who they are charged to (owner / excusable / contractor); approved days push the schedule.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "rulebook.override.manage",
+   "module": "rulebook",
+   "resource": "override",
+   "action": "manage",
+   "label": {
+    "en": "Change company rulebook values",
+    "roman": "Company ke qawaid badalna",
+    "urdu": "کمپنی کے قواعد بدلنا"
+   },
+   "description": "Set the company own values for rulebook parameters (within the safe range).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.view",
+   "module": "sales",
+   "resource": "quote",
+   "action": "view",
+   "label": {
+    "en": "View quotes",
+    "roman": "Quotes dekhna",
+    "urdu": "کوٹیشن دیکھنا"
+   },
+   "description": "Quote pipeline, quote detail and revisions, quote PDFs, win / loss insights (price, cost and margin follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.create",
+   "module": "sales",
+   "resource": "quote",
+   "action": "create",
+   "label": {
+    "en": "Create quotes",
+    "roman": "Naya quote banana",
+    "urdu": "نیا کوٹیشن بنانا"
+   },
+   "description": "Start a quote for a client (quick estimate from plot, covered area and floors).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.edit",
+   "module": "sales",
+   "resource": "quote",
+   "action": "edit",
+   "label": {
+    "en": "Work on quotes",
+    "roman": "Quote par kaam",
+    "urdu": "کوٹیشن پر کام"
+   },
+   "description": "Change a quote, add a revision, send it to the client, record negotiation, mark it lost.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.approve",
+   "module": "sales",
+   "resource": "quote",
+   "action": "approve",
+   "label": {
+    "en": "Mark quotes won",
+    "roman": "Quote jeeta hua karna",
+    "urdu": "کوٹیشن جیتا ہوا کرنا"
+   },
+   "description": "Mark a quote won: a draft project is made from it (also needs Create projects).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "sales.quote.manage",
+   "module": "sales",
+   "resource": "quote",
+   "action": "manage",
+   "label": {
+    "en": "Delete quotes",
+    "roman": "Quote delete karna",
+    "urdu": "کوٹیشن ڈیلیٹ کرنا"
+   },
+   "description": "Delete a quote that was not won.",
+   "ownerOnly": false,
+   "scoped": false,
    "limit": false,
    "field": false
   },
@@ -1891,6 +2203,406 @@
    "field": false
   },
   {
+   "key": "equipment.view",
+   "module": "equipment",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View equipment",
+    "roman": "Machinery / shuttering dekhna",
+    "urdu": "مشینری / شٹرنگ دیکھنا"
+   },
+   "description": "Equipment register, where everything is (allocation map), movements, transfers, rentals, losses, hire charges (rates and amounts need fields.rates).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.manage",
+   "module": "equipment",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Manage equipment",
+    "roman": "Machinery ka intezam",
+    "urdu": "مشینری کا انتظام"
+   },
+   "description": "Add / edit equipment and hire rates, stock in (opening / purchase), adjustments, send from the yard, run the hire accrual.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.transfer.create",
+   "module": "equipment",
+   "resource": "transfer",
+   "action": "create",
+   "label": {
+    "en": "Send equipment",
+    "roman": "Machinery / shuttering bhejna",
+    "urdu": "مشینری / شٹرنگ بھیجنا"
+   },
+   "description": "Dispatch, transfer between sites and return equipment to the yard; cancel a transfer on the way.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.receiving.create",
+   "module": "equipment",
+   "resource": "receiving",
+   "action": "create",
+   "label": {
+    "en": "Receive equipment",
+    "roman": "Machinery / shuttering wasool karna",
+    "urdu": "مشینری / شٹرنگ وصول کرنا"
+   },
+   "description": "Count equipment arriving at a site or the yard (a gap becomes a loss).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.rental.manage",
+   "module": "equipment",
+   "resource": "rental",
+   "action": "manage",
+   "label": {
+    "en": "Manage equipment rentals",
+    "roman": "Kiraye ki shuttering ka intezam",
+    "urdu": "کرائے کی شٹرنگ کا انتظام"
+   },
+   "description": "Hire from yards: create, extend, return with damage charges, close (supplier ledger).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.loss.create",
+   "module": "equipment",
+   "resource": "loss",
+   "action": "create",
+   "label": {
+    "en": "Report equipment loss",
+    "roman": "Gum / toota saman report karna",
+    "urdu": "گم / ٹوٹا سامان رپورٹ کرنا"
+   },
+   "description": "Report missing or damaged equipment with a photo.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "equipment.loss.approve",
+   "module": "equipment",
+   "resource": "loss",
+   "action": "approve",
+   "label": {
+    "en": "Charge equipment loss",
+    "roman": "Nuqsan ka faisla",
+    "urdu": "نقصان کا فیصلہ"
+   },
+   "description": "Charge a loss to the project, a sub-contractor or write it off.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.view",
+   "module": "changeorder",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View change orders",
+    "roman": "Tabdeeli orders dekhna",
+    "urdu": "تبدیلی آرڈرز دیکھنا"
+   },
+   "description": "Change orders of a project, their slip PDF and WhatsApp text (amounts also need fields.rates or fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.create",
+   "module": "changeorder",
+   "resource": "create",
+   "action": "",
+   "label": {
+    "en": "Create change orders",
+    "roman": "Tabdeeli order banana",
+    "urdu": "تبدیلی آرڈر بنانا"
+   },
+   "description": "New change order (mini BoQ: material / labour lines, markup, days), turn a site instruction or a snag into a change order draft, dismiss a site instruction.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.edit",
+   "module": "changeorder",
+   "resource": "edit",
+   "action": "",
+   "label": {
+    "en": "Edit change orders",
+    "roman": "Tabdeeli order badalna",
+    "urdu": "تبدیلی آرڈر بدلنا"
+   },
+   "description": "Edit or delete a draft, send it to the owner, reopen it, mark the work started / completed.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.approve",
+   "module": "changeorder",
+   "resource": "approve",
+   "action": "",
+   "label": {
+    "en": "Record owner approval",
+    "roman": "Maalik ki manzoori darj karna",
+    "urdu": "مالک کی منظوری درج کرنا"
+   },
+   "description": "Record that the owner approved (with proof: WhatsApp screenshot, signed slip or verbal note) or rejected a change order.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.manage",
+   "module": "changeorder",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Bill change orders",
+    "roman": "Tabdeeli orders ka bill",
+    "urdu": "تبدیلی آرڈرز کا بل"
+   },
+   "description": "Put an approved change order on the next stage invoice or make a separate variation invoice (also needs billing.invoice.create).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.create",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "create",
+   "label": {
+    "en": "Record site instructions",
+    "roman": "Site hidayat darj karna",
+    "urdu": "سائٹ ہدایت درج کرنا"
+   },
+   "description": "Record what the owner asked for on site (photo + note) so the office can turn it into a change order; see own instructions.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "changeorder.instruction.view",
+   "module": "changeorder",
+   "resource": "instruction",
+   "action": "view",
+   "label": {
+    "en": "View site instructions",
+    "roman": "Site hidayat dekhna",
+    "urdu": "سائٹ ہدایات دیکھنا"
+   },
+   "description": "Every site instruction of a project (not only own).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.drawing.view",
+   "module": "closeout",
+   "resource": "drawing",
+   "action": "view",
+   "label": {
+    "en": "View drawings",
+    "roman": "Naqshe dekhna",
+    "urdu": "نقشے دیکھنا"
+   },
+   "description": "Project drawings by folder and every revision (superseded ones too).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.drawing.manage",
+   "module": "closeout",
+   "resource": "drawing",
+   "action": "manage",
+   "label": {
+    "en": "Manage drawings",
+    "roman": "Naqshon ka intezam",
+    "urdu": "نقشوں کا انتظام"
+   },
+   "description": "Add drawings, upload new revisions, set approval dates, delete drawings.",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.view",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "view",
+   "label": {
+    "en": "View snag list",
+    "roman": "Kamiyon ki list dekhna",
+    "urdu": "خامیوں کی فہرست دیکھنا"
+   },
+   "description": "Snags of a project with before / after photos (cost amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.create",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "create",
+   "label": {
+    "en": "Report snags",
+    "roman": "Kami darj karna",
+    "urdu": "خامی درج کرنا"
+   },
+   "description": "Log a snag with photos and mark it fixed with after photos (site).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.snag.manage",
+   "module": "closeout",
+   "resource": "snag",
+   "action": "manage",
+   "label": {
+    "en": "Manage snags",
+    "roman": "Kamiyon ka intezam",
+    "urdu": "خامیوں کا انتظام"
+   },
+   "description": "Edit / assign snags, verify or reopen them, delete, and set who pays (rework, sub-contractor deduction, change order — with fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.handover.manage",
+   "module": "closeout",
+   "resource": "handover",
+   "action": "manage",
+   "label": {
+    "en": "Handover to owner",
+    "roman": "Maalik ko hawalgi",
+    "urdu": "مالک کو حوالگی"
+   },
+   "description": "Handover checklist, owner sign-off, handover certificate, retention reminders (completing the handover also needs projects.project.manage).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "closeout.retention.view",
+   "module": "closeout",
+   "resource": "retention",
+   "action": "view",
+   "label": {
+    "en": "View retention",
+    "roman": "Retention dekhna",
+    "urdu": "روکی گئی رقم دیکھنا"
+   },
+   "description": "Retention due dates of the owner and sub-contractors after handover (amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "control.view",
+   "module": "control",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View control (variance & alerts)",
+    "roman": "Control dekhna (farq aur alerts)",
+    "urdu": "کنٹرول دیکھنا (فرق اور الرٹس)"
+   },
+   "description": "Material and cost variance, burn rate vs progress, delay analysis, projected margin and control alerts of a project (rupee values follow the data-visibility permissions).",
+   "ownerOnly": false,
+   "scoped": true,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "control.manage",
+   "module": "control",
+   "resource": "manage",
+   "action": "",
+   "label": {
+    "en": "Manage alert thresholds",
+    "roman": "Alert ki hadein badalna",
+    "urdu": "الرٹ کی حدیں بدلنا"
+   },
+   "description": "Change the control alert thresholds (overuse %, behind-plan points, quota %, spend-ahead points) and run the alert check now.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "tax.view",
+   "module": "tax",
+   "resource": "view",
+   "action": "",
+   "label": {
+    "en": "View tax & tax reports",
+    "roman": "Tax aur tax reports dekhna",
+    "urdu": "ٹیکس اور ٹیکس رپورٹس دیکھنا"
+   },
+   "description": "Tax settings (read), the yearly WHT summary and the tax-wise invoice register (amounts also need fields.amounts).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "tax.settings.manage",
+   "module": "tax",
+   "resource": "settings",
+   "action": "manage",
+   "label": {
+    "en": "Manage tax settings",
+    "roman": "Tax settings badalna",
+    "urdu": "ٹیکس سیٹنگز بدلنا"
+   },
+   "description": "Switch sales tax on / off, authority (PRA / SRB / KPRA / ICT), rate, NTN / STRN, default WHT %, and the tax override of a project.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "fields.rates",
    "module": "fields",
    "resource": "field",
@@ -1972,6 +2684,21 @@
     "projects.project.approve",
     "projects.project.manage",
     "projects.team.manage",
+    "projects.estimate.view",
+    "projects.estimate.manage",
+    "estimate.revision.approve",
+    "rulebook.override.view",
+    "schedule.plan.view",
+    "schedule.plan.manage",
+    "schedule.progress.edit",
+    "schedule.stoppage.create",
+    "schedule.stoppage.approve",
+    "rulebook.override.manage",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit",
+    "sales.quote.approve",
+    "sales.quote.manage",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2073,6 +2800,31 @@
     "company.profile.view",
     "company.opening.manage",
     "company.holiday.manage",
+    "equipment.view",
+    "equipment.manage",
+    "equipment.transfer.create",
+    "equipment.receiving.create",
+    "equipment.rental.manage",
+    "equipment.loss.create",
+    "equipment.loss.approve",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.manage",
+    "changeorder.instruction.create",
+    "changeorder.instruction.view",
+    "closeout.drawing.view",
+    "closeout.drawing.manage",
+    "closeout.snag.view",
+    "closeout.snag.create",
+    "closeout.snag.manage",
+    "closeout.handover.manage",
+    "closeout.retention.view",
+    "control.view",
+    "control.manage",
+    "tax.view",
+    "tax.settings.manage",
     "fields.rates",
     "fields.amounts",
     "fields.profit",
@@ -2126,9 +2878,27 @@
     "masterdata.worker.view",
     "masterdata.worker.create",
     "masterdata.subcontractor.view",
+    "equipment.view",
+    "equipment.receiving.create",
+    "equipment.loss.create",
+    "closeout.drawing.view",
+    "closeout.snag.view",
+    "closeout.snag.create",
+    "schedule.plan.view",
+    "schedule.progress.edit",
+    "schedule.stoppage.create",
+    "changeorder.instruction.create",
     "projects.project.create",
     "projects.project.edit",
     "projects.project.approve",
+    "projects.estimate.view",
+    "projects.estimate.manage",
+    "rulebook.override.view",
+    "schedule.plan.manage",
+    "schedule.stoppage.approve",
+    "sales.quote.view",
+    "sales.quote.create",
+    "sales.quote.edit",
     "clients.client.view",
     "clients.client.create",
     "clients.client.edit",
@@ -2167,7 +2937,19 @@
     "masterdata.subcontractor.edit",
     "team.member.view",
     "company.profile.view",
-    "fields.rates"
+    "fields.rates",
+    "equipment.transfer.create",
+    "equipment.rental.manage",
+    "closeout.drawing.manage",
+    "closeout.snag.manage",
+    "closeout.handover.manage",
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.create",
+    "changeorder.edit",
+    "changeorder.approve",
+    "changeorder.instruction.view",
+    "control.view"
    ]
   },
   {
@@ -2216,7 +2998,17 @@
     "masterdata.laborrate.view",
     "masterdata.worker.view",
     "masterdata.worker.create",
-    "masterdata.subcontractor.view"
+    "masterdata.subcontractor.view",
+    "equipment.view",
+    "equipment.receiving.create",
+    "equipment.loss.create",
+    "closeout.drawing.view",
+    "closeout.snag.view",
+    "closeout.snag.create",
+    "schedule.plan.view",
+    "schedule.progress.edit",
+    "schedule.stoppage.create",
+    "changeorder.instruction.create"
    ]
   },
   {
@@ -2230,6 +3022,9 @@
    "description": "Office accounts: billing, owner and supplier payments, cash, receivables and reports across all projects. No project or site changes.",
    "permissions": [
     "projects.project.view",
+    "projects.estimate.view",
+    "schedule.plan.view",
+    "sales.quote.view",
     "clients.client.view",
     "labor.settlement.view",
     "labor.advance.view",
@@ -2254,7 +3049,13 @@
     "company.profile.view",
     "fields.rates",
     "fields.amounts",
-    "fields.contract"
+    "fields.contract",
+    "closeout.snag.view",
+    "closeout.retention.view",
+    "changeorder.view",
+    "changeorder.manage",
+    "control.view",
+    "tax.view"
    ]
   },
   {
@@ -2285,7 +3086,11 @@
     "dashboard.site.view",
     "dailylog.log.view",
     "dailylog.log.create",
-    "masterdata.material.view"
+    "masterdata.material.view",
+    "equipment.view",
+    "equipment.manage",
+    "equipment.transfer.create",
+    "equipment.receiving.create"
    ]
   }
  ],

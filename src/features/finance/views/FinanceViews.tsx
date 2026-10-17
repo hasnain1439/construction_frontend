@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useGetCashFlowQuery, useGetProfitAndLossQuery } from "@/api/services/finance.api";
 import type { CashFlowMonth, CostBuckets, PnlBucket, PnlProject } from "@/api/types";
 import { AreaChartCard, BarChartCard, DonutChartCard, plotPaisa } from "@/components/common/Charts";
-import { DataTable, type Column } from "@/components/common/DataTable";
+import { DataTable, DENSE_TABLE, type Column } from "@/components/common/DataTable";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard } from "@/components/common/KpiCard";
@@ -130,14 +130,22 @@ export function CashFlowView() {
 /** Cost buckets in display order (labels: `te("pnlBucket", b)`). */
 const BUCKETS: PnlBucket[] = ["MATERIALS", "LABOR_WAGES", "SUBCONTRACT", "SITE_OVERHEAD", "EQUIPMENT", "LOSSES"];
 
-function PnlKpis({ totals }: { totals: { billedToDatePaisa: string; costToDatePaisa: string; grossProfitToDatePaisa: string; marginToDatePercent: number | null } }) {
+/** "12.3% (Rs 1.2 Cr)" or "Not enough data yet". */
+function useProjected() {
   const t = useT();
+  return (percent: number | null | undefined, paisa?: string | null) =>
+    percent === null || percent === undefined ? t("billing.finance.projectedNotYet") : paisa ? `${percent}% (${formatPKRShort(paisa)})` : `${percent}%`;
+}
+
+function PnlKpis({ totals }: { totals: { billedToDatePaisa: string; costToDatePaisa: string; grossProfitToDatePaisa: string; marginToDatePercent: number | null; projectedMarginPercent?: number | null; projectedMarginPaisa?: string | null } }) {
+  const t = useT();
+  const projected = useProjected();
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <KpiCard label={t("billing.finance.billedToDate")} icon={CircleDollarSign} value={formatPKRShort(totals.billedToDatePaisa)} hint={t("billing.finance.beforeSalesTax")} />
       <KpiCard label={t("billing.finance.costToDate")} icon={Calculator} tone="warning" value={formatPKRShort(totals.costToDatePaisa)} />
       <KpiCard label={t("billing.finance.grossProfitToDate")} icon={TrendingUp} tone={negative(totals.grossProfitToDatePaisa) ? "danger" : "success"} value={formatPKRShort(totals.grossProfitToDatePaisa)} />
-      <KpiCard label={t("billing.finance.marginToDate")} icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={t("billing.finance.projectedMarginHint", { value: t("billing.finance.phase2") })} />
+      <KpiCard label={t("billing.finance.marginToDate")} icon={Percent} value={totals.marginToDatePercent === null ? "—" : `${totals.marginToDatePercent}%`} hint={totals.projectedMarginPercent === undefined ? undefined : t("billing.finance.projectedMarginHint", { value: projected(totals.projectedMarginPercent, totals.projectedMarginPaisa) })} />
     </div>
   );
 }
@@ -176,7 +184,22 @@ export function ProfitLossView() {
     },
     { id: "margin", header: t("billing.finance.margin"), align: "right", sortValue: (r) => r.marginToDatePercent ?? -999, cell: (r) => (r.marginToDatePercent === null ? "—" : `${r.marginToDatePercent}%`) },
     { id: "progress", header: t("billing.finance.billedVsSpent"), cell: (r) => <ProgressPair billed={r.percentBilled} spent={r.percentCostOfContract} /> },
-    { id: "projected", header: t("billing.finance.projectedMargin"), cell: () => <span className="text-xs text-muted-foreground">{t("billing.finance.phase2")}</span> },
+    {
+      id: "projected",
+      header: t("billing.finance.projectedMargin"),
+      align: "right",
+      // QA-B-17: the API leaves the projection out for roles without the profit field.
+      hidden: !q.data?.projects.some((r) => r.projectedMarginPercent !== undefined),
+      sortValue: (r) => r.projectedMarginPercent ?? -999,
+      cell: (r) =>
+        r.projectedMarginPercent === null || r.projectedMarginPercent === undefined ? (
+          <span className="text-xs text-muted-foreground" title={r.projectedMarginNote}>{t("billing.finance.projectedNotYet")}</span>
+        ) : (
+          <span className={cn("font-semibold", r.projectedMarginPercent < 0 ? "text-danger" : undefined)} title={r.projectedMarginNote}>
+            {r.projectedMarginPercent}%
+          </span>
+        ),
+    },
   ];
   return (
     <div className="space-y-6">
@@ -214,6 +237,7 @@ export function ProfitLossView() {
                 onRowClick={(r) => router.push(`/finance/profit-loss/${r.project.id}`)}
                 empty={{ title: t("billing.finance.noProjects") }}
                 defaultSort={{ id: "gp", direction: "desc" }}
+                className={DENSE_TABLE}
               />
             </SectionCard>
           </>
@@ -226,6 +250,7 @@ export function ProfitLossView() {
 /** One project's P&L: totals, cost donut and its trend. */
 export function ProjectProfitView({ projectId }: { projectId: string }) {
   const t = useT();
+  const projected = useProjected();
   const te = useEnumT();
   const q = useGetProfitAndLossQuery({ projectId }, { refetchOnMountOrArgChange: 60 });
   const row = q.data?.projects[0];
@@ -245,7 +270,7 @@ export function ProjectProfitView({ projectId }: { projectId: string }) {
         {(d) =>
           row ? (
             <>
-              <PnlKpis totals={{ billedToDatePaisa: row.billedToDatePaisa, costToDatePaisa: row.costToDatePaisa, grossProfitToDatePaisa: row.grossProfitToDatePaisa, marginToDatePercent: row.marginToDatePercent }} />
+              <PnlKpis totals={{ billedToDatePaisa: row.billedToDatePaisa, costToDatePaisa: row.costToDatePaisa, grossProfitToDatePaisa: row.grossProfitToDatePaisa, marginToDatePercent: row.marginToDatePercent, projectedMarginPercent: row.projectedMarginPercent, projectedMarginPaisa: row.projectedMarginPaisa }} />
               <div className="grid gap-4 xl:grid-cols-2">
                 <DonutChartCard title={t("billing.finance.costByBucket")} slices={bucketSlices(row.cost, te)} totalLabel={t("billing.finance.costToDate")} />
                 <SectionCard title={t("field.contract")}>
@@ -262,10 +287,15 @@ export function ProjectProfitView({ projectId }: { projectId: string }) {
                       <dt className="mb-1 text-muted-foreground">{t("billing.finance.billedVsSpentContract")}</dt>
                       <dd><ProgressPair billed={row.percentBilled} spent={row.percentCostOfContract} /></dd>
                     </div>
+                    {row.projectedMarginPercent === undefined ? null : (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">{t("billing.finance.projectedMargin")}</dt>
-                      <dd className="text-muted-foreground">{t("billing.finance.phase2")}</dd>
+                      <dd className={cn("text-lg font-semibold", (row.projectedMarginPercent ?? 0) < 0 && "text-danger")} data-testid="projected-margin">
+                        {projected(row.projectedMarginPercent, row.projectedMarginPaisa)}
+                      </dd>
+                      <dd className="text-xs text-muted-foreground">{row.projectedMarginNote}</dd>
                     </div>
+                    )}
                   </dl>
                 </SectionCard>
               </div>

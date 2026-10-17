@@ -7,6 +7,8 @@ import { cn } from "@/lib/cn";
 
 export interface Step {
   id: number;
+  /** Shown in the circle when it differs from `id` (a hidden step renumbers the rest). */
+  number?: number;
   label: string;
   completed?: boolean;
   hasError?: boolean;
@@ -83,7 +85,7 @@ export function StepTabs({
                     : "border-border bg-card",
               )}
             >
-              {step.completed ? <Check className="size-4" aria-label={t("app.components.steps.completed")} /> : step.id}
+              {step.completed ? <Check className="size-4" aria-label={t("app.components.steps.completed")} /> : (step.number ?? step.id)}
             </span>
             <span>{step.label}</span>
             {step.hasError ? (

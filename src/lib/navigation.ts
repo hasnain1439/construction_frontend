@@ -53,7 +53,7 @@ export interface NavItem {
   access?: AccessRule;
   /** false → opens the ComingSoon page. */
   available: boolean;
-  /** Custom ComingSoon wording, e.g. "Estimate comes in Phase 2". */
+  /** Custom ComingSoon wording for an item that is not live yet. */
   comingSoonNote?: string;
   keywords?: string[];
   /** Live count shown next to the item (project mode: incoming deliveries). */
@@ -74,13 +74,6 @@ const L = (en: string, ur: string, urdu: string): Label => ({ en, ur, urdu });
 const P = (permission: PermissionKey): AccessRule => ({ permission });
 const ANY = (...anyPermission: PermissionKey[]): AccessRule => ({ anyPermission });
 const ALL = (...allPermissions: PermissionKey[]): AccessRule => ({ allPermissions });
-const soon = (id: string, label: Label, href: string, access?: AccessRule): NavItem => ({
-  id,
-  label,
-  href,
-  access,
-  available: false,
-});
 
 // ─── Company mode ───────────────────────────────────────────────────────────
 
@@ -157,24 +150,29 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("clients.client.view"),
         keywords: ["owner", "customer"],
       },
-      soon(
-        "sales.quotes",
-        L("Quote Pipeline", "Quote pipeline", "کوٹیشن پائپ لائن"),
-        "/sales/quotes",
-        P("clients.client.create"),
-      ),
-      soon(
-        "sales.newQuote",
-        L("New Quote", "Naya quote", "نیا کوٹیشن"),
-        "/sales/quotes/new",
-        P("clients.client.create"),
-      ),
-      soon(
-        "sales.insights",
-        L("Win / Loss Insights", "Jeet / haar ka jaiza", "جیت / ہار کا جائزہ"),
-        "/sales/insights",
-        P("finance.companyreports.view"),
-      ),
+      // Step 12 · quotes
+      {
+        id: "sales.quotes",
+        label: L("Quote Pipeline", "Quote pipeline", "کوٹیشن پائپ لائن"),
+        href: "/sales/quotes",
+        available: true,
+        access: P("sales.quote.view"),
+        keywords: ["quotation", "estimate", "offer"],
+      },
+      {
+        id: "sales.newQuote",
+        label: L("New Quote", "Naya quote", "نیا کوٹیشن"),
+        href: "/sales/quotes/new",
+        available: true,
+        access: P("sales.quote.create"),
+      },
+      {
+        id: "sales.insights",
+        label: L("Win / Loss Insights", "Jeet / haar ka jaiza", "جیت / ہار کا جائزہ"),
+        href: "/sales/insights",
+        available: true,
+        access: P("sales.quote.view"),
+      },
     ],
   },
   {
@@ -294,42 +292,62 @@ export const COMPANY_NAV: NavSection[] = [
     icon: Forklift,
     mode: "company",
     items: [
-      soon(
-        "equipment.map",
-        L("Allocation Map", "Allocation map", "تقسیم کا نقشہ"),
-        "/equipment/allocation",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "equipment.owned",
-        L("Owned Equipment", "Apna saman", "اپنا سامان"),
-        "/equipment/owned",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "equipment.rentals",
-        L("Rentals", "Kiraye ka saman", "کرائے کا سامان"),
-        "/equipment/rentals",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "equipment.movements",
-        L("Movements", "Naql-o-harkat", "نقل و حرکت"),
-        "/equipment/movements",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "equipment.loss",
-        L("Loss & Damage", "Nuqsan", "نقصان"),
-        "/equipment/loss-damage",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "equipment.shuttering",
-        L("Shuttering Demand", "Shuttering ki talab", "شٹرنگ کی طلب"),
-        "/equipment/shuttering",
-        P("projects.project.edit"),
-      ),
+      {
+        id: "equipment.map",
+        label: L("Allocation Map", "Allocation map", "تقسیم کا نقشہ"),
+        href: "/equipment/allocation",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["where", "shuttering", "plates", "yard"],
+      },
+      {
+        id: "equipment.owned",
+        label: L("Owned Equipment", "Apna saman", "اپنا سامان"),
+        href: "/equipment/owned",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["register", "mixer", "vibrator", "props", "stock in"],
+      },
+      {
+        id: "equipment.rentals",
+        label: L("Rentals", "Kiraye ka saman", "کرائے کا سامان"),
+        href: "/equipment/rentals",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["hire", "kiraya", "yard supplier", "deposit"],
+      },
+      {
+        id: "equipment.movements",
+        label: L("Movements", "Naql-o-harkat", "نقل و حرکت"),
+        href: "/equipment/movements",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["transfer", "dispatch", "return", "receive"],
+      },
+      {
+        id: "equipment.loss",
+        label: L("Loss & Damage", "Nuqsan", "نقصان"),
+        href: "/equipment/loss-damage",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["missing", "damaged", "gum"],
+      },
+      {
+        id: "equipment.charges",
+        label: L("Hire & Rent Charges", "Kiraya charges", "کرایہ چارجز"),
+        href: "/equipment/charges",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["internal hire", "daily", "rent"],
+      },
+      {
+        id: "equipment.shuttering",
+        label: L("Shuttering Demand", "Shuttering ki talab", "شٹرنگ کی طلب"),
+        href: "/equipment/shuttering",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["plates", "props", "slab", "lenter", "shortfall", "idle"],
+      },
     ],
   },
   {
@@ -427,12 +445,64 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: ALL("finance.reports.view", "finance.companyreports.view"),
       },
-      soon(
-        "reports.delay",
-        L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
-        "/reports/delay-analysis",
-        P("finance.reports.view"),
-      ),
+      // Step 18 · reports on schedule / control / change orders / equipment / closeout (+ the module view key)
+      {
+        id: "reports.delay",
+        label: L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
+        href: "/reports/delay-analysis",
+        available: true,
+        access: ALL("finance.reports.view", "control.view"),
+        keywords: ["late", "stoppage", "takheer"],
+      },
+      {
+        id: "reports.variance",
+        label: L("Variance Report", "Farq ki report", "فرق کی رپورٹ"),
+        href: "/reports/variance",
+        available: true,
+        access: ALL("finance.reports.view", "control.view"),
+        keywords: ["overuse", "margin", "budget"],
+      },
+      {
+        id: "reports.changeOrders",
+        label: L("Change Order Register", "Tabdeeli orders ka register", "تبدیلی آرڈرز کا رجسٹر"),
+        href: "/reports/change-orders",
+        available: true,
+        access: ALL("finance.reports.view", "changeorder.view"),
+        keywords: ["variation", "extra work"],
+      },
+      {
+        id: "reports.equipment",
+        label: L("Equipment Utilisation", "Machinery ka istemal", "مشینری کا استعمال"),
+        href: "/reports/equipment-utilisation",
+        available: true,
+        access: ALL("finance.reports.view", "equipment.view"),
+        keywords: ["shuttering", "rent", "idle"],
+      },
+      {
+        id: "reports.snags",
+        label: L("Snag Summary", "Kamiyon ka khulasa", "خامیوں کا خلاصہ"),
+        href: "/reports/snags",
+        available: true,
+        access: ALL("finance.reports.view", "closeout.snag.view"),
+        keywords: ["defects", "punch list"],
+      },
+      // Step 18 · tax reports
+      {
+        id: "reports.wht",
+        label: L("WHT Summary", "WHT ka khulasa", "ٹیکس کٹوتی کا خلاصہ"),
+        href: "/reports/wht-summary",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["withholding", "certificate", "tax"],
+      },
+      {
+        id: "reports.taxRegister",
+        label: L("Tax-wise Invoice Register", "Tax ke hisaab se invoice register", "ٹیکس وار انوائس رجسٹر"),
+        href: "/reports/tax-invoice-register",
+        available: true,
+        access: ALL("tax.view", "fields.amounts"),
+        keywords: ["sales tax", "PRA", "SRB", "return"],
+      },
     ],
   },
   {
@@ -522,12 +592,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: ALL("masterdata.laborrate.view", "fields.rates"),
         keywords: ["wages"],
       },
-      soon(
-        "settings.rulebook",
-        L("Rulebook", "Qawaid", "قواعد"),
-        "/settings/rulebook",
-        P("company.settings.manage"),
-      ),
+      {
+        id: "settings.rulebook",
+        label: L("Rulebook", "Qawaid", "قواعد"),
+        href: "/settings/rulebook",
+        available: true,
+        access: P("rulebook.override.view"),
+        keywords: ["estimate", "wastage", "bricks per cft", "steel kg", "qawaid", "safe range"],
+      },
       {
         id: "settings.paymentTemplates",
         label: L("Payment Templates", "Adaigi templates", "ادائیگی کے سانچے"),
@@ -558,7 +630,14 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: P("company.settings.manage"),
       },
-      soon("settings.tax", L("Tax", "Tax", "ٹیکس"), "/settings/tax", P("company.settings.manage")),
+      {
+        id: "settings.tax",
+        label: L("Tax", "Tax", "ٹیکس"),
+        href: "/settings/tax",
+        available: true,
+        access: P("tax.view"),
+        keywords: ["sales tax", "PRA", "SRB", "NTN", "WHT"],
+      },
       {
         id: "settings.subscription",
         label: L("Subscription", "Subscription", "سبسکرپشن"),
@@ -616,26 +695,29 @@ export const PROJECT_NAV: NavSection[] = [
         available: true,
       },
       {
-        ...soon(
-          "p.planning.estimate",
-          L("Estimate (BoQ)", "Estimate (BoQ)", "تخمینہ (BoQ)"),
-          "/planning/estimate",
-        ),
-        comingSoonNote: "Estimate comes in Phase 2.",
+        id: "p.planning.estimate",
+        label: L("Estimate (BoQ)", "Andaza (BoQ)", "تخمینہ (BoQ)"),
+        href: "/planning/estimate",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["boq", "andaza", "material estimate", "cement", "bricks", "steel", "quantity"],
       },
       {
-        ...soon(
-          "p.planning.revisions",
-          L("Estimate Revisions", "Estimate revisions", "تخمینے میں ترمیم"),
-          "/planning/estimate-revisions",
-        ),
-        comingSoonNote: "Estimate comes in Phase 2.",
+        id: "p.planning.revisions",
+        label: L("Estimate Revisions", "Estimate revisions", "تخمینے میں ترمیم"),
+        href: "/planning/estimate-revisions",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["revision", "compare", "approve", "boq"],
       },
-      soon(
-        "p.planning.shopping",
-        L("Owner Shopping List", "Maalik ki shopping list", "مالک کی خریداری کی فہرست"),
-        "/planning/shopping-list",
-      ),
+      {
+        id: "p.planning.shopping",
+        label: L("Owner Shopping List", "Maalik ki shopping list", "مالک کی خریداری کی فہرست"),
+        href: "/planning/shopping-list",
+        available: true,
+        access: P("projects.estimate.view"),
+        keywords: ["owner", "maalik", "tiles", "paint", "whatsapp"],
+      },
     ],
   },
   {
@@ -644,13 +726,38 @@ export const PROJECT_NAV: NavSection[] = [
     icon: CalendarRange,
     mode: "project",
     items: [
-      soon("p.schedule.gantt", L("Gantt", "Gantt", "گینٹ"), "/schedule/gantt"),
-      soon(
-        "p.schedule.milestones",
-        L("Milestones & Quotas", "Milestones", "سنگ میل اور کوٹے"),
-        "/schedule/milestones",
-      ),
-      soon("p.schedule.stoppages", L("Stoppage Days", "Kaam band din", "کام بند دن"), "/schedule/stoppages"),
+      {
+        id: "p.schedule.gantt",
+        label: L("Gantt", "Gantt", "گینٹ"),
+        href: "/schedule/gantt",
+        available: true,
+        access: P("schedule.plan.view"),
+        keywords: ["schedule", "timeline", "milestones", "curing", "re-plan", "shedule"],
+      },
+      {
+        id: "p.schedule.milestones",
+        label: L("Milestones & Quotas", "Milestones aur quota", "سنگ میل اور کوٹے"),
+        href: "/schedule/milestones",
+        available: true,
+        access: P("schedule.plan.view"),
+        keywords: ["quota", "planned vs used", "material quota"],
+      },
+      {
+        id: "p.schedule.stoppages",
+        label: L("Stoppage Days", "Kaam band din", "کام بند دن"),
+        href: "/schedule/stoppages",
+        available: true,
+        access: P("schedule.plan.view"),
+        keywords: ["rain", "smog", "holiday", "stoppage", "delay"],
+      },
+      {
+        id: "p.schedule.versions",
+        label: L("Plan Versions", "Plan ke versions", "منصوبے کے ورژن"),
+        href: "/schedule/versions",
+        available: true,
+        access: P("schedule.plan.view"),
+        keywords: ["baseline", "re-plan", "history"],
+      },
     ],
   },
   {
@@ -705,7 +812,14 @@ export const PROJECT_NAV: NavSection[] = [
         available: true,
         access: P("inventory.count.view"),
       },
-      soon("p.site.equipment", L("Equipment on Site", "Site par saman", "سائٹ پر سامان"), "/site/equipment"),
+      {
+        id: "p.site.equipment",
+        label: L("Equipment on Site", "Site par saman", "سائٹ پر سامان"),
+        href: "/site/equipment",
+        available: true,
+        access: P("equipment.view"),
+        keywords: ["shuttering", "plates", "mixer", "receive equipment"],
+      },
     ],
   },
   {
@@ -808,18 +922,29 @@ export const PROJECT_NAV: NavSection[] = [
     icon: FilePen,
     mode: "project",
     items: [
-      soon(
-        "p.changes.all",
-        L("All Change Orders", "Tamam tabdeeli orders", "تمام تبدیلی آرڈرز"),
-        "/change-orders",
-        P("projects.project.edit"),
-      ),
-      soon(
-        "p.changes.new",
-        L("New Change Order", "Naya tabdeeli order", "نیا تبدیلی آرڈر"),
-        "/change-orders/new",
-        P("projects.project.edit"),
-      ),
+      {
+        id: "p.changes.all",
+        label: L("All Change Orders", "Tamam tabdeeli orders", "تمام تبدیلی آرڈرز"),
+        href: "/change-orders",
+        available: true,
+        access: P("changeorder.view"),
+        keywords: ["variation", "extra work", "revised contract"],
+      },
+      {
+        id: "p.changes.new",
+        label: L("New Change Order", "Naya tabdeeli order", "نیا تبدیلی آرڈر"),
+        href: "/change-orders/new",
+        available: true,
+        access: P("changeorder.create"),
+      },
+      {
+        id: "p.changes.instructions",
+        label: L("Site Instructions", "Site hidayaat", "سائٹ ہدایات"),
+        href: "/change-orders/instructions",
+        available: true,
+        access: ANY("changeorder.instruction.view", "changeorder.instruction.create"),
+        keywords: ["owner request", "munshi"],
+      },
     ],
   },
   {
@@ -868,30 +993,39 @@ export const PROJECT_NAV: NavSection[] = [
     icon: Gauge,
     mode: "project",
     items: [
-      soon(
-        "p.control.material",
-        L("Material Variance", "Maal ka farq", "مال کا فرق"),
-        "/control/material-variance",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.cost",
-        L("Cost Variance", "Lagat ka farq", "لاگت کا فرق"),
-        "/control/cost-variance",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.burn",
-        L("Burn Rate vs Progress", "Kharch vs taraqqi", "خرچ بمقابلہ پیش رفت"),
-        "/control/burn-rate",
-        P("finance.pnl.view"),
-      ),
-      soon(
-        "p.control.delay",
-        L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
-        "/control/delay",
-        P("finance.pnl.view"),
-      ),
+      // Step 14 · control (control.view; rupee figures follow the data-visibility permissions)
+      {
+        id: "p.control.material",
+        label: L("Material Variance", "Maal ka farq", "مال کا فرق"),
+        href: "/control/material-variance",
+        available: true,
+        access: P("control.view"),
+        keywords: ["overuse", "wastage", "estimate vs used"],
+      },
+      {
+        id: "p.control.cost",
+        label: L("Cost Variance", "Lagat ka farq", "لاگت کا فرق"),
+        href: "/control/cost-variance",
+        available: true,
+        access: P("control.view"),
+        keywords: ["budget", "projected margin"],
+      },
+      {
+        id: "p.control.burn",
+        label: L("Burn Rate vs Progress", "Kharch vs taraqqi", "خرچ بمقابلہ پیش رفت"),
+        href: "/control/burn-rate",
+        available: true,
+        access: P("control.view"),
+        keywords: ["spend", "progress"],
+      },
+      {
+        id: "p.control.delay",
+        label: L("Delay Analysis", "Takheer ka jaiza", "تاخیر کا جائزہ"),
+        href: "/control/delay",
+        available: true,
+        access: P("control.view"),
+        keywords: ["late", "behind plan"],
+      },
     ],
   },
   {
@@ -900,15 +1034,39 @@ export const PROJECT_NAV: NavSection[] = [
     icon: FolderArchive,
     mode: "project",
     items: [
-      soon("p.docs.drawings", L("Drawings", "Naqshe", "نقشے"), "/documents/drawings"),
-      soon("p.docs.snags", L("Snag List", "Kamiyon ki list", "خامیوں کی فہرست"), "/documents/snags"),
-      soon("p.docs.handover", L("Handover", "Hawalgi", "حوالگی"), "/documents/handover"),
-      soon(
-        "p.docs.retention",
-        L("Retention", "Retention", "روکی گئی رقم"),
-        "/documents/retention",
-        P("billing.invoice.view"),
-      ),
+      // Step 17 · Closeout
+      {
+        id: "p.docs.drawings",
+        label: L("Drawings", "Naqshe", "نقشے"),
+        href: "/documents/drawings",
+        available: true,
+        access: P("closeout.drawing.view"),
+        keywords: ["naqsha", "plan", "revision", "society approved"],
+      },
+      {
+        id: "p.docs.snags",
+        label: L("Snag List", "Kamiyon ki list", "خامیوں کی فہرست"),
+        href: "/documents/snags",
+        available: true,
+        access: P("closeout.snag.view"),
+        keywords: ["snag", "defect", "punch list", "kami"],
+      },
+      {
+        id: "p.docs.handover",
+        label: L("Handover", "Hawalgi", "حوالگی"),
+        href: "/documents/handover",
+        available: true,
+        access: P("closeout.handover.manage"),
+        keywords: ["keys", "certificate", "sign-off"],
+      },
+      {
+        id: "p.docs.retention",
+        label: L("Retention", "Retention", "روکی گئی رقم"),
+        href: "/documents/retention",
+        available: true,
+        access: P("closeout.retention.view"),
+        keywords: ["retention", "defect period"],
+      },
     ],
   },
 ];
@@ -985,7 +1143,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
     id: "admin.rulebook",
     label: L("Rulebook", "Qawaid", "قواعد"),
     href: "/admin/rulebook",
-    available: false,
+    available: true,
     icon: BookOpen,
   },
   {
@@ -1115,8 +1273,8 @@ export const CREATE_ACTIONS: QuickAction[] = [
     id: "create.quote",
     label: L("New quote", "Naya quote", "نیا کوٹیشن"),
     href: "/sales/quotes/new",
-    available: false,
-    access: P("clients.client.create"),
+    available: true,
+    access: P("sales.quote.create"),
   },
   {
     id: "create.purchase",

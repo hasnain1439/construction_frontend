@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
+import { downloadFile } from "@/lib/download";
 
 type FileFormat = Exclude<ReportFormat, "json">;
 
@@ -26,7 +27,7 @@ export function ExportMenu({ name, filters, disabled }: { name: ReportName; filt
   const run = useMutationToast();
   const download = async (format: FileFormat) => {
     const file = await run(() => exportReport({ name, format, ...filters }).unwrap(), { success: (f) => t("app.components.exportMenu.ready", { name: f.fileName }) });
-    if (file) window.open(file.url, "_blank", "noopener,noreferrer");
+    if (file) await downloadFile(file.downloadUrl ?? file.url, file.fileName);
   };
   return (
     <DropdownMenu>

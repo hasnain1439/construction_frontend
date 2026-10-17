@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useT, type TranslationKey } from "@/i18n/useT";
+import { useT } from "@/i18n/useT";
 
 type Unit = "second" | "minute" | "hour" | "day" | "month" | "year";
 
@@ -13,6 +13,11 @@ const UNITS: [Unit, number][] = [
   ["minute", 60],
   ["second", 1],
 ];
+
+/** Checked against the dictionaries: every combination must exist (QA-B-01). */
+type RelativeTimeKey = `app.time.${"ago" | "in"}${"One" | "N"}${Capitalize<Unit>}`;
+
+const capitalize = (unit: Unit) => (unit[0].toUpperCase() + unit.slice(1)) as Capitalize<Unit>;
 
 const LIMITS: Record<Unit, number> = { second: 60, minute: 60, hour: 24, day: 30, month: 12, year: Infinity };
 
@@ -40,8 +45,7 @@ export function useRelativeTime() {
       if (!date) return fallback;
       const diff = (date.getTime() - Date.now()) / 1000;
       const [unit, n] = pickUnit(Math.abs(diff));
-      const plural = n === 1 ? "One" : "N";
-      const key = `app.time.${diff > 0 ? "in" : "ago"}${plural}${unit[0].toUpperCase()}${unit.slice(1)}` as TranslationKey;
+      const key: RelativeTimeKey = `app.time.${diff > 0 ? "in" : "ago"}${n === 1 ? "One" : "N"}${capitalize(unit)}`;
       return t(key, { n });
     },
     [t],

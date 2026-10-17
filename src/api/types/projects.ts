@@ -6,6 +6,7 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { BillingModel } from "./masterData";
+import type { ProjectChangeSummary } from "./changeOrders";
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,8 @@ export interface Client {
   email: string | null;
   address: string | null;
   notes: string | null;
+  /** Step 18: NTN / CNIC (taxed invoices, tax reports). */
+  ntn?: string | null;
   isDemo?: boolean;
   createdAt: IsoDateTime;
   projectsCount?: number;
@@ -203,12 +206,72 @@ export interface AreaTotals {
   wetRooms: number;
 }
 
+/** Roof / slab (lenter) request body: `floors[].roof` of PATCH /projects/:id/plot-structure. */
+export type RoofInput = NonNullable<UpdatePlotStructureBody["floors"][number]["roof"]>;
+export type RoofType = RoofInput["type"];
+export type BarNo = NonNullable<RoofInput["mainBar"]>;
+export type TIronSection = NonNullable<RoofInput["tIronSection"]>;
+export type RoofInfill = NonNullable<RoofInput["infill"]>;
+export type RoofMix = NonNullable<RoofInput["concreteMix"]>;
+export type SteelGrade = NonNullable<RoofInput["steelGrade"]>;
+
+/** Saved roof (backend roof.ts): every key present, null where it does not apply to the type. */
+export interface FloorRoof {
+  type: RoofType;
+  thicknessIn: number | null;
+  concreteMix: RoofMix;
+  steelGrade: SteelGrade;
+  mainBar: BarNo | null;
+  mainSpacingIn: number | null;
+  distBar: BarNo | null;
+  distSpacingIn: number | null;
+  topBars: boolean | null;
+  coverIn: number | null;
+  chajjaLengthFt: number | null;
+  chajjaWidthFt: number | null;
+  beamWidthIn: number;
+  beamDepthIn: number;
+  beamBars: number;
+  beamBar: BarNo;
+  stirrupBar: BarNo;
+  stirrupSpacingIn: number;
+  beamRunFt: number | null;
+  columnCount: number | null;
+  columnWidthIn: number;
+  columnDepthIn: number;
+  columnBars: number;
+  columnBar: BarNo;
+  tieBar: BarNo;
+  tieSpacingIn: number;
+  tIronSection: TIronSection | null;
+  tIronSpacingFt: number | null;
+  infill: RoofInfill | null;
+  screedThicknessIn: number | null;
+  earthFillIn: number | null;
+  plankAreaSqft: number | null;
+  deckAreaSqft: number | null;
+  toppingIn: number | null;
+  mesh: boolean | null;
+  notes: string | null;
+}
+
+/** RCC slab thickness suggested by the floor's largest room short span. */
+export interface SlabSuggestion {
+  spanFt: number | null;
+  suggestedIn: number;
+  minIn: number;
+  beamAdvised: boolean;
+}
+
 export interface FloorSummary {
   id: Id;
   level: FloorLevel;
   name: string;
   ceilingHeightFt: number;
   sortOrder: number;
+  /** Absent from an older API; null = not entered. */
+  roof?: FloorRoof | null;
+  slabSuggestion?: SlabSuggestion;
   calculations: AreaTotals;
 }
 
@@ -251,7 +314,10 @@ export interface ProjectDetail extends ProjectBasic {
   activatedAt?: IsoDateTime | null;
   createdAt?: IsoDateTime;
   updatedAt?: IsoDateTime;
-  nextStep?: "ESTIMATE";
+  /** "GENERATE_ESTIMATE" after activation (Step 11); "ESTIMATE" from an older API. */
+  nextStep?: "GENERATE_ESTIMATE" | "ESTIMATE";
+  /** Step 15: approved change orders → revised contract (fields.contract) and revised end date. */
+  changeOrders?: ProjectChangeSummary;
 }
 
 export type CreateProjectBody = RequestBody<"/api/v1/projects", "post">;
@@ -312,12 +378,29 @@ export interface SupplyPreset {
 
 // ─── Floors, rooms, openings ────────────────────────────────────────────────
 
+export type WallSide = "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
+export type WallType = "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+
 export interface Opening {
   id: Id;
   type: OpeningType;
   widthFt: number;
   heightFt: number;
   quantity: number;
+  /** Wall the opening is in; null = not placed. */
+  side?: WallSide | null;
+}
+
+/** One side of a room (backend walls.ts). TOP / BOTTOM run along the length, LEFT / RIGHT along the width. */
+export interface RoomWall {
+  side: WallSide;
+  type: WallType;
+  thicknessIn: number | null;
+  innerLeafIn: number | null;
+  cavityIn: number | null;
+  sharedWithRoomId: Id | null;
+  sharedWithSide: WallSide | null;
+  existing: boolean;
 }
 
 export interface RoomCalculations {
@@ -339,6 +422,8 @@ export interface Room {
   isWetOverridden: boolean;
   sortOrder: number;
   openings: Opening[];
+  /** null = not entered (absent from an older API). */
+  walls?: RoomWall[] | null;
   calculations: RoomCalculations;
 }
 
@@ -356,6 +441,8 @@ export type UpdateRoomBody = RequestBody<"/api/v1/rooms/{id}", "patch">;
 export type CreateOpeningBody = RequestBody<"/api/v1/rooms/{id}/openings", "post">;
 export type UpdateOpeningBody = RequestBody<"/api/v1/openings/{id}", "patch">;
 export type CopyFloorBody = RequestBody<"/api/v1/floors/{id}/copy", "post">;
+export type SetRoomWallsBody = RequestBody<"/api/v1/rooms/{id}/walls", "put">;
+export type AutoWallsBody = RequestBody<"/api/v1/floors/{id}/walls/auto", "post">;
 
 export interface Deleted {
   id: Id;

@@ -22,7 +22,8 @@ export function SectionCard({ title, description, actions, children, className, 
             {title ? <h2 className="text-[17px] font-semibold leading-6">{title}</h2> : null}
             {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
-          {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+          {/* max-w-full: a long button row wraps on a phone instead of running off the edge (QA-B-21). */}
+          {actions ? <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
       <div className={flush ? cn("overflow-hidden rounded-b-3xl", !(title || actions) && "rounded-t-3xl") : title || actions ? "px-6 pt-4 pb-6" : "p-6"}>{children}</div>

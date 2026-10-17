@@ -38,6 +38,7 @@ export const COMPANY_TAGS = [
   "Projects",
   "ProjectReview",
   "Floors",
+  "ProjectEstimate",
   "SupplyPresets",
   "StockLocations",
   "Stock",
@@ -71,6 +72,14 @@ export const COMPANY_TAGS = [
   "BillingEvents",
   "Notifications",
   "DailyLogs",
+  "Drawings",
+  "Snags",
+  "Handover",
+  "Retention",
+  "Quotes",
+  // Step 15 — change orders
+  "ChangeOrders",
+  "SiteInstructions",
   "SyncStatus",
   "Approvals",
   "Dashboard",
@@ -78,6 +87,35 @@ export const COMPANY_TAGS = [
   "Reports",
   "Onboarding",
   "OpeningBalances",
+  // Step 16 — equipment & shuttering
+  "Equipment",
+  "EquipmentBalances",
+  "EquipmentMovements",
+  "EquipmentTransfers",
+  "EquipmentRentals",
+  "EquipmentLosses",
+  "EquipmentCharges",
+  "ProjectEquipment",
+  "ShutteringDemand",
+  "EquipmentIdle",
+  // Step 11 — estimate revisions + rulebook
+  "Estimates",
+  "OwnerShoppingList",
+  "Rulebook",
+  // Step 13 — schedule
+  "Schedule",
+  "ScheduleVersions",
+  "ScheduleDelays",
+  "ScheduleQuotas",
+  // Step 14
+  "Control",
+  "ControlAlerts",
+  "ControlSettings",
+  // Step 18
+  "TaxSettings",
+  "ProjectTax",
+  "Milestones",
+  "Stoppages",
 ] as const;
 
 export const ADMIN_TAGS = [
@@ -92,6 +130,7 @@ export const ADMIN_TAGS = [
   "ActAsSessions",
   "CatalogGroups",
   "CatalogMaterials",
+  "AdminRulebooks",
 ] as const;
 
 export type CompanyTag = (typeof COMPANY_TAGS)[number];

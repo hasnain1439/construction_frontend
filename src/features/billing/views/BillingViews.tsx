@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, CalendarClock, CheckCircle2, Download, Eye, FilePlus2, FileText, Flag, HandCoins, Landmark, MessageCircle, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Download, Eye, FileBadge, FilePlus2, FileText, Flag, HandCoins, Landmark, MessageCircle, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -55,6 +55,8 @@ import { formatDate, todayPK } from "@/lib/dates";
 import { formatPKR, formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { MarkReadySlideOver, NewInvoiceSlideOver, ProgressSlideOver, RecordPaymentSlideOver } from "../components/BillingSlideOvers";
+import { ProjectTaxCard } from "@/features/tax/components/ProjectTax";
+import { WhtCertificateSlideOver } from "@/features/tax/components/WhtCertificate";
 
 /** Invoice types in filter order (labels: `te("invoiceType", v)`). */
 const INVOICE_TYPES: InvoiceType[] = ["STAGE", "RUNNING_BILL", "RECOVERABLE", "RETENTION", "OTHER"];
@@ -311,6 +313,7 @@ export function InvoicesView({ projectId }: { projectId: string }) {
             <KpiCard label={t("field.received")} icon={CheckCircle2} tone="success" value={formatPKRShort(list.data?.meta.paidPaisa ?? "0")} loading={list.isLoading} />
             <KpiCard label={t("field.balance")} icon={HandCoins} tone="warning" value={formatPKRShort(list.data?.meta.balancePaisa ?? "0")} loading={list.isLoading} />
           </div>
+          <ProjectTaxCard projectId={project.id} />
           <SectionCard
             flush
             title={t("billing.invoices.title")}
@@ -475,9 +478,15 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
                 <dl className="grid grid-cols-2 gap-y-2 text-sm">
                   <dt className="text-muted-foreground">{t("billing.invoices.subtotal")}</dt>
                   <dd className="text-end"><MoneyText paisa={inv.subtotalPaisa} /></dd>
+                  {inv.taxPaisa !== "0" && inv.taxableBasePaisa !== inv.subtotalPaisa ? (
+                    <>
+                      <dt className="text-muted-foreground">{t("tax.invoice.taxableValue")}</dt>
+                      <dd className="text-end" data-testid="invoice-taxable"><MoneyText paisa={inv.taxableBasePaisa} /></dd>
+                    </>
+                  ) : null}
                   {inv.taxPaisa !== "0" ? (
                     <>
-                      <dt className="text-muted-foreground">{inv.taxLabel} {inv.taxRatePercent}%</dt>
+                      <dt className="text-muted-foreground" data-testid="invoice-tax-label">{inv.taxLabel} {inv.taxRatePercent}%</dt>
                       <dd className="text-end"><MoneyText paisa={inv.taxPaisa} /></dd>
                     </>
                   ) : null}
@@ -494,6 +503,14 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
                   <dt className="font-semibold">{t("field.balance")}</dt>
                   <dd className="text-end font-semibold" data-testid="invoice-balance"><MoneyText paisa={inv.balancePaisa} /></dd>
                 </dl>
+                {inv.taxPaisa !== "0" ? (
+                  <div className="mt-3 space-y-0.5 text-xs text-muted-foreground" data-testid="invoice-tax-info">
+                    <p>{inv.status === "DRAFT" ? t("tax.invoice.draftNote") : t("tax.invoice.frozenNote", { date: formatDate(inv.issueDate) })}</p>
+                    {inv.sellerNtn ? <p>{t("tax.invoice.sellerNtn", { ntn: inv.sellerNtn })}</p> : null}
+                    {inv.sellerStrn ? <p>{t("tax.invoice.sellerStrn", { strn: inv.sellerStrn })}</p> : null}
+                    {inv.buyerNtn ? <p>{t("tax.invoice.buyerNtn", { ntn: inv.buyerNtn })}</p> : null}
+                  </div>
+                ) : null}
                 {inv.notes ? <p className="mt-3 rounded-lg bg-muted p-2 text-sm">{inv.notes}</p> : null}
               </SectionCard>
             </div>
@@ -586,11 +603,14 @@ function PaymentRowActions({
   canSettle,
   onSettle,
   load,
+  onCertificate,
 }: {
   payment: ClientPayment;
   canSettle: boolean;
   onSettle: (to: "CLEARED" | "BOUNCED") => void;
   load: () => Promise<SharedPdf>;
+  /** Step 18: add / change the client's WHT certificate (payments with WHT). */
+  onCertificate?: () => void;
 }) {
   const t = useT();
   const pdf = usePdfActions({ load, title: payment.number });
@@ -601,6 +621,7 @@ function PaymentRowActions({
         actions={[
           { label: t("billing.payments.markCleared"), icon: CheckCircle2, hidden: !canSettle, onSelect: () => onSettle("CLEARED") },
           { label: t("billing.payments.bounced"), icon: XCircle, destructive: true, hidden: !canSettle, onSelect: () => onSettle("BOUNCED") },
+          { label: t("tax.payment.addCertificate"), icon: FileBadge, hidden: !onCertificate, onSelect: () => onCertificate?.() },
           { label: t("billing.payments.preview"), icon: Eye, separatorBefore: true, disabled: pdf.busy !== null, onSelect: () => void pdf.act("preview") },
           { label: t("action.download"), icon: Download, disabled: pdf.busy !== null, onSelect: () => void pdf.act("download") },
           { label: t("billing.payments.whatsapp"), icon: MessageCircle, disabled: pdf.busy !== null, onSelect: () => void pdf.act("share") },
@@ -622,11 +643,33 @@ export function PaymentsView({ projectId }: { projectId: string }) {
   const run = useMutationToast();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ payment: ClientPayment; to: "CLEARED" | "BOUNCED" } | null>(null);
+  const [certificate, setCertificate] = useState<ClientPayment | null>(null);
+  const anyWht = (list.data?.items ?? []).some((p) => p.whtDeductedPaisa !== "0");
   const columns: Column<ClientPayment>[] = [
     { id: "number", header: t("billing.invoices.colReceipt"), cell: (p) => <span className="font-medium tabular">{p.number}</span> },
     { id: "date", header: t("field.received"), sortValue: (p) => p.receivedOn, cell: (p) => formatDate(p.receivedOn) },
     { id: "method", header: t("field.method"), cell: (p) => <PaymentMethodIcon method={p.method} bankName={[p.bankName, p.chequeNo ? `#${p.chequeNo}` : null].filter(Boolean).join(" ") || null} /> },
     { id: "amount", header: t("field.amount"), align: "right", cell: (p) => <MoneyText paisa={p.amountPaisa} className="font-semibold" /> },
+    ...(anyWht
+      ? [
+          {
+            id: "wht",
+            header: t("tax.payment.colWht"),
+            align: "right" as const,
+            cell: (p: ClientPayment) =>
+              p.whtDeductedPaisa === "0" ? (
+                "—"
+              ) : (
+                <div className="flex flex-col items-end">
+                  <MoneyText paisa={p.whtDeductedPaisa} />
+                  <span className={p.whtCertificate?.number ? "text-xs text-muted-foreground" : "text-xs text-warning"}>
+                    {p.whtCertificate?.number ? t("tax.payment.received", { number: p.whtCertificate.number }) : t("tax.payment.missing")}
+                  </span>
+                </div>
+              ),
+          },
+        ]
+      : []),
     { id: "invoices", header: t("billing.payments.colAgainst"), cell: (p) => p.allocations.map((a) => a.invoice.number).join(", ") || (p.creditPaisa !== "0" ? t("billing.payments.credit") : "—") },
     { id: "status", header: t("field.status"), cell: (p) => <ChequeStatusBadge status={p.status} method={p.method} /> },
     {
@@ -637,6 +680,7 @@ export function PaymentsView({ projectId }: { projectId: string }) {
           canSettle={owner && p.status === "PENDING"}
           onSettle={(to) => setConfirm({ payment: p, to })}
           load={() => receipt(p.id).unwrap()}
+          onCertificate={canRecord && p.whtDeductedPaisa !== "0" && p.status !== "BOUNCED" ? () => setCertificate(p) : undefined}
         />
       ),
     },
@@ -665,6 +709,7 @@ export function PaymentsView({ projectId }: { projectId: string }) {
             <DataTable rows={list.data?.items} getRowId={(p) => p.id} loading={list.isLoading} error={list.error} onRetry={list.refetch} columns={columns} empty={{ title: t("billing.invoices.noPayments"), icon: HandCoins }} />
           </SectionCard>
           {open ? <RecordPaymentSlideOver open onOpenChange={setOpen} projectId={project.id} /> : null}
+          {certificate ? <WhtCertificateSlideOver payment={certificate} onClose={() => setCertificate(null)} /> : null}
           {confirm?.to === "CLEARED" ? (
             <ConfirmDialog
               open

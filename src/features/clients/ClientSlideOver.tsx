@@ -23,6 +23,12 @@ export const clientSchema = z.object({
   email: optionalEmailSchema,
   address: z.string().trim().max(300, msg("validation.tooLongPlain")),
   notes: z.string().trim().max(1000, msg("validation.tooLongPlain")),
+  /** Step 18: NTN / CNIC (printed on taxed invoices). */
+  ntn: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || /^[0-9A-Za-z-]{5,20}$/.test(v), msg("tax.v.regNo"))
+    .optional(),
 });
 
 const FORM_ID = "client-form";
@@ -51,6 +57,7 @@ export function ClientSlideOver({
       email: client?.email ?? "",
       address: client?.address ?? "",
       notes: client?.notes ?? "",
+      ntn: client?.ntn ?? "",
     },
   });
 
@@ -61,7 +68,7 @@ export function ClientSlideOver({
           () =>
             update({
               id: client.id,
-              body: { name: v.name, phone: v.phone, email: v.email ?? null, address: v.address || null, notes: v.notes || null },
+              body: { name: v.name, phone: v.phone, email: v.email ?? null, address: v.address || null, notes: v.notes || null, ntn: v.ntn || null },
             }).unwrap(),
           { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
@@ -73,6 +80,7 @@ export function ClientSlideOver({
               ...(v.email ? { email: v.email } : {}),
               ...(v.address ? { address: v.address } : {}),
               ...(v.notes ? { notes: v.notes } : {}),
+              ...(v.ntn ? { ntn: v.ntn } : {}),
             }).unwrap(),
           { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
@@ -96,7 +104,10 @@ export function ClientSlideOver({
           <TextField name="name" label={t("field.name")} required placeholder={t("masterData.clients.namePlaceholder")} />
           <PhoneField name="phone" label={t("field.phone")} required allowLandline />
         </FieldGrid>
-        <TextField name="email" label={t("field.email")} type="email" />
+        <FieldGrid>
+          <TextField name="email" label={t("field.email")} type="email" />
+          <TextField name="ntn" label={t("tax.client.ntn")} hint={t("tax.client.ntnHint")} maxLength={20} />
+        </FieldGrid>
         <TextareaField name="address" label={t("field.address")} rows={2} />
         <TextareaField name="notes" label={t("field.notes")} rows={3} />
       </Form>

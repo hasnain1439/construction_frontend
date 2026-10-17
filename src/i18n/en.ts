@@ -8,6 +8,16 @@ import * as billingEn from "./areas/billing/en";
 import * as cashSiteEn from "./areas/cashSite/en";
 import * as teamCompanyEn from "./areas/teamCompany/en";
 import * as appEn from "./areas/app/en";
+import * as closeoutEn from "./areas/closeout/en";
+import * as changeOrdersEn from "./areas/changeOrders/en";
+import * as equipmentEn from "./areas/equipment/en";
+import * as estimatesEn from "./areas/estimates/en";
+import * as rulebookEn from "./areas/estimates/rulebook.en";
+import * as salesEn from "./areas/sales/en";
+import * as scheduleEn from "./areas/schedule/en";
+import * as controlEn from "./areas/control/en";
+import * as reportsEn from "./areas/reports/en";
+import * as taxEn from "./areas/tax/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -19,6 +29,15 @@ export const en = {
   cashSite: cashSiteEn.strings,
   teamCompany: teamCompanyEn.strings,
   app: appEn.strings,
+  closeout: closeoutEn.strings,
+  changeOrders: changeOrdersEn.strings,
+  equipment: equipmentEn.strings,
+  estimates: { ...estimatesEn.strings, ruleDesc: rulebookEn.ruleDesc, ruleUnit: rulebookEn.ruleUnit },
+  sales: salesEn.strings,
+  schedule: scheduleEn.strings,
+  control: controlEn.strings,
+  reports: reportsEn.strings,
+  tax: taxEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",
@@ -49,6 +68,8 @@ export const en = {
     optional: "Optional",
     noResults: "No results",
     somethingWrong: "Something went wrong",
+    noAccessTitle: "Not available",
+    noAccessBody: "This page does not exist, or you don't have access to it. Ask the project owner to add you to the project.",
     hiddenForRole: "Hidden for your role",
     comingSoon: "Coming in the next phase",
     comingSoonBody: "This page is part of an upcoming release. Everything you need today is in the menu.",
@@ -500,6 +521,12 @@ export const en = {
     stepSUPPLIERS: "Add your suppliers",
     stepPROJECT: "Create your first project",
     openingLink: "Enter opening balances (udhaar, cash, stock, peshgi)",
+    moreTitle: "Optional next steps",
+    moreDesc: "Not needed to start — set these up when you are ready.",
+    moreRULEBOOK: "Review the rulebook values (wastage, mixes, labour rates)",
+    moreQUOTE: "Create your first quote",
+    moreEQUIPMENT: "Add your shuttering and equipment",
+    moreTAX: "Check the tax settings (PRA / SRB / ICT, WHT)",
   },
   demo: {
     try: "Try with demo data",
@@ -607,6 +634,10 @@ export const en = {
     ...cashSiteEn.enums,
     ...teamCompanyEn.enums,
     ...appEn.enums,
+    ...equipmentEn.enums,
+    ...scheduleEn.enums,
+    ...controlEn.enums,
+    ...taxEn.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Active",
@@ -632,6 +663,7 @@ export const en = {
       CHEQUE_BOUNCED: "Cheque bounced",
       INVOICE_OVERDUE: "Invoice overdue",
       STAGE_READY_UNBILLED: "Stage ready unbilled",
+      CONTROL_ALERT: "Control alert",
       PREVIOUS_STAGE_UNPAID: "Previous stage unpaid",
       SHORTAGE_CREATED: "Shortage created",
       LOW_STOCK: "Low stock",
@@ -649,6 +681,10 @@ export const en = {
       SUBSCRIPTION_PAYMENT_REJECTED: "Subscription payment rejected",
       INVITE_ACCEPTED: "Invite accepted",
       PLATFORM_SUPPORT_ACCESS: "Platform support accessed your account",
+      EQUIPMENT_IDLE: "Rented equipment idle",
+      MISSING_DAILY_LOG: "Daily log missing",
+      RETENTION_RELEASE_DUE: "Retention release due",
+      SITE_INSTRUCTION_CREATED: "Site instruction recorded",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Wage settlements to approve",

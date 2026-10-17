@@ -187,6 +187,13 @@ export const strings: Widen<typeof En.strings> = {
     },
     shortage: { OPEN: "Khula", RESOLVED: "Hal ho gaya" },
     shortageKind: { DISPATCH_SHORT: "Kam", DAMAGED: "Kharab", EXCESS: "Zyada", SUPPLIER_SHORT: "Supplier ne kam diya" },
+    milestone: { PLANNED: "Mansooba", IN_PROGRESS: "Kaam jari", CURING: "Tarai jari", DONE: "Mukammal", BLOCKED: "Ruka hua" },
+    scheduleStage: { PLANNED: "Mansooba", IN_PROGRESS: "Kaam jari", DONE: "Mukammal" },
+    stoppage: { PENDING: "Zair-e-ghaur", APPROVED: "Manzoor", REJECTED: "Na-manzoor" },
+    equipmentTransfer: { ON_THE_WAY: "Raste mein", RECEIVED: "Mil gaya", RECEIVED_WITH_GAP: "Mil gaya — kami", CANCELLED: "Mansookh" },
+    rental: { ACTIVE: "Kiraye par", RETURNED: "Wapas", CLOSED: "Band" },
+    equipmentLoss: { REPORTED: "Report hua", CHARGED: "Charge ho gaya" },
+    equipmentLossKind: { MISSING: "Gum", DAMAGED: "Kharab" },
     supplierPayment: { CLEARED: "Clear", PENDING: "Cheque baqi", BOUNCED: "Bounce" },
     paymentMode: { UDHAAR: "Udhaar", CASH: "Cash", PARTIAL: "Kuch ada" },
     settlement: { DRAFT: "Draft", SUBMITTED: "Manzoori ka intezar", APPROVED: "Manzoor", RETURNED: "Wapas" },
@@ -201,11 +208,14 @@ export const strings: Widen<typeof En.strings> = {
       POSTED: "Ho gaya",
     },
     topup: { PENDING: "Baqi", APPROVED: "Bhej diya", REJECTED: "Radd" },
+    estimateRevision: { DRAFT: "Draft", APPROVED: "Manzoor", SUPERSEDED: "Purana (badal gaya)" },
+    rulebookVersion: { DRAFT: "Draft", PUBLISHED: "Jaari" },
     severity: { INFO: "Maloomat", WARNING: "Khabardar", CRITICAL: "Sangeen" },
   },
 };
 
 export const enums: Widen<typeof En.enums> = {
+  measureUnit: { bag: "bori", day: "din", job: "kaam", nos: "adad", cft: "cft", kg: "kg", sqft: "sq ft", sft: "sq ft", rft: "rft", gallon: "gallon", litre: "litre", ton: "ton", ls: "yakmusht", hour: "ghanta", trip: "chakkar", month: "maheena", week: "hafta", point: "point", set: "set", coil: "coil", drum: "drum", trolley: "trolley", lot: "lot", piece: "adad" },
   region: { PUNJAB_KP: "Punjab / KP", KARACHI_SINDH: "Karachi / Sindh" },
   regionDesc: { PUNJAB_KP: "Eent ki tameer", KARACHI_SINDH: "Block ki tameer" },
   userLanguage: { ENGLISH: "English", ROMAN_URDU: "Roman Urdu", URDU: "Urdu" },

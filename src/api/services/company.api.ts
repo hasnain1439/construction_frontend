@@ -32,7 +32,8 @@ export const companyApi = baseApi.injectEndpoints({
     }),
     updateCompanySettings: build.mutation<CompanySettings, UpdateSettingsBody>({
       query: (body) => ({ url: ENDPOINTS.company.settings, method: "PATCH", body }),
-      invalidatesTags: ["CompanySettings"],
+      // The idle threshold and the shuttering planner parameters live in the settings.
+      invalidatesTags: ["CompanySettings", "ShutteringDemand", "EquipmentIdle"],
     }),
     getHolidays: build.query<Holiday[], HolidaysQuery | void>({
       query: (params) => ({ url: ENDPOINTS.company.holidays, params: cleanParams(params ?? undefined) }),

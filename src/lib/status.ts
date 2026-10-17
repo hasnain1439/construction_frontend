@@ -132,6 +132,44 @@ const DOMAINS = {
     EXCESS: S("info", "Excess", CircleDashed),
     SUPPLIER_SHORT: S("warning", "Supplier short", TriangleAlert),
   },
+  // Step 13 — schedule
+  milestone: {
+    PLANNED: S("neutral", "Planned", CircleDashed),
+    IN_PROGRESS: S("info", "In progress", Clock),
+    CURING: S("warning", "Curing", Hourglass),
+    DONE: S("success", "Done", CircleCheck),
+    BLOCKED: S("danger", "Blocked", OctagonAlert),
+  },
+  scheduleStage: {
+    PLANNED: S("neutral", "Planned", CircleDashed),
+    IN_PROGRESS: S("info", "In progress", Clock),
+    DONE: S("success", "Done", CircleCheck),
+  },
+  stoppage: {
+    PENDING: S("warning", "Pending", Clock),
+    APPROVED: S("success", "Approved", CircleCheck),
+    REJECTED: S("danger", "Rejected", CircleX),
+  },
+  // Step 16 — equipment & shuttering
+  equipmentTransfer: {
+    ON_THE_WAY: S("info", "On the way", Truck),
+    RECEIVED: S("success", "Received", CircleCheck),
+    RECEIVED_WITH_GAP: S("warning", "Received — gap", TriangleAlert),
+    CANCELLED: S("neutral", "Cancelled", Ban),
+  },
+  rental: {
+    ACTIVE: S("info", "On rent", Clock),
+    RETURNED: S("warning", "Returned", Undo2),
+    CLOSED: S("success", "Closed", CircleCheck),
+  },
+  equipmentLoss: {
+    REPORTED: S("danger", "Reported", TriangleAlert),
+    CHARGED: S("success", "Charged", CircleCheck),
+  },
+  equipmentLossKind: {
+    MISSING: S("warning", "Missing", CircleSlash),
+    DAMAGED: S("danger", "Damaged", CircleX),
+  },
   supplierPayment: {
     CLEARED: S("success", "Cleared", CircleCheck),
     PENDING: S("warning", "Cheque pending", Clock),
@@ -173,6 +211,16 @@ const DOMAINS = {
     PENDING: S("warning", "Pending", Clock),
     APPROVED: S("success", "Sent", CircleCheck),
     REJECTED: S("danger", "Rejected", CircleX),
+  },
+  // Step 11 — estimate revisions + rulebook
+  estimateRevision: {
+    DRAFT: S("warning", "Draft", CircleDashed),
+    APPROVED: S("success", "Approved", CircleCheck),
+    SUPERSEDED: S("neutral", "Superseded", CircleSlash),
+  },
+  rulebookVersion: {
+    DRAFT: S("warning", "Draft", CircleDashed),
+    PUBLISHED: S("success", "Published", CircleCheck),
   },
   severity: {
     INFO: S("info", "Info", Info),

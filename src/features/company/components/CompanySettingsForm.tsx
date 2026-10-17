@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -14,6 +15,7 @@ import { NumberField } from "@/components/forms/NumberField";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
+import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
@@ -26,13 +28,20 @@ const defaults = (s: CompanySettings): Values => ({
   overuseAlertPercent: s.overuseAlertPercent,
   missingLogAlertTime: s.missingLogAlertTime,
   quoteValidityDays: s.quoteValidityDays,
-  taxEnabled: s.taxEnabled,
-  taxRatePercent: s.taxRatePercent,
-  taxLabel: s.taxLabel ?? "",
   paymentTermsDays: s.paymentTermsDays,
   pmCanRecordPayments: s.pmCanRecordPayments,
+  defaultMarginPercent: s.defaultMarginPercent,
+  defaultFinishingAllowancePercent: s.defaultFinishingAllowancePercent,
   pmCanSeeFinancials: s.pmCanSeeFinancials,
   defaultLanguage: s.defaultLanguage,
+  equipmentIdleDays: s.equipmentIdleDays,
+  shutteringPropsPerPlate: s.shutteringPropsPerPlate,
+  shutteringSparePercent: s.shutteringSparePercent,
+  behindPlanAlertPoints: s.behindPlanAlertPoints,
+  lateFinishGraceDays: s.lateFinishGraceDays,
+  quotaAlertPercent: s.quotaAlertPercent,
+  spendAheadAlertPoints: s.spendAheadAlertPoints,
+  controlAlertsEnabled: s.controlAlertsEnabled,
 });
 
 /** One setting per card, with plain-language help. */
@@ -64,7 +73,7 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
   });
 
   const onSubmit = async (values: z.output<typeof companySettingsSchema>) => {
-    const result = await run(() => update({ ...values, taxLabel: values.taxLabel || null }).unwrap(), { success: t("teamCompany.settings.saved"), setError: form.setError });
+    const result = await run(() => update(values).unwrap(), { success: t("teamCompany.settings.saved"), setError: form.setError });
     if (result) form.reset(defaults(result));
   };
 
@@ -82,8 +91,29 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       >
         <NumberField name="overuseAlertPercent" label={t("teamCompany.settings.overuseLabel")} hideLabel unit="%" decimals={0} required />
       </SettingCard>
+      <SettingCard title={t("control.settings.behindTitle")} help={t("control.settings.behindHelp")}>
+        <NumberField name="behindPlanAlertPoints" label={t("control.settings.behindTitle")} hideLabel unit={t("control.settings.points")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.graceTitle")} help={t("control.settings.graceHelp")}>
+        <NumberField name="lateFinishGraceDays" label={t("control.settings.graceTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.quotaTitle")} help={t("control.settings.quotaHelp")}>
+        <NumberField name="quotaAlertPercent" label={t("control.settings.quotaTitle")} hideLabel unit="%" decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("control.settings.spendTitle")} help={t("control.settings.spendHelp")}>
+        <NumberField name="spendAheadAlertPoints" label={t("control.settings.spendTitle")} hideLabel unit={t("control.settings.points")} decimals={0} required />
+      </SettingCard>
       <SettingCard title={t("teamCompany.settings.logTitle")} help={t("teamCompany.settings.logHelp")}>
         <TextField name="missingLogAlertTime" label={t("teamCompany.settings.logLabel")} hideLabel type="time" required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.idleTitle")} help={t("teamCompany.settings.idleHelp")}>
+        <NumberField name="equipmentIdleDays" label={t("teamCompany.settings.idleTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.propsTitle")} help={t("teamCompany.settings.propsHelp")}>
+        <NumberField name="shutteringPropsPerPlate" label={t("teamCompany.settings.propsTitle")} hideLabel unit={t("teamCompany.settings.perPlate")} decimals={2} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.spareTitle")} help={t("teamCompany.settings.spareHelp")}>
+        <NumberField name="shutteringSparePercent" label={t("teamCompany.settings.spareTitle")} hideLabel unit="%" decimals={0} required />
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.quoteTitle")} help={t("teamCompany.settings.quoteHelp")}>
         <NumberField name="quoteValidityDays" label={t("teamCompany.settings.quoteTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
@@ -91,11 +121,17 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
       <SettingCard title={t("teamCompany.settings.termsTitle")} help={t("teamCompany.settings.termsHelp")}>
         <NumberField name="paymentTermsDays" label={t("teamCompany.settings.termsTitle")} hideLabel unit={t("teamCompany.settings.days")} decimals={0} required />
       </SettingCard>
-      <SettingCard title={t("teamCompany.settings.taxRateTitle")} help={t("teamCompany.settings.taxRateHelp")}>
-        <div className="grid grid-cols-2 gap-2">
-          <NumberField name="taxRatePercent" label={t("teamCompany.settings.taxRate")} hideLabel unit="%" decimals={2} required />
-          <TextField name="taxLabel" label={t("teamCompany.settings.taxName")} hideLabel placeholder={t("teamCompany.settings.taxNameExample")} />
-        </div>
+      {/* Step 18: sales tax, NTN / STRN and WHT live on Settings → Tax. */}
+      <SettingCard title={t("tax.settings.movedTitle")} help={t("tax.settings.movedHelp")}>
+        <Button asChild variant="outline">
+          <Link href="/settings/tax">{t("tax.settings.open")}</Link>
+        </Button>
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.marginTitle")} help={t("teamCompany.settings.marginHelp")}>
+        <NumberField name="defaultMarginPercent" label={t("teamCompany.settings.marginTitle")} hideLabel unit="%" decimals={2} required />
+      </SettingCard>
+      <SettingCard title={t("teamCompany.settings.finishingTitle")} help={t("teamCompany.settings.finishingHelp")}>
+        <NumberField name="defaultFinishingAllowancePercent" label={t("teamCompany.settings.finishingTitle")} hideLabel unit="%" decimals={2} required />
       </SettingCard>
       <SettingCard title={t("teamCompany.settings.langTitle")} help={t("teamCompany.settings.langHelp")}>
         <SelectField
@@ -105,6 +141,7 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
           options={LANGUAGES.map((value) => ({ value, label: te("userLanguage", value) }))}
         />
       </SettingCard>
+      <ToggleField name="controlAlertsEnabled" label={t("control.settings.enabled")} description={t("control.settings.enabledDesc")} />
       <ToggleField
         name="pmCanSeeFinancials"
         label={t("teamCompany.settings.pmFinancials")}
@@ -114,11 +151,6 @@ export function CompanySettingsForm({ settings }: { settings: CompanySettings })
         name="pmCanRecordPayments"
         label={t("teamCompany.settings.pmPayments")}
         description={t("teamCompany.settings.pmPaymentsDesc")}
-      />
-      <ToggleField
-        name="taxEnabled"
-        label={t("teamCompany.settings.taxOn")}
-        description={t("teamCompany.settings.taxOnDesc")}
       />
       <FormActions
         submitLabel={t("teamCompany.settings.save")}

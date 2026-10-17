@@ -1,0 +1,82 @@
+import type { EstimateLine, EstimateSettings, ProjectEstimate } from "@/api/types";
+
+/** The API defaults of the estimate settings (src/modules/estimate/settings.ts). */
+export const ESTIMATE_DEFAULTS: EstimateSettings = {
+  externalWallThicknessIn: 9,
+  internalWallThicknessIn: 4.5,
+  parapetHeightFt: 3,
+  bricksPerCft: 13.5,
+  mortarPerCftBrickwork: 0.25,
+  masonryMortarMix: "1:6",
+  slabThicknessIn: 5,
+  rccMix: "1:2:4",
+  frameConcretePercent: 45,
+  slabSteelPercent: 1,
+  frameSteelPercent: 2.5,
+  lintelSteelPercent: 1,
+  footingSteelPercent: 0.8,
+  lintelWidthIn: 9,
+  lintelDepthIn: 6,
+  lintelBearingFt: 1,
+  internalPlasterMix: "1:4",
+  internalPlasterThicknessIn: 0.5,
+  externalPlasterMix: "1:4",
+  externalPlasterThicknessIn: 0.75,
+  foundationWallLengthFt: null,
+  waterproofingKgPerBag: 1,
+  bitumenKgPerSqft: 0.15,
+  termiteLitrePerSqft: 0.005,
+  wastagePercent: 5,
+  brickWastagePercent: 5,
+  concreteDryFactor: 1.54,
+  mortarDryFactor: 1.33,
+  cementBagCft: 1.25,
+  includeLabour: true,
+  labourRatePerSqftPaisa: null,
+};
+
+export const slabSteel: EstimateLine = {
+  id: "RCC.GROUND.slab.steel",
+  stage: "RCC",
+  floor: { level: "GROUND", name: "Ground floor" },
+  element: "slab",
+  kind: "MATERIAL",
+  measure: null,
+  material: "steel",
+  netQuantity: 1040.63,
+  wastagePercent: 5,
+  quantity: 1092.66,
+  unit: "kg",
+  formula: { key: "steel", params: { volume: 468.75, percent: 1 } },
+  formulaText: "468.75 cft × 1% × 222 kg per cft",
+  suppliedBy: "CONTRACTOR",
+};
+
+/** A GET /projects/:id/estimate payload with no rooms yet; override what a test needs. */
+export function estimateFixture(settings: Partial<EstimateSettings> = {}, customised: Array<keyof EstimateSettings> = []): ProjectEstimate {
+  return {
+    projectId: "p1",
+    projectCode: "MSB-2026-012",
+    projectName: "DHA",
+    contractType: "GREY_OWNER_FINISHING",
+    generatedAt: "2026-10-15T09:00:00.000Z",
+    settings: { ...ESTIMATE_DEFAULTS, ...settings },
+    defaults: ESTIMATE_DEFAULTS,
+    customised,
+    basis: {
+      structureType: "FRAMED",
+      structureTypeAssumed: false,
+      coveredAreaSqft: 1125,
+      coveredAreaSource: "PROJECT",
+      plotAreaSqft: 1125,
+      aspectRatio: 1.8,
+      foundationWallLengthFt: 230,
+      foundationWallLengthAuto: true,
+      floors: [],
+    },
+    stages: [],
+    materials: [],
+    labour: { method: "PIECE_RATES", lines: [] },
+    warnings: [],
+  };
+}

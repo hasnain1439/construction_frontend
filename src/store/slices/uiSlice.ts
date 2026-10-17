@@ -4,6 +4,29 @@ export type ThemePreference = "light" | "dark" | "system";
 /** English, Roman Urdu (Latin script) and Urdu (Nastaliq script, right-to-left). */
 export type UiLanguage = "en" | "roman-ur" | "ur";
 
+/**
+ * Any stored or server spelling of a language → a UI language (QA-B-18: an older build or the
+ * server code left `language: "roman"` in localStorage and every translated page crashed).
+ * Unknown values give `fallback`.
+ */
+export function normalizeUiLanguage(value: unknown, fallback: UiLanguage = "en"): UiLanguage {
+  switch (value) {
+    case "en":
+    case "ENGLISH":
+      return "en";
+    case "roman-ur":
+    case "roman":
+    case "ur-Latn":
+    case "ROMAN_URDU":
+      return "roman-ur";
+    case "ur":
+    case "URDU":
+      return "ur";
+    default:
+      return fallback;
+  }
+}
+
 export interface PlanLimitInfo {
   resource?: string;
   limit?: number | null;
@@ -42,7 +65,10 @@ export const uiSlice = createSlice({
   initialState: initialUiState,
   reducers: {
     hydrateUi(state, action: PayloadAction<Partial<Pick<UiState, "railCollapsed" | "language" | "theme">>>) {
-      Object.assign(state, action.payload);
+      const { railCollapsed, language, theme } = action.payload;
+      if (typeof railCollapsed === "boolean") state.railCollapsed = railCollapsed;
+      if (language !== undefined) state.language = normalizeUiLanguage(language, state.language);
+      if (theme === "light" || theme === "dark" || theme === "system") state.theme = theme;
     },
     toggleRail(state) {
       state.railCollapsed = !state.railCollapsed;
@@ -68,7 +94,7 @@ export const uiSlice = createSlice({
       state.theme = action.payload;
     },
     setLanguage(state, action: PayloadAction<UiLanguage>) {
-      state.language = action.payload;
+      state.language = normalizeUiLanguage(action.payload, state.language);
     },
     showPlanLimit(state, action: PayloadAction<PlanLimitInfo>) {
       state.planLimit = action.payload;

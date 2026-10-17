@@ -187,6 +187,13 @@ export const strings: Widen<typeof En.strings> = {
     },
     shortage: { OPEN: "کھلا", RESOLVED: "حل ہو گیا" },
     shortageKind: { DISPATCH_SHORT: "کم", DAMAGED: "خراب", EXCESS: "زیادہ", SUPPLIER_SHORT: "سپلائر نے کم دیا" },
+    milestone: { PLANNED: "منصوبہ", IN_PROGRESS: "کام جاری", CURING: "ترائی جاری", DONE: "مکمل", BLOCKED: "رکا ہوا" },
+    scheduleStage: { PLANNED: "منصوبہ", IN_PROGRESS: "کام جاری", DONE: "مکمل" },
+    stoppage: { PENDING: "زیرِ غور", APPROVED: "منظور", REJECTED: "نامنظور" },
+    equipmentTransfer: { ON_THE_WAY: "راستے میں", RECEIVED: "مل گیا", RECEIVED_WITH_GAP: "مل گیا — کمی", CANCELLED: "منسوخ" },
+    rental: { ACTIVE: "کرائے پر", RETURNED: "واپس", CLOSED: "بند" },
+    equipmentLoss: { REPORTED: "رپورٹ ہوا", CHARGED: "چارج ہو گیا" },
+    equipmentLossKind: { MISSING: "گم", DAMAGED: "خراب" },
     supplierPayment: { CLEARED: "کلیئر", PENDING: "چیک باقی", BOUNCED: "باؤنس" },
     paymentMode: { UDHAAR: "ادھار", CASH: "نقد", PARTIAL: "جزوی ادا" },
     settlement: { DRAFT: "مسودہ", SUBMITTED: "منظوری کا انتظار", APPROVED: "منظور", RETURNED: "واپس" },
@@ -201,11 +208,14 @@ export const strings: Widen<typeof En.strings> = {
       POSTED: "ہو گیا",
     },
     topup: { PENDING: "زیر التوا", APPROVED: "بھیج دیا", REJECTED: "رد" },
+    estimateRevision: { DRAFT: "مسودہ", APPROVED: "منظور شدہ", SUPERSEDED: "پرانا (تبدیل شدہ)" },
+    rulebookVersion: { DRAFT: "مسودہ", PUBLISHED: "جاری" },
     severity: { INFO: "معلومات", WARNING: "انتباہ", CRITICAL: "سنگین" },
   },
 };
 
 export const enums: Widen<typeof En.enums> = {
+  measureUnit: { bag: "بوری", day: "دن", job: "کام", nos: "عدد", cft: "مکعب فٹ", kg: "کلو", sqft: "مربع فٹ", sft: "مربع فٹ", rft: "رننگ فٹ", gallon: "گیلن", litre: "لیٹر", ton: "ٹن", ls: "یکمشت", hour: "گھنٹہ", trip: "چکر", month: "مہینہ", week: "ہفتہ", point: "پوائنٹ", set: "سیٹ", coil: "کوائل", drum: "ڈرم", trolley: "ٹرالی", lot: "لاٹ", piece: "عدد" },
   region: { PUNJAB_KP: "پنجاب / خیبر پختونخوا", KARACHI_SINDH: "کراچی / سندھ" },
   regionDesc: { PUNJAB_KP: "اینٹ کی تعمیر", KARACHI_SINDH: "بلاک کی تعمیر" },
   userLanguage: { ENGLISH: "انگریزی", ROMAN_URDU: "رومن اردو", URDU: "اردو" },

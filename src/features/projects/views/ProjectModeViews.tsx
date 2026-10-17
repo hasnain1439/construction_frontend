@@ -1,13 +1,12 @@
 "use client";
 
 import { DemoBadge, DemoProjectBanner } from "@/features/onboarding/components/DemoBadge";
-import { Calculator, Pencil, Play, Trash2 } from "lucide-react";
+import { Pencil, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useChangeProjectStatusMutation, useDeleteProjectMutation, useGetFloorsQuery, useGetProjectQuery } from "@/api/services/projects.api";
 import type { ProjectDetail } from "@/api/types";
-import { ComingSoonCard } from "@/components/common/ComingSoonCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable } from "@/components/common/DataTable";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -37,6 +36,8 @@ import {
   TeamCard,
 } from "../components/ProjectSections";
 import { ProjectMoneyCard } from "@/features/billing/components/ProjectMoneyCard";
+import { EstimateOverviewCard } from "../estimate/EstimateOverviewCard";
+import { DelayCards } from "@/features/schedule/components/DelayCards";
 import { LOCKED_STATUSES, STATUS_TRANSITIONS, type StatusTransition } from "../constants";
 import { formatArea } from "../utils/calc";
 import { wizardHref } from "../utils/links";
@@ -191,6 +192,8 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const isMunshi = !canManage && !can("dashboard.overview.view");
   const canEditTeam = can("projects.team.manage");
   const seesBilling = canAccess(BILLING_ACCESS);
+  const canEstimate = can("projects.estimate.view");
+  const canSchedule = can("schedule.plan.view");
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -218,10 +221,13 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
     >
       {(project, { canEdit }) =>
         isMunshi ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ClientCard project={project} />
-            <TeamCard project={project} />
-          </div>
+          <>
+            {canSchedule ? <DelayCards projectId={project.id} /> : null}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ClientCard project={project} />
+              <TeamCard project={project} />
+            </div>
+          </>
         ) : (
           <>
             {project.status === "DRAFT" ? (
@@ -230,6 +236,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
               </InlineAlert>
             ) : null}
             {seesBilling && project.status !== "DRAFT" ? <ProjectMoneyCard projectId={project.id} /> : null}
+            {canSchedule ? <DelayCards projectId={project.id} /> : null}
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               <ClientCard project={project} canEdit={canEdit} />
               <ContractCard project={project} canEdit={canEdit} />
@@ -241,7 +248,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
             </div>
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
               <RoomsSummaryCard project={project} canEdit={canEdit} />
-              <ComingSoonCard title={t("projects.mode.boqTitle")} icon={Calculator} description={t("projects.mode.boqDesc")} />
+              {canEstimate ? <EstimateOverviewCard projectId={project.id} /> : null}
             </div>
           </>
         )

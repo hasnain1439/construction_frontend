@@ -66,7 +66,10 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   const flyoutFor = useAppSelector((state) => state.ui.flyoutFor);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const { signOut } = useLogout();
-  const incoming = useGetIncomingQuery(projectId ?? "", { skip: !projectId || !me, pollingInterval: 120_000 });
+  const incoming = useGetIncomingQuery(projectId ?? "", {
+    skip: !projectId || !me,
+    pollingInterval: 120_000,
+  });
 
   const status = error && "status" in error ? error.status : undefined;
   useEffect(() => {
@@ -122,37 +125,48 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden">
-      <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
-      <div className="relative flex min-h-0 flex-1">
+    // print: only the page content flows onto paper (no top bar, rail, flyout or footer; no inner scroll box).
+    <div className="fixed inset-0 flex flex-col overflow-hidden print:static print:block print:overflow-visible">
+      <div className="contents print:hidden">
+        <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
+      </div>
+      <div className="relative flex min-h-0 flex-1 print:block">
         {/* The menu button slides the rail out to the start side (and back); the content takes the room. */}
-        <NavBackdrop />
-        <div className={railWrapperClass(collapsed, mobileOpen)} aria-hidden={(collapsed && !mobileOpen) || undefined} inert={collapsed && !mobileOpen}>
-          <IconRail
-            sections={sections}
-            activeSectionId={current?.id}
-            openSectionId={flyoutFor}
-            onSelect={onSelect}
-            header={projectId ? <ProjectRailHeader projectId={projectId} /> : undefined}
+        <div className="contents print:hidden">
+          <NavBackdrop />
+          <div
+            className={railWrapperClass(collapsed, mobileOpen)}
+            aria-hidden={(collapsed && !mobileOpen) || undefined}
+            inert={collapsed && !mobileOpen}
+          >
+            <IconRail
+              sections={sections}
+              activeSectionId={current?.id}
+              openSectionId={flyoutFor}
+              onSelect={onSelect}
+              header={projectId ? <ProjectRailHeader projectId={projectId} /> : undefined}
+            />
+          </div>
+          <Flyout
+            section={collapsed && !mobileOpen ? null : openSection}
+            items={openSection?.items ?? []}
+            hrefFor={hrefFor}
+            onClose={onCloseFlyout}
+            badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
+            className={flyoutClass(mobileOpen)}
           />
         </div>
-        <Flyout
-          section={collapsed && !mobileOpen ? null : openSection}
-          items={openSection?.items ?? []}
-          hrefFor={hrefFor}
-          onClose={onCloseFlyout}
-          badgeFor={(item) => (item.badge === "incoming" ? incoming.data?.count : undefined)}
-          className={flyoutClass(mobileOpen)}
-        />
         {/* Page + footer share the column right of the rail, so the footer starts where the rail ends. */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <main id="main" className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+        <div className="flex min-w-0 flex-1 flex-col print:block">
+          <main id="main" className="min-h-0 min-w-0 flex-1 overflow-y-auto print:overflow-visible">
             <div className="w-full space-y-6 px-4 py-5 sm:px-6 sm:py-6">
               <ReadOnlyBanner />
               {children}
             </div>
           </main>
-          <StickyFooter />
+          <div className="contents print:hidden">
+            <StickyFooter />
+          </div>
         </div>
       </div>
       <CommandSearch mode={mode} />

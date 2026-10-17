@@ -81,6 +81,20 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
       cell: (r) => (plot(r.ownMoneyInvestedPaisa) > 0 ? <MoneyText paisa={r.ownMoneyInvestedPaisa} short className="text-warning" /> : <span className="text-success">{t("dashboard.ownerAhead")}</span>),
     },
     {
+      id: "physical",
+      header: t("control.dashboard.progressCol"),
+      align: "right",
+      hidden: !(rows ?? []).some((r) => r.progressPercent !== undefined),
+      cell: (r) => (r.progressPercent === undefined ? "—" : `${r.progressPercent}%`),
+    },
+    {
+      id: "projectedMargin",
+      header: t("control.dashboard.marginCol"),
+      align: "right",
+      hidden: !(rows ?? []).some((r) => r.projectedMarginPercent !== undefined),
+      cell: (r) => (r.projectedMarginPercent === null || r.projectedMarginPercent === undefined ? "—" : <span className={cn(r.projectedMarginPercent < 0 && "text-danger")}>{`${r.projectedMarginPercent}%`}</span>),
+    },
+    {
       id: "next",
       header: t("dashboard.colNextStage"),
       hidden: !money,
@@ -240,8 +254,10 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
                   <span className="sr-only">{te("severity", a.severity, meta.label)}</span>
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-muted-foreground">{te("notificationType", a.type, humanize(a.type))}</p>
-                  <p className="truncate text-sm font-medium">{a.title}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{a.source === "CONTROL_ALERT" ? te("controlRule", a.type, humanize(a.type)) : te("notificationType", a.type, humanize(a.type))}</p>
+                  <p dir="auto" className="truncate text-start text-sm font-medium" title={a.title}>
+                    {a.title}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {a.project ? `${a.project.name} · ` : ""}
                     {rel(a.at)}

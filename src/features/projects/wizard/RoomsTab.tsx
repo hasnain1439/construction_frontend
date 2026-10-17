@@ -1,9 +1,10 @@
 "use client";
 
-import { Copy, DoorOpen, Plus } from "lucide-react";
+import { BrickWall, Copy, DoorOpen, Plus } from "lucide-react";
 import { useState } from "react";
-import { useCopyFloorMutation, useGetFloorsQuery } from "@/api/services/projects.api";
+import { useAutoFloorWallsMutation, useCopyFloorMutation, useGetFloorsQuery } from "@/api/services/projects.api";
 import type { FloorWithRooms } from "@/api/types";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -109,6 +110,9 @@ export function RoomsTab() {
   const [floorId, setFloorId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const [autoOpen, setAutoOpen] = useState(false);
+  const [autoWalls, { isLoading: autoSaving }] = useAutoFloorWallsMutation();
+  const run = useMutationToast();
   const t = useT();
   const te = useEnumT();
   if (!projectId) return null;
@@ -155,7 +159,11 @@ export function RoomsTab() {
             </TabsList>
           </Tabs>
           {!locked ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" disabled={!floor.rooms.length} onClick={() => setAutoOpen(true)}>
+                <BrickWall data-icon="inline-start" />
+                {t("projects.rooms.autoWalls")}
+              </Button>
               <Button variant="outline" disabled={!floor.rooms.length || floors.length < 2} onClick={() => setCopyOpen(true)}>
                 <Copy data-icon="inline-start" />
                 {t("projects.rooms.copyFloor")}
@@ -167,9 +175,21 @@ export function RoomsTab() {
             </div>
           ) : null}
         </div>
-        {adding ? <RoomCard key={`new-${floor.id}`} projectId={projectId} floor={floor} room={null} disabled={false} onCancelNew={() => setAdding(false)} /> : null}
+        {adding ? (
+          <RoomCard
+            key={`new-${floor.id}`}
+            projectId={projectId}
+            floor={floor}
+            room={null}
+            structure={project?.structure?.structureType ?? null}
+            disabled={false}
+            onCancelNew={() => setAdding(false)}
+          />
+        ) : null}
         {floor.rooms.length ? (
-          floor.rooms.map((room) => <RoomCard key={room.id} projectId={projectId} floor={floor} room={room} disabled={locked} />)
+          floor.rooms.map((room) => (
+            <RoomCard key={room.id} projectId={projectId} floor={floor} room={room} structure={project?.structure?.structureType ?? null} disabled={locked} />
+          ))
         ) : !adding ? (
           <SectionCard>
             <EmptyState
@@ -197,7 +217,7 @@ export function RoomsTab() {
                 <li key={f.id} className="flex justify-between gap-2">
                   <span>{te("projectFloorLevel", f.level, f.name)}</span>
                   <span className="text-muted-foreground tabular">
-                    {t("projects.rooms.floorSummary", { n: f.calculations.rooms, area: formatArea(f.calculations.totalFloorAreaSqft) })}
+                    {t(f.calculations.rooms === 1 ? "projects.rooms.floorSummaryOne" : "projects.rooms.floorSummary", { n: f.calculations.rooms, area: formatArea(f.calculations.totalFloorAreaSqft) })}
                   </span>
                 </li>
               ))}
@@ -229,6 +249,19 @@ export function RoomsTab() {
         </SectionCard>
       </aside>
       <CopyFloorDialog projectId={projectId} source={floor} floors={floors} open={copyOpen} onOpenChange={setCopyOpen} />
+      <ConfirmDialog
+        open={autoOpen}
+        onOpenChange={setAutoOpen}
+        title={t("projects.rooms.autoWallsTitle", { floor: te("projectFloorLevel", floor.level, floor.name) })}
+        description={t("projects.rooms.autoWallsDesc")}
+        confirmLabel={t("projects.rooms.autoWallsConfirm")}
+        tone="default"
+        loading={autoSaving}
+        onConfirm={async () => {
+          const ok = await run(() => autoWalls({ projectId, floorId: floor.id, body: { replace: false } }).unwrap(), { success: t("projects.rooms.autoWallsDone") });
+          if (ok !== undefined) setAutoOpen(false);
+        }}
+      />
     </div>
   );
 }

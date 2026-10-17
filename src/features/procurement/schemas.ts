@@ -200,6 +200,8 @@ export type ResolveValues = z.input<typeof resolveSchema>;
 export const usageSchema = z.object({
   usageDate: z.string().min(1, msg("validation.enterDate")),
   note: z.string().trim().max(500),
+  /** Step 13: the schedule milestone this usage counts against (quota used); optional. */
+  milestoneId: z.string().nullable().optional(),
   items: z.array(z.object({ materialId: material, qty: requiredQty() })).min(1, msg("procurement.v.addMaterial")).superRefine(noDuplicates),
 });
 export type UsageValues = z.input<typeof usageSchema>;

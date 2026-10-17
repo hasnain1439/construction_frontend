@@ -82,8 +82,10 @@ export function formatPKRShort(paisa: PaisaInput): string {
   const value = toPaisaBigInt(paisa);
   if (value === null) return "—";
   const abs = value < ZERO ? -value : value;
-  if (abs >= PAISA_PER_CRORE) return `Rs ${hundredthsToString(divRound(value * PAISA_PER_RUPEE, PAISA_PER_CRORE))} Cr`;
-  if (abs >= PAISA_PER_LAKH) return `Rs ${hundredthsToString(divRound(value * PAISA_PER_RUPEE, PAISA_PER_LAKH))} L`;
+  // One sign style with formatPKR: "-Rs 5.78 L", never "Rs -5.78 L" (QA-B-13).
+  const sign = value < ZERO ? "-" : "";
+  if (abs >= PAISA_PER_CRORE) return `${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_CRORE))} Cr`;
+  if (abs >= PAISA_PER_LAKH) return `${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_LAKH))} L`;
   return formatPKR(divRound(value, PAISA_PER_RUPEE) * PAISA_PER_RUPEE);
 }
 
@@ -141,4 +143,11 @@ export function multiplyPaisa(rate: PaisaInput, quantity: number): string | null
   const scaledQty = BigInt(Math.round(quantity * 100));
   const rupees = divRound(value * scaledQty, PAISA_PER_RUPEE * BigInt(100));
   return (rupees * PAISA_PER_RUPEE).toString();
+}
+
+/** Paisa rounded half away from zero to whole rupees ("1994628" → "1994600") — report money (QA-B-13). */
+export function roundToRupee(paisa: PaisaInput): string | null {
+  const value = toPaisaBigInt(paisa);
+  if (value === null) return null;
+  return (divRound(value, PAISA_PER_RUPEE) * PAISA_PER_RUPEE).toString();
 }

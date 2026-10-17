@@ -6,8 +6,18 @@ import * as laborRoman from "./areas/labor/roman-ur";
 import * as masterDataRoman from "./areas/masterData/roman-ur";
 import * as billingRoman from "./areas/billing/roman-ur";
 import * as cashSiteRoman from "./areas/cashSite/roman-ur";
+import * as closeoutRoman from "./areas/closeout/roman-ur";
+import * as salesRoman from "./areas/sales/roman-ur";
+import * as changeOrdersRoman from "./areas/changeOrders/roman-ur";
 import * as teamCompanyRoman from "./areas/teamCompany/roman-ur";
 import * as appRoman from "./areas/app/roman-ur";
+import * as equipmentRoman from "./areas/equipment/roman-ur";
+import * as estimatesRoman from "./areas/estimates/roman-ur";
+import * as rulebookRoman from "./areas/estimates/rulebook.roman-ur";
+import * as scheduleRoman from "./areas/schedule/roman-ur";
+import * as controlRoman from "./areas/control/roman-ur";
+import * as reportsRoman from "./areas/reports/roman-ur";
+import * as taxRoman from "./areas/tax/roman-ur";
 
 /** Roman Urdu UI strings. */
 export const romanUr: Dictionary = {
@@ -18,8 +28,17 @@ export const romanUr: Dictionary = {
   masterData: masterDataRoman.strings,
   billing: billingRoman.strings,
   cashSite: cashSiteRoman.strings,
+  closeout: closeoutRoman.strings,
+  sales: salesRoman.strings,
+  changeOrders: changeOrdersRoman.strings,
   teamCompany: teamCompanyRoman.strings,
   app: appRoman.strings,
+  equipment: equipmentRoman.strings,
+  estimates: { ...estimatesRoman.strings, ruleDesc: rulebookRoman.ruleDesc, ruleUnit: rulebookRoman.ruleUnit },
+  schedule: scheduleRoman.strings,
+  control: controlRoman.strings,
+  reports: reportsRoman.strings,
+  tax: taxRoman.strings,
   common: {
     save: "Mehfooz karein",
     saveChanges: "Tabdeeliyan mehfooz karein",
@@ -50,6 +69,8 @@ export const romanUr: Dictionary = {
     optional: "Ikhtiyari",
     noResults: "Kuch nahi mila",
     somethingWrong: "Koi masla hua",
+    noAccessTitle: "Dastiyab nahi",
+    noAccessBody: "Ye safha mojood nahi, ya aap ko is tak rasai nahi. Project ke malik se kahein ke aap ko project mein shamil karein.",
     hiddenForRole: "Aap ke role ke liye chhupa hua",
     comingSoon: "Agle phase mein aa raha hai",
     comingSoonBody: "Yeh page agli release ka hissa hai. Aaj ki zaroorat ki har cheez menu mein hai.",
@@ -501,6 +522,12 @@ export const romanUr: Dictionary = {
     stepSUPPLIERS: "Apne suppliers shamil karein",
     stepPROJECT: "Pehla project banayein",
     openingLink: "Opening balance darj karein (udhaar, cash, stock, peshgi)",
+    moreTitle: "Agle ikhtiyari qadam",
+    moreDesc: "Shuru karne ke liye zaroori nahi — jab tayyar hon tab set karein.",
+    moreRULEBOOK: "Rulebook ki values dekh lein (wastage, mixes, mazdoori rates)",
+    moreQUOTE: "Pehli quote banayein",
+    moreEQUIPMENT: "Apni shuttering aur equipment shamil karein",
+    moreTAX: "Tax settings check karein (PRA / SRB / ICT, WHT)",
   },
   demo: {
     try: "Demo data se azmayein",
@@ -608,10 +635,14 @@ export const romanUr: Dictionary = {
     ...cashSiteRoman.enums,
     ...teamCompanyRoman.enums,
     ...appRoman.enums,
+    ...equipmentRoman.enums,
+    ...scheduleRoman.enums,
+    ...controlRoman.enums,
+    ...taxRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
-      ACTIVE: "Jari",
-      CLOSEOUT: "Ikhtitaam",
+      ACTIVE: "Chalu",
+      CLOSEOUT: "Khatam ho raha",
       HANDED_OVER: "Hawale kar diya",
       CLOSED: "Band",
       READ_ONLY: "Sirf dekhne ke liye",
@@ -633,6 +664,7 @@ export const romanUr: Dictionary = {
       CHEQUE_BOUNCED: "Cheque bounce",
       INVOICE_OVERDUE: "Invoice late",
       STAGE_READY_UNBILLED: "Marhala tayyar, bill nahin bana",
+      CONTROL_ALERT: "Control alert",
       PREVIOUS_STAGE_UNPAID: "Pichhle marhale ki adaigi baqi",
       SHORTAGE_CREATED: "Kami darj hui",
       LOW_STOCK: "Stock kam",
@@ -650,6 +682,10 @@ export const romanUr: Dictionary = {
       SUBSCRIPTION_PAYMENT_REJECTED: "Subscription adaigi radd",
       INVITE_ACCEPTED: "Daawat qubool hui",
       PLATFORM_SUPPORT_ACCESS: "Platform support ne aap ka account khola",
+      EQUIPMENT_IDLE: "Kiraye ka saman bekaar khara hai",
+      MISSING_DAILY_LOG: "Roznamcha nahi bhara gaya",
+      RETENTION_RELEASE_DUE: "Retention ki wapsi ka waqt",
+      SITE_INSTRUCTION_CREATED: "Site hidayat darj hui",
     },
     approvalType: {
       SETTLEMENT_SUBMITTED: "Manzoori ke liye mazdoori ka hisaab",

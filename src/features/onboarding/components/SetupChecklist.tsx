@@ -1,14 +1,18 @@
 "use client";
 
 import {
+  BookOpen,
   CircleCheck,
   EyeOff,
+  FileText,
   FlaskConical,
   FolderKanban,
+  Forklift,
   HardHat,
   ImageUp,
   Landmark,
   PackageSearch,
+  Receipt,
   Trash2,
   Truck,
   UserPlus,
@@ -25,13 +29,14 @@ import {
 } from "@/api/services/onboarding.api";
 import type { ChecklistStepKey, SetupChecklist as Checklist } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT, type TranslationKey } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
+import type { AccessRule } from "@/lib/permissions";
 import { DemoBadge } from "./DemoBadge";
 
 const STEPS: Record<
@@ -55,6 +60,45 @@ const STEPS: Record<
   },
   PROJECT: { href: "/projects/new", icon: FolderKanban, label: "onboarding.stepPROJECT" },
 };
+
+/**
+ * Step 18 · optional Phase 2 / 3 steps under the checklist: links only (they don't count in the
+ * progress), each shown with the key its page needs. Hidden together with the checklist.
+ */
+const OPTIONAL_STEPS: Array<{ id: string; href: string; icon: LucideIcon; label: TranslationKey; access: AccessRule }> = [
+  { id: "rulebook", href: "/settings/rulebook", icon: BookOpen, label: "onboarding.moreRULEBOOK", access: { permission: "rulebook.override.view" } },
+  { id: "quote", href: "/sales/quotes/new", icon: FileText, label: "onboarding.moreQUOTE", access: { permission: "sales.quote.create" } },
+  { id: "equipment", href: "/equipment/owned", icon: Forklift, label: "onboarding.moreEQUIPMENT", access: { allPermissions: ["equipment.view", "equipment.manage"] } },
+  { id: "tax", href: "/settings/tax", icon: Receipt, label: "onboarding.moreTAX", access: { permission: "tax.view" } },
+];
+
+function OptionalSteps() {
+  const t = useT();
+  const { canAccess } = usePermissions();
+  const steps = OPTIONAL_STEPS.filter((s) => canAccess(s.access));
+  if (!steps.length) return null;
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-semibold">{t("onboarding.moreTitle")}</p>
+        <p className="text-xs text-muted-foreground">{t("onboarding.moreDesc")}</p>
+      </div>
+      <ul className="grid gap-2 md:grid-cols-2">
+        {steps.map((s) => {
+          const Icon = s.icon;
+          return (
+            <li key={s.id}>
+              <Link href={s.href} className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-2 text-sm underline-offset-2 hover:underline">
+                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                {t(s.label)}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 /** Progress bar drawn with a width, so it fills from the start side in both LTR and RTL. */
 function ProgressBar({ percent, label }: { percent: number; label: string }) {
@@ -250,6 +294,7 @@ export function SetupChecklist() {
             );
           })}
         </ul>
+        <OptionalSteps />
         {canOpening ? (
           <Link
             href="/settings/opening-balances"

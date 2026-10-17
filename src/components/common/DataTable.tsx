@@ -58,6 +58,9 @@ const maxHeightClass = {
 const scrollClass =
   "[&_[data-slot=table-container]]:overflow-y-auto [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead_tr]:bg-muted [&_thead_tr]:hover:bg-muted";
 
+/** `className` for wide tables (10+ columns): tighter cell padding so they fit a 1440 px screen (QA-B-30). */
+export const DENSE_TABLE = "[&_td]:px-2.5 [&_th]:px-2.5 [&_td:first-child]:ps-4 [&_th:first-child]:ps-4";
+
 type SortDirection = "asc" | "desc";
 
 const alignClass = { left: "text-start", right: "text-end", center: "text-center" } as const;

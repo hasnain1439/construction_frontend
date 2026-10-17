@@ -190,6 +190,13 @@ export const strings = {
     },
     shortage: { OPEN: "Open", RESOLVED: "Resolved" },
     shortageKind: { DISPATCH_SHORT: "Short", DAMAGED: "Damaged", EXCESS: "Excess", SUPPLIER_SHORT: "Supplier short" },
+    milestone: { PLANNED: "Planned", IN_PROGRESS: "In progress", CURING: "Curing", DONE: "Done", BLOCKED: "Blocked" },
+    scheduleStage: { PLANNED: "Planned", IN_PROGRESS: "In progress", DONE: "Done" },
+    stoppage: { PENDING: "Pending", APPROVED: "Approved", REJECTED: "Rejected" },
+    equipmentTransfer: { ON_THE_WAY: "On the way", RECEIVED: "Received", RECEIVED_WITH_GAP: "Received — gap", CANCELLED: "Cancelled" },
+    rental: { ACTIVE: "On rent", RETURNED: "Returned", CLOSED: "Closed" },
+    equipmentLoss: { REPORTED: "Reported", CHARGED: "Charged" },
+    equipmentLossKind: { MISSING: "Missing", DAMAGED: "Damaged" },
     supplierPayment: { CLEARED: "Cleared", PENDING: "Cheque pending", BOUNCED: "Bounced" },
     paymentMode: { UDHAAR: "Udhaar", CASH: "Cash", PARTIAL: "Part paid" },
     settlement: { DRAFT: "Draft", SUBMITTED: "Waiting for approval", APPROVED: "Approved", RETURNED: "Returned" },
@@ -204,12 +211,15 @@ export const strings = {
       POSTED: "Done",
     },
     topup: { PENDING: "Pending", APPROVED: "Sent", REJECTED: "Rejected" },
+    estimateRevision: { DRAFT: "Draft", APPROVED: "Approved", SUPERSEDED: "Superseded" },
+    rulebookVersion: { DRAFT: "Draft", PUBLISHED: "Published" },
     severity: { INFO: "Info", WARNING: "Warning", CRITICAL: "Critical" },
   },
 } as const;
 
 /** Enum groups from `src/lib/options.ts`, read with `useEnumT()`. */
 export const enums = {
+  measureUnit: { bag: "bag", day: "day", job: "job", nos: "nos", cft: "cft", kg: "kg", sqft: "sq ft", sft: "sq ft", rft: "rft", gallon: "gallon", litre: "litre", ton: "ton", ls: "lump sum", hour: "hour", trip: "trip", month: "month", week: "week", point: "point", set: "set", coil: "coil", drum: "drum", trolley: "trolley", lot: "lot", piece: "piece" },
   region: { PUNJAB_KP: "Punjab / KP", KARACHI_SINDH: "Karachi / Sindh" },
   regionDesc: { PUNJAB_KP: "Brick construction", KARACHI_SINDH: "Block construction" },
   userLanguage: { ENGLISH: "English", ROMAN_URDU: "Roman Urdu", URDU: "Urdu" },

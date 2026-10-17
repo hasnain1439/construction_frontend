@@ -11,6 +11,12 @@ export const PERMISSION_KEYS = [
   "projects.project.approve",
   "projects.project.manage",
   "projects.team.manage",
+  "projects.estimate.view",
+  "projects.estimate.manage",
+  // estimate revisions + rulebook (Step 11)
+  "estimate.revision.approve",
+  "rulebook.override.view",
+  "rulebook.override.manage",
   // clients
   "clients.client.view",
   "clients.client.create",
@@ -75,6 +81,14 @@ export const PERMISSION_KEYS = [
   "inventory.usage.create",
   "inventory.ownerdelivery.view",
   "inventory.ownerdelivery.create",
+  // equipment (Step 16)
+  "equipment.view",
+  "equipment.manage",
+  "equipment.transfer.create",
+  "equipment.receiving.create",
+  "equipment.rental.manage",
+  "equipment.loss.create",
+  "equipment.loss.approve",
   // billing
   "billing.invoice.view",
   "billing.invoice.create",
@@ -129,6 +143,40 @@ export const PERMISSION_KEYS = [
   "company.holiday.manage",
   // subscription
   "subscription.manage",
+  // schedule (Step 13)
+  "schedule.plan.view",
+  "schedule.plan.manage",
+  "schedule.progress.edit",
+  "schedule.stoppage.create",
+  "schedule.stoppage.approve",
+  // closeout (Step 17)
+  "closeout.drawing.view",
+  "closeout.drawing.manage",
+  "closeout.snag.view",
+  "closeout.snag.create",
+  "closeout.snag.manage",
+  "closeout.handover.manage",
+  "closeout.retention.view",
+  // sales (Step 12)
+  "sales.quote.view",
+  "sales.quote.create",
+  "sales.quote.edit",
+  "sales.quote.approve",
+  "sales.quote.manage",
+  // change orders (Step 15)
+  "changeorder.view",
+  "changeorder.create",
+  "changeorder.edit",
+  "changeorder.approve",
+  "changeorder.manage",
+  "changeorder.instruction.create",
+  "changeorder.instruction.view",
+  // control (Step 14)
+  "control.view",
+  "control.manage",
+  // tax (Step 18)
+  "tax.view",
+  "tax.settings.manage",
   // fields
   "fields.rates",
   "fields.amounts",
