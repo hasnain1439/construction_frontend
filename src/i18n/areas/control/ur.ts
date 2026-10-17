@@ -24,6 +24,8 @@ export const strings: Widen<typeof En.strings> = {
     points: "{n} پوائنٹس",
     signedPoints: "{sign}{n} پوائنٹس",
     estimateRev: "تخمینہ نظرِ ثانی {n}",
+    openGantt: "گینٹ چارٹ کھولیں",
+    openEstimate: "تخمینہ کھولیں",
   },
   material: {
     title: "مال کا فرق",

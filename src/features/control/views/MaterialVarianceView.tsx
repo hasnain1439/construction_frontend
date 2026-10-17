@@ -6,7 +6,6 @@ import { useGetMaterialVarianceQuery } from "@/api/services/control.api";
 import type { MaterialVariance, MaterialVarianceItem } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
-import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -17,7 +16,7 @@ import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { formatQty } from "@/lib/quantity";
-import { ControlAlertsCard, SignedPercent, VarianceBadge } from "../components/ControlShared";
+import { ControlAlertsCard, ControlSetupHints, SignedPercent, VarianceBadge } from "../components/ControlShared";
 
 const ALL = "ALL";
 
@@ -122,8 +121,7 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
         ) : null}
       </div>
 
-      {!data.hasSchedule ? <InlineAlert tone="warning" title={t("control.common.noSchedule")}>{t("control.common.noScheduleNote")}</InlineAlert> : null}
-      {!data.estimate ? <InlineAlert tone="info">{t("control.common.noEstimate")}</InlineAlert> : null}
+      <ControlSetupHints projectId={data.project.id} hasSchedule={data.hasSchedule} hasEstimate={Boolean(data.estimate)} />
       {perMilestone ? <p className="text-xs text-muted-foreground">{t("control.material.siteLevel")}</p> : null}
 
       <KpiGroup columns="grid-cols-2 lg:grid-cols-4" ariaLabel={t("control.material.title")}>

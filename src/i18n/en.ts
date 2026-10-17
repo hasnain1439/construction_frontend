@@ -518,6 +518,12 @@ export const en = {
     stepSUPPLIERS: "Add your suppliers",
     stepPROJECT: "Create your first project",
     openingLink: "Enter opening balances (udhaar, cash, stock, peshgi)",
+    moreTitle: "Optional next steps",
+    moreDesc: "Not needed to start — set these up when you are ready.",
+    moreRULEBOOK: "Review the rulebook values (wastage, mixes, labour rates)",
+    moreQUOTE: "Create your first quote",
+    moreEQUIPMENT: "Add your shuttering and equipment",
+    moreTAX: "Check the tax settings (PRA / SRB / ICT, WHT)",
   },
   demo: {
     try: "Try with demo data",

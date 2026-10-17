@@ -6,6 +6,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Step 18 — Performance and polish
+- Every Phase 2 / 3 page now checks its permission itself (estimate, revisions, shopping list, rulebook, change orders + detail / edit / site instructions, drawings, snags, handover, retention), with the same key as its menu item; a new test walks the whole menu and checks every link opens a real page with a matching gate.
+- Helpful empty states: no change orders → "New change order", no quotes → "New quote", no equipment → "Add equipment", no rentals → "New rental" (each only with the create permission); control pages without a schedule or an approved estimate link to the Gantt / the estimate.
+- The setup checklist shows optional next steps (review rulebook values, first quote, equipment, tax settings) for users who may open them; they hide with the checklist.
+- Removed a stale "was Coming soon" note; only Admin → Communication and Security stay "Coming soon". API types regenerated (P&L docs text).
+
 ### Step 18 — Reports
 - **Reports → Delay Analysis** is live (no longer "Coming soon"), with **Variance Report**, **Change Order Register**, **Equipment Utilisation** and **Snag Summary** next to it: filters (project, dates; change-order status / type; equipment category and per item / per category), charts (delay days by cause, progress vs plan, change orders by status, utilisation, snags by status), KPIs, a translated table and CSV / Excel / PDF export with the same filters.
 - Picking a project on Delay Analysis, Variance or Snag Summary opens that project's full report (stoppages, change-order days, late milestones / material variance, cost buckets, burn by month / snags by assignee, open list, defect period) with its own CSV / Excel / PDF export.

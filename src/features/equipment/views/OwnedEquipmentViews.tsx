@@ -196,6 +196,13 @@ export function OwnedEquipmentView() {
             title: t("equipment.register.emptyTitle"),
             description: t("equipment.register.emptyDesc"),
             icon: Forklift,
+            action:
+              manage && !list.isFiltered ? (
+                <Button variant="outline" onClick={() => setForm({ open: true, equipment: null })}>
+                  <Plus data-icon="inline-start" />
+                  {t("equipment.register.add")}
+                </Button>
+              ) : undefined,
           }}
           pagination={
             data

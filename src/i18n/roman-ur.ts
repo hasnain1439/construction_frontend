@@ -519,6 +519,12 @@ export const romanUr: Dictionary = {
     stepSUPPLIERS: "Apne suppliers shamil karein",
     stepPROJECT: "Pehla project banayein",
     openingLink: "Opening balance darj karein (udhaar, cash, stock, peshgi)",
+    moreTitle: "Agle ikhtiyari qadam",
+    moreDesc: "Shuru karne ke liye zaroori nahi — jab tayyar hon tab set karein.",
+    moreRULEBOOK: "Rulebook ki values dekh lein (wastage, mixes, mazdoori rates)",
+    moreQUOTE: "Pehli quote banayein",
+    moreEQUIPMENT: "Apni shuttering aur equipment shamil karein",
+    moreTAX: "Tax settings check karein (PRA / SRB / ICT, WHT)",
   },
   demo: {
     try: "Demo data se azmayein",

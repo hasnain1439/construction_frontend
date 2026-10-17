@@ -22,6 +22,8 @@ export const strings = {
     points: "{n} pts",
     signedPoints: "{sign}{n} pts",
     estimateRev: "Estimate Rev {n}",
+    openGantt: "Open the Gantt",
+    openEstimate: "Open the estimate",
   },
   material: {
     title: "Material variance",

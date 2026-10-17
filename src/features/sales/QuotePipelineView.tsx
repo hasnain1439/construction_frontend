@@ -121,6 +121,17 @@ export function QuotePipelineView() {
     { id: "activity", header: t("sales.pipeline.colActivity"), cell: (q) => formatDate(q.lastActivityAt), sortValue: (q) => q.lastActivityAt },
   ];
 
+  // Step 18: the empty pipeline offers the first quote (same rule as the header button).
+  const newQuote =
+    !readOnly && canCreate ? (
+      <Button asChild variant="outline">
+        <Link href="/sales/quotes/new">
+          <Plus data-icon="inline-start" />
+          {t("sales.pipeline.newQuote")}
+        </Link>
+      </Button>
+    ) : undefined;
+
   return (
     <>
       <PageHeader
@@ -168,7 +179,7 @@ export function QuotePipelineView() {
       {view === "board" ? (
         !isLoading && !quotes.length && !list.isFiltered ? (
           <SectionCard>
-            <EmptyState icon={FileText} title={t("sales.pipeline.emptyTitle")} description={t("sales.pipeline.emptyDesc")} />
+            <EmptyState icon={FileText} title={t("sales.pipeline.emptyTitle")} description={t("sales.pipeline.emptyDesc")} action={newQuote} />
           </SectionCard>
         ) : (
           <Board quotes={quotes} />
@@ -183,7 +194,7 @@ export function QuotePipelineView() {
             error={error}
             onRetry={refetch}
             onRowClick={(q) => router.push(`/sales/quotes/${q.id}`)}
-            empty={{ title: t("sales.pipeline.emptyTitle"), description: t("sales.pipeline.emptyDesc"), icon: FileText }}
+            empty={{ title: t("sales.pipeline.emptyTitle"), description: t("sales.pipeline.emptyDesc"), icon: FileText, action: list.isFiltered ? undefined : newQuote }}
             pagination={data ? { page: list.page, pageSize: list.pageSize, total: data.meta.total, onPageChange: list.setPage, onPageSizeChange: list.setPageSize } : undefined}
           />
         </SectionCard>
