@@ -3,7 +3,7 @@
 import { Boxes, CalendarRange } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useGetScheduleQuotasQuery } from "@/api/services/schedule.api";
+import { useGetScheduleQuery, useGetScheduleQuotasQuery } from "@/api/services/schedule.api";
 import type { MaterialQuotaTotal, ScheduleQuotas } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -18,7 +18,7 @@ import { errorCode } from "@/lib/apiErrors";
 import { projectHref } from "@/lib/navigation";
 import { formatQty } from "@/lib/quantity";
 import { QuotaTable } from "../components/MilestonePanel";
-import { useDateRange } from "../labels";
+import { useDateRange, useMilestoneName } from "../labels";
 
 /** "No schedule yet — open the Gantt" for pages that need one. */
 export function NoSchedule({ projectId }: { projectId: string }) {
@@ -60,6 +60,7 @@ function ProgressBar({ value, label }: { value: number; label: string }) {
 /** Milestones & Quotas content (separate from the page shell so it can be tested on a fixture). */
 export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
   const t = useT();
+  const msName = useMilestoneName();
   const te = useEnumT();
   const range = useDateRange();
   const [stage, setStage] = useState<string>("ALL");
@@ -149,7 +150,7 @@ export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
             key={m.id}
             title={
               <span className="flex flex-wrap items-center gap-2">
-                <bdi>{m.name}</bdi>
+                <bdi>{msName(m)}</bdi>
                 <StatusBadge domain="milestone" value={m.status} />
               </span>
             }
@@ -194,13 +195,17 @@ export function QuotasBoard({ data }: { data: ScheduleQuotas }) {
 /** Project → Schedule → Milestones & Quotas: planned vs used vs remaining per material (no money). */
 export function MilestonesQuotasView({ projectId }: { projectId: string }) {
   const t = useT();
-  const { data, isLoading, error } = useGetScheduleQuotasQuery(projectId);
+  // No schedule yet → no quotas request (it would only 404 — QA-A-36)
+  const schedule = useGetScheduleQuery(projectId);
+  const none = Boolean(schedule.data && !schedule.data.schedule);
+  const { data, isLoading: quotasLoading, error } = useGetScheduleQuotasQuery(projectId, { skip: !schedule.data || none });
+  const isLoading = schedule.isLoading || quotasLoading;
   return (
     <ProjectPageShell projectId={projectId} crumb={t("schedule.crumb.milestones")}>
       {() =>
         isLoading ? (
           <CardsSkeleton count={3} height="h-32" />
-        ) : errorCode(error) === "SCHEDULE_NOT_FOUND" ? (
+        ) : none || errorCode(error) === "SCHEDULE_NOT_FOUND" ? (
           <NoSchedule projectId={projectId} />
         ) : !data ? (
           <SectionCard>

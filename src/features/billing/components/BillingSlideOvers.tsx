@@ -16,6 +16,7 @@ import {
   useMarkStageReadyMutation,
   useRecordPaymentMutation,
 } from "@/api/services/billing.api";
+import { useGetChangeOrdersQuery } from "@/api/services/changeOrders.api";
 import { useGetProjectTaxQuery } from "@/api/services/tax.api";
 import type { ScheduleStage, UnpaidStageWarning } from "@/api/types";
 import { AllocationEditor, type AllocatableInvoice } from "@/components/common/AllocationEditor";
@@ -157,18 +158,33 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
   const lines = useFieldArray({ control: form.control, name: "lines" });
   const [type, billingStageId, force, from, to, cashEntryIds, manual] = useWatch({ control: form.control, name: ["type", "billingStageId", "force", "from", "to", "cashEntryIds", "lines"] });
   const recoverables = useMemo(() => statement.data?.unbilledRecoverables ?? [], [statement.data]);
+  // QA-A-15: approved change orders waiting for the next stage invoice land on a new STAGE /
+  // RUNNING_BILL draft (one line each, signed) — the preview includes them so it matches the draft.
+  const seesChangeOrders = useCan("changeorder.view");
+  const changeOrders = useGetChangeOrdersQuery({ projectId }, { skip: !seesChangeOrders });
+  const pendingCos = useMemo(
+    () =>
+      (changeOrders.data?.items ?? []).filter(
+        (co) => co.billingMode === "NEXT_STAGE" && !co.invoice && ["APPROVED", "IN_PROGRESS", "COMPLETED"].includes(co.status) && co.totalPaisa !== undefined,
+      ),
+    [changeOrders.data],
+  );
   const billable = (stages.data ?? []).filter((s) => !s.isRetention && (s.status === "READY" || (force && s.status === "UPCOMING")));
 
   const preview = useMemo(() => {
     if (type === "STAGE") {
       const s = stages.data?.find((x) => x.id === billingStageId);
-      return sumPaisa([s?.amountPaisa ?? "0", ...recoverables.filter((r) => cashEntryIds.includes(r.id)).map((r) => r.amountPaisa)]);
+      return sumPaisa([s?.amountPaisa ?? "0", ...recoverables.filter((r) => cashEntryIds.includes(r.id)).map((r) => r.amountPaisa), ...pendingCos.map((co) => co.totalPaisa ?? "0")]);
     }
     if (type === "RECOVERABLE") return sumPaisa(recoverables.filter((r) => cashEntryIds.includes(r.id)).map((r) => r.amountPaisa));
-    if (type === "RUNNING_BILL") return sumPaisa((progress.data?.items ?? []).filter((p) => (!from || p.date >= from) && (!to || p.date <= to)).map((p) => p.valuePaisa ?? "0"));
+    if (type === "RUNNING_BILL")
+      return sumPaisa([
+        ...(progress.data?.items ?? []).filter((p) => (!from || p.date >= from) && (!to || p.date <= to)).map((p) => p.valuePaisa ?? "0"),
+        ...pendingCos.map((co) => co.totalPaisa ?? "0"),
+      ]);
     if (type === "RETENTION") return stages.data?.find((s) => s.isRetention)?.amountPaisa ?? "0";
     return sumPaisa(manual.map((l) => l.amountPaisa ?? qtyTimesRate(l.quantity, l.ratePaisa) ?? "0"));
-  }, [type, billingStageId, cashEntryIds, from, to, manual, stages.data, recoverables, progress.data]);
+  }, [type, billingStageId, cashEntryIds, from, to, manual, stages.data, recoverables, progress.data, pendingCos]);
   // Step 18: tax preview (the server works out the exact figure): owner purchases passed through are not taxed.
   const projectTax = useGetProjectTaxQuery(projectId);
   const tax = projectTax.data?.effective;
@@ -282,6 +298,19 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
           </div>
         ) : null}
         <TextareaField name="notes" label={t("billing.invoices.notesOnInvoice")} rows={2} />
+        {(type === "STAGE" || type === "RUNNING_BILL") && pendingCos.length ? (
+          <div className="space-y-1 rounded-lg border p-3 text-sm" data-testid="invoice-preview-cos">
+            <p className="text-xs font-medium text-muted-foreground">{t("billing.forms.changeOrdersIncluded")}</p>
+            {pendingCos.map((co) => (
+              <div key={co.id} className="flex items-center justify-between gap-3">
+                <span className="truncate">
+                  <bdi>{co.code}</bdi> · {co.title}
+                </span>
+                <MoneyText paisa={co.totalPaisa} />
+              </div>
+            ))}
+          </div>
+        ) : null}
         <div className="flex items-center justify-between rounded-lg bg-muted p-3 text-sm" data-testid="invoice-preview">
           <span className="text-muted-foreground">{t("billing.forms.subtotalPreview")}</span>
           <MoneyText paisa={preview} className="font-semibold" />

@@ -267,11 +267,36 @@ export interface ProjectEstimate {
     marginPaisa?: Paisa | null;
     marginPercent?: number | null;
   };
+  /**
+   * The BoQ cost (needs fields.rates): the full Step 11 BoQ total (direct + overheads + contingency,
+   * contractor scope) of the revision the BoQ page opens by default, else of the live preview.
+   * The wizard, the review and the contract suggestion all use this one number (QA-A-01).
+   */
+  boqCost?: BoqCost;
   /** Contract value (labour-only: rate) from this estimate — needs fields.contract + fields.rates; null before a contract type. */
   contractSuggestion?: ContractSuggestion | null;
   warnings: EstimateWarning[];
   /** BoQ preview = what POST /projects/:id/estimates would save (Step 11). Absent from an older API. */
   boq?: BoqPreview;
+}
+
+/** Where the BoQ cost comes from: a saved revision or the live BoQ preview. */
+export type BoqCostSource = "REVISION" | "LIVE";
+
+export interface BoqCost {
+  source: BoqCostSource;
+  estimateId: Id | null;
+  revision: number | null;
+  status: "DRAFT" | "APPROVED" | "SUPERSEDED" | null;
+  directCostPaisa: Paisa;
+  overheadPaisa: Paisa;
+  contingencyPaisa: Paisa;
+  totalPaisa: Paisa;
+  perSqftPaisa: Paisa | null;
+  coveredAreaSqft: number;
+  contractTotalPaisa?: Paisa | null;
+  marginPaisa?: Paisa | null;
+  marginPercent?: number | null;
 }
 
 /** Where a margin / finishing percentage comes from: the company settings or this project. */
@@ -281,14 +306,18 @@ export interface ContractSuggestion {
   /** CONTRACT_VALUE for FULL / GREY; RATE_PER_SQFT for LABOR_ONLY (owner buys the material). */
   kind: "CONTRACT_VALUE" | "RATE_PER_SQFT";
   contractType: ContractType;
-  /** Estimated cost (labour-only: estimated labour) the suggestion starts from. */
+  /** The BoQ total (contractor scope) the suggestion starts from — same as `boqCost.totalPaisa`. */
   basisPaisa: Paisa;
+  basisSource?: BoqCostSource;
+  estimateId?: Id | null;
+  estimateRevision?: number | null;
+  estimateStatus?: "DRAFT" | "APPROVED" | "SUPERSEDED" | null;
   coveredAreaSqft: number;
   marginPercent: number;
   marginSource: MarginSource;
   finishingAllowancePercent: number;
   finishingSource: MarginSource;
-  /** FULL only: the estimate is grey structure, the contract includes finishing. */
+  /** FULL only, and only when the BoQ prices no finishing (otherwise finishing would be counted twice). */
   finishingApplies: boolean;
   companyMarginPercent: number;
   companyFinishingAllowancePercent: number;

@@ -88,7 +88,21 @@ export const scheduleApi = baseApi.injectEndpoints({
       { id: string; projectId: string; body: MilestoneProgressBody }
     >({
       query: ({ id, body }) => ({ url: ENDPOINTS.schedule.milestoneProgress(id), method: "POST", body }),
-      invalidatesTags: (_r, _e, { projectId }) => planChanged(projectId),
+      invalidatesTags: (_r, error, { id, projectId }) => (error ? [] : [...planChanged(projectId), { type: "Milestones" as const, id }]),
+      // QA-A-08: show the saved progress at once (the panel and the Gantt row), before the refetch lands.
+      async onQueryStarted({ id, projectId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(scheduleApi.util.updateQueryData("getMilestone", id, (d) => ({ ...d, ...data.milestone, updates: d.updates })));
+          dispatch(
+            scheduleApi.util.updateQueryData("getSchedule", projectId, (d) => {
+              d.milestones = d.milestones.map((m) => (m.id === id ? { ...m, ...data.milestone } : m));
+            }),
+          );
+        } catch {
+          // the error toast comes from the caller
+        }
+      },
     }),
     getStoppages: build.query<StoppageList, { projectId: string; status?: StoppageStatus }>({
       query: ({ projectId, status }) => ({

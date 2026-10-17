@@ -15,7 +15,7 @@ import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { ShareColumns } from "@/components/common/ShareColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useT } from "@/i18n/useT";
-import { formatDate } from "@/lib/dates";
+import { formatDate, formatMonth } from "@/lib/dates";
 import { QuoteStatusBadge, useLostReasonLabel } from "./shared";
 
 type Months = "6" | "12" | "24";
@@ -36,7 +36,7 @@ function PerMonthChart({ data }: { data: QuoteInsights["perMonth"] }) {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }} barGap={3} barCategoryGap="30%">
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 4" />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={axisTick} tickMargin={8} />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={axisTick} tickMargin={8} tickFormatter={(m: string) => formatMonth(m)} interval="preserveStartEnd" minTickGap={12} />
             <YAxis tickLine={false} axisLine={false} width={32} allowDecimals={false} tick={axisTick} />
             <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.5 }} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 16 }} />
             {series.map((s) => (
@@ -58,7 +58,7 @@ function InsightsBody({ data }: { data: QuoteInsights }) {
         <KpiCard label={t("sales.insights.winRate")} value={data.winRate === null ? "—" : `${data.winRate}%`} hint={t("sales.insights.winRateHint")} icon={Percent} highlight />
         <KpiCard label={t("sales.insights.quotes")} value={data.totals.quotes} hint={t("sales.insights.quotesHint", { sent: data.totals.sent, open: data.totals.open })} icon={FileText} />
         <KpiCard label={t("sales.insights.won")} value={data.totals.won} hint={<MoneyText paisa={data.wonValuePaisa} short />} icon={Trophy} tone="success" />
-        <KpiCard label={t("sales.insights.lost")} value={data.totals.lost + data.totals.expired} hint={`${t("sales.insights.expired")}: ${data.totals.expired}`} icon={XCircle} tone="danger" />
+        <KpiCard label={t("sales.insights.lost")} value={data.totals.lost} hint={`${t("sales.insights.expired")}: ${data.totals.expired}`} icon={XCircle} tone="danger" />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard label={t("sales.insights.avgQuoted")} value={<MoneyText paisa={data.avgRateQuotedPaisa} />} hint={t("sales.insights.perSqftHint")} />

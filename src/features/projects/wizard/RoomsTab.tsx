@@ -217,7 +217,7 @@ export function RoomsTab() {
                 <li key={f.id} className="flex justify-between gap-2">
                   <span>{te("projectFloorLevel", f.level, f.name)}</span>
                   <span className="text-muted-foreground tabular">
-                    {t("projects.rooms.floorSummary", { n: f.calculations.rooms, area: formatArea(f.calculations.totalFloorAreaSqft) })}
+                    {t(f.calculations.rooms === 1 ? "projects.rooms.floorSummaryOne" : "projects.rooms.floorSummary", { n: f.calculations.rooms, area: formatArea(f.calculations.totalFloorAreaSqft) })}
                   </span>
                 </li>
               ))}

@@ -239,6 +239,18 @@ describe("Closeout — handover", () => {
     await waitFor(() => expect(setItem).toHaveBeenCalledWith({ projectId: "p1", key: "WARRANTY_CARDS", body: { done: true } }));
   });
 
+  it("QA-A-19: a note on an open item keeps it open", async () => {
+    setItem.mockReset();
+    setItem.mockImplementation(() => ({ unwrap: () => Promise.resolve(HANDOVER) }));
+    const user = userEvent.setup();
+    renderWithStore(<HandoverBody project={PROJECT} />, { me: meFixture("THEKEDAR") });
+    const row = screen.getByTestId("item-WARRANTY_CARDS");
+    await user.click(within(row).getByRole("button", { name: "Details" }));
+    await user.type(await screen.findByLabelText(/Note/), "Cards in the blue file");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(setItem).toHaveBeenCalledWith({ projectId: "p1", key: "WARRANTY_CARDS", body: { done: false, note: "Cards in the blue file" } }));
+  });
+
   it("a PM without projects.project.manage fills the checklist but cannot complete", () => {
     renderWithStore(<HandoverBody project={PROJECT} />, { me: meFixture("PM") });
     expect(screen.getByText(/Only the owner/)).toBeInTheDocument();

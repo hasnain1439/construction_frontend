@@ -59,7 +59,7 @@ describe("BoQ table", () => {
     // Price-list material keeps the company's name; engine lines use the dictionary.
     expect(screen.getByText("Steel Grade-60 #4")).toBeInTheDocument();
     expect(screen.getByText("Electrical rough-in (conduits, boxes)")).toBeInTheDocument();
-    expect(screen.getByText("Rs 2,85,000 / tons")).toBeInTheDocument();
+    expect(screen.getByText("Rs 2,85,000 / ton")).toBeInTheDocument();
   });
 
   it("owner-supplied lines keep the quantity but show Owner instead of rate and amount", () => {

@@ -167,7 +167,8 @@ function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => 
   const t = useT();
   const { data: e } = useGetEstimateQuery(projectId);
   if (!e) return null;
-  const c = e.cost;
+  // The BoQ total (same as the BoQ page and the contract suggestion — QA-A-01)
+  const c = e.boqCost ?? e.cost;
   const qty = (m: string) => e.materials.find((x) => x.material === m)?.quantity ?? 0;
   const margin = c?.marginPercent;
   const stat = (label: string, value: string, className?: string) => (

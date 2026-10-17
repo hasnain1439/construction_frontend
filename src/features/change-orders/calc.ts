@@ -93,10 +93,18 @@ export const stepIndex = (status: ChangeOrderStatus) => (status === "REJECTED" ?
  * What the user may do with a change order now — status rules of the API × the user's permissions.
  * `onInvoice`: the change order already sits on a live invoice (no second billing link).
  */
-export function allowedActions(status: ChangeOrderStatus, can: (key: PermissionKey) => boolean, opts: { onInvoice?: boolean } = {}): ChangeOrderAction[] {
+/**
+ * Actions on a change order. `waitingStage`: billing "with the next stage invoice" was already chosen —
+ * it lands there by itself, so "bill" is only offered to bill it separately (QA-A-14), never for a deduction.
+ */
+export function allowedActions(
+  status: ChangeOrderStatus,
+  can: (key: PermissionKey) => boolean,
+  opts: { onInvoice?: boolean; waitingStage?: boolean; deduction?: boolean } = {},
+): ChangeOrderAction[] {
   const edit = can("changeorder.edit");
   const approve = can("changeorder.approve");
-  const bill = can("changeorder.manage") && can("billing.invoice.create") && !opts.onInvoice;
+  const bill = can("changeorder.manage") && can("billing.invoice.create") && !opts.onInvoice && !(opts.waitingStage && opts.deduction);
   const out: ChangeOrderAction[] = [];
   switch (status) {
     case "DRAFT":

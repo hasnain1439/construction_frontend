@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Circle, FileSignature, KeyRound, PencilLine } from "lucide-react";
+import { FileSignature, KeyRound, PencilLine } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -34,6 +34,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
+import { cn } from "@/lib/cn";
 import { formatDate, todayPK } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
 import { completeSchema, itemSchema, signOffSchema, type CompleteValues, type ItemValues, type SignOffValues } from "./schemas";
@@ -116,8 +117,7 @@ function Checklist({ projectId, handover, editable }: { projectId: string; hando
               className="mt-0.5"
             />
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="flex items-center gap-2 font-medium">
-                {item.done ? <CheckCircle2 className="size-4 text-success" aria-hidden /> : <Circle className="size-4 text-muted-foreground" aria-hidden />}
+              <p className={cn("flex items-center gap-2 font-medium", item.done && "text-success")}>
                 {t(`closeout.item.${item.key}`)}
               </p>
               {item.note ? <p className="text-sm text-muted-foreground">{item.note}</p> : null}
@@ -151,7 +151,8 @@ function ItemSlideOver({ projectId, item, onClose }: { projectId: string; item: 
         setItem({
           projectId,
           key: item.key,
-          body: { done: true, note: v.note ?? "", ...(v.photo ? { attachmentIds: [...item.attachments.map((a) => a.id), v.photo.id].slice(0, 10) } : {}) },
+          // Adding a note or photo never ticks the item (QA-A-19): it keeps its done state.
+          body: { done: item.done, note: v.note ?? "", ...(v.photo ? { attachmentIds: [...item.attachments.map((a) => a.id), v.photo.id].slice(0, 10) } : {}) },
         }).unwrap(),
       { success: t("closeout.handover.itemSaved"), setError: form.setError },
     );

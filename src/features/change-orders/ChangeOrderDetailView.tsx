@@ -31,7 +31,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { PhotoStrip } from "@/features/closeout/shared";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useT, type TranslationKey } from "@/i18n/useT";
+import { boqUnit } from "@/features/estimates/labels";
+import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate, todayPK } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
 import { allowedActions, proofProblem, type ChangeOrderAction } from "./calc";
@@ -66,13 +67,15 @@ const ACTION_ICON: Record<ChangeOrderAction, typeof Send> = {
 
 export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: ChangeOrderDetail; projectId: string; editable: boolean; phone?: string | null }) {
   const t = useT();
+  const te = useEnumT();
   const router = useRouter();
   const { can, canSee } = usePermissions();
   const [dialog, setDialog] = useState<"approve" | "reject" | "bill" | "delete" | null>(null);
   const [step, { isLoading: stepping }] = useChangeOrderStepMutation();
   const [loadPdf] = useGetChangeOrderPdfMutation();
   const run = useMutationToast();
-  const actions = editable ? allowedActions(co.status, can, { onInvoice: Boolean(co.invoice) }) : [];
+  const waitingStage = !co.invoice && co.billingMode === "NEXT_STAGE";
+  const actions = editable ? allowedActions(co.status, can, { onInvoice: Boolean(co.invoice), waitingStage, deduction: co.type === "DEDUCTION" }) : [];
   const seesPrice = canSee("rates") || canSee("amounts");
 
   const doStep = (s: "send" | "reopen" | "start" | "complete", success: TranslationKey) => run(() => step({ id: co.id, step: s }).unwrap(), { success: t(success) });
@@ -105,7 +108,7 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
                 return (
                   <Button key={a} type="button" size="sm" variant={a === "delete" || a === "reject" ? "destructive-soft" : a === "approve" || a === "bill" ? "default" : "outline"} disabled={stepping} onClick={() => onAction(a)}>
                     <Icon data-icon="inline-start" />
-                    {t(a === "delete" ? "changeOrders.actions.delete" : `changeOrders.actions.${a}`)}
+                    {t(a === "delete" ? "changeOrders.actions.delete" : a === "bill" && waitingStage ? "changeOrders.actions.billSeparately" : `changeOrders.actions.${a}`)}
                   </Button>
                 );
               })}
@@ -139,7 +142,7 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
                         </p>
                       </td>
                       <td className="px-4 py-2 text-end whitespace-nowrap" dir="ltr">
-                        {l.quantity} {l.unit}
+                        {Number(l.quantity).toLocaleString("en-PK", { maximumFractionDigits: 3 })} {boqUnit(t, l.unit)}
                       </td>
                       {canSee("rates") ? (
                         <td className="px-4 py-2 text-end">
@@ -193,7 +196,7 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
               {co.invoice
                 ? co.invoice.number
                   ? t("changeOrders.detail.onInvoice", { number: co.invoice.number })
-                  : t("changeOrders.detail.onDraftInvoice", { type: co.invoice.type })
+                  : t("changeOrders.detail.onDraftInvoice", { type: te("invoiceType", co.invoice.type).toLowerCase() })
                 : co.billingMode === "NEXT_STAGE"
                   ? t("changeOrders.detail.waitingStage")
                   : t("changeOrders.detail.notBilled")}
@@ -352,9 +355,11 @@ function BillDialog({ co, open, onClose }: { co: ChangeOrderDetail; open: boolea
   const t = useT();
   const [bill, { isLoading }] = useBillChangeOrderMutation();
   const run = useMutationToast();
-  const [mode, setMode] = useState<ChangeOrderBillingMode>(co.type === "DEDUCTION" ? "NEXT_STAGE" : (co.billingMode ?? "NEXT_STAGE"));
+  // Already waiting for the next stage invoice → the only other choice is a separate variation invoice.
+  const waitingStage = !co.invoice && co.billingMode === "NEXT_STAGE" && co.type !== "DEDUCTION";
+  const [mode, setMode] = useState<ChangeOrderBillingMode>(co.type === "DEDUCTION" ? "NEXT_STAGE" : waitingStage ? "VARIATION" : (co.billingMode ?? "NEXT_STAGE"));
   const [notes, setNotes] = useState("");
-  const modes: ChangeOrderBillingMode[] = co.type === "DEDUCTION" ? ["NEXT_STAGE"] : ["NEXT_STAGE", "VARIATION"];
+  const modes: ChangeOrderBillingMode[] = co.type === "DEDUCTION" ? ["NEXT_STAGE"] : waitingStage ? ["VARIATION"] : ["NEXT_STAGE", "VARIATION"];
   return (
     <ConfirmDialog
       open={open}

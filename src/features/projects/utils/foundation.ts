@@ -101,8 +101,9 @@ export const FOUNDATION_DEFAULTS: FoundationFormValues = {
 };
 
 /** Saved foundation → form values (defaults when none is saved yet). */
-export function foundationToForm(f: ProjectFoundation | null | undefined): FoundationFormValues {
-  if (!f) return { ...FOUNDATION_DEFAULTS };
+export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null): FoundationFormValues {
+  // An RCC frame stands on column footings (QA-A-21); a load-bearing house on a strip footing.
+  if (!f) return structureType === "FRAMED" ? { ...FOUNDATION_DEFAULTS, type: "ISOLATED", footingThicknessIn: FOOTING_THICKNESS_DEFAULT.ISOLATED } : { ...FOUNDATION_DEFAULTS };
   return {
     type: f.type,
     excavationDepthFt: f.excavationDepthFt,

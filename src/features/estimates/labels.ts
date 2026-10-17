@@ -19,10 +19,45 @@ export const sectionText = (t: T, section: BoqSection) => t(`estimates.section.$
 export const stageText = (t: T, stage: BuildStageKey | null) => t(stage ? `estimates.stage.${stage}` : "estimates.stage.ALL");
 
 /** "bag" → "bags" / "بوری"; units we don't know ("%", a company's own) stay as they are. */
+/** A unit as the price list / API spells it ("TON", "Sq Ft", "bags") → our dictionary key ("ton", "sqft", "bag"). */
+export function unitKey(unit: string): string {
+  const u = unit.trim().toLowerCase().replace(/[\s._-]+/g, "");
+  const ALIASES: Record<string, string> = {
+    bags: "bag",
+    no: "nos",
+    pcs: "nos",
+    piece: "nos",
+    pieces: "nos",
+    tons: "ton",
+    tonne: "ton",
+    bricks: "brick",
+    blocks: "block",
+    sqft: "sqft",
+    sft: "sqft",
+    squarefeet: "sqft",
+    gallons: "gallon",
+    litres: "litre",
+    liter: "litre",
+    trolleys: "trolley",
+    ls: "LS",
+    lumpsum: "LS",
+  };
+  return ALIASES[u] ?? u;
+}
+
 export function boqUnit(t: T, unit: string | null | undefined): string {
   if (!unit) return "—";
-  const key = `estimates.unit.${unit}`;
+  const exact = `estimates.unit.${unit}`;
+  if (isTranslationKey(exact)) return t(exact);
+  const key = `estimates.unit.${unitKey(unit)}`;
   return isTranslationKey(key) ? t(key) : unit;
+}
+
+/** The unit after "/" in a rate, singular and translated: "Rs 9 / brick" (QA-A-28). */
+export function boqRateUnit(t: T, unit: string | null | undefined): string {
+  if (!unit) return "—";
+  const key = `estimates.rateUnit.${unitKey(unit)}`;
+  return isTranslationKey(key) ? t(key) : boqUnit(t, unit);
 }
 
 /**
@@ -55,3 +90,18 @@ export const hasMoney = (m: BoqMoney) => m.totalPaisa !== undefined;
 
 /** True when the margin is visible (fields.contract + fields.profit). */
 export const hasMargin = (m: BoqMoney) => m.marginPercent !== undefined;
+
+/** A rulebook parameter's description in the UI language (QA-A-10); the API's English text for an unknown key. */
+export function ruleDescText(t: T, p: { key: string; description: string }): string {
+  const key = `estimates.ruleDesc.${p.key}`;
+  return isTranslationKey(key) ? t(key) : p.description;
+}
+
+/** A rulebook parameter's unit in the UI language (QA-A-10). */
+export function ruleUnitText(t: T, p: { key: string; unit: string }): string {
+  const key = `estimates.ruleUnit.${p.key}`;
+  return isTranslationKey(key) ? t(key) : p.unit;
+}
+
+/** A number / amount isolated inside a translated sentence, so Urdu text around it keeps its order (QA-A-30). */
+export const iso = (text: string) => `⁨${text}⁩`;

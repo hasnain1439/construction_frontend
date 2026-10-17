@@ -26,15 +26,17 @@ import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useReadOnly } from "@/hooks/useReadOnly";
-import { isTranslationKey, useEnumT, useT, type TranslationKey } from "@/i18n/useT";
+import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPKR, formatPKRShort } from "@/lib/money";
 import { LOCKED_STATUSES } from "../constants";
 import { ContractFromEstimateCard } from "./ContractFromEstimateCard";
+import { useEstimateWarningText } from "./warningText";
 import { wizardHref } from "../utils/links";
 import { ProjectPageShell } from "../views/ProjectModeViews";
 import { EstimateSettingsModal } from "./EstimateSettingsModal";
 import { BoqWorkspace } from "@/features/estimates/BoqWorkspace";
+import { iso } from "@/features/estimates/labels";
 import { fmt, fmtUp, formulaText, lineText, materialText, rupees, unitText } from "./labels";
 
 type T = ReturnType<typeof useT>;
@@ -144,6 +146,17 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
         project={project}
         live={e}
         initialRevisionId={initialRevisionId}
+        contractCard={(basis) => (
+          <div className="print:hidden">
+            <ContractFromEstimateCard
+              projectId={project.id}
+              estimate={e}
+              basis={basis}
+              fromQuote={Boolean(project.createdFromQuoteId)}
+              locked={readOnly || LOCKED_STATUSES.includes(project.status)}
+            />
+          </div>
+        )}
         previewExtras={
           e.boq ? (
             <SectionCard flush>
@@ -159,15 +172,14 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
           )
         }
       />
-      <div className="print:hidden">
-        <ContractFromEstimateCard projectId={project.id} estimate={e} locked={readOnly || LOCKED_STATUSES.includes(project.status)} />
-      </div>
       <HowItWorks />
     </div>
   );
 }
 
 // ─── Warnings ───────────────────────────────────────────────────────────────
+
+export { useEstimateWarningText } from "./warningText";
 
 /**
  * Estimate warnings. On the project page a warning with a wizard `tab` links to the setup;
@@ -183,7 +195,7 @@ export function EstimateWarnings({
   onGoToTab?: { go: (tab: number) => void; label: (tab: number) => string };
 }) {
   const t = useT();
-  const te = useEnumT();
+  const text = useEstimateWarningText();
   const { can } = usePermissions();
   if (!warnings.length) return null;
   const editSetup = can("projects.project.edit") && !LOCKED_STATUSES.includes(project.status);
@@ -213,17 +225,6 @@ export function EstimateWarnings({
     }
     if (w.tab && editSetup) return link(wizardHref(project.id, w.tab), t("projects.estimate.warn.openSetup"));
     return null;
-  };
-  const keyText = (a: string, b: string, raw: string) => (isTranslationKey(a) ? t(a) : isTranslationKey(b) ? t(b) : raw);
-  const text = (w: EstimateWarning) => {
-    const vars = {
-      ...w.params,
-      floor: w.floor ? te("projectFloorLevel", w.floor.level, w.floor.name) : "",
-      // The BoQ's RATES_MISSING lists material keys in `items`.
-      materials: (w.materials ?? (w.code === "RATES_MISSING" ? w.items : undefined) ?? []).map((m) => keyText(`projects.estimate.material.${m}`, `estimates.material.${m}`, m)).join(", "),
-      items: (w.items ?? []).map((i) => keyText(`projects.estimate.labour.item.${i}`, `estimates.item.${i}`, i)).join(", "),
-    };
-    return t(`projects.estimate.warn.${w.code}` as TranslationKey, vars);
   };
   return (
     <InlineAlert tone="warning" title={t("projects.estimate.warn.title")}>
@@ -255,7 +256,10 @@ export function EstimateKpis({
   const sizes = e.materials
     .filter((m) => SIZE_BAR[m.material])
     .map((m) => t("projects.estimate.kpi.steelSize", { bar: SIZE_BAR[m.material]!, kg: fmtUp(m.quantity) }));
-  const c = e.cost;
+  // QA-A-01: the cost is the BoQ total (direct + overheads + contingency) — the same number as the
+  // BoQ page and the contract suggestion; the old grey-structure cost only without it (older API).
+  const c = e.boqCost ?? e.cost;
+  const bc = e.boqCost;
   const marginVisible = c?.marginPercent !== undefined;
   return (
     <KpiGroup
@@ -269,17 +273,20 @@ export function EstimateKpis({
             icon={Wallet}
             label={t("projects.estimate.kpi.totalCost")}
             value={formatPKRShort(c.totalPaisa)}
-            hint={t("projects.estimate.kpi.totalCostHint", {
-              materials: rupees(c.materialsPaisa),
-              labour: rupees(c.labourPaisa),
-            })}
+            hint={
+              bc
+                ? t("estimates.boq.kpi.totalHint", { direct: iso(rupees(bc.directCostPaisa)), overhead: iso(rupees(bc.overheadPaisa)), contingency: iso(rupees(bc.contingencyPaisa)) })
+                : e.cost
+                  ? t("projects.estimate.kpi.totalCostHint", { materials: rupees(e.cost.materialsPaisa), labour: rupees(e.cost.labourPaisa) })
+                  : undefined
+            }
           />
           <KpiCard
             variant="tile"
             icon={Calculator}
             label={t("projects.estimate.kpi.perSqft")}
             value={c.perSqftPaisa ? rupees(c.perSqftPaisa) : "—"}
-            hint={t("projects.estimate.kpi.perSqftHint", { area: fmt(e.basis.coveredAreaSqft) })}
+            hint={t("projects.estimate.kpi.perSqftHint", { area: fmt(bc?.coveredAreaSqft ?? e.basis.coveredAreaSqft) })}
           />
         </>
       ) : null}

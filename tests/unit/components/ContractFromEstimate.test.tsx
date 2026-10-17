@@ -158,7 +158,7 @@ describe("ContractFromEstimateCard", () => {
   it("FULL: finishing allowance compounds before the margin", async () => {
     const s = suggestion({ contractType: "FULL", finishingApplies: true, companyFinishingAllowancePercent: 0 });
     renderWithStore(<ContractFromEstimateCard projectId="p1" estimate={estimate(s)} />, { me: meFixture("THEKEDAR") });
-    expect(screen.getByText(/covers the grey structure only/)).toBeInTheDocument();
+    expect(screen.getByText(/prices no finishing/)).toBeInTheDocument();
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("Finishing allowance"), "50");
     // Rs 60,00,000 × 1.5 × 1.2 = Rs 1,08,00,000
@@ -171,7 +171,7 @@ describe("ContractFromEstimateCard", () => {
     const s = suggestion({ kind: "RATE_PER_SQFT", contractType: "LABOR_ONLY", basisPaisa: "100000000", suggestedPaisa: "120000" });
     renderWithStore(<ContractFromEstimateCard projectId="p1" estimate={estimate(s)} />, { me: meFixture("THEKEDAR") });
     const breakdown = screen.getByTestId("contract-breakdown");
-    expect(breakdown).toHaveTextContent("Estimated labour");
+    expect(breakdown).toHaveTextContent("BoQ cost (labour scope)");
     expect(breakdown).toHaveTextContent("1,000 sq ft");
     // Rs 10,00,000 × 1.2 ÷ 1,000 = Rs 1,200
     expect(breakdown).toHaveTextContent("Rs 1,200 / sq ft");
@@ -313,5 +313,65 @@ describe("activation toast", () => {
     expect(translate("en", "projects.wizard.activated")).toBe("Project activated.");
     expect(translate("roman-ur", "projects.wizard.activated")).toBe("Project active ho gaya.");
     expect(translate("ur", "projects.wizard.activated")).toBe("پراجیکٹ فعال ہو گیا۔");
+  });
+});
+
+describe("QA area A: one BoQ cost everywhere, never a silent replace", () => {
+  const boqCost = { source: "REVISION" as const, estimateId: "e1", revision: 1, status: "APPROVED" as const, directCostPaisa: "800000000", overheadPaisa: "24000000", contingencyPaisa: "41200000", totalPaisa: "865200000", perSqftPaisa: "865200", coveredAreaSqft: 1000, contractTotalPaisa: "1301500000", marginPaisa: "436300000", marginPercent: 33.52 };
+  const withBoq = (over: Partial<ContractSuggestion> = {}) => ({
+    ...estimate(suggestion({ basisPaisa: boqCost.totalPaisa, basisSource: "REVISION", estimateId: "e1", estimateRevision: 1, estimateStatus: "APPROVED", ...over })),
+    boqCost,
+  });
+
+  it("QA-A-01: the wizard KPI, the card and the review show the BoQ total (not the grey-structure cost)", () => {
+    api.estimate = withBoq();
+    inWizard(<EstimateTab />);
+    // KPI tile: BoQ cost with direct + overheads + contingency
+    expect(screen.getAllByText("BoQ cost").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Direct .*Rs 80,00,000/)).toBeInTheDocument();
+    // card starts from the same total and says where it comes from
+    expect(screen.getByTestId("contract-breakdown")).toHaveTextContent("Rs 86,52,000");
+    expect(screen.getByTestId("contract-basis-source")).toHaveTextContent("BoQ revision 1");
+    expect(screen.queryByText("Rs 60,00,000")).toBeNull();
+  });
+
+  it("QA-A-02: on the BoQ page the card uses the revision on screen and sends its id", async () => {
+    renderWithStore(
+      <ContractFromEstimateCard projectId="p1" estimate={withBoq()} basis={{ estimateId: "e2", totalPaisa: "900000000", revision: 2, status: "DRAFT", coveredAreaSqft: 1000 }} />,
+      { me: meFixture("THEKEDAR") },
+    );
+    expect(screen.getByTestId("contract-breakdown")).toHaveTextContent("Rs 90,00,000");
+    // Rs 90,00,000 × 1.2
+    expect(screen.getByTestId("contract-breakdown")).toHaveTextContent("Rs 1,08,00,000");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Use as contract value" }));
+    expect(api.apply).toHaveBeenCalledWith({ id: "p1", body: { marginPercent: 20, estimateId: "e2", replace: false } });
+  });
+
+  it("QA-A-03: replacing the won quote's price shows current vs new and needs a tick; 'keep current' moves on without a change", async () => {
+    api.estimate = withBoq({ currentPaisa: "1301500000" });
+    const goTo = vi.fn();
+    inWizard(<EstimateTab />, ctx({ goTo, project: { ...PROJECT, createdFromQuoteId: "q1" } }));
+    expect(screen.getByTestId("contract-current")).toHaveTextContent("agreed in the won quote");
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /Finalize estimate/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    const compare = within(dialog).getByTestId("contract-confirm-compare");
+    expect(compare).toHaveTextContent("Agreed quote price");
+    expect(compare).toHaveTextContent("Rs 1,30,15,000");
+    // Rs 86,52,000 × 1.2 = Rs 1,03,82,400 → Rs 1,03,82,000; difference −Rs 26,33,000
+    expect(compare).toHaveTextContent("Rs 1,03,82,000");
+    expect(within(dialog).getByTestId("contract-confirm-diff")).toHaveTextContent("−Rs 26,33,000");
+    const replace = within(dialog).getByRole("button", { name: "Replace" });
+    expect(replace).toBeDisabled();
+    await user.click(within(dialog).getByRole("button", { name: "Keep current and continue" }));
+    expect(api.apply).not.toHaveBeenCalled();
+    expect(goTo).toHaveBeenCalledWith(REVIEW_STEP);
+
+    // replace after the tick
+    await user.click(screen.getByRole("button", { name: /Finalize estimate/ }));
+    const again = await screen.findByRole("alertdialog");
+    await user.click(within(again).getByRole("checkbox"));
+    await user.click(within(again).getByRole("button", { name: "Replace" }));
+    expect(api.apply).toHaveBeenCalledWith({ id: "p1", body: { marginPercent: 20, replace: true } });
   });
 });

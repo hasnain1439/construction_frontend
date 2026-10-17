@@ -57,7 +57,7 @@ export function NumberInput({
           setDraft(null);
           onBlur?.();
         }}
-        className={cn("tabular", unit && "pr-14")}
+        className={cn("tabular", unit && (unit.length <= 2 ? "pr-7" : "pr-14"))}
       />
       {unit ? (
         <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">{unit}</span>

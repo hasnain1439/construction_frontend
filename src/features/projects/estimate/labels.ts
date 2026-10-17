@@ -1,5 +1,6 @@
 import type { EstimateFormula, EstimateLine, EstimateMaterial } from "@/api/types";
 import { formatPKR, toPaisaBigInt, type PaisaInput } from "@/lib/money";
+import { boqUnit } from "@/features/estimates/labels";
 import { isTranslationKey, type TranslationKey, type TranslationVars } from "@/i18n/useT";
 
 type T = (key: TranslationKey, vars?: TranslationVars) => string;
@@ -16,7 +17,7 @@ export const fmtUp = (n: number) => numberFormat.format(Math.ceil(n - 1e-9));
 export function unitText(t: T, unit: string | null | undefined): string {
   if (!unit) return "—";
   const key = `projects.estimate.unit.${unit}`;
-  return isTranslationKey(key) ? t(key) : unit;
+  return isTranslationKey(key) ? t(key) : boqUnit(t, unit);
 }
 
 export function materialText(t: T, material: EstimateMaterial): string {

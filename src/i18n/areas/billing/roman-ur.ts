@@ -153,6 +153,7 @@ export const strings: Widen<typeof En.strings> = {
     removeLine: "Line {n} hatayein",
     addLine: "Line shamil karein",
     subtotalPreview: "Zeli kul (tax on ho to draft par shamil hoga)",
+    changeOrdersIncluded: "Is invoice mein shamil manzoor shuda change orders",
     paymentSavedPending: "{number} mehfooz — cheque baqi",
     paymentSaved: "{number} mehfooz ho gaya",
     recordPaymentDesc: "Malik se mili raqam. Cheques tab tak baqi rehte hain jab tak aap clear mark na karein.",

@@ -29,7 +29,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { msg } from "@/i18n/message";
 import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
-import { fmt, localized } from "./labels";
+import { fmt, localized, ruleDescText, ruleUnitText } from "./labels";
 
 const GROUPS: RulebookGroup[] = ["WALLS", "MASONRY", "CONCRETE", "STEEL", "PLASTER", "FACTORS", "WASTAGE", "WATERPROOFING", "FINISHES", "MEP", "EARTHWORK", "OVERHEADS", "NORMS", "PRODUCTIVITY"];
 
@@ -62,10 +62,10 @@ export function RulebookBody() {
     const params = (q.data?.parameters ?? []).filter(
       (p) =>
         (!onlyCompany || p.companyValue !== null) &&
-        (!needle || [p.key, p.label.en, p.label.roman, p.label.ur, p.description].some((s) => s.toLowerCase().includes(needle))),
+        (!needle || [p.key, p.label.en, p.label.roman, p.label.ur, p.description, ruleDescText(t, p)].some((s) => s.toLowerCase().includes(needle))),
     );
     return GROUPS.map((g) => ({ group: g, params: params.filter((p) => p.group === g) })).filter((g) => g.params.length);
-  }, [q.data, search, onlyCompany]);
+  }, [q.data, search, onlyCompany, t]);
 
   if (q.isLoading) return <CardsSkeleton count={3} height="h-40" />;
   if (q.error || !q.data) return <ErrorState error={q.error} onRetry={q.refetch} />;
@@ -78,7 +78,7 @@ export function RulebookBody() {
       cell: (p) => (
         <div className="min-w-52 max-w-md space-y-0.5">
           <p className="font-medium">{label(p)}</p>
-          <p className="text-xs text-muted-foreground">{p.description}</p>
+          <p className="text-xs text-muted-foreground">{ruleDescText(t, p)}</p>
           {p.projectOverridable ? <p className="text-xs text-muted-foreground">{t("estimates.rulebook.projectOverridable")}</p> : null}
         </div>
       ),
@@ -91,7 +91,7 @@ export function RulebookBody() {
         <div className="space-y-1">
           <p className="tabular font-semibold">
             <bdi>
-              {fmt(p.value)} {p.unit}
+              {fmt(p.value)} {ruleUnitText(t, p)}
             </bdi>
           </p>
           <StatusBadge tone={p.source === "COMPANY" ? "info" : "neutral"} label={t(`estimates.rulebook.source.${p.source}`)} />
@@ -177,7 +177,7 @@ export function RulebookBody() {
         open={Boolean(removing)}
         onOpenChange={(o) => (!o ? setRemoving(null) : undefined)}
         title={removing ? t("estimates.rulebook.removeTitle", { parameter: label(removing) }) : ""}
-        description={removing ? t("estimates.rulebook.removeBody", { value: `${fmt(removing.platformValue)} ${removing.unit}` }) : undefined}
+        description={removing ? t("estimates.rulebook.removeBody", { value: `${fmt(removing.platformValue)} ${ruleUnitText(t, removing)}` }) : undefined}
         confirmLabel={t("estimates.rulebook.remove")}
         loading={removingBusy}
         onConfirm={async () => {
@@ -226,7 +226,7 @@ function OverrideSlideOver({ rulebook, parameter: p, onClose }: { rulebook: Comp
       open={Boolean(p)}
       onOpenChange={(o) => (!o ? onClose() : undefined)}
       title={p ? localized(p.label, language) : ""}
-      description={p?.description}
+      description={p ? ruleDescText(t, p) : undefined}
       busy={isLoading}
       footer={<FormActions formId="rulebook-override" submitLabel={t("common.save")} loading={isLoading} onCancel={onClose} />}
     >
@@ -236,7 +236,7 @@ function OverrideSlideOver({ rulebook, parameter: p, onClose }: { rulebook: Comp
             name="value"
             label={t("estimates.rulebook.valueLabel")}
             required
-            unit={p.unit}
+            unit={ruleUnitText(t, p)}
             decimals={4}
             allowNegative={p.safeMin < 0}
             hint={t("estimates.rulebook.valueHint", { min: fmt(p.safeMin), max: fmt(p.safeMax), platform: fmt(p.platformValue) })}

@@ -32,15 +32,15 @@ export const estimatesApi = baseApi.injectEndpoints({
     }),
     generateEstimate: build.mutation<EstimateDetail, { projectId: string; note?: string }>({
       query: ({ projectId, note }) => ({ url: ENDPOINTS.projects.estimates(projectId), method: "POST", body: note ? { note } : {} }),
-      invalidatesTags: ["Estimates", "OwnerShoppingList"],
+      invalidatesTags: ["Estimates", "OwnerShoppingList", "ProjectEstimate"],
     }),
     regenerateEstimate: build.mutation<EstimateDetail, string>({
       query: (id) => ({ url: ENDPOINTS.estimates.regenerate(id), method: "POST", body: {} }),
-      invalidatesTags: ["Estimates", "OwnerShoppingList"],
+      invalidatesTags: ["Estimates", "OwnerShoppingList", "ProjectEstimate"],
     }),
     overrideEstimateLine: build.mutation<EstimateDetail, { id: string; lineId: string; body: LineOverrideBody }>({
       query: ({ id, lineId, body }) => ({ url: ENDPOINTS.estimates.line(id, lineId), method: "PATCH", body }),
-      invalidatesTags: ["Estimates", "OwnerShoppingList"],
+      invalidatesTags: ["Estimates", "OwnerShoppingList", "ProjectEstimate"],
     }),
     approveEstimate: build.mutation<EstimateDetail, { id: string; confirmOutdatedRates?: boolean }>({
       query: ({ id, confirmOutdatedRates }) => ({
@@ -48,7 +48,7 @@ export const estimatesApi = baseApi.injectEndpoints({
         method: "POST",
         body: confirmOutdatedRates ? { confirmOutdatedRates: true } : {},
       }),
-      invalidatesTags: ["Estimates", "OwnerShoppingList"],
+      invalidatesTags: ["Estimates", "OwnerShoppingList", "ProjectEstimate"],
     }),
     compareEstimates: build.query<EstimateCompare, { a: string; b: string }>({
       query: ({ a, b }) => ENDPOINTS.estimates.compare(a, b),

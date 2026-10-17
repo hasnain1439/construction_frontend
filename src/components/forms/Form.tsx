@@ -24,9 +24,27 @@ export function Form<TFieldValues extends FieldValues, TTransformed = TFieldValu
   id?: string;
   className?: string;
 }) {
+  // Invalid submit: bring the first invalid field into view and focus it — fields rendered through
+  // a Controller (number inputs, selects) are not focused by react-hook-form itself (QA-A-06).
+  const invalid: SubmitErrorHandler<TFieldValues> = (errors, event) => {
+    const target = event?.target;
+    const formEl = typeof HTMLFormElement !== "undefined" && target instanceof HTMLFormElement ? target : id ? document.getElementById(id) : null;
+    if (formEl) {
+      const show = () => {
+        const field =
+          formEl.querySelector<HTMLElement>('[aria-invalid="true"]') ?? formEl.querySelector<HTMLElement>('[role="alert"], [data-slot="form-message"]');
+        if (!field) return;
+        field.scrollIntoView?.({ block: "center", behavior: "smooth" });
+        if (field.matches("input, select, textarea, button, [tabindex]")) field.focus({ preventScroll: true });
+      };
+      if (typeof requestAnimationFrame === "function") requestAnimationFrame(show);
+      else show();
+    }
+    return onInvalid?.(errors, event);
+  };
   return (
     <FormProvider {...form}>
-      <form id={id} noValidate onSubmit={form.handleSubmit(onSubmit, onInvalid)} className={cn("space-y-5", className)}>
+      <form id={id} noValidate onSubmit={form.handleSubmit(onSubmit, invalid)} className={cn("space-y-5", className)}>
         {children}
       </form>
     </FormProvider>

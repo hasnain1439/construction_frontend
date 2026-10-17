@@ -27,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { EstimateBasisOverride } from "@/features/projects/estimate/ContractFromEstimateCard";
 import { EstimateWarnings } from "@/features/projects/estimate/EstimateView";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
@@ -37,7 +38,7 @@ import { formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { BoqTable } from "./BoqTable";
 import { LineOverrideSlideOver } from "./LineOverrideSlideOver";
-import { fmt, hasMargin, hasMoney, pdfLang, rupees, stageText } from "./labels";
+import { fmt, hasMargin, hasMoney, iso, pdfLang, rupees, stageText } from "./labels";
 
 const PREVIEW = "preview";
 
@@ -71,11 +72,14 @@ export function BoqWorkspace({
   live,
   initialRevisionId,
   previewExtras,
+  contractCard,
 }: {
   project: ProjectDetail;
   live: ProjectEstimate;
   initialRevisionId?: string;
   previewExtras?: ReactNode;
+  /** "Contract value from this estimate" for the BoQ on screen (QA-A-02: same total as the KPI above). */
+  contractCard?: (basis: EstimateBasisOverride) => ReactNode;
 }) {
   const t = useT();
   const revisions = useGetEstimatesQuery(project.id);
@@ -106,6 +110,9 @@ export function BoqWorkspace({
         </InlineAlert>
         <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} />
         {boq ? <BoqBody money={boq} coveredAreaSqft={boq.coveredAreaSqft} ownerLines={countOwner(boq.sections.flatMap((s) => s.lines))} lineCount={boq.sections.reduce((a, s) => a + s.lines.length, 0)} sections={boq.sections} stages={boq.stages} /> : null}
+        {boq?.totalPaisa && contractCard
+          ? contractCard({ estimateId: null, totalPaisa: boq.totalPaisa, revision: null, status: null, coveredAreaSqft: boq.coveredAreaSqft })
+          : null}
         {previewExtras}
       </div>
     );
@@ -119,7 +126,18 @@ export function BoqWorkspace({
       ) : detail.error || !detail.data ? (
         <ErrorState error={detail.error} onRetry={detail.refetch} />
       ) : (
-        <RevisionBody project={project} estimate={detail.data} />
+        <>
+          <RevisionBody project={project} estimate={detail.data} />
+          {detail.data.totalPaisa && contractCard
+            ? contractCard({
+                estimateId: detail.data.id,
+                totalPaisa: detail.data.totalPaisa,
+                revision: detail.data.revision,
+                status: detail.data.status,
+                coveredAreaSqft: detail.data.coveredAreaSqft,
+              })
+            : null}
+        </>
       )}
     </div>
   );
@@ -203,7 +221,7 @@ export function BoqKpis({ money: m, coveredAreaSqft, ownerLines, lineCount }: { 
             icon={Wallet}
             label={t("estimates.boq.kpi.total")}
             value={formatPKRShort(m.totalPaisa)}
-            hint={t("estimates.boq.kpi.totalHint", { direct: rupees(m.directCostPaisa), overhead: rupees(m.overheadPaisa), contingency: rupees(m.contingencyPaisa) })}
+            hint={t("estimates.boq.kpi.totalHint", { direct: iso(rupees(m.directCostPaisa)), overhead: iso(rupees(m.overheadPaisa)), contingency: iso(rupees(m.contingencyPaisa)) })}
           />
           <KpiCard
             variant="tile"
