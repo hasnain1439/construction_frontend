@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { BookPlus, ExternalLink, Pencil, Rocket, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   useCreateAdminRulebookMutation,
@@ -77,7 +77,7 @@ function CreateVersionSlideOver({ open, onOpenChange, versions }: { open: boolea
   const [create, { isLoading }] = useCreateAdminRulebookMutation();
   const run = useMutationToast();
   const form = useForm<CreateValues>({ resolver: zodResolver(createSchema), defaultValues: { region: "PUNJAB_KP", copyFromId: "LATEST", notes: "" } });
-  const region = form.watch("region");
+  const region = useWatch({ control: form.control, name: "region" });
   const sources = versions.filter((v) => v.region === region);
   const onSubmit = async (v: CreateValues) => {
     const r = await run(

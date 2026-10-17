@@ -100,13 +100,15 @@ function RoleForm({
   // New role "start from": copy that role's permissions (and account type) into the editor.
   useEffect(() => {
     if (role) return;
-    const sub = form.watch((values, { name: field }) => {
-      if (field !== "fromRoleId") return;
-      const source = roles.find((r) => r.id === values.fromRoleId);
-      setDraft(source ? grantsFromRole(source) : {});
-      if (source) form.setValue("baseRole", source.baseRole);
+    return form.subscribe({
+      name: "fromRoleId",
+      formState: { values: true },
+      callback: ({ values }) => {
+        const source = roles.find((r) => r.id === values.fromRoleId);
+        setDraft(source ? grantsFromRole(source) : {});
+        if (source) form.setValue("baseRole", source.baseRole);
+      },
     });
-    return () => sub.unsubscribe();
   }, [form, role, roles]);
   const busy = creating || updating || savingPermissions || duplicating;
   // Read during render so react-hook-form tracks it (formState is a subscription proxy).
