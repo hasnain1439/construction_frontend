@@ -44,37 +44,41 @@ You are a Principal Frontend Engineer. Build the Next.js web app for a multi-ten
 - Light + dark mode (Tailwind class strategy, CSS variables in `globals.css`, shadcn theme mapped to these tokens).
 
 ## ROLES (from backend)
-- THEKEDAR (company owner/admin): everything in the company.
-- PM: assigned projects only; permissions `projects.manage`, `rates.view`, `site.entry`, plus `billing.view` and `profit.view` only if `canSeeFinancials`.
-- MUNSHI: `site.entry` only; read-only on assigned projects; never sees rates or price list.
+- THEKEDAR (company owner): every permission key in the company; cannot be limited.
+- PM (office account) and MUNSHI (site account, phone OTP): what they may do comes only from **permission keys** in `/auth/me` (`permissions`, `permissionRoles[]`) — role templates (Administrator, Project Manager, Munshi, Accountant, Store Keeper, or custom) plus per-user ALLOW / DENY overrides. The web never decides on the account role; `canAccess()` in `src/lib/permissions.ts` checks keys (`P`, `ANY`, `ALL` helpers in `navigation.ts`).
+- Field permissions decide which money appears at all: `fields.rates` (rates, purchase / stock values), `fields.amounts` (billing money), `fields.profit` (P&L, margins), `fields.contract` (contract value, price). The API leaves the keys out; screens must render "—" / hide the column, never `0`.
+- Scope: a grant is ASSIGNED_PROJECTS or ALL_PROJECTS; a project outside the scope answers 404 (show the not-found page, not an error toast).
 - PLATFORM_ADMIN: separate `/admin` console, separate login and tokens.
 
 ## NAVIGATION (put in `src/lib/navigation.ts`; drives IconRail, Flyout and CommandSearch)
-Each item: id, label (en + roman-ur), icon, href, requiredPermission / roles, mode (company | project), `available` (true if backend exists; false → ComingSoon page).
+Each item: id, label (en + roman-ur + urdu), icon, href, `access` (permission rule; hides the item), `available` (false → ComingSoon page). Everything below is available unless marked ComingSoon.
 
 **Company mode rail → flyout items**
-- Dashboard → Company Overview (GET /dashboard/overview — Step 9; a MUNSHI gets the Site Dashboard here) · My Approvals (GET /approvals, one inbox with bulk actions — Step 9) · Alerts & Notifications (Step 9) — all available; the top-bar bell shows unread notifications
+- Dashboard → Company Overview (a MUNSHI gets the Site Dashboard) · My Approvals · Alerts & Notifications
 - Projects → All Projects · New Project · Closed & Archived
-- Sales → Clients (Owners) · Quote Pipeline (ComingSoon) · New Quote (ComingSoon) · Win / Loss Insights (ComingSoon)
-- Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments (all available since Phase 1 · Step 6)
-- Workforce → Workers Directory · Sub-contractors (office: name → detail page with sites, wages, peshgi / accounts — Step 7)
-- Equipment → all items ComingSoon (Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Shuttering Demand)
-- Finance → Receivables (+ ageing) · Cash Flow Outlook · Profit & Loss · Cash Floats Overview — all available (Step 9); THEKEDAR, except Profit & Loss which a PM with profit.view also sees (own projects)
-- Reports → Project Summary (billing.view) · Material Audit · Labor & Peshgi · Cash Book · Supplier Ageing · Receivables Ageing · Stock Valuation (THEKEDAR for the last three) — available with CSV / Excel / PDF export (Step 9); Delay Analysis → ComingSoon
-- Team → Members · Invitations · Devices — THEKEDAR only (PM may view Members read-only)
-- Settings → Company Profile · Materials · Price List · Labor Rates · Payment Templates · Holidays · Alerts & Limits · Subscription · Rulebook (ComingSoon) · Tax (ComingSoon) — THEKEDAR only (PM may view Materials and Price List)
+- Sales → Clients (Owners) · Quote Pipeline (board + table) · New Quote (inputs | live internal + customer view) · Win / Loss Insights — `sales.quote.*` (Step 12)
+- Suppliers & Stock → All Suppliers · Purchases · Purchase Returns · Store Stock · Dispatches (Sent to Sites) · Shortages · Supplier Ledger · Purchase Orders · Supplier Payments
+- Workforce → Workers Directory · Worker Types · Sub-contractors
+- Equipment → Allocation Map · Owned Equipment · Rentals · Movements · Loss & Damage · Hire & Rent Charges · Shuttering Demand — `equipment.*` (Step 16)
+- Finance → Receivables (+ ageing) · Cash Flow Outlook · Profit & Loss (projected margin from Step 14) · Cash Floats Overview
+- Reports → Project Summary · Material Audit · Labor & Advances · Cash Book · Supplier Ageing · Receivables Ageing · Stock Valuation · Delay Analysis · Variance Report · Change Order Register · Equipment Utilisation · Snag Summary (Step 18; each with a project picker that opens the per-project book) · WHT Summary · Tax-wise Invoice Register (`tax.view` + `fields.amounts`) — every report exports CSV / Excel / PDF
+- Team → Members · Invitations · Devices · Roles & Permissions
+- Settings → Company Profile · Opening Balances · Materials · Price List · Labor Rates · Rulebook (company overrides) · Payment Templates · Holidays · Audit Log · Alerts & Limits (incl. control thresholds, idle-equipment days, Ramadan) · Tax (Step 18) · Subscription
 
 **Project mode rail → flyout items** (top of rail: "← All projects", project name + status badge)
-- Overview → Project Summary
-- Planning → Site Setup · Floors & Rooms · Supply Split · Estimate (BoQ) (ComingSoon "Phase 2") · Estimate Revisions (ComingSoon) · Owner Shopping List (ComingSoon)
-- Site → Incoming Material (badge = deliveries waiting) · Deliveries (Maal Aaya) · Material Usage (Maal Lag Gaya) · Site Stock · Stock Counts & Transfers — available since Step 6; Daily Logs & Photos and Equipment on Site → ComingSoon
-- Labor → **Team on Site** (new, top of the flyout: assign worker / add sub-contract) · Hazri Register · Sub-contractor Accounts (office) · Work Measurements · Peshgi · Weekly Settlements — available since Step 7
-- Cash Book → Site Kharcha · Cash Floats · Top-up Requests · Cash Counts & Handover — available since Step 7
-- Billing (billing.view only) → Payment Schedule (+ Progress tab for running bills) · Invoices & Running Bills · Payments Received · Owner Statement — available since Step 8
-- Schedule, Change Orders, Control, Documents & Closeout → all items ComingSoon (use the item names from docs/design-brief.md)
+- Overview → Project Summary (revised contract, revised end date, change orders)
+- Planning → Site Setup · Floors & Rooms · Supply Split · Estimate (BoQ) · Estimate Revisions · Owner Shopping List — Step 11
+- Schedule → Gantt · Milestones & Quotas · Stoppage Days · Plan Versions — Step 13
+- Site → Daily Logs & Photos · Incoming Material · Deliveries · Material Usage (optional milestone) · Site Stock · Stock Counts & Transfers · Equipment on Site
+- Labor → Team on Site · Attendance Register · Sub-contractor Accounts · Work Measurements · Advances · Weekly Settlements
+- Cash Book → Site Expenses · Cash Floats · Top-up Requests · Cash Counts & Handover
+- Change Orders → All Change Orders · New Change Order · Site Instructions — Step 15
+- Billing → Payment Schedule · Invoices & Running Bills (tax card + preview when tax is on) · Payments Received (WHT, certificate) · Owner Statement
+- Control → Material Variance · Cost Variance · Burn Rate vs Progress · Delay Analysis — Step 14
+- Documents & Closeout → Drawings · Snag List · Handover · Retention — Step 17
 
 **Super Admin console rail**
-Overview · Companies · Payments (badge = pending count) · Plans · Material Catalog · Holidays · Audit Logs · (Rulebook, Communication, Security → ComingSoon)
+Overview · Companies · Company Data · Payments (badge = pending count) · Plans · Material Catalog · Holiday Calendar · Audit Logs · Rulebook (versions) · Communication (ComingSoon) · Security (ComingSoon)
 
 ## FOLDER STRUCTURE (create exactly this shape)
 ```
@@ -183,6 +187,24 @@ E2E smoke: Thekedar creates a project through all 6 tabs and activates it; it ap
 ## PART 8 — Finish
 - README: setup, env, scripts, folder structure, the reusable-component rule, how to add a new endpoint (endpoints.ts → service → hook), how to regenerate API types, seed accounts for login.
 - Final checks: lint, typecheck, build, unit tests, Playwright smoke (backend running).
+
+## PART 9 — Phase 2 + 3 screens (built)
+- **Estimate (Step 11)**: BoQ by section with traces (rate-free without `fields.rates`), revisions (generate / regenerate / line override / approve / compare, "rates outdated" banner), owner shopping list (never money), BoQ + shopping-list PDFs.
+- **Sales (Step 12)**: pipeline board, quote detail (revisions compare, activity, send with WhatsApp text, lost reason, won → `/projects/new?id=…&tab=5`), insights.
+- **Schedule (Step 13)**: Gantt from the approved estimate, milestones & quotas, stoppage days (approve / reject), plan versions, delay breakdown.
+- **Control (Step 14)**: variance tables + charts, burn rate vs progress chart, delay analysis, control alerts on the dashboard.
+- **Change orders (Step 15)**: builder (mini BoQ, markup, days impact, affected milestones), status flow with proof, slip PDF + WhatsApp, site instructions → CO.
+- **Equipment (Step 16)**: ledger views, transfers with counted receiving, rentals, losses, charges, shuttering demand planner, idle rented equipment panel.
+- **Closeout (Step 17)**: drawings with revisions, snag list with photos and cost attribution, handover checklist + owner sign-off + certificate PDF, retention.
+- **Polish (Step 18)**: every Phase 2 / 3 page checks its own permission with the same key as its menu item (a unit test walks the whole menu: every link opens a real page with a matching gate); empty states with a create action only when the user may create (change orders, quotes, equipment, rentals); control pages without a schedule / approved estimate link to the Gantt / estimate; the setup checklist shows optional next steps (rulebook values, first quote, equipment, tax settings); only Admin → Communication and Security remain ComingSoon.
+- **Reports + tax (Step 18)**: five new reports + per-project books, WHT summary, tax-wise invoice register, Settings → Tax, project tax override, invoice tax line, payment WHT certificate.
+
+## PART 10 — PDFs (all produced by the API)
+- The web never builds PDFs: it calls the endpoint and opens / shares the signed link from `{ url, expiresAt, whatsappText, clientPhone }` (reports: `{ url, expiresAt, format, mimeType }`). Pass `?lang=en|roman|ur` from the language picker when the user chooses one; otherwise the API uses the user's own language.
+- Every PDF has the same letterhead (logo, company name, address, phone, NTN — STRN on tax reports — document title, number, date), A4 margins and a footer with the generated-on date and "Page X of Y". Urdu PDFs are right-to-left with an embedded Nastaliq font.
+- Owner-facing PDFs (customer quotation, change order slip, invoice, receipt, owner statement, handover certificate, owner shopping list) never contain costs, overheads, contingency, margins or markups — safe to share on WhatsApp. Internal PDFs (quote costing and estimate BoQ — both printed "Internal document — not for the client" — and report files) must not be offered as a WhatsApp share to the owner.
+- A missing PDF engine answers `503 PDF_UNAVAILABLE` — show "PDF can't be made right now, try again in a minute" and keep the screen usable.
+- Company logo, address, phone and NTN come from Settings → Company Profile, STRN from Settings → Tax: the empty-state hint on those pages should say they appear on every PDF.
 
 ## SEED ACCOUNTS (from backend)
 - Thekedar: +923001234567 / Thekedar#2026 (Malik & Sons Builders)
