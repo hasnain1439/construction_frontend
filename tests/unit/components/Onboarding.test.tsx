@@ -119,6 +119,13 @@ describe("SetupChecklist", () => {
       "/settings/opening-balances",
     );
 
+    // Step 18: optional Phase 2 / 3 steps (links only, not counted in the progress)
+    expect(screen.getByText("Optional next steps")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Review the rulebook values/ })).toHaveAttribute("href", "/settings/rulebook");
+    expect(screen.getByRole("link", { name: "Create your first quote" })).toHaveAttribute("href", "/sales/quotes/new");
+    expect(screen.getByRole("link", { name: "Add your shuttering and equipment" })).toHaveAttribute("href", "/equipment/owned");
+    expect(screen.getByRole("link", { name: /Check the tax settings/ })).toHaveAttribute("href", "/settings/tax");
+
     await user.click(screen.getByRole("button", { name: "My rates are fine" }));
     expect(calls.rates).toHaveBeenCalledOnce();
     await user.click(screen.getByRole("button", { name: "Try with demo data" }));

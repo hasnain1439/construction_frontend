@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useGetProjectControlAlertsQuery, useRunControlAlertsMutation } from "@/api/services/control.api";
 import type { BucketStatus, ControlAlert, VarianceStatus } from "@/api/types";
 import { EmptyState } from "@/components/common/EmptyState";
+import { InlineAlert } from "@/components/common/InlineAlert";
 import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -14,6 +15,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
+import { projectHref } from "@/lib/navigation";
 import { statusMeta, TONE_CLASSES, type StatusTone } from "@/lib/status";
 
 const VARIANCE_TONE: Record<VarianceStatus, StatusTone> = {
@@ -25,6 +27,49 @@ const VARIANCE_TONE: Record<VarianceStatus, StatusTone> = {
   NO_SCHEDULE: "neutral",
 };
 const BUCKET_TONE: Record<BucketStatus, StatusTone> = { OVER: "danger", UNDER: "info", ON_TRACK: "success", NO_ESTIMATE: "warning" };
+
+/**
+ * Step 18 · what a control page still needs: a schedule (Gantt) and / or an approved estimate,
+ * each with a link to the page that makes it (shown only with that page's view key).
+ */
+export function ControlSetupHints({ projectId, hasSchedule, hasEstimate }: { projectId: string; hasSchedule: boolean; hasEstimate?: boolean }) {
+  const t = useT();
+  const canSchedule = useCan("schedule.plan.view");
+  const canEstimate = useCan("projects.estimate.view");
+  return (
+    <>
+      {!hasSchedule ? (
+        <InlineAlert
+          tone="warning"
+          title={t("control.common.noSchedule")}
+          action={
+            canSchedule ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={projectHref(projectId, "/schedule/gantt")}>{t("control.common.openGantt")}</Link>
+              </Button>
+            ) : null
+          }
+        >
+          {t("control.common.noScheduleNote")}
+        </InlineAlert>
+      ) : null}
+      {hasEstimate === false ? (
+        <InlineAlert
+          tone="info"
+          action={
+            canEstimate ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={projectHref(projectId, "/planning/estimate")}>{t("control.common.openEstimate")}</Link>
+              </Button>
+            ) : null
+          }
+        >
+          {t("control.common.noEstimate")}
+        </InlineAlert>
+      ) : null}
+    </>
+  );
+}
 
 export function VarianceBadge({ status }: { status: VarianceStatus }) {
   const te = useEnumT();

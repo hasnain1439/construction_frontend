@@ -109,6 +109,17 @@ describe("Control — cost variance", () => {
     expect(screen.getByText("Labour + sub-contract together")).toBeInTheDocument();
     expect(screen.getByTestId("projection")).toHaveTextContent("62.9%");
   });
+  it("no schedule / no approved estimate: hints link to the Gantt and the estimate (only with their view keys)", () => {
+    const data = { ...COST(true), hasSchedule: false, estimate: null };
+    const owner = renderWithStore(<CostVarianceBoard data={data} />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByRole("link", { name: "Open the Gantt" })).toHaveAttribute("href", "/projects/p1/schedule/gantt");
+    expect(screen.getByRole("link", { name: "Open the estimate" })).toHaveAttribute("href", "/projects/p1/planning/estimate");
+    owner.unmount();
+    renderWithStore(<CostVarianceBoard data={data} />, { me: meFixture("PM", { deny: ["schedule.plan.view", "projects.estimate.view"] }) });
+    expect(screen.getByText("No schedule yet")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open the Gantt" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open the estimate" })).not.toBeInTheDocument();
+  });
   it("without the money permissions: statuses only, no amounts, no projected margin", () => {
     renderWithStore(<CostVarianceBoard data={COST(false)} />, { me: meFixture("PM") });
     expect(screen.queryByTestId("projection")).not.toBeInTheDocument();

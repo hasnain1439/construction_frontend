@@ -48539,7 +48539,7 @@ export interface paths {
         };
         /**
          * Profit & loss to date
-         * @description THEKEDAR, or a PM with profit.view (assigned projects). Billed = live invoices before sales tax, recoverable invoices left out (they pass the owner’s own purchases through). Cost by bucket from the cost engine (MATERIALS, LABOR_WAGES, SUBCONTRACT, SITE_OVERHEAD, EQUIPMENT, LOSSES — they add up to cost to date). Gross profit = billed − cost; margin = gross profit ÷ billed. `projectedMarginPercent` is null until the estimate engine (Phase 2). Trend: the 12 months ending with `to`.
+         * @description THEKEDAR, or a PM with profit.view (assigned projects). Billed = live invoices before sales tax, recoverable invoices left out (they pass the owner’s own purchases through). Cost by bucket from the cost engine (MATERIALS, LABOR_WAGES, SUBCONTRACT, SITE_OVERHEAD, EQUIPMENT, LOSSES — they add up to cost to date). Gross profit = billed − cost; margin = gross profit ÷ billed. Projected margin at completion (Step 14, as of today) = revised contract − estimate at completion; `projectedMarginBasis` says how it was worked out (null margin when there is no approved estimate and too little progress). Trend: the 12 months ending with `to`.
          */
         get: {
             parameters: {
@@ -48606,8 +48606,11 @@ export interface paths {
                          *             "marginToDatePercent": 85.6,
                          *             "percentBilled": 50,
                          *             "percentCostOfContract": 7.1,
-                         *             "projectedMarginPercent": null,
-                         *             "projectedMarginNote": "Available after the estimate engine (Phase 2)"
+                         *             "projectedMarginPercent": 18.4,
+                         *             "projectedMarginPaisa": "340400000",
+                         *             "estimateAtCompletionPaisa": "1509600000",
+                         *             "projectedMarginBasis": "EARNED_VALUE",
+                         *             "projectedMarginNote": "Cost to date + the rest of the approved estimate (Rev 1) adjusted by performance so far (CPI 0.97)."
                          *           }
                          *         ],
                          *         "totals": {
@@ -48624,7 +48627,7 @@ export interface paths {
                          *             "grossProfitPaisa": "308000000"
                          *           }
                          *         ],
-                         *         "projectedMarginNote": "Available after the estimate engine (Phase 2)"
+                         *         "projectedMarginNote": "Projected margin at completion = revised contract − estimate at completion (cost to date + the rest of the approved estimate, adjusted by cost performance so far). It is as of today, whatever the period."
                          *       }
                          *     }
                          */

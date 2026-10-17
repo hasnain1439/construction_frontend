@@ -18,7 +18,7 @@ import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate, formatMonth } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
-import { ControlAlertsCard } from "../components/ControlShared";
+import { ControlAlertsCard, ControlSetupHints } from "../components/ControlShared";
 
 const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
 
@@ -93,7 +93,7 @@ export function BurnRateBoard({ data }: { data: BurnRate }) {
         {t("control.common.basis", { basis: te("progressBasis", data.progressBasis) })}
         {data.contractPaisa ? ` · ${t("control.burn.contract", { amount: formatPKRShort(data.contractPaisa) })}` : ""}
       </p>
-      {!data.hasSchedule ? <InlineAlert tone="warning" title={t("control.common.noSchedule")}>{t("control.common.noScheduleNote")}</InlineAlert> : null}
+      <ControlSetupHints projectId={data.project.id} hasSchedule={data.hasSchedule} />
       <KpiGroup columns="grid-cols-2 lg:grid-cols-4" ariaLabel={t("control.burn.title")}>
         <KpiCard variant="tile" label={t("control.burn.progressNow")} icon={Gauge} value={`${data.current.progressPercent}%`} hint={t("control.burn.plannedNow", { n: data.current.plannedProgressPercent })} />
         <KpiCard variant="tile" label={t("control.burn.plannedLabel")} icon={Target} value={`${data.current.plannedProgressPercent}%`} />

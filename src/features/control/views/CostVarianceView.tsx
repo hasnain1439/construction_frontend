@@ -16,7 +16,7 @@ import { useEnumT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
-import { BucketBadge, ControlAlertsCard, PercentBar, SignedPercent } from "../components/ControlShared";
+import { BucketBadge, ControlAlertsCard, ControlSetupHints, PercentBar, SignedPercent } from "../components/ControlShared";
 
 /** Projected margin at completion (shown only when the API sent it). */
 export function ProjectionCard({ p }: { p: Projection }) {
@@ -95,8 +95,7 @@ export function CostVarianceBoard({ data }: { data: CostVariance }) {
         {" · "}
         {t("control.common.basis", { basis: te("progressBasis", data.progress.basis) })}
       </p>
-      {!data.hasSchedule ? <InlineAlert tone="warning" title={t("control.common.noSchedule")}>{t("control.common.noScheduleNote")}</InlineAlert> : null}
-      {!data.estimate ? <InlineAlert tone="info">{t("control.common.noEstimate")}</InlineAlert> : null}
+      <ControlSetupHints projectId={data.project.id} hasSchedule={data.hasSchedule} hasEstimate={Boolean(data.estimate)} />
       {!money ? <InlineAlert tone="info">{t("control.common.moneyHidden")}</InlineAlert> : null}
 
       <KpiGroup columns="grid-cols-2 lg:grid-cols-4" ariaLabel={t("control.cost.title")}>

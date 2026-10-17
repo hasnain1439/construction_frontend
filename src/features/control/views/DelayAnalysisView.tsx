@@ -120,7 +120,7 @@ export function DelayAnalysisBoard({ data }: { data: DelayAnalysis }) {
   );
 }
 
-/** Project → Control → Delay Analysis (was "Coming soon"). */
+/** Project → Control → Delay Analysis. */
 export function DelayAnalysisView({ projectId }: { projectId: string }) {
   const t = useT();
   const { data, isLoading } = useGetDelayAnalysisQuery(projectId);

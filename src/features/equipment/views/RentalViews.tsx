@@ -157,6 +157,13 @@ export function RentalsView() {
             title: t("equipment.rental.emptyTitle"),
             description: t("equipment.rental.emptyDesc"),
             icon: Handshake,
+            action:
+              canManage && !list.isFiltered ? (
+                <Button variant="outline" onClick={() => setNewOpen(true)}>
+                  <Plus data-icon="inline-start" />
+                  {t("equipment.rental.new")}
+                </Button>
+              ) : undefined,
           }}
           pagination={
             data

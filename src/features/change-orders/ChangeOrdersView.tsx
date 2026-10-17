@@ -139,7 +139,24 @@ export function ChangeOrdersList({ projectId, editable }: { projectId: string; e
           error={list.error}
           onRetry={list.refetch}
           onRowClick={open}
-          empty={status ? { icon: ClipboardList, title: t("changeOrders.list.noMatch") } : { icon: ClipboardList, title: t("changeOrders.list.empty"), description: t("changeOrders.list.emptyDesc") }}
+          empty={
+            status
+              ? { icon: ClipboardList, title: t("changeOrders.list.noMatch") }
+              : {
+                  icon: ClipboardList,
+                  title: t("changeOrders.list.empty"),
+                  description: t("changeOrders.list.emptyDesc"),
+                  action:
+                    editable && can("changeorder.create") ? (
+                      <Button asChild variant="outline">
+                        <Link href={projectHref(projectId, "/change-orders/new")}>
+                          <Plus data-icon="inline-start" />
+                          {t("changeOrders.list.new")}
+                        </Link>
+                      </Button>
+                    ) : undefined,
+                }
+          }
         />
       </SectionCard>
       {s?.changeOrderSnags.length ? (
