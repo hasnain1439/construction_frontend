@@ -18,6 +18,11 @@ const api = vi.hoisted(() => ({
   updateSettings: vi.fn(),
   projectTax: null as unknown,
   stages: [] as unknown[],
+  changeOrders: [] as unknown[],
+}));
+vi.mock("@/api/services/changeOrders.api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/services/changeOrders.api")>()),
+  useGetChangeOrdersQuery: () => ({ data: { items: api.changeOrders } }),
 }));
 
 vi.mock("@/api/services/tax.api", async (importOriginal) => ({
@@ -70,6 +75,7 @@ beforeEach(() => {
   api.updateSettings.mockReturnValue({ unwrap: () => Promise.resolve(SETTINGS({ enabled: true, authority: "PRA", ratePercent: 16 })) });
   api.projectTax = PROJECT_TAX();
   api.stages = [];
+  api.changeOrders = [];
 });
 
 describe("Tax — rules shared with the API", () => {
@@ -128,6 +134,22 @@ describe("Project tax + invoice preview", () => {
     expect(preview).toHaveTextContent("PRA Sales Tax 16%");
     expect(preview).toHaveTextContent("Rs 4,44,000");
     expect(preview).toHaveTextContent("Rs 32,19,000");
+  });
+
+  it("QA-A-15: approved change orders waiting for the next stage are in the preview (the draft adds them)", () => {
+    api.stages = [{ id: "s2", label: "Plinth", percent: 15, isRetention: false, amountPaisa: "200000000", status: "READY", sortOrder: 2 } as unknown as ScheduleStage];
+    api.changeOrders = [
+      { id: "co1", code: "CO-001", title: "Extra tiles", status: "APPROVED", billingMode: "NEXT_STAGE", invoice: null, totalPaisa: "8970000" },
+      { id: "co2", code: "CO-002", title: "Billed already", status: "BILLED", billingMode: "NEXT_STAGE", invoice: { id: "i1", number: "INV-1", type: "STAGE", status: "ISSUED" }, totalPaisa: "100000" },
+      { id: "co3", code: "CO-003", title: "Own invoice", status: "APPROVED", billingMode: "VARIATION", invoice: null, totalPaisa: "100000" },
+    ];
+    renderWithStore(<NewInvoiceSlideOver open onOpenChange={() => {}} projectId="p1" billingModel="STAGES" stageId="s2" />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByTestId("invoice-preview-cos")).toHaveTextContent("CO-001");
+    expect(screen.getByTestId("invoice-preview-cos")).not.toHaveTextContent("CO-002");
+    // Rs 20,00,000 + Rs 89,700
+    expect(screen.getByTestId("invoice-preview")).toHaveTextContent("Rs 20,89,700");
+    // 16 % of Rs 20,89,700 = Rs 3,34,352
+    expect(screen.getByTestId("invoice-tax-preview")).toHaveTextContent("Rs 3,34,352");
   });
 
   it("new invoice: no tax preview when tax is off for the project", () => {

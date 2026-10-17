@@ -99,7 +99,8 @@ export interface QuoteComputed {
   specifications: Array<{ categoryKey: string; label: string; suppliedBy: "CONTRACTOR" | "OWNER"; qualityCategory: { id: Id; name: string } | null; materials: string[] }>;
   paymentStages: Array<{ label: string; percent: number; isRetention: boolean; amountPaisa?: Paisa | null }>;
   paymentTemplate: { id: Id; name: string } | null;
-  warnings: Array<{ code: string; message: string }>;
+  /** Translated in the app from `code` + `params` / `materials` / `items` (QA-A-10). */
+  warnings: Array<{ code: string; message: string; params?: Record<string, number>; materials?: string[]; items?: string[] }>;
   // fields.rates
   costPaisa?: Paisa;
   directCostPaisa?: Paisa;

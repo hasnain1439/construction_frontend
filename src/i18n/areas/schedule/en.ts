@@ -6,6 +6,20 @@ export const strings = {
     stoppages: "Stoppage Days",
     versions: "Plan Versions",
   },
+  /** Generated milestone names by key suffix (QA-A-10). */
+  milestoneName: {
+    EXCAVATION: "Excavation (khudai)",
+    FOUNDATION: "Foundation & DPC",
+    PLINTH_FILL: "Plinth filling (bharai)",
+    WALLS: "{floor} — columns & brickwork",
+    SLAB: "{floor} — roof slab (lenter)",
+    STRUCTURE: "Mumty walls & roof slab",
+    WATERPROOFING: "Roof waterproofing & filling",
+    MEP: "Electrical & plumbing rough-in",
+    PLASTER: "Plaster (inside & outside)",
+    TILES: "Flooring & wall tiles",
+    PAINT: "Paint",
+  },
   common: {
     days: "{n} days",
     teamDays: "{n} team-days",

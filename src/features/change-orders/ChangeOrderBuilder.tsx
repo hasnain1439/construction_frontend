@@ -146,11 +146,18 @@ export function ChangeOrderBuilder({ projectId, options, initial }: { projectId:
     ...(proofFile ? { proofAttachmentIds: [proofFile.id] } : {}),
   });
 
+  // QA-A-13: one create only. After the first save the form is locked while the detail page opens;
+  // should the user still get to click again, the saved change order is updated, never duplicated.
+  const [savedId, setSavedId] = useState<string | null>(null);
   const save = async () => {
-    const saved = initial
-      ? await run(() => update({ id: initial.id, body: body() }).unwrap(), { success: (r) => t("changeOrders.builder.saved", { code: r.code }) })
+    const existing = initial?.id ?? savedId;
+    const saved = existing
+      ? await run(() => update({ id: existing, body: body() }).unwrap(), { success: (r) => t("changeOrders.builder.saved", { code: r.code }) })
       : await run(() => create({ projectId, body: body() }).unwrap(), { success: (r) => t("changeOrders.builder.created", { code: r.code }) });
-    if (saved) router.push(projectHref(projectId, `/change-orders/${saved.id}`));
+    if (saved) {
+      setSavedId(saved.id);
+      router.replace(projectHref(projectId, `/change-orders/${saved.id}`));
+    }
   };
 
   return (
@@ -366,7 +373,7 @@ export function ChangeOrderBuilder({ projectId, options, initial }: { projectId:
         <Button type="button" variant="outline" onClick={() => router.back()}>
           {t("common.cancel")}
         </Button>
-        <Button type="button" disabled={!valid || creating || updating} onClick={() => void save()}>
+        <Button type="button" disabled={!valid || creating || updating || (savedId !== null && !initial)} onClick={() => void save()}>
           <Wrench data-icon="inline-start" />
           {t("changeOrders.builder.save")}
         </Button>

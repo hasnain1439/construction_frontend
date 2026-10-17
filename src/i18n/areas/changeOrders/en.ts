@@ -178,6 +178,7 @@ export const strings = {
     complete: "Work completed",
     completed: "Marked as completed",
     bill: "Bill it",
+    billSeparately: "Bill separately instead",
     billedStage: "Will be billed with the next stage invoice",
     billedVariation: "Draft variation invoice made",
     delete: "Delete draft",

@@ -14,6 +14,7 @@ import {
   useRecordNegotiationMutation,
   useSendQuoteMutation,
 } from "@/api/services/sales.api";
+import { useGetSubscriptionQuery } from "@/api/services/subscription.api";
 import { LOST_REASONS, type QuoteDetail, type QuoteLostReason, type QuoteRevision, type SharedPdf } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { InfoList } from "@/components/common/InfoList";
@@ -41,6 +42,18 @@ const OPEN = ["DRAFT", "SENT", "NEGOTIATION", "EXPIRED"];
 const nf = (n: number) => n.toLocaleString("en-PK", { maximumFractionDigits: 2 });
 
 /** Two revisions side by side: inputs, price, cost and each work section (delta = b − a). */
+/** A money change with its sign: "+Rs 1,26,000" / "−Rs 123". */
+function SignedMoney({ paisa }: { paisa: bigint }) {
+  const zero = BigInt(0);
+  if (paisa === zero) return <MoneyText paisa="0" />;
+  return (
+    <span className="inline-flex items-baseline" dir="ltr">
+      {paisa > zero ? "+" : "−"}
+      <MoneyText paisa={String(paisa > zero ? paisa : -paisa)} />
+    </span>
+  );
+}
+
 function RevisionCompare({ quoteId, latest }: { quoteId: string; latest: number }) {
   const t = useT();
   const enumT = useEnumT();
@@ -55,17 +68,19 @@ function RevisionCompare({ quoteId, latest }: { quoteId: string; latest: number 
       label,
       a: <MoneyText paisa={pa} />,
       b: <MoneyText paisa={pb} />,
-      delta: pa !== undefined && pb !== undefined && pa !== null && pb !== null ? <MoneyText paisa={String(BigInt(pb) - BigInt(pa))} /> : null,
+      delta: pa !== undefined && pb !== undefined && pa !== null && pb !== null ? <SignedMoney paisa={BigInt(pb) - BigInt(pa)} /> : null,
     });
-    const text = (label: string, va: string | number, vb: string | number) => ({ label, a: va, b: vb, delta: va === vb ? null : "≠" });
+    // QA-A-16: numbers show the signed change ("+200", "+1"); other values only that they changed.
+    const num = (label: string, va: number, vb: number) => ({ label, a: nf(va), b: nf(vb), delta: va === vb ? null : <span className="tabular" dir="ltr">{`${vb > va ? "+" : "−"}${nf(Math.abs(vb - va))}`}</span> });
+    const text = (label: string, va: string | number, vb: string | number) => ({ label, a: va, b: vb, delta: va === vb ? null : t("sales.detail.changed") });
     const sections = [...new Set([...ra.sections, ...rb.sections].map((s) => s.section))];
     return [
       money(t("sales.live.price"), ra.pricePaisa, rb.pricePaisa),
       money(t("sales.live.perSqft"), ra.perSqftPaisa, rb.perSqftPaisa),
       money(t("sales.live.cost"), ra.costPaisa, rb.costPaisa),
       money(t("sales.live.margin"), ra.marginPaisa, rb.marginPaisa),
-      text(t("sales.form.coveredArea"), nf(ra.inputs.coveredAreaSqft), nf(rb.inputs.coveredAreaSqft)),
-      text(t("sales.form.floors"), ra.inputs.floors, rb.inputs.floors),
+      num(t("sales.form.coveredArea"), ra.inputs.coveredAreaSqft, rb.inputs.coveredAreaSqft),
+      num(t("sales.form.floors"), ra.inputs.floors, rb.inputs.floors),
       text(t("sales.form.contractType"), enumT("projectContractType", ra.inputs.contractType), enumT("projectContractType", rb.inputs.contractType)),
       text(t("sales.form.structure"), enumT("projectStructureType", ra.inputs.structureType), enumT("projectStructureType", rb.inputs.structureType)),
       ...sections.map((s) =>
@@ -178,6 +193,11 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
   const [negotiate, negotiating] = useRecordNegotiationMutation();
   const [lose, losing] = useMarkQuoteLostMutation();
   const [win, winning] = useMarkQuoteWonMutation();
+  // QA-A-20: warn at "won" (not after the whole wizard) when no more projects can be activated.
+  const seesPlan = useCan("subscription.manage");
+  const plan = useGetSubscriptionQuery(undefined, { skip: dialog !== "won" || !seesPlan });
+  const projectsUsage = plan.data?.usage.activeProjects;
+  const atPlanLimit = Boolean(projectsUsage && projectsUsage.limit !== null && projectsUsage.used >= projectsUsage.limit);
   const [remove] = useDeleteQuoteMutation();
   const [getPdf] = useGetQuotePdfMutation();
   const customerPdf = usePdfActions({ load: () => getPdf({ id: quote.id, variant: "customer" }).unwrap(), title: quote.number, phone: quote.client.phone });
@@ -315,6 +335,7 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
 
       <ConfirmDialog
         open={dialog === "send"}
+        tone="default"
         onOpenChange={(o) => !o && close()}
         title={t("sales.detail.sendTitle", { number: quote.number })}
         description={t("sales.detail.sendDesc")}
@@ -330,6 +351,7 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
       />
       <ConfirmDialog
         open={dialog === "negotiation"}
+        tone="default"
         onOpenChange={(o) => !o && close()}
         title={t("sales.detail.negotiationTitle")}
         confirmLabel={t("common.save")}
@@ -379,6 +401,7 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
       </ConfirmDialog>
       <ConfirmDialog
         open={dialog === "won"}
+        tone="default"
         onOpenChange={(o) => !o && close()}
         title={t("sales.detail.wonTitle", { number: quote.number })}
         description={t("sales.detail.wonDesc")}
@@ -395,6 +418,11 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
           }
         }}
       >
+        {atPlanLimit && projectsUsage ? (
+          <InlineAlert tone="warning" title={t("sales.detail.planLimitTitle")}>
+            <span data-testid="won-plan-limit">{t("sales.detail.planLimitBody", { used: projectsUsage.used, limit: projectsUsage.limit ?? 0 })}</span>
+          </InlineAlert>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor={`${fieldId}-start`}>{t("sales.detail.startDate")}</Label>

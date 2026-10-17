@@ -21,7 +21,7 @@ import { errorCode } from "@/lib/apiErrors";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { cn } from "@/lib/cn";
 import { diffDays } from "../gantt/ganttModel";
-import { useDayShift } from "../labels";
+import { useDayShift, useMilestoneName } from "../labels";
 import { NoSchedule } from "./MilestonesQuotasView";
 
 function ShiftText({ days }: { days: number }) {
@@ -112,9 +112,10 @@ export function PlanVersionsBoard({
   currentEnd: string | null;
 }) {
   const t = useT();
+  const msName = useMilestoneName();
   const te = useEnumT();
   const [comparing, setComparing] = useState<PlanVersion | null>(null);
-  const names = new Map(milestones.map((m) => [m.key, m.name]));
+  const names = new Map(milestones.map((m) => [m.key, msName(m)]));
   const baseEnd = baseline?.plannedEnd ?? null;
 
   const columns: Column<PlanVersion>[] = [
@@ -210,9 +211,11 @@ export function PlanVersionsBoard({
 /** Project → Schedule → Plan Versions. */
 export function PlanVersionsView({ projectId }: { projectId: string }) {
   const t = useT();
-  const versions = useGetScheduleVersionsQuery(projectId);
-  const baseline = useGetScheduleBaselineQuery(projectId);
+  // No schedule yet → no versions / baseline requests (they would only 404 — QA-A-36)
   const schedule = useGetScheduleQuery(projectId);
+  const none = !schedule.data?.schedule;
+  const versions = useGetScheduleVersionsQuery(projectId, { skip: none });
+  const baseline = useGetScheduleBaselineQuery(projectId, { skip: none });
   return (
     <ProjectPageShell projectId={projectId} crumb={t("schedule.crumb.versions")}>
       {() =>

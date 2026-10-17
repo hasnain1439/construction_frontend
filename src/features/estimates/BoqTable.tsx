@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPKR } from "@/lib/money";
-import { boqUnit, fmt, lineText, orderedSections, rupees, sectionText, stageText, visibleText } from "./labels";
+import { boqRateUnit, boqUnit, fmt, lineText, orderedSections, rupees, sectionText, stageText, visibleText } from "./labels";
 
 type T = ReturnType<typeof useT>;
 
@@ -72,13 +72,15 @@ function RateCell({ t, line }: { t: T; line: BoqLine }) {
       <>—</>
     );
   }
-  if (line.rateStatus === "RATE_MISSING") return <StatusBadge tone="warning" label={t("estimates.boq.noRate")} />;
-  if (line.rateStatus === "UNIT_MISMATCH") return <StatusBadge tone="warning" label={t("estimates.boq.unitMismatch")} />;
+  // A rate typed in as an adjustment replaces the missing / mismatched price-list rate (QA-A-11).
+  const rateOverride = Boolean(line.override?.ratePaisa);
+  if (line.rateStatus === "RATE_MISSING" && !rateOverride) return <StatusBadge tone="warning" label={t("estimates.boq.noRate")} />;
+  if (line.rateStatus === "UNIT_MISMATCH" && !rateOverride) return <StatusBadge tone="warning" label={t("estimates.boq.unitMismatch")} />;
   const rate = line.effectiveRatePaisa ?? line.ratePaisa;
   if (!rate) return <>—</>;
   return (
     <span className={cn("tabular whitespace-nowrap", line.override?.ratePaisa && "font-medium text-warning")}>
-      <bdi>{t("estimates.boq.perUnit", { rate: formatPKR(rate), unit: boqUnit(t, line.rateUnit ?? line.unit) })}</bdi>
+      <bdi>{t("estimates.boq.perUnit", { rate: formatPKR(rate), unit: boqRateUnit(t, line.rateUnit ?? line.unit) })}</bdi>
     </span>
   );
 }
@@ -139,6 +141,7 @@ export function BoqTable({
   );
   return (
     <SectionCard flush>
+      <p className="px-4 pt-3 text-xs text-muted-foreground sm:hidden">{t("estimates.boq.scrollHint")}</p>
       <Table data-testid="boq-table">
         <TableHeader>
           <TableRow>
@@ -175,6 +178,12 @@ export function BoqTable({
                       {lineText(t, line)}
                       {line.override ? <StatusBadge tone="warning" label={t("estimates.boq.edited")} /> : null}
                     </p>
+                    {/* Phone (QA-A-26): the amount right under the item, the full row scrolls sideways */}
+                    {money && line.suppliedBy !== "OWNER" && line.amountPaisa ? (
+                      <p className="text-xs font-medium tabular text-muted-foreground sm:hidden" data-testid="line-amount-mobile">
+                        {rupees(line.amountPaisa)}
+                      </p>
+                    ) : null}
                     {visibleText(line.formula, money) ? (
                       <p className="hidden text-xs text-muted-foreground print:block">
                         <bdi>{line.formula}</bdi>

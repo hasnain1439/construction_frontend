@@ -86,13 +86,13 @@ function LiveCalc() {
         {t("projects.room.floor")} <strong className="text-foreground">{formatArea(c.floorAreaSqft)}</strong> {t("projects.unit.sqft")}
       </span>
       <span>
-        {t("projects.room.wall")} <strong className="text-foreground">{formatArea(c.grossWallAreaSqft)}</strong>
+        {t("projects.room.wall")} <strong className="text-foreground">{formatArea(c.grossWallAreaSqft)}</strong> {t("projects.unit.sqft")}
       </span>
       <span>
-        {t("projects.mode.openings")} <strong className="text-foreground">−{formatArea(c.openingsAreaSqft)}</strong>
+        {t("projects.mode.openings")} <strong className="text-foreground">{c.openingsAreaSqft > 0 ? `−${formatArea(c.openingsAreaSqft)}` : formatArea(0)}</strong>
       </span>
       <span>
-        {t("projects.mode.netWall")} <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong>
+        {t("projects.mode.netWall")} <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong> {t("projects.unit.sqft")}
       </span>
     </p>
   );
@@ -285,13 +285,13 @@ export function RoomCard({
           {fields.length ? (
             <div className="space-y-2">
               {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-[1fr_90px_90px_70px_32px] items-center gap-2 sm:grid-cols-[1fr_110px_90px_90px_70px_32px]">
+                <div key={field.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_32px] items-center gap-2 sm:grid-cols-[minmax(7rem,1fr)_110px_96px_96px_84px_32px]" data-testid="opening-row">
                   <Controller
                     name={`openings.${index}.type`}
                     control={form.control}
                     render={({ field: f }) => (
                       <Select value={f.value} onValueChange={f.onChange} disabled={disabled}>
-                        <SelectTrigger size="sm" aria-label={t("projects.room.openingType", { n: index + 1 })} className="w-full">
+                        <SelectTrigger size="sm" aria-label={t("projects.room.openingType", { n: index + 1 })} className="col-span-2 w-full min-w-0 sm:col-span-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -309,7 +309,7 @@ export function RoomCard({
                     control={form.control}
                     render={({ field: f }) => (
                       <Select value={f.value ?? ANY_WALL} onValueChange={(v) => f.onChange(v === ANY_WALL ? null : (v as WallSide))} disabled={disabled}>
-                        <SelectTrigger size="sm" aria-label={t("projects.room.openingSide", { n: index + 1 })} className="col-span-full w-full sm:col-span-1">
+                        <SelectTrigger size="sm" aria-label={t("projects.room.openingSide", { n: index + 1 })} className="col-span-2 w-full min-w-0 sm:col-span-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

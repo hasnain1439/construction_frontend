@@ -218,7 +218,10 @@ export function buildGanttModel(detail: ScheduleDetail): GanttModel | null {
     });
     y += STAGE_ROW_H;
     for (const m of byStage.get(stage.id) ?? []) {
-      const bar = spanOf(start, m.plannedStart, m.plannedEnd);
+      // Started work is drawn from its actual start (QA-A-18); finished work to its actual end.
+      const barStart = m.actualStart ?? m.plannedStart;
+      const barEnd = m.actualEnd ?? (m.plannedEnd < barStart ? barStart : m.plannedEnd);
+      const bar = spanOf(start, barStart, barEnd);
       const workEnd = m.actualEnd ?? m.plannedEnd;
       rows.push({
         kind: "milestone",

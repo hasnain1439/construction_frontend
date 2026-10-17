@@ -57,13 +57,14 @@ export function EstimateTab() {
             <EstimateKpis estimate={e} compact />
             <EstimateWarnings project={project} warnings={e.warnings} onGoToTab={{ go: goTo, label: stepLabel }} />
             {!money ? <InlineAlert tone="info">{t("projects.estimate.noAccessCost")}</InlineAlert> : null}
-            <ContractFromEstimateCard projectId={projectId} estimate={e} locked={locked} onFinalize={() => goTo(REVIEW_STEP)} />
+            <ContractFromEstimateCard projectId={projectId} estimate={e} locked={locked} fromQuote={Boolean(project.createdFromQuoteId)} onFinalize={() => goTo(REVIEW_STEP)} />
             <EstimateMaterialSummary estimate={e} />
             {e.stages.map((stage) => (
               <EstimateStageSection key={stage.stage} stage={stage} money={money} hasFoundation={hasFoundation} collapsible />
             ))}
             <EstimateLabour estimate={e} collapsible />
-            {e.cost ? <EstimateCostSummary estimate={e} /> : null}
+            {/* the BoQ KPIs above carry the cost and margin; the grey-structure summary only without them (QA-A-01) */}
+            {e.cost && !e.boqCost ? <EstimateCostSummary estimate={e} /> : null}
             <EstimateBasis estimate={e} />
             {settingsOpen ? (
               <EstimateSettingsModal

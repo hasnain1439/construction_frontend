@@ -1,4 +1,5 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { ChangeOrderDetail, ChangeOrderList, ChangeOrderRateOptions, ChangeOrderStatus, ProjectDetail } from "@/api/types";
@@ -95,12 +96,13 @@ const RATES: ChangeOrderRateOptions = {
 };
 
 const mutation = () => () => [vi.fn(), { isLoading: false }];
+const coApi = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), replace: vi.fn() }));
 vi.mock("@/api/services/changeOrders.api", () => ({
   useGetChangeOrdersQuery: () => ({ data: LIST, isLoading: false }),
   useGetChangeOrderQuery: () => ({ data: DETAIL, isLoading: false }),
   useGetChangeOrderRatesQuery: () => ({ data: RATES, isLoading: false }),
-  useCreateChangeOrderMutation: mutation(),
-  useUpdateChangeOrderMutation: mutation(),
+  useCreateChangeOrderMutation: () => [coApi.create, { isLoading: false }],
+  useUpdateChangeOrderMutation: () => [coApi.update, { isLoading: false }],
   useDeleteChangeOrderMutation: mutation(),
   useChangeOrderStepMutation: mutation(),
   useApproveChangeOrderMutation: mutation(),
@@ -114,7 +116,7 @@ vi.mock("@/api/services/changeOrders.api", () => ({
   useSnagToChangeOrderMutation: mutation(),
 }));
 vi.mock("@/api/services/attachments.api", () => ({ useUploadAttachmentMutation: () => [vi.fn(), { isLoading: false }] }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), back: vi.fn(), replace: coApi.replace }) }));
 vi.mock("@/features/projects/views/ProjectModeViews", () => ({
   ProjectPageShell: ({ children }: { children: (p: unknown) => ReactNode }) => <div>{children({ id: "p1", status: "ACTIVE", client: { phone: null } })}</div>,
 }));
@@ -265,5 +267,44 @@ describe("Change orders — list, navigation, overview", () => {
     expect(screen.getByText("Rs 1,85,22,000")).toBeInTheDocument();
     expect(screen.getByText(en("changeOrders.project.revisedEnd"))).toBeInTheDocument();
     expect(screen.getByText(en("changeOrders.project.revisedEndValue", { n: 3 }))).toBeInTheDocument();
+  });
+});
+
+describe("QA area A — change orders", () => {
+  it("QA-A-13: Save draft creates once, opens the detail page and locks the button (no duplicate)", async () => {
+    coApi.create.mockReset().mockReturnValue({ unwrap: () => Promise.resolve({ ...DETAIL, id: "co-new", code: "CO-002" }) });
+    coApi.replace.mockReset();
+    renderWithStore(<ChangeOrderBuilder projectId="p1" options={RATES} />, { me: meFixture("THEKEDAR") });
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(en("changeOrders.builder.title")), "Extra bathroom tiles");
+    const save = screen.getByRole("button", { name: en("changeOrders.builder.save") });
+    await user.click(save);
+    await waitFor(() => expect(coApi.replace).toHaveBeenCalledWith(expect.stringContaining("/change-orders/co-new")));
+    expect(coApi.create).toHaveBeenCalledTimes(1);
+    expect(save).toBeDisabled();
+  });
+
+  it("QA-A-14: billing already set to the next stage invoice → no second 'Bill it'; only 'bill separately' (never for a deduction)", () => {
+    const owner = meFixture("THEKEDAR");
+    const ownerCan = (k: Parameters<typeof can>[1]) => can(owner, k);
+    expect(allowedActions("APPROVED", ownerCan, { waitingStage: true, deduction: true })).toEqual(["start", "complete"]);
+    renderWithStore(<ChangeOrderDetailBody co={{ ...DETAIL, status: "APPROVED", billingMode: "NEXT_STAGE", invoice: null }} projectId="p1" editable />, { me: owner });
+    const bar = screen.getByTestId("co-actions");
+    expect(within(bar).queryByRole("button", { name: en("changeOrders.actions.bill") })).toBeNull();
+    expect(within(bar).getByRole("button", { name: en("changeOrders.actions.billSeparately") })).toBeInTheDocument();
+  });
+
+  it("QA-A-10: a draft STAGE invoice is named in words, quantities get separators and translated units", () => {
+    const { container } = renderWithStore(
+      <ChangeOrderDetailBody
+        co={{ ...DETAIL, status: "APPROVED", billingMode: "NEXT_STAGE", invoice: { id: "i1", number: null, type: "STAGE", status: "DRAFT" }, lines: DETAIL.lines.map((l) => ({ ...l, quantity: 3000, unit: "nos" })) }}
+        projectId="p1"
+        editable
+      />,
+      { me: meFixture("THEKEDAR"), ui: { language: "ur" } },
+    );
+    expect(container.textContent).not.toContain("STAGE");
+    expect(container.textContent).toContain("3,000");
+    expect(container.textContent).toContain(translate("ur", "estimates.unit.nos"));
   });
 });

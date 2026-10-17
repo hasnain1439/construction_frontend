@@ -6,6 +6,20 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### QA fixes (area A)
+- **One BoQ cost everywhere (QA-A-01 / 02):** the wizard Estimate step and Review show the BoQ total (direct + overheads + contingency) and its margin from the API's new `boqCost`; the old grey-structure cost summary is no longer shown next to it. "Contract value from this estimate" starts from the same total — on the BoQ page from the revision on screen (sent as `estimateId`), and says which revision it uses.
+- **No silent replace (QA-A-03):** replacing an existing contract value shows current vs suggested and the difference; lowering it, or replacing the price agreed in a won quote, needs a tick. "Finalize estimate" also offers "Keep current and continue".
+- Plot & Structure: an invalid save shows "Not saved — fix the highlighted fields first" and scrolls to / focuses the first invalid field (every form now focuses the first invalid field, including number inputs) (QA-A-06). A framed project from a quote starts with isolated (column) footings (QA-A-21).
+- Rooms: opening rows stack into two rows on a phone; the quantity field shows its number (QA-A-07 / 12). Live line: no "-0", units on wall areas, "1 room" (QA-A-32).
+- Milestone progress shows at once in the panel and the Gantt after saving (QA-A-08); a bar of work started early is drawn from its actual start (QA-A-18).
+- Urdu / Roman: estimate and quote warnings from their code, milestone names from their key, Settings → Rulebook descriptions and units, BoQ / change-order units (singular "/ ton", "/ brick" for rates), invoice type in change-order billing, Urdu month names in dates, the same word for "Active" in the header and the side rail (QA-A-10 / 28 / 29); amounts in the BoQ cost hint keep their order in Urdu (QA-A-30).
+- BoQ: a rate typed in on a "No rate" line shows the rate (QA-A-11); on a phone each line shows its amount under the item and a swipe hint (QA-A-26).
+- Change orders: "Save draft" creates once, opens the change order and never makes a duplicate (QA-A-13); a change order already waiting for the next stage invoice offers only "Bill separately instead" (QA-A-14). New stage / running-bill invoice: the preview lists and adds the approved change orders that will land on it (QA-A-15).
+- Quotes: revision compare shows "+200" / "+1" and signed money changes (QA-A-16); insights count lost quotes without expired ones and label months (QA-A-17); "Mark as won" warns when the plan's project limit is full (QA-A-20); Send / Won dialogs are no longer red (QA-A-31).
+- Handover: adding a note or photo no longer ticks the item; one check mark per row (QA-A-19 / 34).
+- A page you can't open (not found / no access) says so, without a useless "Try again" (QA-A-25). Schedule pages without a schedule make no 404 requests (QA-A-36).
+- Tests: `tests/unit/components/QaAreaA.test.tsx` and additions to the contract-from-estimate, change-order, tax (invoice preview) and closeout tests.
+
 ### Step 18 — Performance and polish
 - Every Phase 2 / 3 page now checks its permission itself (estimate, revisions, shopping list, rulebook, change orders + detail / edit / site instructions, drawings, snags, handover, retention), with the same key as its menu item; a new test walks the whole menu and checks every link opens a real page with a matching gate.
 - Helpful empty states: no change orders → "New change order", no quotes → "New quote", no equipment → "Add equipment", no rentals → "New rental" (each only with the create permission); control pages without a schedule or an approved estimate link to the Gantt / the estimate.

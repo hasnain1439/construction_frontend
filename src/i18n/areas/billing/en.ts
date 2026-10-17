@@ -158,6 +158,7 @@ export const strings = {
     removeLine: "Remove line {n}",
     addLine: "Add line",
     subtotalPreview: "Subtotal (tax added on the draft if switched on)",
+    changeOrdersIncluded: "Approved change orders added to this invoice",
     paymentSavedPending: "{number} saved — cheque pending",
     paymentSaved: "{number} saved",
     recordPaymentDesc: "Money received from the owner. Cheques stay pending until you mark them cleared.",

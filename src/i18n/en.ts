@@ -12,6 +12,7 @@ import * as closeoutEn from "./areas/closeout/en";
 import * as changeOrdersEn from "./areas/changeOrders/en";
 import * as equipmentEn from "./areas/equipment/en";
 import * as estimatesEn from "./areas/estimates/en";
+import * as rulebookEn from "./areas/estimates/rulebook.en";
 import * as salesEn from "./areas/sales/en";
 import * as scheduleEn from "./areas/schedule/en";
 import * as controlEn from "./areas/control/en";
@@ -31,7 +32,7 @@ export const en = {
   closeout: closeoutEn.strings,
   changeOrders: changeOrdersEn.strings,
   equipment: equipmentEn.strings,
-  estimates: estimatesEn.strings,
+  estimates: { ...estimatesEn.strings, ruleDesc: rulebookEn.ruleDesc, ruleUnit: rulebookEn.ruleUnit },
   sales: salesEn.strings,
   schedule: scheduleEn.strings,
   control: controlEn.strings,
@@ -67,6 +68,8 @@ export const en = {
     optional: "Optional",
     noResults: "No results",
     somethingWrong: "Something went wrong",
+    noAccessTitle: "Not available",
+    noAccessBody: "This page does not exist, or you don't have access to it. Ask the project owner to add you to the project.",
     hiddenForRole: "Hidden for your role",
     comingSoon: "Coming in the next phase",
     comingSoonBody: "This page is part of an upcoming release. Everything you need today is in the menu.",

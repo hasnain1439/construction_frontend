@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GripVertical, Plus, Ruler, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import { useUpdatePlotStructureMutation } from "@/api/services/projects.api";
@@ -56,7 +57,7 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
       ? floors.filter((f) => f.level !== "BASEMENT")
       : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND, roof: { ...ROOF_DEFAULTS } }],
     // Pakistani defaults (brick strip footing) until a foundation is saved
-    foundation: foundationToForm(p?.foundation),
+    foundation: foundationToForm(p?.foundation, p?.structure?.structureType ?? null),
   };
 }
 
@@ -247,7 +248,7 @@ export function PlotStructureTab() {
 
   return (
     <>
-      <Form form={form} onSubmit={(v) => send(v, false)} id={WIZARD_FORM_ID}>
+      <Form form={form} onSubmit={(v) => send(v, false)} onInvalid={() => toast.error(t("projects.wizard.notSavedFix"))} id={WIZARD_FORM_ID}>
         <SectionCard title={t("projects.section.plot")}>
           <div className="space-y-4">
             <FieldGrid columns={3}>

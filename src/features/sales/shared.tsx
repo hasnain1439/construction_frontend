@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
+import { useEstimateWarningText } from "@/features/projects/estimate/warningText";
 import type { StatusTone } from "@/lib/status";
 
 const TONE: Record<QuoteStatus, StatusTone> = {
@@ -62,6 +63,7 @@ function Row({ label, children, strong, testId }: { label: string; children: Rea
 /** Internal view: price, cost, margin, cost by section, quantities, floors assumed, warnings. */
 export function InternalPanel({ data, loading }: { data: QuoteComputed | null | undefined; loading?: boolean }) {
   const t = useT();
+  const warnText = useEstimateWarningText();
   const enumT = useEnumT();
   const qty = useQtyText();
   return (
@@ -150,7 +152,7 @@ export function InternalPanel({ data, loading }: { data: QuoteComputed | null | 
             <InlineAlert tone="warning" title={t("sales.live.warnings")}>
               <ul className="list-disc ps-5">
                 {data.warnings.map((w) => (
-                  <li key={w.code}>{w.message}</li>
+                  <li key={w.code}>{warnText(w)}</li>
                 ))}
               </ul>
             </InlineAlert>

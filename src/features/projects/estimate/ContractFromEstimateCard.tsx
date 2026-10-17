@@ -10,9 +10,10 @@ import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { NumberInput } from "@/components/forms/NumberField";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useT } from "@/i18n/useT";
+import { useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { differencePaisa, suggestionBreakdown } from "./contractSuggestion";
 import { fmt, rupees } from "./labels";
@@ -45,48 +46,92 @@ function SourceNote({ value, companyValue }: { value: number | null; companyValu
 
 const inRange = (v: number | null, max: number): v is number => v !== null && v >= 0 && v <= max;
 
+/** The BoQ the card works from (the BoQ page passes the revision on screen; null id = the live preview). */
+export interface EstimateBasisOverride {
+  estimateId: string | null;
+  totalPaisa: string;
+  revision: number | null;
+  status: "DRAFT" | "APPROVED" | "SUPERSEDED" | null;
+  coveredAreaSqft: number;
+}
+
 /**
- * Sets the contract value (labour-only: the rate per sq ft) from the estimate:
- * cost × (1 + finishing %) × (1 + margin %). Margin / finishing start from the project override or
- * the company defaults. An existing value is replaced only after a confirmation. With `onFinalize`
- * (wizard step 6) a "Finalize estimate" button applies it and moves on.
+ * Sets the contract value (labour-only: the rate per sq ft) from the BoQ total (QA-A-01/02):
+ * BoQ total × (1 + finishing %) × (1 + margin %). The BoQ total is the API's `contractSuggestion`
+ * basis (the default revision, else the live preview) or — on the BoQ page — the revision on
+ * screen (`basis`), so the card always shows the same cost as the BoQ next to it. Margin /
+ * finishing start from the project override or the company defaults. An existing value (e.g. the
+ * won quote's price) is never replaced without a confirmation that shows current vs new and the
+ * difference (QA-A-03); in the wizard the user may also keep the current value and go on.
  */
 export function ContractFromEstimateCard({
   projectId,
   estimate,
   locked,
+  basis,
+  fromQuote,
   onApplied,
   onFinalize,
 }: {
   projectId: string;
   estimate: ProjectEstimate;
   locked?: boolean;
+  basis?: EstimateBasisOverride;
+  /** The current value came from a won quote (project.createdFromQuoteId). */
+  fromQuote?: boolean;
   onApplied?: (project: ProjectDetail) => void;
   onFinalize?: () => void;
 }) {
-  const s = estimate.contractSuggestion;
+  const fromApi = estimate.contractSuggestion;
   const allowed = useCanSetContractFromEstimate();
-  if (!s || !allowed || locked) return null;
-  // Remount when the stored percentages change (after an apply) so the inputs start from them again.
-  return <CardBody key={`${s.marginPercent}-${s.finishingAllowancePercent}-${s.kind}`} projectId={projectId} s={s} onApplied={onApplied} onFinalize={onFinalize} />;
+  if (!fromApi || !allowed || locked) return null;
+  const s: ContractSuggestion = basis
+    ? {
+        ...fromApi,
+        basisPaisa: basis.totalPaisa,
+        basisSource: basis.estimateId ? "REVISION" : "LIVE",
+        estimateId: basis.estimateId,
+        estimateRevision: basis.revision,
+        estimateStatus: basis.status,
+        coveredAreaSqft: basis.coveredAreaSqft,
+      }
+    : fromApi;
+  // Remount when the stored percentages / the BoQ change so the inputs start from them again.
+  return (
+    <CardBody
+      key={`${s.marginPercent}-${s.finishingAllowancePercent}-${s.kind}-${s.estimateId ?? "live"}`}
+      projectId={projectId}
+      s={s}
+      sendEstimateId={basis !== undefined}
+      fromQuote={fromQuote}
+      onApplied={onApplied}
+      onFinalize={onFinalize}
+    />
+  );
 }
 
 function CardBody({
   projectId,
   s,
+  sendEstimateId,
+  fromQuote,
   onApplied,
   onFinalize,
 }: {
   projectId: string;
   s: ContractSuggestion;
+  sendEstimateId: boolean;
+  fromQuote?: boolean;
   onApplied?: (project: ProjectDetail) => void;
   onFinalize?: () => void;
 }) {
   const t = useT();
+  const ts = useStatusT();
   const valueText = useValueText(s.kind);
   const [margin, setMargin] = useState<number | null>(s.marginPercent);
   const [finishing, setFinishing] = useState<number | null>(s.finishingApplies ? s.finishingAllowancePercent : 0);
   const [confirm, setConfirm] = useState<null | "use" | "finalize">(null);
+  const [understood, setUnderstood] = useState(false);
   const [apply, { isLoading }] = useContractFromEstimateMutation();
   const run = useMutationToast();
 
@@ -96,6 +141,20 @@ function CardBody({
   const suggested = valid ? b.suggested : null;
   const diff = differencePaisa(suggested, s.currentPaisa);
   const diffText = diff === null ? "" : `${diff.startsWith("-") ? "−" : "+"}${rupees(diff.replace("-", ""))}`;
+  const lower = diff !== null && diff.startsWith("-");
+  // Lowering the value, or replacing the price agreed in a won quote, needs an explicit tick.
+  const needsTick = lower || Boolean(fromQuote);
+  const basisNote =
+    s.basisSource === "REVISION" && s.estimateRevision
+      ? t("projects.estimate.contract.basisRevision", { n: s.estimateRevision, status: s.estimateStatus ? ts("estimateRevision", s.estimateStatus) : "" })
+      : s.basisSource === "LIVE"
+        ? t("projects.estimate.contract.basisLive")
+        : null;
+
+  const closeConfirm = () => {
+    setConfirm(null);
+    setUnderstood(false);
+  };
 
   const submit = async (mode: "use" | "finalize") => {
     if (!valid || suggested === null) return;
@@ -106,12 +165,13 @@ function CardBody({
           body: {
             marginPercent: margin ?? 0,
             ...(s.finishingApplies ? { finishingAllowancePercent: finishing ?? 0 } : {}),
+            ...(sendEstimateId ? { estimateId: s.estimateId ?? null } : {}),
             replace: s.currentPaisa !== null,
           },
         }).unwrap(),
       { success: rate ? t("projects.estimate.contract.appliedRate", { value: rupees(suggested) }) : t("projects.estimate.contract.appliedValue", { value: rupees(suggested) }) },
     );
-    setConfirm(null);
+    closeConfirm();
     if (!result) return;
     onApplied?.(result);
     if (mode === "finalize") onFinalize?.();
@@ -156,6 +216,11 @@ function CardBody({
           {s.finishingApplies ? <InlineAlert tone="info">{t("projects.estimate.contract.finishingNote")}</InlineAlert> : null}
           <div className="text-sm" data-testid="contract-breakdown">
             {row(rate ? t("projects.estimate.contract.labour") : t("projects.estimate.contract.cost"), rupees(b.basis))}
+            {basisNote ? (
+              <p className="text-xs text-muted-foreground" data-testid="contract-basis-source">
+                {basisNote}
+              </p>
+            ) : null}
             {s.finishingApplies ? row(t("projects.estimate.contract.plusFinishing", { n: fmt(finishing ?? 0) }), rupees(b.finishing)) : null}
             {row(t("projects.estimate.contract.plusMargin", { n: fmt(margin ?? 0) }), rupees(b.margin))}
             {rate ? row(t("projects.estimate.contract.coveredArea"), t("projects.estimate.contract.sqft", { n: fmt(s.coveredAreaSqft) })) : null}
@@ -167,8 +232,8 @@ function CardBody({
           ) : null}
           {s.currentPaisa !== null ? (
             <p className="text-sm" data-testid="contract-current">
-              {t("projects.estimate.contract.current", { value: valueText(s.currentPaisa) })}
-              {diff !== null ? <span className={cn("ms-2 tabular", diff.startsWith("-") ? "text-danger" : "text-success")}>{t("projects.estimate.contract.difference", { value: diffText })}</span> : null}
+              {fromQuote ? t("projects.estimate.contract.currentFromQuote", { value: valueText(s.currentPaisa) }) : t("projects.estimate.contract.current", { value: valueText(s.currentPaisa) })}
+              {diff !== null ? <span className={cn("ms-2 tabular", lower ? "text-danger" : "text-success")}>{t("projects.estimate.contract.difference", { value: diffText })}</span> : null}
             </p>
           ) : null}
           <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
@@ -189,14 +254,55 @@ function CardBody({
       </div>
       <ConfirmDialog
         open={confirm !== null}
-        onOpenChange={(o) => !o && setConfirm(null)}
-        tone="default"
+        onOpenChange={(o) => !o && closeConfirm()}
+        tone={needsTick ? "warning" : "default"}
         loading={isLoading}
         title={rate ? t("projects.estimate.contract.confirmTitleRate") : t("projects.estimate.contract.confirmTitle")}
-        description={t("projects.estimate.contract.confirmDesc", { current: valueText(s.currentPaisa), next: valueText(suggested), diff: diffText })}
+        description={
+          fromQuote
+            ? t("projects.estimate.contract.confirmQuote")
+            : lower
+              ? t("projects.estimate.contract.confirmLower", { diff: diffText })
+              : t("projects.estimate.contract.confirmStages")
+        }
         confirmLabel={t("projects.estimate.contract.confirmLabel")}
+        confirmDisabled={needsTick && !understood}
         onConfirm={() => (confirm ? submit(confirm) : undefined)}
-      />
+        secondaryAction={
+          confirm === "finalize" && onFinalize
+            ? {
+                label: t("projects.estimate.contract.keepCurrent"),
+                onClick: () => {
+                  closeConfirm();
+                  onFinalize();
+                },
+              }
+            : undefined
+        }
+      >
+        <dl className="space-y-1 rounded-lg border p-3 text-sm" data-testid="contract-confirm-compare">
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">{fromQuote ? t("projects.estimate.contract.currentQuote") : t("projects.estimate.contract.currentLabel")}</dt>
+            <dd className="tabular font-medium">{valueText(s.currentPaisa)}</dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">{t("projects.estimate.contract.newLabel")}</dt>
+            <dd className="tabular font-medium">{valueText(suggested)}</dd>
+          </div>
+          <div className="flex justify-between gap-4 border-t pt-1">
+            <dt className="text-muted-foreground">{t("projects.estimate.contract.diffLabel")}</dt>
+            <dd className={cn("tabular font-semibold", lower ? "text-danger" : "text-success")} data-testid="contract-confirm-diff">
+              {diffText || "—"}
+            </dd>
+          </div>
+        </dl>
+        {needsTick ? (
+          <label className="flex items-start gap-2 rounded-lg bg-warning-soft p-3 text-sm" data-testid="contract-confirm-tick">
+            <Checkbox checked={understood} onCheckedChange={(c) => setUnderstood(c === true)} className="mt-0.5" />
+            <span>{t("projects.estimate.contract.confirmTick", { current: valueText(s.currentPaisa) })}</span>
+          </label>
+        ) : null}
+      </ConfirmDialog>
     </SectionCard>
   );
 }

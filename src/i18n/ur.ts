@@ -13,6 +13,7 @@ import * as teamCompanyUr from "./areas/teamCompany/ur";
 import * as appUr from "./areas/app/ur";
 import * as equipmentUr from "./areas/equipment/ur";
 import * as estimatesUr from "./areas/estimates/ur";
+import * as rulebookUr from "./areas/estimates/rulebook.ur";
 import * as scheduleUr from "./areas/schedule/ur";
 import * as controlUr from "./areas/control/ur";
 import * as reportsUr from "./areas/reports/ur";
@@ -33,7 +34,7 @@ export const ur: Dictionary = {
   teamCompany: teamCompanyUr.strings,
   app: appUr.strings,
   equipment: equipmentUr.strings,
-  estimates: estimatesUr.strings,
+  estimates: { ...estimatesUr.strings, ruleDesc: rulebookUr.ruleDesc, ruleUnit: rulebookUr.ruleUnit },
   schedule: scheduleUr.strings,
   control: controlUr.strings,
   reports: reportsUr.strings,
@@ -68,6 +69,8 @@ export const ur: Dictionary = {
     optional: "اختیاری",
     noResults: "کوئی نتیجہ نہیں",
     somethingWrong: "کچھ غلط ہو گیا",
+    noAccessTitle: "دستیاب نہیں",
+    noAccessBody: "یہ صفحہ موجود نہیں، یا آپ کو اس تک رسائی نہیں۔ پراجیکٹ کے مالک سے کہیں کہ آپ کو پراجیکٹ میں شامل کریں۔",
     hiddenForRole: "آپ کے عہدے کے لیے پوشیدہ",
     comingSoon: "اگلے مرحلے میں آ رہا ہے",
     comingSoonBody: "یہ صفحہ آنے والی ریلیز کا حصہ ہے۔ آج کی ضرورت کی ہر چیز مینو میں موجود ہے۔",
@@ -638,8 +641,8 @@ export const ur: Dictionary = {
     ...taxUr.enums,
     projectStatus: {
       DRAFT: "مسودہ",
-      ACTIVE: "جاری",
-      CLOSEOUT: "اختتامی مرحلہ",
+      ACTIVE: "فعال",
+      CLOSEOUT: "اختتام پر",
       HANDED_OVER: "حوالے کر دیا",
       CLOSED: "بند",
       READ_ONLY: "صرف دیکھنے کے لیے",

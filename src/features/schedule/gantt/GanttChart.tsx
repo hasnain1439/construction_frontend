@@ -16,6 +16,7 @@ import {
   type GanttModel,
   type MilestoneRow,
 } from "./ganttModel";
+import { useMilestoneName } from "../labels";
 
 const HEADER_H = 44;
 
@@ -60,6 +61,7 @@ export interface GanttChartProps {
  */
 export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartProps) {
   const t = useT();
+  const msName = useMilestoneName();
   const ts = useStatusT();
   const te = useEnumT();
   const scroller = useRef<HTMLDivElement>(null);
@@ -134,7 +136,7 @@ export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartPr
               style={{ height: row.height }}
               tabIndex={-1}
             >
-              <bdi className="truncate">{row.milestone.name}</bdi>
+              <bdi className="truncate">{msName(row.milestone)}</bdi>
               {row.milestone.late ? (
                 <TriangleAlert
                   className="size-3.5 shrink-0 text-danger"
@@ -259,7 +261,7 @@ export function GanttChart({ model, selectedId, onSelect, onMove }: GanttChartPr
                   onPointerUp={() => onPointerUp(row)}
                   onClick={() => onClick(row)}
                   label={t("schedule.gantt.barLabel", {
-                    name: row.milestone.name,
+                    name: msName(row.milestone),
                     from: formatDate(row.milestone.plannedStart),
                     to: formatDate(row.milestone.plannedEnd),
                     status: ts("milestone", row.milestone.status),

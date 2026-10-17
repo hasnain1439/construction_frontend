@@ -153,6 +153,7 @@ export const strings: Widen<typeof En.strings> = {
     removeLine: "سطر {n} ہٹائیں",
     addLine: "سطر شامل کریں",
     subtotalPreview: "ذیلی کل (ٹیکس آن ہو تو مسودے پر شامل ہو گا)",
+    changeOrdersIncluded: "اس انوائس میں شامل منظور شدہ تبدیلی آرڈر",
     paymentSavedPending: "{number} محفوظ — چیک زیر التوا",
     paymentSaved: "{number} محفوظ ہو گیا",
     recordPaymentDesc: "مالک سے ملی رقم۔ چیک اس وقت تک زیر التوا رہتے ہیں جب تک آپ انہیں کلیئر نشان زد نہ کریں۔",

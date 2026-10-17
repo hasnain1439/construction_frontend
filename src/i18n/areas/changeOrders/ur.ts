@@ -180,6 +180,7 @@ export const strings: Widen<typeof En.strings> = {
     complete: "کام مکمل",
     completed: "مکمل درج ہو گیا",
     bill: "بل کریں",
+    billSeparately: "الگ بل بنائیں",
     billedStage: "اگلے مرحلے کی انوائس کے ساتھ بل ہوگا",
     billedVariation: "تبدیلی انوائس کا مسودہ بن گیا",
     delete: "مسودہ مٹائیں",

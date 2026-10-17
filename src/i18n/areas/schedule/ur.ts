@@ -8,6 +8,20 @@ export const strings: Widen<typeof En.strings> = {
     stoppages: "کام بند دن",
     versions: "منصوبے کے ورژن",
   },
+  /** Generated milestone names by key suffix (QA-A-10). */
+  milestoneName: {
+    EXCAVATION: "کھدائی",
+    FOUNDATION: "بنیاد اور ڈی پی سی",
+    PLINTH_FILL: "پلنتھ بھرائی",
+    WALLS: "{floor} — کالم اور چنائی",
+    SLAB: "{floor} — چھت (لینٹر)",
+    STRUCTURE: "ممٹی کی دیواریں اور چھت",
+    WATERPROOFING: "چھت کی واٹر پروفنگ اور بھرائی",
+    MEP: "بجلی اور پلمبنگ (رف اِن)",
+    PLASTER: "پلستر (اندر اور باہر)",
+    TILES: "فرش اور دیوار کی ٹائلیں",
+    PAINT: "رنگ",
+  },
   common: {
     days: "{n} دن",
     teamDays: "{n} ٹیم دن",

@@ -8,6 +8,20 @@ export const strings: Widen<typeof En.strings> = {
     stoppages: "Kaam band din",
     versions: "Plan ke versions",
   },
+  /** Generated milestone names by key suffix (QA-A-10). */
+  milestoneName: {
+    EXCAVATION: "Khudai",
+    FOUNDATION: "Bunyaad aur DPC",
+    PLINTH_FILL: "Plinth bharai",
+    WALLS: "{floor} — column aur chunai",
+    SLAB: "{floor} — chhat (lenter)",
+    STRUCTURE: "Mumty deewarein aur chhat",
+    WATERPROOFING: "Chhat waterproofing aur bharai",
+    MEP: "Bijli aur plumbing (rough-in)",
+    PLASTER: "Plaster (andar aur bahar)",
+    TILES: "Farsh aur deewar ki tiles",
+    PAINT: "Rang",
+  },
   common: {
     days: "{n} din",
     teamDays: "{n} team-din",

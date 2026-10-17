@@ -81,7 +81,7 @@ export const projectsApi = baseApi.injectEndpoints({
     /** Contract value (labour-only: rate) from the estimate; 409 CONTRACT_VALUE_EXISTS unless replace. */
     contractFromEstimate: build.mutation<ProjectDetail, { id: string; body: ContractFromEstimateBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.projects.contractFromEstimate(id), method: "POST", body }),
-      invalidatesTags: (_r, _e, { id }) => projectChanged(id),
+      invalidatesTags: (_r, _e, { id }) => [...projectChanged(id), "Estimates"],
     }),
     updatePlotStructure: build.mutation<ProjectDetail, { id: string; body: UpdatePlotStructureBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.projects.plotStructure(id), method: "PATCH", body }),

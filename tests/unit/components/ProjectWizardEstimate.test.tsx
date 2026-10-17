@@ -206,7 +206,7 @@ describe("EstimateTab", () => {
 
   it("KPIs, warnings with Go to <tab> that switch wizard tabs, stage tables collapsed", async () => {
     const goTo = renderTab();
-    expect(screen.getByText("Estimated cost")).toBeInTheDocument();
+    expect(screen.getByText("BoQ cost")).toBeInTheDocument();
     expect(screen.getByText("Cost per sq ft")).toBeInTheDocument();
     expect(screen.getByText("799 bags")).toBeInTheDocument();
     expect(screen.getByText("Margin vs contract")).toBeInTheDocument();

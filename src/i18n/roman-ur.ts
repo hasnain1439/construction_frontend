@@ -13,6 +13,7 @@ import * as teamCompanyRoman from "./areas/teamCompany/roman-ur";
 import * as appRoman from "./areas/app/roman-ur";
 import * as equipmentRoman from "./areas/equipment/roman-ur";
 import * as estimatesRoman from "./areas/estimates/roman-ur";
+import * as rulebookRoman from "./areas/estimates/rulebook.roman-ur";
 import * as scheduleRoman from "./areas/schedule/roman-ur";
 import * as controlRoman from "./areas/control/roman-ur";
 import * as reportsRoman from "./areas/reports/roman-ur";
@@ -33,7 +34,7 @@ export const romanUr: Dictionary = {
   teamCompany: teamCompanyRoman.strings,
   app: appRoman.strings,
   equipment: equipmentRoman.strings,
-  estimates: estimatesRoman.strings,
+  estimates: { ...estimatesRoman.strings, ruleDesc: rulebookRoman.ruleDesc, ruleUnit: rulebookRoman.ruleUnit },
   schedule: scheduleRoman.strings,
   control: controlRoman.strings,
   reports: reportsRoman.strings,
@@ -68,6 +69,8 @@ export const romanUr: Dictionary = {
     optional: "Ikhtiyari",
     noResults: "Kuch nahi mila",
     somethingWrong: "Koi masla hua",
+    noAccessTitle: "Dastiyab nahi",
+    noAccessBody: "Ye safha mojood nahi, ya aap ko is tak rasai nahi. Project ke malik se kahein ke aap ko project mein shamil karein.",
     hiddenForRole: "Aap ke role ke liye chhupa hua",
     comingSoon: "Agle phase mein aa raha hai",
     comingSoonBody: "Yeh page agli release ka hissa hai. Aaj ki zaroorat ki har cheez menu mein hai.",
@@ -638,8 +641,8 @@ export const romanUr: Dictionary = {
     ...taxRoman.enums,
     projectStatus: {
       DRAFT: "Draft",
-      ACTIVE: "Jari",
-      CLOSEOUT: "Ikhtitaam",
+      ACTIVE: "Chalu",
+      CLOSEOUT: "Khatam ho raha",
       HANDED_OVER: "Hawale kar diya",
       CLOSED: "Band",
       READ_ONLY: "Sirf dekhne ke liye",

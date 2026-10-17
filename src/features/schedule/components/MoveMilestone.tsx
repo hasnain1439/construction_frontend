@@ -9,6 +9,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { formatDate } from "@/lib/dates";
+import { useMilestoneName } from "../labels";
 
 interface Pending {
   milestone: Milestone;
@@ -22,6 +23,7 @@ interface Pending {
  */
 export function useMoveMilestone(projectId: string) {
   const t = useT();
+  const msName = useMilestoneName();
   const language = useLanguage();
   const [update, { isLoading }] = useUpdateMilestoneMutation();
   const run = useMutationToast();
@@ -62,7 +64,7 @@ export function useMoveMilestone(projectId: string) {
       open={Boolean(pending)}
       onOpenChange={(o) => !o && setPending(null)}
       tone="default"
-      title={t("schedule.shift.title", { name: pending?.milestone.name ?? "" })}
+      title={t("schedule.shift.title", { name: pending ? msName(pending.milestone) : "" })}
       description={
         pending?.date
           ? t("schedule.shift.desc", { date: formatDate(pending.date) })
@@ -89,7 +91,7 @@ export function useMoveMilestone(projectId: string) {
                   {others.map((s) => (
                     <tr key={s.id} className="border-t">
                       <td className="px-2 py-1.5">
-                        <bdi>{s.name}</bdi>
+                        <bdi>{msName(s)}</bdi>
                       </td>
                       <td className="px-2 py-1.5 whitespace-nowrap">{formatDate(s.plannedStart.to)}</td>
                       <td className="px-2 py-1.5 whitespace-nowrap">{formatDate(s.plannedEnd.to)}</td>
