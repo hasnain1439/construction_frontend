@@ -3,6 +3,7 @@ import {
   COMPANY_NAV,
   CREATE_ACTIONS,
   PROJECT_NAV,
+  showsBadge,
   visibleItemIds,
   visibleSections,
   type NavItem,
@@ -75,5 +76,14 @@ describe("navigation uses permission keys only", () => {
     expect(CREATE_ACTIONS.filter((a) => canAccess(meFixture("THEKEDAR"), a.access))).toHaveLength(
       CREATE_ACTIONS.length,
     );
+  });
+});
+
+describe("QA-C-01: the incoming-material badge loads only for users who see the item", () => {
+  it("an Accountant (no procurement.dispatch.view) never loads /incoming; the owner and the Munshi do", () => {
+    const accountant = meFixture("PM", { permissions: ["projects.project.view", "billing.invoice.view", "fields.amounts"] });
+    expect(showsBadge(visibleSections(accountant, PROJECT_NAV), "incoming")).toBe(false);
+    expect(showsBadge(visibleSections(meFixture("THEKEDAR"), PROJECT_NAV), "incoming")).toBe(true);
+    expect(showsBadge(visibleSections(meFixture("MUNSHI"), PROJECT_NAV), "incoming")).toBe(true);
   });
 });

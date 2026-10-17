@@ -1,3 +1,4 @@
+import { RequireAccess } from "@/components/common/RequireAccess";
 import { Suspense } from "react";
 import { NewPurchaseView } from "@/features/procurement/views/NewPurchaseView";
 
@@ -5,8 +6,10 @@ import { NewPurchaseView } from "@/features/procurement/views/NewPurchaseView";
 export default async function Page({ params }: PageProps<"/projects/[projectId]/site/deliveries/purchase">) {
   const { projectId } = await params;
   return (
-    <Suspense>
-      <NewPurchaseView fixedProjectId={projectId} backHref={`/projects/${projectId}/site/deliveries`} />
-    </Suspense>
+    <RequireAccess permission="procurement.purchase.create">
+      <Suspense>
+        <NewPurchaseView fixedProjectId={projectId} backHref={`/projects/${projectId}/site/deliveries`} />
+      </Suspense>
+    </RequireAccess>
   );
 }

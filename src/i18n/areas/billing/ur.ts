@@ -244,7 +244,7 @@ export const strings: Widen<typeof En.strings> = {
     materialAudit: "مال کا آڈٹ",
     materialAuditDesc: "ہر سائٹ پر آیا، لگا، واپس بھیجا، ایڈجسٹ ہوا اور ضائع ہوا مال — اور اسٹاک میں کیا ہے۔",
     laborPeshgi: "مزدور اور پیشگی",
-    laborPeshgiDesc: "ہر مزدور اور ٹھیکیدار کے دن، مزدوری، پیشگی اور بقایا۔",
+    laborPeshgiDesc: "ہر مزدور اور ذیلی ٹھیکیدار کے دن، مزدوری، پیشگی اور بقایا۔",
     cashBook: "کیش بک",
     cashBookDesc: "فلوٹ، زمرے کے حساب سے خرچہ اور ہر رکھنے والے اور سائٹ کا بقایا۔",
     supplierAgeing: "سپلائرز کا پرانا ادھار",

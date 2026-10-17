@@ -13,25 +13,13 @@ import { COMPANY_ROUTES } from "@/lib/companyRoutes.generated";
 import { COMPANY_NAV, CREATE_ACTIONS, PROJECT_NAV, type NavItem } from "@/lib/navigation";
 import type { AccessRule } from "@/lib/permissions";
 
-/** Phase 1 pages without a page-level gate (the view or the API decides). Do not add new ones. */
+/**
+ * Phase 1 pages without a page-level gate (the view or the API decides). Do not add new ones.
+ * QA-C-02: the site, labour and cash pages now gate themselves, so they are no longer listed.
+ */
 const LEGACY_UNGATED = new Set([
   "projects.all",
   "projects.closed",
-  "p.site.logs",
-  "p.site.incoming",
-  "p.site.deliveries",
-  "p.site.usage",
-  "p.site.stock",
-  "p.site.counts",
-  "p.labor.team",
-  "p.labor.hazri",
-  "p.labor.measurements",
-  "p.labor.peshgi",
-  "p.labor.settlements",
-  "p.cash.kharcha",
-  "p.cash.floats",
-  "p.cash.topups",
-  "p.cash.counts",
 ]);
 
 interface Resolved {

@@ -36,7 +36,7 @@ export const strings: Widen<typeof En.strings> = {
     by: "Kis ne",
     worker: "Kaarigar",
     workers: "Kaarigar",
-    subcontractor: "Theke daar",
+    subcontractor: "Sub-contractor",
     reason: "Wajah",
     reference: "Hawala",
     method: "Tareeqa",

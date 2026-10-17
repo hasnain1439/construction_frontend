@@ -27,7 +27,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   v: {
     chooseWorker: "Kaarigar chunein",
-    chooseSubcontractor: "Theke daar chunein",
+    chooseSubcontractor: "Sub-contractor chunein",
     choosePayee: "Chunein peshgi kis ko di",
     chooseSubContract: "Theka chunein",
     retentionMax: "Retention zyada se zyada 20% ho sakti hai",
@@ -81,7 +81,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   measureForm: {
     title: "Naap darj karein",
-    description: "Naap wale theke daar ka kiya hua kaam. Office ki tasdeeq ke baad iski qeemat khate mein judti hai.",
+    description: "Naap wale sub-contractor ka kiya hua kaam. Office ki tasdeeq ke baad iski qeemat khate mein judti hai.",
     submit: "Naap mehfooz karein",
     saved: "Naap mehfooz ho gaya — office iski tasdeeq karega",
     optionDesc: "{scope} · fi {unit}",
@@ -121,7 +121,7 @@ export const strings: Widen<typeof En.strings> = {
     rejected: "Naap rad kar diya",
     pendingOne: "1 naap tasdeeq ke liye baqi",
     pendingMany: "{n} naap tasdeeq ke liye baqi",
-    officeHint: "Site par kaam check karein, phir tasdeeq karein — qeemat theke daar ke khate mein jayegi.",
+    officeHint: "Site par kaam check karein, phir tasdeeq karein — qeemat sub-contractor ke khate mein jayegi.",
     munshiHint: "Office inki tasdeeq karta hai.",
     title: "Naap",
     empty: "Abhi koi naap nahi",
@@ -195,7 +195,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "Abhi koi entry nahi",
   },
   accounts: {
-    crumb: "Theke daaron ke Khate",
+    crumb: "Sub-contractors ke Khate",
     toVerify: "{n} tasdeeq baqi",
     done: "Hua",
     overpaidCount: "{n} ko zyada diya",
@@ -263,7 +263,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   detail: {
     workersDirectory: "Mazdooron ki fehrist",
-    subcontractors: "Theke daar",
+    subcontractors: "Sub-contractor",
     normalRate: "aam rate {rate} / din",
     sitesNow: "Abhi sites",
     daysThisWeek: "Is hafte ke din",
@@ -297,7 +297,7 @@ export const enums: Widen<typeof En.enums> = {
     EXPENSE: "Kharcha",
     PESHGI: "Peshgi",
     WAGE_PAYMENT: "Mazdoori",
-    SUBCONTRACT_PAYMENT: "Theke daar ko adaigi",
+    SUBCONTRACT_PAYMENT: "Sub-contractor ko adaigi",
     PURCHASE: "Maal kharida",
     HANDOVER_OUT: "Hawale kiya",
     HANDOVER_IN: "Wasool (hawalgi)",

@@ -2,6 +2,7 @@
 
 import { MailPlus, RotateCw, X } from "lucide-react";
 import { useState } from "react";
+import { useGetRolesQuery } from "@/api/services/permissions.api";
 import { useCancelInvitationMutation, useGetInvitationsQuery, useResendInvitationMutation } from "@/api/services/team.api";
 import type { Invitation, InvitationStatus } from "@/api/types";
 import { AvatarName } from "@/components/common/AvatarName";
@@ -16,13 +17,14 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useStatusT, useT } from "@/i18n/useT";
+import { useLanguage, useStatusT, useT } from "@/i18n/useT";
 import { useMe } from "@/store/hooks";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatDate, formatRelative } from "@/lib/dates";
+import { roleName } from "@/lib/permissionCatalog";
 import { formatPhone } from "@/lib/phone";
 import { InviteMemberModal } from "../components/MemberModal";
 import { ProjectChips, RoleBadge } from "../components/TeamBits";
@@ -45,10 +47,22 @@ export function InvitationsView() {
   const ts = useStatusT();
   const me = useMe();
   const run = useMutationToast();
+  const language = useLanguage();
+  const roles = useGetRolesQuery();
+  const roleById = new Map((roles.data ?? []).map((r) => [r.id, r]));
 
   const columns: Column<Invitation>[] = [
     { id: "name", header: t("field.name"), cell: (i) => <AvatarName name={i.name} subtitle={formatPhone(i.phone)} />, sortValue: (i) => i.name },
-    { id: "role", header: t("field.role"), cell: (i) => <RoleBadge role={i.role} /> },
+    {
+      // The role given on accept ("Accountant"), not the account type (QA-C-15).
+      id: "permissionRole",
+      header: t("roles.inviteRole"),
+      cell: (i) => {
+        const names = i.roleIds.map((id) => roleById.get(id)).filter((r) => r !== undefined).map((r) => roleName(r, language));
+        return names.length ? <bdi className="text-sm">{names.join(", ")}</bdi> : <span className="text-muted-foreground">—</span>;
+      },
+    },
+    { id: "role", header: t("roles.accountType"), cell: (i) => <RoleBadge role={i.role} /> },
     { id: "projects", header: t("field.projects"), cell: (i) => <ProjectChips projects={i.projects} /> },
     { id: "status", header: t("field.status"), cell: (i) => <StatusBadge domain="invitation" value={i.status} /> },
     {

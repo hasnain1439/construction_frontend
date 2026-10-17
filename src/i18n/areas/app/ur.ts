@@ -8,7 +8,7 @@ export const strings: Widen<typeof En.strings> = {
     pointProjects: "پراجیکٹس، کمرے اور ٹھیکے ایک جگہ",
     pointMoney: "روپوں میں رقم، لاکھ / کروڑ کے ساتھ — پیسے پیسے کا حساب",
     pointTeam: "سائٹ پر آپ کی ٹیم منشی ایپ کے ساتھ",
-    trialNote: "14 دن کی مفت آزمائش · 1 پراجیکٹ · کارڈ کی ضرورت نہیں",
+    trialNote: "14 دن کی مفت آزمائش · 2 فعال پراجیکٹس · کارڈ کی ضرورت نہیں",
     signingIn: "سائن اِن ہو رہا ہے",
     emailOrPhone: "ای میل یا فون",
     loginPlaceholder: "0300 1234567 یا ای میل",
@@ -93,7 +93,7 @@ export const strings: Widen<typeof En.strings> = {
     chooseCompanyDesc: "آپ کا نمبر ایک سے زیادہ کمپنیوں میں چلتا ہے۔ کون سی کھولنی ہے؟",
     trialStarted: "خوش آمدید! آپ کی 14 دن کی مفت آزمائش شروع ہو گئی۔",
     createCompanyTitle: "اپنی کمپنی بنائیں",
-    createCompanyDesc: "14 دن کی مفت آزمائش، 1 پراجیکٹ، کارڈ کی ضرورت نہیں۔",
+    createCompanyDesc: "14 دن کی مفت آزمائش، 2 فعال پراجیکٹس، کارڈ کی ضرورت نہیں۔",
     alreadyRegistered: "پہلے سے رجسٹرڈ ہیں؟",
     companyNamePlaceholder: "ملک اینڈ سنز بلڈرز",
     emailHint: "اختیاری — پاس ورڈ ری سیٹ کے لیے۔",
@@ -308,6 +308,11 @@ export const strings: Widen<typeof En.strings> = {
   pages: {
     notFoundTitle: "صفحہ نہیں ملا",
     notFoundBody: "جو صفحہ آپ ڈھونڈ رہے ہیں وہ موجود نہیں یا کہیں اور منتقل ہو گیا ہے۔",
+  },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    invitedBy: "{company} نے آپ کو کنسٹرکشن پلیٹ فارم پر شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
+    invitedByAs: "{company} نے آپ کو {role} کے طور پر شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
   },
 };
 

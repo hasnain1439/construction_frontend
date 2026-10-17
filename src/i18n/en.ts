@@ -163,7 +163,7 @@ export const en = {
   },
   dashboard: {
     title: "Dashboard",
-    greeting: "Welcome back, {name}.",
+    greeting: "Welcome, {name}.",
     newProject: "New project",
     last30Days: "Last 30 days",
     activeProjects: "Active projects",

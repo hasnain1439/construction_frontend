@@ -262,4 +262,8 @@ export const strings: Widen<typeof En.strings> = {
     dueSent: "Waajib hone ki itla {date} ko bheji",
     notSentYet: "Abhi koi yaad dihani nahi bheji",
   },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    assignedTo: "Zimmedar",
+  },
 };

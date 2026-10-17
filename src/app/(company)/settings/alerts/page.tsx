@@ -3,6 +3,7 @@
 import { useGetCompanySettingsQuery } from "@/api/services/company.api";
 import { QueryState } from "@/components/common/QueryState";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCan } from "@/components/common/PermissionGate";
 import { RequireAccess } from "@/components/common/RequireAccess";
 import { CompanySettingsForm } from "@/features/company/components/CompanySettingsForm";
 import { RamadanSettingsCard } from "@/features/schedule/components/RamadanSettingsCard";
@@ -10,7 +11,8 @@ import { useT } from "@/i18n/useT";
 
 export default function AlertsLimitsPage() {
   const t = useT();
-  const query = useGetCompanySettingsQuery();
+  // No request for a user the gate below turns away (no 403 behind "Not available for you").
+  const query = useGetCompanySettingsQuery(undefined, { skip: !useCan("company.settings.manage") });
   return (
     <RequireAccess permission="company.settings.manage">
       <PageHeader

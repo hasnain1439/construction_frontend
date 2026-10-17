@@ -6,6 +6,20 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### QA fixes (area C)
+- **No more permission toasts on project pages for the Accountant (QA-C-01)**: the project shell loads the "Incoming Material" count only when that menu item is visible (`procurement.dispatch.view`); the same for the Purchases location filter (`inventory.stock.view`, QA-C-03) and Settings → Company / Alerts / Tax behind their gate.
+- **Page gates on the Phase 1 site, labour and cash pages (QA-C-02)**: Daily Logs, Incoming (and receiving), Deliveries (and site purchase), Usage, Stock, Counts, Team, Hazri, Measurements, Peshgi, Settlements (and detail), Kharcha, Floats, Top-ups and Cash Counts show "Not available for you" by URL, with the same rule as their menu item (the navigation test now checks them; only All / Closed projects stay ungated).
+- **Rentals**: the return form asks for the yard's **Missing pieces charge** when pieces are missing (empty = replacement value, QA-C-08); the rental and its returns show the missing-pieces charge, and each return line shows its damaged and missing pieces ("17 nos … (2 nos damaged, 3 nos missing)", QA-C-07). Days / rent to date follow the API's single rent-day rule (QA-C-04).
+- **Equipment on Site (QA-C-05)**: the KPI tiles are "Hire posted" / "Rent posted" (charges posted so far), so they no longer share the "Rent to date" label with the live per-rental figure.
+- **Owned Equipment (QA-C-06)**: "On rent" sits next to "Owned", and the location columns say "At sites (own + rented)" / "Yard (own + rented)", so Owned + On rent = At sites + Yard + In transit.
+- **Closeout pages (QA-C-09)**: no "records are read-only" banner on Handover (ACTIVE / CLOSEOUT), Retention (CLOSEOUT / HANDED_OVER), Drawings and Snags (until handed over) while their forms still work (`ProjectPageShell editableStatuses`).
+- **Urdu**: date ranges read start → end ("{from} سے {to} تک" in Shuttering Demand, dashboard and holidays; the date-range picker keeps the range as one left-to-right unit, QA-C-12); user notes and descriptions on equipment and closeout screens use `dir="auto"` ("3 sets — …" stays as typed, QA-C-13); a sub-contractor is "ذیلی ٹھیکیدار" / "Sub-contractor" everywhere (equipment, labour, workforce, cash, reports), never the owner's word "ٹھیکیدار" / "Theke daar" (QA-C-14).
+- **Team (QA-C-15)**: Members and Invitations show the permission role ("Accountant") first and label the PM / Munshi badge "Account type".
+- **Signup / invite (QA-C-16)**: the trial note says "2 active projects"; the invite page names the company and the role ("Malik & Sons Builders invited you to join them as Accountant") and shows a dead link at once.
+- **Drawings (QA-C-23)**: only the latest revision offers "Mark approved today".
+- Smaller: lighter placeholders and "e.g." examples on the Add equipment form (QA-C-24); the Shuttering Demand "Needed" line uses straight segments (QA-C-25); "1 loss recorded" / "2 losses recorded" (QA-C-26); the snag detail says "Assigned to" (QA-C-27); Admin → Company → Timeline shows who did it by name (QA-C-28); the dashboard greets "Welcome, {name}." (QA-C-29).
+- API types regenerated (`GET /invitations/{token}`, `missingChargesPaisa`, drawing `REVISION_SUPERSEDED`).
+
 ### Step 18 — Performance and polish
 - Every Phase 2 / 3 page now checks its permission itself (estimate, revisions, shopping list, rulebook, change orders + detail / edit / site instructions, drawings, snags, handover, retention), with the same key as its menu item; a new test walks the whole menu and checks every link opens a real page with a matching gate.
 - Helpful empty states: no change orders → "New change order", no quotes → "New quote", no equipment → "Add equipment", no rentals → "New rental" (each only with the create permission); control pages without a schedule or an approved estimate link to the Gantt / the estimate.

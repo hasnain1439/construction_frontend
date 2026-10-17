@@ -197,7 +197,7 @@ export const strings: Widen<typeof En.strings> = {
     defectPeriod: "ڈیفیکٹ پیریڈ",
     defectOpen: "ڈیفیکٹ پیریڈ میں کھلی",
     rework: "دوبارہ کام کا خرچہ",
-    subcontractorDeduction: "سب کنٹریکٹر سے کٹا",
+    subcontractorDeduction: "ذیلی ٹھیکیدار سے کٹا",
     changeOrder: "تبدیلی آرڈرز میں",
     assignee: "ذمہ دار",
     assigneeKind: "قسم",
@@ -241,7 +241,7 @@ export const strings: Widen<typeof En.strings> = {
       TOOL: "اوزار",
       OTHER: "دیگر",
     },
-    assigneeKind: { WORKER: "مزدور", SUBCONTRACTOR: "سب کنٹریکٹر", NONE: "کسی کو نہیں دیا" },
+    assigneeKind: { WORKER: "مزدور", SUBCONTRACTOR: "ذیلی ٹھیکیدار", NONE: "کسی کو نہیں دیا" },
     stage: {
       FOUNDATION_PLINTH: "بنیاد اور پلنتھ",
       GF_STRUCTURE: "گراؤنڈ فلور ڈھانچہ",

@@ -17,6 +17,7 @@ import {
   COMPANY_NAV,
   PROJECT_NAV,
   projectHref,
+  showsBadge,
   visibleSections,
   type NavItem,
   type NavSection,
@@ -66,10 +67,6 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   const flyoutFor = useAppSelector((state) => state.ui.flyoutFor);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const { signOut } = useLogout();
-  const incoming = useGetIncomingQuery(projectId ?? "", {
-    skip: !projectId || !me,
-    pollingInterval: 120_000,
-  });
 
   const status = error && "status" in error ? error.status : undefined;
   useEffect(() => {
@@ -97,6 +94,11 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
     const all = mode === "project" ? PROJECT_NAV : COMPANY_NAV;
     return visibleSections(me, all);
   }, [mode, me]);
+  // Only users who see "Incoming Material" (procurement.dispatch.view) load its count (QA-C-01).
+  const incoming = useGetIncomingQuery(projectId ?? "", {
+    skip: !projectId || !me || !showsBadge(sections, "incoming"),
+    pollingInterval: 120_000,
+  });
 
   const hrefFor = useCallback(
     (item: NavItem) => (projectId ? projectHref(projectId, item.href) : item.href),

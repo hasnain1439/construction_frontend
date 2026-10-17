@@ -35,6 +35,8 @@ export interface UpdatePreferencesBody {
 /** /auth/me with the new top-level `language` (optional: absent on older APIs). */
 export type MeWithPreferences = Me & { language?: PreferenceLanguage | null };
 export type AcceptInvitationBody = RequestBody<"/api/v1/invitations/{token}/accept", "post">;
+/** GET /invitations/:token — the invite page header: company and role (QA-C-16). */
+export type InvitationPreview = Schemas["InvitationPreview"];
 export type AdminLoginBody = RequestBody<"/api/v1/admin/auth/login", "post">;
 
 /** `details` of 409 MULTIPLE_COMPANIES. */
