@@ -28,7 +28,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
-import { placeName, useCategoryOptions, useKindOptions, useSeesRates } from "../options";
+import { placeName, useCategoryOptions, useKindOptions, useSeesAmounts } from "../options";
 import {
   adjustSchema,
   equipmentSchema,
@@ -40,7 +40,7 @@ import {
 
 const blankToUndefined = (value: string) => (value ? value : undefined);
 
-/** Add or edit an item of the register. Hire rate and replacement value only for `fields.rates`. */
+/** Add or edit an item of the register. Hire rate and replacement value only for `fields.amounts`. */
 export function EquipmentFormSlideOver({
   open,
   onOpenChange,
@@ -51,7 +51,7 @@ export function EquipmentFormSlideOver({
   equipment?: Equipment | null;
 }) {
   const t = useT();
-  const rates = useSeesRates();
+  const seesMoney = useSeesAmounts();
   const [create, created] = useCreateEquipmentMutation();
   const [update, updated] = useUpdateEquipmentMutation();
   const run = useMutationToast();
@@ -78,7 +78,7 @@ export function EquipmentFormSlideOver({
   const busy = created.isLoading || updated.isLoading;
 
   const onSubmit = async (v: z.output<typeof equipmentSchema>) => {
-    const money = rates
+    const money = seesMoney
       ? {
           ...(v.hireRatePaisaPerDay ? { hireRatePaisaPerDay: v.hireRatePaisaPerDay } : {}),
           ...(v.replacementValuePaisa ? { replacementValuePaisa: v.replacementValuePaisa } : {}),
@@ -184,7 +184,7 @@ export function EquipmentFormSlideOver({
             />
           ) : null}
         </FieldGrid>
-        {rates ? (
+        {seesMoney ? (
           <FormSection
             title={t("equipment.register.ratesTitle")}
             description={t("equipment.register.ratesDesc")}

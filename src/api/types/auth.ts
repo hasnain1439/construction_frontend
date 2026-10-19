@@ -10,7 +10,13 @@ export type AuthUser = Schemas["User"];
 export type AuthTenant = Schemas["Tenant"];
 export type AuthSubscription = Schemas["Subscription"];
 export type AuthResult = Schemas["AuthResult"];
-export type Me = Schemas["Me"];
+/**
+ * `fieldAccess.wages` (`fields.wages`, owner decision 4) is optional here so the web keeps working
+ * with an API that does not send it yet — `canSeeField` then falls back to the `fields.wages` key.
+ */
+export type Me = Omit<Schemas["Me"], "fieldAccess"> & {
+  fieldAccess: Omit<Schemas["Me"]["fieldAccess"], "wages"> & { wages?: boolean };
+};
 export type Session = Schemas["Session"];
 export type PlatformAdmin = Schemas["PlatformAdmin"];
 export type AdminAuthResult = Schemas["AdminAuthResult"];

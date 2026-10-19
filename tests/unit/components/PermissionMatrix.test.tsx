@@ -173,3 +173,54 @@ describe("PermissionMatrix", { timeout: 30_000 }, () => {
     expect(screen.getByRole("checkbox", { name: "سب چنیں" })).toBeInTheDocument();
   });
 });
+
+describe("fields.wages (owner decision 4) in the role / member editors", () => {
+  // The catalogue snapshot gains fields.wages when it is regenerated; add it here until then.
+  const WAGES = {
+    key: "fields.wages",
+    module: "fields",
+    resource: "field",
+    action: "view",
+    label: { en: "See worker daily wages", roman: "Mazdoor ki dihari dekhna", urdu: "مزدور کی دیہاڑی دیکھنا" },
+    description: "Worker daily wages (dailyRatePaisa / ratePaisa).",
+    ownerOnly: false,
+    scoped: false,
+    limit: false,
+    field: true,
+  } as (typeof catalogFixture.permissions)[number];
+  const catalog = catalogFixture.permissions.some((p) => p.key === WAGES.key)
+    ? catalogFixture
+    : { ...catalogFixture, permissions: [...catalogFixture.permissions, WAGES] };
+
+  function Wages({ initial, onChange }: { initial: GrantMap; onChange: (g: GrantMap) => void }) {
+    const [value, setValue] = useState<GrantMap>(initial);
+    return (
+      <FieldVisibility
+        catalog={catalog}
+        value={value}
+        onChange={(next) => {
+          setValue(next);
+          onChange(next);
+        }}
+      />
+    );
+  }
+
+  it("is a data-visibility toggle that can be switched off (role or per user)", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithStore(
+      <Wages initial={{ "fields.wages": { scope: null, maxAmountPaisa: null } }} onChange={onChange} />,
+    );
+    const toggle = within(document.querySelector('[data-field="fields.wages"]') as HTMLElement);
+    expect(toggle.getByText("See worker daily wages")).toBeInTheDocument();
+    expect(toggle.getByRole("switch")).toBeChecked();
+    await user.click(toggle.getByRole("switch"));
+    expect(onChange).toHaveBeenLastCalledWith({});
+  });
+
+  it("is in the member custom-permissions grid with the other field keys", () => {
+    renderWithStore(<PermissionMatrix catalog={catalog} value={{}} onChange={() => {}} includeFields />);
+    expect(document.querySelector('[data-permission="fields.wages"]')).not.toBeNull();
+  });
+});

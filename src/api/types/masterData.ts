@@ -113,7 +113,8 @@ export interface LaborRate {
   labelRoman?: string | null;
   labelUrdu?: string | null;
   unit: LaborUnit;
-  ratePaisa: Paisa;
+  /** Absent on DAILY rows without `fields.wages`. */
+  ratePaisa?: Paisa;
   overtimeMultiplier: number | null;
   updatedAt: IsoDateTime;
 }
@@ -199,7 +200,8 @@ export interface WorkerTypeNames {
 export interface WorkerTypeRow extends WorkerTypeNames {
   id: Id;
   key: string;
-  ratePaisa: Paisa;
+  /** Absent without `fields.wages`. */
+  ratePaisa?: Paisa;
   overtimeMultiplier: number | null;
   isActive: boolean;
   /** Workers (active or not) with this type. */
@@ -224,7 +226,8 @@ export interface Worker {
   typeLabelRoman?: string | null;
   typeLabelUrdu?: string | null;
   phone: string | null;
-  dailyRatePaisa: Paisa;
+  /** Absent without `fields.wages`. */
+  dailyRatePaisa?: Paisa;
   isActive: boolean;
   /** Sample worker from "Try with demo data". */
   isDemo?: boolean;

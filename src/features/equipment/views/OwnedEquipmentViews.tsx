@@ -26,7 +26,7 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
 import { formatQty } from "@/lib/quantity";
 import { AdjustSlideOver, EquipmentFormSlideOver, StockInSlideOver } from "../components/EquipmentSlideOvers";
-import { placeName, useCategoryOptions, useKindOptions, useSeesRates } from "../options";
+import { placeName, useCategoryOptions, useKindOptions, useSeesAmounts } from "../options";
 import { MovementLogTable } from "./MovementViews";
 
 const BASE = "/equipment/owned";
@@ -37,7 +37,7 @@ export function OwnedEquipmentView() {
   const router = useRouter();
   const readOnly = useReadOnly();
   const manage = useCan("equipment.manage") && !readOnly;
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const categories = useCategoryOptions();
   const kinds = useKindOptions();
   const list = useListState({ category: "", kind: "", active: "true" });
@@ -101,14 +101,14 @@ export function OwnedEquipmentView() {
       id: "hire",
       header: t("equipment.field.hireRate"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (e) => <MoneyText paisa={e.hireRatePaisaPerDay} />,
     },
     {
       id: "value",
       header: t("equipment.field.replacementValue"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (e) => <MoneyText paisa={e.replacementValuePaisa} />,
     },
     {
@@ -237,7 +237,7 @@ function EquipmentBody({ equipment }: { equipment: EquipmentDetail }) {
   const te = useEnumT();
   const readOnly = useReadOnly();
   const manage = useCan("equipment.manage") && !readOnly;
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const [editOpen, setEditOpen] = useState(false);
   const [stockInOpen, setStockInOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -312,7 +312,7 @@ function EquipmentBody({ equipment }: { equipment: EquipmentDetail }) {
             label: t("equipment.common.inTransit"),
             value: formatQty(equipment.inTransitQty, equipment.unit),
           },
-          ...(rates
+          ...(money
             ? [
                 {
                   label: t("equipment.field.hireRate"),

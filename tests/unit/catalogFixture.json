@@ -2212,7 +2212,7 @@
     "roman": "Machinery / shuttering dekhna",
     "urdu": "مشینری / شٹرنگ دیکھنا"
    },
-   "description": "Equipment register, where everything is (allocation map), movements, transfers, rentals, losses, hire charges (rates and amounts need fields.rates).",
+   "description": "Equipment register, where everything is (allocation map), movements, transfers, rentals, losses, hire charges (rates and amounts need fields.amounts).",
    "ownerOnly": false,
    "scoped": true,
    "limit": false,
@@ -2665,6 +2665,22 @@
    "scoped": false,
    "limit": false,
    "field": true
+  },
+  {
+   "key": "fields.wages",
+   "module": "fields",
+   "resource": "field",
+   "action": "view",
+   "label": {
+    "en": "See worker daily wages",
+    "roman": "Mazdoor ki dihari dekhna",
+    "urdu": "مزدور کی دیہاڑی دیکھنا"
+   },
+   "description": "Daily wage rates of workers and worker types (team, hazri, settlement lines, phone sync); settlement totals stay visible without it. On by default — a company can turn it off per role or per user.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": true
   }
  ],
  "templates": [
@@ -2828,7 +2844,8 @@
     "fields.rates",
     "fields.amounts",
     "fields.profit",
-    "fields.contract"
+    "fields.contract",
+    "fields.wages"
    ]
   },
   {
@@ -2949,7 +2966,8 @@
     "changeorder.edit",
     "changeorder.approve",
     "changeorder.instruction.view",
-    "control.view"
+    "control.view",
+    "fields.wages"
    ]
   },
   {
@@ -3008,7 +3026,8 @@
     "schedule.plan.view",
     "schedule.progress.edit",
     "schedule.stoppage.create",
-    "changeorder.instruction.create"
+    "changeorder.instruction.create",
+    "fields.wages"
    ]
   },
   {
@@ -3055,7 +3074,8 @@
     "changeorder.view",
     "changeorder.manage",
     "control.view",
-    "tax.view"
+    "tax.view",
+    "fields.wages"
    ]
   },
   {

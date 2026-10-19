@@ -435,7 +435,7 @@ export function PermissionMatrix({
   );
 }
 
-/** Data-visibility toggles (`fields.rates / amounts / profit / contract`). */
+/** Data-visibility toggles (`fields.rates / amounts / profit / contract / wages`) — every `field` key of the catalogue. */
 export function FieldVisibility({ catalog, value, onChange, readOnly }: PermissionMatrixProps) {
   const language = useLanguage();
   const fields = useMemo(() => fieldPermissions(catalog), [catalog]);

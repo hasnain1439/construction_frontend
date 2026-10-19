@@ -40,9 +40,12 @@ export function placeName(
   return location.name;
 }
 
-/** Rates, values and amounts are shown only with `fields.rates` (the API leaves them out otherwise). */
-export function useSeesRates(): boolean {
-  return usePermissions().canSee("rates");
+/**
+ * Every equipment rupee value (hire, rent, deposits, charges, losses, idle cost) follows the closeout
+ * rule: shown only with `fields.amounts` (owner decision 3) — the API leaves the keys out otherwise.
+ */
+export function useSeesAmounts(): boolean {
+  return usePermissions().canSee("amounts");
 }
 
 /** Category / kind choices in the current language. */

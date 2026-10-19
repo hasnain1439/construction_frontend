@@ -233,7 +233,8 @@ export interface paths {
                          *           "rates": true,
                          *           "amounts": true,
                          *           "profit": true,
-                         *           "contract": true
+                         *           "contract": true,
+                         *           "wages": true
                          *         },
                          *         "scopes": {
                          *           "projects.project.view": "ALL_PROJECTS",
@@ -406,7 +407,8 @@ export interface paths {
                          *           "rates": true,
                          *           "amounts": true,
                          *           "profit": true,
-                         *           "contract": true
+                         *           "contract": true,
+                         *           "wages": true
                          *         },
                          *         "scopes": {
                          *           "projects.project.view": "ALL_PROJECTS",
@@ -791,7 +793,8 @@ export interface paths {
                          *           "rates": true,
                          *           "amounts": true,
                          *           "profit": true,
-                         *           "contract": true
+                         *           "contract": true,
+                         *           "wages": true
                          *         },
                          *         "scopes": {
                          *           "projects.project.view": "ALL_PROJECTS",
@@ -1707,7 +1710,8 @@ export interface paths {
                          *           "rates": true,
                          *           "amounts": true,
                          *           "profit": true,
-                         *           "contract": true
+                         *           "contract": true,
+                         *           "wages": true
                          *         },
                          *         "scopes": {
                          *           "projects.project.view": "ALL_PROJECTS",
@@ -9404,7 +9408,7 @@ export interface paths {
         };
         /**
          * List workers
-         * @description All roles. Search matches name or phone; `type` = a worker type key. Each worker has its type’s names: `typeLabel`, `typeLabelRoman`, `typeLabelUrdu`.
+         * @description All roles. Search matches name or phone; `type` = a worker type key. Each worker has its type’s names: `typeLabel`, `typeLabelRoman`, `typeLabelUrdu`. `dailyRatePaisa` only with fields.wages (owner decision 4, on by default); POST / PATCH with a `dailyRatePaisa` need it too (403 PERMISSION_DENIED).
          */
         get: {
             parameters: {
@@ -9519,7 +9523,7 @@ export interface paths {
                          */
                         phone?: string;
                         /**
-                         * @description Defaults to the company's labour rate for this type
+                         * @description Defaults to the company's labour rate for this type. Giving one needs fields.wages (owner decision 4).
                          * @example 280000
                          */
                         dailyRatePaisa?: string | number;
@@ -32500,7 +32504,7 @@ export interface paths {
         };
         /**
          * Equipment register
-         * @description equipment.view. Machines and bulk items with company-wide totals (owned / on rent / at sites / at the yard / in transit). Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view. Machines and bulk items with company-wide totals (owned / on rent / at sites / at the yard / in transit). Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -32597,7 +32601,7 @@ export interface paths {
         put?: never;
         /**
          * Add equipment
-         * @description equipment.manage. Name unique per company (409 EQUIPMENT_EXISTS). Quantities come in through stock-in (opening / purchase) or rentals.
+         * @description equipment.manage (hireRatePaisaPerDay / replacementValuePaisa also fields.amounts). Name unique per company (409 EQUIPMENT_EXISTS). Quantities come in through stock-in (opening / purchase) or rentals.
          */
         post: {
             parameters: {
@@ -32753,7 +32757,7 @@ export interface paths {
         };
         /**
          * Equipment detail
-         * @description equipment.view. Totals plus quantity per location the caller can see. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view. Totals plus quantity per location the caller can see. Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -32864,7 +32868,7 @@ export interface paths {
         head?: never;
         /**
          * Edit equipment
-         * @description equipment.manage. A new hire rate applies to days not charged yet (posted days keep their rate).
+         * @description equipment.manage (hire rate / replacement value also fields.amounts). A new hire rate applies to days not charged yet (posted days keep their rate).
          */
         patch: {
             parameters: {
@@ -33636,7 +33640,7 @@ export interface paths {
         };
         /**
          * Equipment on site
-         * @description equipment.view + project scope. Owned / rented units at the site, transfers on the way, active rentals, losses not charged yet, hire and rent posted to date. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view + project scope. Owned / rented units at the site, transfers on the way, active rentals, losses not charged yet, hire and rent posted to date. Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -34672,7 +34676,7 @@ export interface paths {
         };
         /**
          * Rentals from yards
-         * @description equipment.view (rentals of projects in scope; yard rentals for equipment managers). daysOnRent / accruedToDatePaisa = from the start day up to (not including) the return date, or today while on hire — the same days the bill at return charges; postedPaisa = daily charges posted. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view (rentals of projects in scope; yard rentals for equipment managers). daysOnRent / accruedToDatePaisa = from the start day up to (not including) the return date, or today while on hire — the same days the bill at return charges; postedPaisa = daily charges posted. Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -34808,7 +34812,7 @@ export interface paths {
         put?: never;
         /**
          * Hire from a yard
-         * @description equipment.rental.manage. Items arrive at the site (or yard) on startDate (RENTAL_IN). Deposit → supplier ledger credit (ADJUSTMENT, refType RENTAL_DEPOSIT). Rent accrues daily to the project (P&L EQUIPMENT).
+         * @description equipment.rental.manage + fields.amounts (a rental sets the daily rent; owner decision 3). Items arrive at the site (or yard) on startDate (RENTAL_IN). Deposit → supplier ledger credit (ADJUSTMENT, refType RENTAL_DEPOSIT). Rent accrues daily to the project (P&L EQUIPMENT).
          */
         post: {
             parameters: {
@@ -35300,7 +35304,7 @@ export interface paths {
         put?: never;
         /**
          * Return to the yard (partly or fully), with damage charges
-         * @description equipment.rental.manage. `qty` leaves the location (RENTAL_RETURN_OUT); `missingQty` = never handed back and must already be reported as a MISSING loss (400 MISSING_NOT_REPORTED). Damage charges → supplier ledger (RENTAL_DAMAGE). Missing pieces → supplier ledger (RENTAL_MISSING): missingChargesPaisa, default missing qty × the equipment replacement value. When nothing is outstanding: the remaining days are posted, rent = Σ daily RENTAL charges → supplier ledger (RENTAL_CHARGE), status RETURNED. Return day is not charged.
+         * @description equipment.rental.manage (damageChargesPaisa / missingChargesPaisa also fields.amounts). `qty` leaves the location (RENTAL_RETURN_OUT); `missingQty` = never handed back and must already be reported as a MISSING loss (400 MISSING_NOT_REPORTED). Damage charges → supplier ledger (RENTAL_DAMAGE). Missing pieces → supplier ledger (RENTAL_MISSING): missingChargesPaisa, default missing qty × the equipment replacement value. When nothing is outstanding: the remaining days are posted, rent = Σ daily RENTAL charges → supplier ledger (RENTAL_CHARGE), status RETURNED. Return day is not charged.
          */
         post: {
             parameters: {
@@ -35498,7 +35502,7 @@ export interface paths {
         put?: never;
         /**
          * Close (settle the deposit)
-         * @description equipment.rental.manage. RETURNED only. Cash refunded by the yard → supplier ledger (RENTAL_DEPOSIT_REFUND); the rest of the deposit stays as credit against the charges.
+         * @description equipment.rental.manage (depositRefundPaisa also fields.amounts). RETURNED only. Cash refunded by the yard → supplier ledger (RENTAL_DEPOSIT_REFUND); the rest of the deposit stays as credit against the charges.
          */
         post: {
             parameters: {
@@ -35663,7 +35667,7 @@ export interface paths {
         };
         /**
          * Loss & damage
-         * @description equipment.view (projects in scope; yard losses for equipment managers). Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view (projects in scope; yard losses for equipment managers). Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -36055,7 +36059,7 @@ export interface paths {
         put?: never;
         /**
          * Charge a loss
-         * @description equipment.loss.approve. PROJECT → project P&L (LOSSES); SUBCONTRACTOR → sub-contract ledger DEDUCTION; WRITE_OFF → the company (no project cost). valuePaisa defaults to the estimate.
+         * @description equipment.loss.approve (an explicit valuePaisa also fields.amounts). PROJECT → project P&L (LOSSES); SUBCONTRACTOR → sub-contract ledger DEDUCTION; WRITE_OFF → the company (no project cost). valuePaisa defaults to the estimate.
          */
         post: {
             parameters: {
@@ -36209,7 +36213,7 @@ export interface paths {
         };
         /**
          * Daily hire and rent charges
-         * @description equipment.view (projects in scope). One row per day × site × equipment (INTERNAL_HIRE) or day × rental item (RENTAL); correction rows have correction: true. meta.totalPaisa = Σ amount of the filter. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view (projects in scope). One row per day × site × equipment (INTERNAL_HIRE) or day × rental item (RENTAL); correction rows have correction: true. meta.totalPaisa = Σ amount of the filter. Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -37295,7 +37299,7 @@ export interface paths {
         };
         /**
          * Idle rented equipment
-         * @description equipment.view (sites in scope). Rented units at a site whose project had no milestone activity (progress update, usage linked to a milestone, a structure milestone IN_PROGRESS / CURING) for at least the company `equipmentIdleDays` (default 5). since = max(last activity, arrival); `all=true` also lists rentals below the threshold. Most idle first. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view (sites in scope). Rented units at a site whose project had no milestone activity (progress update, usage linked to a milestone, a structure milestone IN_PROGRESS / CURING) for at least the company `equipmentIdleDays` (default 5). since = max(last activity, arrival); `all=true` also lists rentals below the threshold. Most idle first. Rates, values and amounts are left out without fields.amounts (owner decision 3: the closeout rule; a Munshi never sees them). Writing them (hire rate, replacement value, a rental, damage / missing charges, deposit refund, loss value) also needs fields.amounts → 403 PERMISSION_DENIED.
          */
         get: {
             parameters: {
@@ -37440,7 +37444,7 @@ export interface paths {
         put?: never;
         /**
          * Run the idle-rent alert now
-         * @description equipment.rental.manage. Same as the daily 09:00 job, for this company: EQUIPMENT_IDLE (WARNING) per idle rental to the holders of equipment.rental.manage for the project + its PMs (the daily rent only for users with fields.rates). At most once per rental per 7 days per user. Audited (equipment.idle.check).
+         * @description equipment.rental.manage. Same as the daily 09:00 job, for this company: EQUIPMENT_IDLE (WARNING) per idle rental to the holders of equipment.rental.manage for the project + its PMs (the daily rent only for users with fields.amounts). At most once per rental per 7 days per user. Audited (equipment.idle.check).
          */
         post: {
             parameters: {
@@ -37517,7 +37521,7 @@ export interface paths {
         };
         /**
          * Workers on the project
-         * @description All roles with project access (PM / MUNSHI: assigned projects, else 404). Each row has the project rate and the worker’s own default rate.
+         * @description All roles with project access (PM / MUNSHI: assigned projects, else 404). Each row has the project rate and the worker’s own default rate. Daily rates (`dailyRatePaisa`, `defaultRatePaisa`, `rateOverridden`) only with fields.wages (owner decision 4, on by default); setting one needs it too.
          */
         get: {
             parameters: {
@@ -37619,7 +37623,7 @@ export interface paths {
                         /** Format: uuid */
                         workerId: string;
                         /**
-                         * @description Defaults to the worker's own daily rate. MUNSHI may not change it.
+                         * @description Defaults to the worker's own daily rate. MUNSHI may not change it; giving one needs fields.wages.
                          * @example 2500000
                          */
                         dailyRatePaisa?: string | number;
@@ -38638,7 +38642,7 @@ export interface paths {
         };
         /**
          * Hazri register (grid)
-         * @description All roles with project access. Rows = workers, columns = days. Default: the current settlement week; at most 62 days. `weeks` lists settlements in the range (locked = submitted / approved).
+         * @description All roles with project access. Rows = workers, columns = days. Default: the current settlement week; at most 62 days. `weeks` lists settlements in the range (locked = submitted / approved). `dailyRatePaisa` only with fields.wages (owner decision 4).
          */
         get: {
             parameters: {
@@ -51727,7 +51731,7 @@ export interface paths {
         };
         /**
          * Equipment utilisation
-         * @description finance.reports.view + equipment.view (sites of its project scope); hire / rent / loss value need fields.rates. Per item (`group=item`, default) or category: owned at the end of the period, days on site / idle, unit-days on site / idle (end-of-day ledger balances, Karachi days; idle = owned units at the yard or in transit), utilisation % (unit-days on site ÷ owned unit-days), rented unit-days, internal hire charged and rent of the period (EquipmentCharge), lost / damaged quantity and value (EquipmentLoss reported in the period). Filters: from / to (default the last 30 days, at most 366), projectId (that site only), category. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         * @description finance.reports.view + equipment.view (sites of its project scope); hire / rent / loss value need fields.amounts (owner decision 3). Per item (`group=item`, default) or category: owned at the end of the period, days on site / idle, unit-days on site / idle (end-of-day ledger balances, Karachi days; idle = owned units at the yard or in transit), utilisation % (unit-days on site ÷ owned unit-days), rented unit-days, internal hire charged and rent of the period (EquipmentCharge), lost / damaged quantity and value (EquipmentLoss reported in the period). Filters: from / to (default the last 30 days, at most 366), projectId (that site only), category. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
          */
         get: {
             parameters: {
@@ -60842,7 +60846,8 @@ export interface paths {
                          *             "rates": false,
                          *             "amounts": false,
                          *             "profit": false,
-                         *             "contract": false
+                         *             "contract": false,
+                         *             "wages": true
                          *           },
                          *           "scopes": {
                          *             "labor.attendance.view": "ASSIGNED_PROJECTS",
@@ -63629,6 +63634,7 @@ export interface components {
                 amounts: boolean;
                 profit: boolean;
                 contract: boolean;
+                wages: boolean;
             };
             /** @description Scope of every held project-data key */
             scopes: {
@@ -63744,6 +63750,7 @@ export interface components {
                 amounts: boolean;
                 profit: boolean;
                 contract: boolean;
+                wages: boolean;
             };
             /** @description Scope of every held project-data key */
             scopes: {
@@ -64278,6 +64285,7 @@ export interface components {
             amounts: boolean;
             profit: boolean;
             contract: boolean;
+            wages: boolean;
         };
         SubscriptionDetail: {
             plan: components["schemas"]["Plan"];

@@ -32,7 +32,7 @@ import { formatDate, formatDayMonth } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { NewRentalSlideOver } from "../components/RentalSlideOvers";
 import { NewTransferSlideOver } from "../components/TransferSlideOvers";
-import { placeName } from "../options";
+import { placeName, useSeesAmounts } from "../options";
 import { IdleEquipmentPanel } from "./IdleEquipmentPanel";
 
 const WEEK_CHOICES = ["4", "8", "12", "26"] as const;
@@ -275,7 +275,10 @@ function SuggestionList({ suggestions }: { suggestions: ShutteringSuggestion[] }
   const t = useT();
   const text = useSuggestionText();
   const readOnly = useReadOnly();
-  const canRent = useCan("equipment.rental.manage") && !readOnly;
+  // A new rental always sets the daily rent → also `fields.amounts` (owner decision 3).
+  const rentKey = useCan("equipment.rental.manage");
+  const money = useSeesAmounts();
+  const canRent = rentKey && money && !readOnly;
   const canMove = useCan("equipment.transfer.create") && !readOnly;
   const [action, setAction] = useState<Action>(null);
   const button = (s: ShutteringSuggestion): ReactNode => {

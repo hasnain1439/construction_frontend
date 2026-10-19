@@ -32,7 +32,7 @@ import {
   splitBucket,
   useBucketOptions,
   useEquipmentPlaces,
-  useSeesRates,
+  useSeesAmounts,
 } from "../options";
 import { chargeSchema, lossSchema, type ChargeValues, type LossValues } from "../schemas";
 
@@ -172,7 +172,7 @@ export function ChargeLossSlideOver({
 }) {
   const t = useT();
   const te = useEnumT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const [charge, { isLoading }] = useChargeEquipmentLossMutation();
   const run = useMutationToast();
   const projectId = loss?.project?.id;
@@ -206,7 +206,7 @@ export function ChargeLossSlideOver({
           body: {
             chargedTo: v.chargedTo!,
             note: v.note,
-            ...(rates && v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
+            ...(money && v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
             ...(v.chargedTo === "SUBCONTRACTOR" && v.subcontractAssignmentId
               ? { subcontractAssignmentId: v.subcontractAssignmentId }
               : {}),
@@ -250,7 +250,7 @@ export function ChargeLossSlideOver({
       <Form form={form} onSubmit={onSubmit} id="charge-form">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <StatusBadge domain="equipmentLossKind" value={loss.kind} />
-          {rates ? (
+          {money ? (
             <>
               <span>{t("field.value")}</span>
               <MoneyText paisa={loss.valuePaisa} className="font-semibold" />
@@ -277,7 +277,7 @@ export function ChargeLossSlideOver({
             loading={subcontracts.isLoading}
           />
         ) : null}
-        {rates ? (
+        {money ? (
           <MoneyField
             name="valuePaisa"
             label={t("equipment.field.chargeValue")}
