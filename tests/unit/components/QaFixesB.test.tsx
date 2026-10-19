@@ -71,11 +71,17 @@ describe("QA-B-19 RTL variant", () => {
 });
 
 describe("QA-B-04 quantities in Urdu", () => {
-  it("renders a negative quantity with its unit as an LTR isolate", () => {
+  it("renders a negative quantity with its unit in the UI language (R2: Urdu unit; marks on RTL pages)", () => {
     renderWithStore(<QtyText value={-155.687} unit="cft" />, { ui: { language: "ur" } });
-    const el = screen.getByText("-155.687 cft");
-    expect(el.tagName).toBe("BDI");
-    expect(el).toHaveAttribute("dir", "ltr");
+    const el = screen.getByText("-155.687 مکعب فٹ");
+    expect(el.tagName).toBe("SPAN");
+    document.documentElement.dir = "rtl";
+    try {
+      const { container } = renderWithStore(<QtyText value={-155.687} unit="cft" />, { ui: { language: "ur" } });
+      expect(container.textContent).toBe("\u2067\u2066-155.687\u2069 مکعب فٹ\u2069");
+    } finally {
+      document.documentElement.dir = "ltr";
+    }
   });
 });
 
@@ -85,7 +91,8 @@ describe("QA-B-24 plurals and units", () => {
     expect(translate("en", "schedule.stoppages.workingDays", { n: 2 })).toBe("2 working days");
     expect(translate("en", "schedule.delays.reasonDays", { reason: "Rain", n: 1 })).toBe("Rain · 1 day");
     expect(translate("en", "schedule.delays.pending", { n: 1 })).toBe("1 stoppage day waiting for approval is not counted yet.");
-    expect(translate("roman-ur", "schedule.stoppages.workingDays", { n: 1 })).toBe("1 kaam ke din");
+    expect(translate("roman-ur", "schedule.stoppages.workingDays", { n: 1 })).toBe("1 kaam ka din");
+    expect(translate("roman-ur", "schedule.stoppages.workingDays", { n: 2 })).toBe("2 kaam ke din");
   });
 
   it("translates common units and keeps hand-typed ones", () => {

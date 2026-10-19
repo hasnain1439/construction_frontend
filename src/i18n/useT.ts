@@ -8,7 +8,7 @@ import { en, type Dictionary } from "./en";
 import { romanUr } from "./roman-ur";
 import { ur } from "./ur";
 import { decodeMsg } from "./message";
-import { EN_SINGULAR } from "./plurals";
+import { countOf, SINGULAR } from "./plurals";
 
 const DICTIONARIES: Record<UiLanguage, Dictionary> = { en, "roman-ur": romanUr, ur };
 
@@ -47,8 +47,9 @@ const lookup = (dict: Dictionary, key: string): string | undefined => {
 export const isTranslationKey = (text: string): text is TranslationKey => /^[a-z]\w*(\.[\w-]+)+$/.test(text) && lookup(en, text) !== undefined;
 
 export function translate(language: UiLanguage, key: TranslationKey, vars?: TranslationVars): string {
-  if (language === "en" && vars && Number(vars.n) === 1) {
-    const singular = EN_SINGULAR[key];
+  // Singular forms when the text's count is 1, in every language (QA-B-24, QA-A-32, R1-N4).
+  if (vars && countOf(vars) === 1) {
+    const singular = (SINGULAR[language] ?? SINGULAR.en)[key];
     if (singular !== undefined) return fill(singular, vars);
   }
   const own = lookup(dictionaryOf(language), key);

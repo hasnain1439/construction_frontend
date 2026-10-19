@@ -33,6 +33,7 @@ import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
 import { projectHref } from "@/lib/navigation";
+import { useMilestoneName } from "@/features/schedule/labels";
 import { builderTotals } from "./calc";
 import { SignedMoney } from "./shared";
 
@@ -100,6 +101,7 @@ function BuilderWithRates({ projectId, initial }: { projectId: string; initial?:
 /** The mini BoQ form: items with rates, markup, days, affected milestones, proof; live totals. */
 export function ChangeOrderBuilder({ projectId, options, initial }: { projectId: string; options: ChangeOrderRateOptions; initial?: ChangeOrderDetail }) {
   const t = useT();
+  const milestoneName = useMilestoneName();
   const router = useRouter();
   const { canSee } = usePermissions();
   const seesRates = canSee("rates");
@@ -330,7 +332,7 @@ export function ChangeOrderBuilder({ projectId, options, initial }: { projectId:
             {options.milestones.map((m) => (
               <label key={m.id} className="flex items-center gap-2 text-sm">
                 <Checkbox checked={milestoneIds.includes(m.id)} onCheckedChange={(c) => setMilestoneIds((ids) => (c ? [...ids, m.id] : ids.filter((x) => x !== m.id)))} />
-                {m.name}
+                {milestoneName(m)}
               </label>
             ))}
           </div>

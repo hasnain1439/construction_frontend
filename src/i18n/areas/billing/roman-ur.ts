@@ -238,7 +238,7 @@ export const strings: Widen<typeof En.strings> = {
   reports: {
     totals: "Kul raqam",
     oneRow: "1 row",
-    nRows: "{n} rows",
+    nRows: "{n} qataarein",
     nothingToReport: "Report mein kuch nahi",
     nothingToReportDesc: "Koi aur project ya tareekh chunein.",
     projectSummary: "Project ka Khulasa",

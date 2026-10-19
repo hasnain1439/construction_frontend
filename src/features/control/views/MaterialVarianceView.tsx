@@ -8,15 +8,16 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
-import { ltrIsolate, QtyText } from "@/components/common/QtyText";
+import { QtyText } from "@/components/common/QtyText";
 import { SectionCard } from "@/components/common/SectionCard";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { formatQty } from "@/lib/quantity";
+import { useMilestoneName } from "@/features/schedule/labels";
 import { ControlAlertsCard, ControlSetupHints, SignedPercent, VarianceBadge } from "../components/ControlShared";
 
 const ALL = "ALL";
@@ -27,6 +28,8 @@ const qtyOr = (v: number | null, unit: string) => (v === null ? "—" : <QtyText
 export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data: MaterialVariance; milestoneId: string; onMilestone: (id: string) => void }) {
   const t = useT();
   const te = useEnumT();
+  const language = useLanguage();
+  const milestoneName = useMilestoneName();
   const showMoney = data.totals !== undefined;
   const perMilestone = Boolean(data.milestone);
 
@@ -49,7 +52,7 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
       cell: (r) => (
         <div>
           {qtyOr(r.estimatedToDateQty, r.unit)}
-          <p className="text-xs text-muted-foreground">{t("control.material.estimatedTotal", { total: ltrIsolate(formatQty(r.estimatedTotalQty, r.unit)) })}</p>
+          <p className="text-xs text-muted-foreground">{t("control.material.estimatedTotal", { total: formatQty(r.estimatedTotalQty, r.unit, language) })}</p>
         </div>
       ),
     },
@@ -113,7 +116,7 @@ export function MaterialVarianceBoard({ data, milestoneId, onMilestone }: { data
                 <SelectItem value={ALL}>{t("control.material.allMilestones")}</SelectItem>
                 {data.milestones.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {`${m.name} · ${te("scheduleStage", m.stageKey)}`}
+                    {`${milestoneName(m)} · ${te("scheduleStage", m.stageKey)}`}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -3,6 +3,8 @@
  * based so crore-sized contract values never lose precision.
  */
 
+import { isolateLtrText } from "./bidi";
+
 export type PaisaInput = string | number | bigint | null | undefined;
 
 const PAISA_PER_RUPEE = BigInt(100);
@@ -50,7 +52,8 @@ export function formatPKR(paisa: PaisaInput, options: { prefix?: boolean } = {})
   const whole = groupSouthAsian(rupees.toString());
   const decimals = fraction === ZERO ? "" : `.${fraction.toString().padStart(2, "0")}`;
   const prefix = options.prefix === false ? "" : "Rs ";
-  return `${negative ? "-" : ""}${prefix}${whole}${decimals}`;
+  // QA-B-04: an LTR island on Urdu pages, so "-Rs 36,470" never shows as "Rs 36,470-".
+  return isolateLtrText(`${negative ? "-" : ""}${prefix}${whole}${decimals}`);
 }
 
 /** Rounds `numerator / denominator` half away from zero (BigInt). */
@@ -84,8 +87,8 @@ export function formatPKRShort(paisa: PaisaInput): string {
   const abs = value < ZERO ? -value : value;
   // One sign style with formatPKR: "-Rs 5.78 L", never "Rs -5.78 L" (QA-B-13).
   const sign = value < ZERO ? "-" : "";
-  if (abs >= PAISA_PER_CRORE) return `${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_CRORE))} Cr`;
-  if (abs >= PAISA_PER_LAKH) return `${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_LAKH))} L`;
+  if (abs >= PAISA_PER_CRORE) return isolateLtrText(`${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_CRORE))} Cr`);
+  if (abs >= PAISA_PER_LAKH) return isolateLtrText(`${sign}Rs ${hundredthsToString(divRound(abs * PAISA_PER_RUPEE, PAISA_PER_LAKH))} L`);
   return formatPKR(divRound(value, PAISA_PER_RUPEE) * PAISA_PER_RUPEE);
 }
 

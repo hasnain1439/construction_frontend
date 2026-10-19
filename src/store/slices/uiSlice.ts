@@ -65,7 +65,10 @@ export const uiSlice = createSlice({
   initialState: initialUiState,
   reducers: {
     hydrateUi(state, action: PayloadAction<Partial<Pick<UiState, "railCollapsed" | "language" | "theme">>>) {
-      const { railCollapsed, language, theme } = action.payload;
+      // R2-B-02: a null / non-object payload (bad localStorage) keeps the current state.
+      const payload: unknown = action.payload;
+      if (typeof payload !== "object" || payload === null || Array.isArray(payload)) return;
+      const { railCollapsed, language, theme } = payload as Partial<Pick<UiState, "railCollapsed" | "language" | "theme">>;
       if (typeof railCollapsed === "boolean") state.railCollapsed = railCollapsed;
       if (language !== undefined) state.language = normalizeUiLanguage(language, state.language);
       if (theme === "light" || theme === "dark" || theme === "system") state.theme = theme;

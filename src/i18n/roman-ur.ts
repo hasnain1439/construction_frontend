@@ -75,7 +75,7 @@ export const romanUr: Dictionary = {
     comingSoon: "Agle phase mein aa raha hai",
     comingSoonBody: "Yeh page agli release ka hissa hai. Aaj ki zaroorat ki har cheez menu mein hai.",
     goBack: "Wapas jayein",
-    rowsPerPage: "Har safhe par rows",
+    rowsPerPage: "Har safhe par qataarein",
     page: "Safha",
     of: "mein se",
     previous: "Pichla",
