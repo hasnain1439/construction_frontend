@@ -6,6 +6,7 @@ import type {
   AllocationMap,
   Equipment,
   EquipmentCharge,
+  EquipmentLoss,
   EquipmentTransfer,
   IdleRentals,
   ProjectEquipment,
@@ -314,6 +315,7 @@ const { OwnedEquipmentView } = await import("@/features/equipment/views/OwnedEqu
 const { SiteEquipmentView } = await import("@/features/equipment/views/SiteEquipmentView");
 const { RentalDetailView, RentalsView } = await import("@/features/equipment/views/RentalViews");
 const { ChargesView } = await import("@/features/equipment/views/LossChargeViews");
+const { ChargeLossSlideOver } = await import("@/features/equipment/components/LossSlideOvers");
 const { ReceiveTransferSlideOver, previewLosses } =
   await import("@/features/equipment/components/TransferSlideOvers");
 
@@ -435,6 +437,36 @@ describe("Equipment — receiving with counts", () => {
     expect(screen.queryByText(/Sent:/)).not.toBeInTheDocument();
     expect(screen.getByText("Count without the list")).toBeInTheDocument();
     expect(screen.getByText(/recorded as missing when you save/)).toBeInTheDocument();
+  });
+});
+
+describe("Equipment — charging a loss (owner decisions 3 + 6)", () => {
+  const baseLoss = {
+    id: "l1",
+    number: "EL-0001",
+    status: "REPORTED",
+    source: "REPORT",
+    equipment: plate,
+    location: site,
+    project: null,
+    transfer: null,
+    qty: 3,
+    note: "",
+    photoUrl: null,
+  };
+
+  it("missing rented pieces: no value to enter — they are worth the yard charge, whoever charges them", () => {
+    const loss = { ...baseLoss, kind: "MISSING", rental: { id: "r1", number: "RNT-0003" } } as unknown as EquipmentLoss;
+    renderWithStore(<ChargeLossSlideOver loss={loss} open onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.getByText(translate("en", "equipment.loss.yardValueHint"))).toBeInTheDocument();
+    expect(screen.queryByLabelText(translate("en", "equipment.field.chargeValue"))).not.toBeInTheDocument();
+  });
+
+  it("other losses: a value may be entered, also without fields.amounts", () => {
+    const loss = { ...baseLoss, kind: "DAMAGED", rental: null } as unknown as EquipmentLoss;
+    renderWithStore(<ChargeLossSlideOver loss={loss} open onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.getByLabelText(translate("en", "equipment.field.chargeValue"))).toBeInTheDocument();
+    expect(screen.queryByText(translate("en", "equipment.loss.yardValueHint"))).not.toBeInTheDocument();
   });
 });
 

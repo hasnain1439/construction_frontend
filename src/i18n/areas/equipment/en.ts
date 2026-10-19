@@ -207,6 +207,7 @@ export const strings = {
     chargeTitle: "Charge {number}",
     chargeTo: "Who bears it",
     valueHint: "Leave empty for quantity × replacement value.",
+    yardValueHint: "Rented pieces that went missing are valued at what the yard bills for them at the return — there is no value to enter.",
     siteNote: "Site note",
     chargedToast: "{number} charged",
   },

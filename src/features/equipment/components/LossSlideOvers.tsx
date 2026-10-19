@@ -183,6 +183,7 @@ export function ChargeLossSlideOver({
   });
   const chargedTo = useWatch({ control: form.control, name: "chargedTo" });
   if (!loss) return null;
+  const yardValued = loss.kind === "MISSING" && loss.rental !== null;
   const options: RadioCardOption<EquipmentLossChargedTo>[] = (
     ["PROJECT", "SUBCONTRACTOR", "WRITE_OFF"] as const
   ).map((value) => ({
@@ -206,7 +207,7 @@ export function ChargeLossSlideOver({
           body: {
             chargedTo: v.chargedTo!,
             note: v.note,
-            ...(v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
+            ...(v.valuePaisa && !yardValued ? { valuePaisa: v.valuePaisa } : {}),
             ...(v.chargedTo === "SUBCONTRACTOR" && v.subcontractAssignmentId
               ? { subcontractAssignmentId: v.subcontractAssignmentId }
               : {}),
@@ -277,8 +278,17 @@ export function ChargeLossSlideOver({
             loading={subcontracts.isLoading}
           />
         ) : null}
-        {/* Owner decision 3: a value may be entered without fields.amounts (never shown back). */}
-        <MoneyField name="valuePaisa" label={t("equipment.field.chargeValue")} hint={t("equipment.loss.valueHint")} />
+        {/* Owner decision 6: missing rented pieces are worth the yard charge — nothing to enter, whoever charges it.
+            Owner decision 3: otherwise a value may be entered without fields.amounts (never shown back). */}
+        {yardValued ? (
+          <InlineAlert tone="info">{t("equipment.loss.yardValueHint")}</InlineAlert>
+        ) : (
+          <MoneyField
+            name="valuePaisa"
+            label={t("equipment.field.chargeValue")}
+            hint={t("equipment.loss.valueHint")}
+          />
+        )}
         <TextareaField name="note" label={t("field.note")} required rows={2} />
       </Form>
     </SlideOver>

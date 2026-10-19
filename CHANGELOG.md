@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Owner decisions (integration)
+
+- **Charging a loss (decisions 3 + 6):** for missing rented pieces the charge form no longer asks for a value; it says they are valued at what the yard bills at the return, whoever charges them. Other losses keep the optional value field, also for users without `fields.amounts` (never shown back). Tests in `tests/unit/components/Equipment.test.tsx`.
+- API types (`schema.ts`) and `catalogFixture.json` regenerated from the merged API.
+
 ### Owner decisions (1, 2, 5, 6, 7, 8)
 
 - **Finishing allowance line (1):** when the finishing allowance applies (a full contract whose BoQ has no finishing lines), it is shown as its own line — "Finishing allowance — no finishing lines in BoQ" — with its calculation ("Rs 60,00,000 × 30% = Rs 18,00,000") in the contract-from-estimate card (wizard Estimate step and the BoQ page) and the wizard Review estimate card.

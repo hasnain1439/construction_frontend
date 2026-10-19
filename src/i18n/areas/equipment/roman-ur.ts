@@ -207,6 +207,7 @@ export const strings: Widen<typeof En.strings> = {
     chargeTitle: "{number} charge karein",
     chargeTo: "Kaun bharega",
     valueHint: "Khali chhorein to miqdar × nayi qeemat.",
+    yardValueHint: "Kiraye ke gum hue saman ki qeemat wohi hai jo yard wapsi par lagata hai — qeemat likhne ki zaroorat nahi.",
     siteNote: "Site ka note",
     chargedToast: "{number} charge ho gaya",
   },
