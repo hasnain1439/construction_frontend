@@ -224,7 +224,15 @@ function CardBody({
                 {basisNote}
               </p>
             ) : null}
-            {s.finishingApplies ? row(t("projects.estimate.contract.plusFinishing", { n: fmt(finishing ?? 0) }), rupees(b.finishing)) : null}
+            {/* Owner decision 1: the allowance is its own labelled line with its calculation */}
+            {s.finishingApplies ? (
+              <div data-testid="finishing-allowance-line">
+                {row(t("projects.estimate.contract.allowanceLine"), rupees(b.finishing))}
+                <p className="text-xs text-muted-foreground tabular">
+                  {t("projects.estimate.contract.allowanceCalc", { basis: rupees(b.basis), n: fmt(finishing ?? 0), amount: rupees(b.finishing) })}
+                </p>
+              </div>
+            ) : null}
             {row(t("projects.estimate.contract.plusMargin", { n: fmt(margin ?? 0) }), rupees(b.margin))}
             {rate ? row(t("projects.estimate.contract.coveredArea"), t("projects.estimate.contract.sqft", { n: fmt(s.coveredAreaSqft) })) : null}
             {row(rate ? t("projects.estimate.contract.suggestedRate") : t("projects.estimate.contract.suggestedValue"), valueText(suggested), true)}

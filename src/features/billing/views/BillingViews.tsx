@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, CalendarClock, CheckCircle2, Download, Eye, FileBadge, FilePlus2, FileText, Flag, HandCoins, Landmark, MessageCircle, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Download, Eye, FileBadge, FilePlus2, FileText, Flag, HandCoins, Landmark, Link2, MessageCircle, Pencil, Plus, Send, Trash2, TriangleAlert, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,6 +37,7 @@ import { PdfActions, usePdfActions } from "@/components/common/PdfActions";
 import { useApprovalLimitHint, useCan, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SHARE_PERMISSION, SharedLinksPanel } from "@/components/common/SharedLinks";
 import { StageTimeline } from "@/components/common/StageTimeline";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CardsSkeleton } from "@/components/common/TableSkeleton";
@@ -442,7 +443,7 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
                   ) : null}
                   {inv.status !== "DRAFT" && inv.status !== "CANCELLED" ? (
                     <>
-                      <PdfActions load={() => pdf(inv.id).unwrap()} title={inv.number ?? t("billing.invoices.invoice")} phone={inv.client?.phone} />
+                      <PdfActions load={() => pdf(inv.id).unwrap()} title={inv.number ?? t("billing.invoices.invoice")} phone={inv.client?.phone} shareRef={{ refType: "INVOICE", refId: inv.id }} />
                       {canIssue && inv.status === "ISSUED" && inv.allocations.every((a) => !a.counts) ? (
                         <Button variant="destructive-soft" size="sm" onClick={() => setDialog("cancel")}>
                           <Ban data-icon="inline-start" />
@@ -614,6 +615,9 @@ function PaymentRowActions({
 }) {
   const t = useT();
   const pdf = usePdfActions({ load, title: payment.number });
+  // Owner decision 2: the receipt's shared links (revocable)
+  const canLinks = useCan(SHARE_PERMISSION.RECEIPT);
+  const [links, setLinks] = useState(false);
   return (
     <>
       <RowActions
@@ -625,9 +629,11 @@ function PaymentRowActions({
           { label: t("billing.payments.preview"), icon: Eye, separatorBefore: true, disabled: pdf.busy !== null, onSelect: () => void pdf.act("preview") },
           { label: t("action.download"), icon: Download, disabled: pdf.busy !== null, onSelect: () => void pdf.act("download") },
           { label: t("billing.payments.whatsapp"), icon: MessageCircle, disabled: pdf.busy !== null, onSelect: () => void pdf.act("share") },
+          { label: t("app.components.sharedLinks.button"), icon: Link2, hidden: !canLinks, onSelect: () => setLinks(true) },
         ]}
       />
       {pdf.preview}
+      {links ? <SharedLinksPanel refType="RECEIPT" refId={payment.id} onClose={() => setLinks(false)} /> : null}
     </>
   );
 }
@@ -762,7 +768,7 @@ export function StatementPanel({ projectId, phone }: { projectId: string; phone?
         <div className="flex flex-wrap items-center gap-2">
           <Input type="date" aria-label={t("billing.statement.from")} className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
           <Input type="date" aria-label={t("billing.statement.to")} className="w-40" value={to} onChange={(e) => setTo(e.target.value)} />
-          <PdfActions load={() => pdf({ projectId, ...range }).unwrap()} title={t("billing.statement.title")} phone={phone ?? st.data?.client?.phone} />
+          <PdfActions load={() => pdf({ projectId, ...range }).unwrap()} title={t("billing.statement.title")} phone={phone ?? st.data?.client?.phone} shareRef={{ refType: "STATEMENT", refId: projectId }} />
         </div>
       }
     >

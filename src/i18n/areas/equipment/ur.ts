@@ -205,6 +205,7 @@ export const strings: Widen<typeof En.strings> = {
     chargeTitle: "{number} چارج کریں",
     chargeTo: "کون بھرے گا",
     valueHint: "خالی چھوڑیں تو مقدار × نئی قیمت۔",
+    yardValueHint: "کرائے کے گم شدہ سامان کی قیمت وہی ہے جو یارڈ واپسی پر لگاتا ہے — قیمت لکھنے کی ضرورت نہیں۔",
     siteNote: "سائٹ کا نوٹ",
     chargedToast: "{number} چارج ہو گیا",
   },

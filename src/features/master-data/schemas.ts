@@ -99,25 +99,37 @@ export const supplierSchema = z.object({
   notes: z.string().trim().max(500, msg("validation.tooLongPlain")),
 });
 
-export const workerSchema = z.object({
-  name: requiredText("field.name", 2, 80),
-  /** A worker type key of the company (GET /worker-types) or OTHER. */
-  type: z.string().trim().min(1, msg("workerTypes.chooseType")),
-  phone: optionalPhoneSchema,
-  dailyRatePaisa: z.string().nullable(),
-  notes: optionalText(500),
-})
-  // OTHER has no standard rate (backend: DAILY_RATE_REQUIRED).
-  .refine((v) => v.type !== OTHER_WORKER_TYPE || Boolean(v.dailyRatePaisa && Number(v.dailyRatePaisa) > 0), {
-    message: msg("masterData.v.otherRate"),
-    path: ["dailyRatePaisa"],
-  });
+/**
+ * Add / edit a worker. `wages` = the user holds `fields.wages` (owner decision 4): without it the
+ * daily rate is hidden, never required and never sent (the API then uses the type's rate).
+ */
+export function workerSchemaFor(wages: boolean) {
+  return z
+    .object({
+      name: requiredText("field.name", 2, 80),
+      /** A worker type key of the company (GET /worker-types) or OTHER. */
+      type: z.string().trim().min(1, msg("workerTypes.chooseType")),
+      phone: optionalPhoneSchema,
+      dailyRatePaisa: z.string().nullable(),
+      notes: optionalText(500),
+    })
+    // OTHER has no standard rate (backend: DAILY_RATE_REQUIRED).
+    .refine((v) => !wages || v.type !== OTHER_WORKER_TYPE || Boolean(v.dailyRatePaisa && Number(v.dailyRatePaisa) > 0), {
+      message: msg("masterData.v.otherRate"),
+      path: ["dailyRatePaisa"],
+    });
+}
+
+export const workerSchema = workerSchemaFor(true);
 
 type Translate = (key: TranslationKey) => string;
 const english: Translate = (key) => translate("en", key);
 
-/** Add / edit a worker type. Pass the UI's `t` so messages follow the language (English by default). */
-export function createWorkerTypeSchema(t: Translate = english) {
+/**
+ * Add / edit a worker type. Pass the UI's `t` so messages follow the language (English by default).
+ * `wages` = the user holds `fields.wages`: without it the daily rate is hidden, not required and not sent.
+ */
+export function createWorkerTypeSchema(t: Translate = english, wages = true) {
   const name = z.string().trim().max(60, t("workerTypes.nameLong"));
   const optionalName = name.refine((v) => v === "" || v.length >= 2, t("workerTypes.nameShort"));
   return z.object({
@@ -127,7 +139,7 @@ export function createWorkerTypeSchema(t: Translate = english) {
     ratePaisa: z
       .string()
       .nullable()
-      .refine((v): v is string => v !== null && v !== "" && Number(v) > 0, t("workerTypes.rateRequired")),
+      .refine((v) => !wages || (v !== null && v !== "" && Number(v) > 0), t("workerTypes.rateRequired")),
     overtimeMultiplier: z
       .number({ error: t("workerTypes.overtimeRange") })
       .nullable()

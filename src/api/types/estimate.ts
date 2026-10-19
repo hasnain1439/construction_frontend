@@ -302,6 +302,17 @@ export interface BoqCost {
 /** Where a margin / finishing percentage comes from: the company settings or this project. */
 export type MarginSource = "COMPANY" | "PROJECT";
 
+/** "Finishing allowance — no finishing lines in BoQ": BoQ total × finishing % (before the margin). */
+export interface FinishingAllowanceLine {
+  label: string;
+  reason: "NO_FINISHING_LINES";
+  method: "PERCENT_OF_BOQ";
+  percent: number;
+  basisPaisa: Paisa;
+  amountPaisa: Paisa;
+  calculation: string;
+}
+
 export interface ContractSuggestion {
   /** CONTRACT_VALUE for FULL / GREY; RATE_PER_SQFT for LABOR_ONLY (owner buys the material). */
   kind: "CONTRACT_VALUE" | "RATE_PER_SQFT";
@@ -319,6 +330,8 @@ export interface ContractSuggestion {
   finishingSource: MarginSource;
   /** FULL only, and only when the BoQ prices no finishing (otherwise finishing would be counted twice). */
   finishingApplies: boolean;
+  /** Owner decision 1: the allowance as its own labelled line (null / absent when it does not apply). */
+  finishingAllowance?: FinishingAllowanceLine | null;
   companyMarginPercent: number;
   companyFinishingAllowancePercent: number;
   /** null without a cost (or covered area for a rate). */

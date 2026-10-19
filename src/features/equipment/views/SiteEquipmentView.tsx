@@ -21,7 +21,7 @@ import { formatQty } from "@/lib/quantity";
 import { ReportLossSlideOver } from "../components/LossSlideOvers";
 import { NewRentalSlideOver } from "../components/RentalSlideOvers";
 import { NewTransferSlideOver, ReceiveTransferSlideOver } from "../components/TransferSlideOvers";
-import { placeName, useSeesRates } from "../options";
+import { placeName, useSeesAmounts } from "../options";
 import { useLossColumns } from "./LossChargeViews";
 import { itemsSummary } from "./MovementViews";
 import { useRentalColumns } from "./RentalViews";
@@ -29,11 +29,12 @@ import { useRentalColumns } from "./RentalViews";
 /** Project → Site → Equipment on Site: what is here (owned vs rented), incoming transfers to count, rentals, open losses. */
 export function SiteEquipmentView({ projectId }: { projectId: string }) {
   const t = useT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const { data, isLoading } = useGetProjectEquipmentQuery(projectId);
   const canReceive = useCan("equipment.receiving.create");
   const canSend = useCan("equipment.transfer.create");
   const canReport = useCan("equipment.loss.create");
+  // Owner decision 3: anyone who manages rentals may hire (and enter the rent / deposit); the amounts stay hidden afterwards without fields.amounts.
   const canRent = useCan("equipment.rental.manage");
   const [receiving, setReceiving] = useState<EquipmentTransfer | null>(null);
   const [open, setOpen] = useState<"send" | "loss" | "rent" | null>(null);
@@ -72,14 +73,14 @@ export function SiteEquipmentView({ projectId }: { projectId: string }) {
       id: "rate",
       header: t("equipment.field.hireRate"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (i) => <MoneyText paisa={i.hireRatePaisaPerDay} />,
     },
     {
       id: "daily",
       header: t("equipment.site.dailyHire"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (i) => <MoneyText paisa={i.dailyHirePaisa} />,
     },
   ];
@@ -125,7 +126,7 @@ export function SiteEquipmentView({ projectId }: { projectId: string }) {
         ) : (
           <div className="space-y-5">
             <KpiGroup
-              columns={rates ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2"}
+              columns={money ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2"}
               ariaLabel={t("equipment.site.crumb")}
             >
               <KpiCard
@@ -138,14 +139,14 @@ export function SiteEquipmentView({ projectId }: { projectId: string }) {
                 label={t("equipment.col.onRent")}
                 value={formatQty(data.items.reduce((s, i) => s + i.rentedQty, 0))}
               />
-              {rates ? (
+              {money ? (
                 <KpiCard
                   variant="tile"
                   label={t("equipment.site.hireToDate")}
                   value={<MoneyText paisa={data.hireToDatePaisa} />}
                 />
               ) : null}
-              {rates ? (
+              {money ? (
                 <KpiCard
                   variant="tile"
                   label={t("equipment.site.rentToDate")}

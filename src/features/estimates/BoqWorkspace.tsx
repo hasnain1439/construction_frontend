@@ -334,7 +334,7 @@ function RevisionBar({
       </div>
       {current ? (
         <div className="mt-4 border-t pt-4 print:hidden">
-          <PdfActions load={() => getPdf({ id: current.id, lang: pdfLang(language) }).unwrap()} title={t("estimates.boq.pdfTitle", { n: current.revision })} />
+          <PdfActions load={() => getPdf({ id: current.id, lang: pdfLang(language) }).unwrap()} title={t("estimates.boq.pdfTitle", { n: current.revision })} shareRef={{ refType: "ESTIMATE", refId: current.id }} />
         </div>
       ) : null}
       {!writable && canManage ? <p className="mt-3 text-xs text-muted-foreground">{t("estimates.boq.lockedHint")}</p> : null}

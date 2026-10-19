@@ -6,6 +6,25 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Owner decisions (integration)
+
+- **Charging a loss (decisions 3 + 6):** for missing rented pieces the charge form no longer asks for a value; it says they are valued at what the yard bills at the return, whoever charges them. Other losses keep the optional value field, also for users without `fields.amounts` (never shown back). Tests in `tests/unit/components/Equipment.test.tsx`.
+- API types (`schema.ts`) and `catalogFixture.json` regenerated from the merged API.
+
+### Owner decisions (1, 2, 5, 6, 7, 8)
+
+- **Finishing allowance line (1):** when the finishing allowance applies (a full contract whose BoQ has no finishing lines), it is shown as its own line — "Finishing allowance — no finishing lines in BoQ" — with its calculation ("Rs 60,00,000 × 30% = Rs 18,00,000") in the contract-from-estimate card (wizard Estimate step and the BoQ page) and the wizard Review estimate card.
+- **Revocable share links (2):** every shared document (quote, estimate / BoQ, owner shopping list, change-order slip, invoice, receipt, owner statement, handover certificate) has **Shared links** next to WhatsApp (in the row menu for quotes and receipts): a slide-over with each link's who / when, expiry and status, and **Revoke link** / "Link band karo" with a confirmation. Shown only with the permission that shares the document (`GET /share-links`, `POST /share-links/:id/revoke`). In English, Roman Urdu and Urdu.
+- **Optional next steps (5):** the setup checklist shows first quote, estimate, rulebook and equipment, and the rest — schedule, alert limits, change orders, closeout, tax — under a collapsed **Show more**. Each is permission-gated and links to a real page (project steps open the newest project; the navigation test checks every link and its gate).
+- **Mark as Won / change-order approval (7, 8):** tests confirm the buttons follow the permissions only — a PM given `sales.quote.approve` sees **Mark as won**; a PM without `changeorder.approve` sees no approve / reject; the role editor lets a company grant / remove both keys.
+- API types regenerated (`schema.ts`): `/share-links`, `lid` / 410 on `/public/files/{id}`, `finishingAllowance`, checklist `latestProject`.
+
+### Owner decisions (3, 4)
+
+- **Equipment money follows the closeout rule (decision 3):** hire rates, replacement values, rent, deposits, damage / missing charges, loss values, charges and idle cost show only with `fields.amounts` (was `fields.rates`) — on the register, Equipment on Site, rentals list + detail, losses, charges and the idle panel. Without it a user may still enter money as part of an action they are allowed to do — "Hire equipment" (`equipment.rental.manage`) with rent per day and deposit, damage / missing charges on return, deposit refund on close, a loss value on charge — but never sees it back; only the register's hire rate / replacement value inputs (master data) are hidden; nothing breaks when the API leaves the values out.
+- **Munshi daily wage toggle (decision 4):** new data-visibility permission `fields.wages` ("See worker daily wages", on by default for Administrator, Project Manager, Munshi and Accountant; can be switched off per role or per user). Without it worker daily rates disappear from the workers list and detail, Team on Site (and the daily wage bill), hazri, settlement lines, worker types and the daily labour rates, and the rate inputs are hidden and never sent. Paying wages works as before.
+- Tests: `tests/unit/components/WorkerWages.test.tsx`, more cases in `tests/unit/components/Equipment.test.tsx` and `PermissionMatrix.test.tsx` (575 → 594). API types (`src/api/generated/schema.ts`) and `tests/unit/catalogFixture.json` regenerated.
+
 ### QA re-test fixes (areas A, C)
 
 - **QA-C-02:** Site deliveries opens with either permission, so each section now fetches only with its own key: the received list uses `/dispatches` only with `procurement.dispatch.view` and `/purchases` only with `procurement.purchase.view`; the Owner deliveries tab (and `/owner-deliveries`) needs `inventory.ownerdelivery.view`; the record buttons need the matching create key. An Accountant no longer gets 403s or the permission toast there. The navigation test now lists every "any of" menu item and checks that a view gating its sections calls `useCan` for each key and fetches with `skip`.

@@ -13,7 +13,6 @@ import {
 import type { Subcontractor, SubcontractorsQuery, Worker, WorkersQuery } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
-import { HiddenForRole } from "@/components/common/HiddenForRole";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan, usePermissions } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
@@ -48,7 +47,8 @@ export function WorkersView() {
   const { can, canSee } = usePermissions();
   const canAdd = can("masterdata.worker.create") && !readOnly;
   const canEdit = can("masterdata.worker.edit") && !readOnly;
-  const canSeeRates = canSee("rates");
+  // Daily wages need `fields.wages` (owner decision 4) — the column goes, the API leaves the value out.
+  const wages = canSee("wages");
   // The worker page is their labour account (days, wages, peshgi).
   const office = can("labor.account.view");
   const list = useListState({ type: "", isActive: "" });
@@ -88,8 +88,9 @@ export function WorkersView() {
       id: "rate",
       header: t("workerTypes.dailyRate"),
       align: "right",
-      cell: (w) => (canSeeRates ? <MoneyText paisa={w.dailyRatePaisa} /> : <HiddenForRole compact />),
-      sortValue: (w) => Number(w.dailyRatePaisa),
+      hidden: !wages,
+      cell: (w) => <MoneyText paisa={w.dailyRatePaisa} />,
+      sortValue: (w) => Number(w.dailyRatePaisa ?? 0),
     },
     { id: "status", header: t("field.status"), cell: (w) => <StatusBadge domain="active" value={w.isActive} /> },
     {

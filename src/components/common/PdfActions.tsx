@@ -3,12 +3,13 @@
 import { Download, Eye, Loader2, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { SharedPdf } from "@/api/types";
+import type { SharedPdf, ShareRefType } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { DocumentPreview } from "./DocumentPreview";
+import { SharedLinksButton } from "./SharedLinks";
 
 /** WhatsApp click-to-chat link: digits only (no +), message URL-encoded. Without a phone, the share sheet picks the chat. */
 export function whatsappUrl(phone: string | null | undefined, text: string): string {
@@ -18,9 +19,22 @@ export function whatsappUrl(phone: string | null | undefined, text: string): str
 
 /**
  * Preview / Download / Share on WhatsApp for a generated PDF. `load` asks the API for a fresh
- * signed URL (and the ready message) each time, so links never go stale.
+ * signed URL (and the ready message) each time, so links never go stale. `shareRef` (owner decision 2)
+ * adds "Shared links": the links made for this document, each revocable.
  */
-export function PdfActions({ load, title, phone, size = "sm" }: { load: () => Promise<SharedPdf>; title: string; phone?: string | null; size?: "sm" | "default" }) {
+export function PdfActions({
+  load,
+  title,
+  phone,
+  size = "sm",
+  shareRef,
+}: {
+  load: () => Promise<SharedPdf>;
+  title: string;
+  phone?: string | null;
+  size?: "sm" | "default";
+  shareRef?: { refType: ShareRefType; refId: string };
+}) {
   const t = useT();
   const { busy, act, preview } = usePdfActions({ load, title, phone });
   const icon = (kind: typeof busy, Icon: typeof Eye) => (busy === kind ? <Loader2 className="animate-spin" aria-hidden /> : <Icon aria-hidden />);
@@ -38,6 +52,7 @@ export function PdfActions({ load, title, phone, size = "sm" }: { load: () => Pr
         {icon("share", MessageCircle)}
         WhatsApp
       </Button>
+      {shareRef ? <SharedLinksButton refType={shareRef.refType} refId={shareRef.refId} size={size} /> : null}
       {preview}
     </div>
   );

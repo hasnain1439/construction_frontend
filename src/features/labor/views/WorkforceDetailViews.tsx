@@ -6,6 +6,7 @@ import { useGetSubcontractorSummaryQuery, useGetWorkerSummaryQuery } from "@/api
 import { DataTable } from "@/components/common/DataTable";
 import { KpiCard } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
+import { useSeesWages } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -32,6 +33,8 @@ export function WorkerDetailView({ workerId }: { workerId: string }) {
   const labels = useLaborLabels();
   const q = useGetWorkerSummaryQuery(workerId);
   const typeName = useWorkerTypeName();
+  // Daily rates need `fields.wages` (owner decision 4).
+  const wages = useSeesWages();
   return (
     <QueryState query={q} skeleton={<CardsSkeleton count={3} height="h-32" />}>
       {(d) => (
@@ -39,7 +42,7 @@ export function WorkerDetailView({ workerId }: { workerId: string }) {
           <PageHeader
             title={d.worker.name}
             meta={<StatusBadge domain="active" value={d.worker.isActive} />}
-            description={[typeName(d.worker.type, namesFromWorker(d.worker)), d.worker.phone ? formatPhone(d.worker.phone) : null, t("labor.detail.normalRate", { rate: formatPKR(d.worker.dailyRatePaisa) })].filter(Boolean).join(" · ")}
+            description={[typeName(d.worker.type, namesFromWorker(d.worker)), d.worker.phone ? formatPhone(d.worker.phone) : null, wages && d.worker.dailyRatePaisa !== undefined ? t("labor.detail.normalRate", { rate: formatPKR(d.worker.dailyRatePaisa) }) : null].filter(Boolean).join(" · ")}
             breadcrumbs={[{ label: t("crumb.workforce") }, { label: t("labor.detail.workersDirectory"), href: "/workforce/workers" }, { label: d.worker.name }]}
           />
           <div className="grid gap-4 sm:grid-cols-3">
@@ -54,7 +57,7 @@ export function WorkerDetailView({ workerId }: { workerId: string }) {
               empty={{ title: t("labor.detail.notOnSite"), compact: true }}
               columns={[
                 { id: "project", header: t("field.project"), cell: (p) => <ProjectLink project={p.project} path="/labor/team" /> },
-                { id: "rate", header: t("labor.common.rateDay"), align: "right", cell: (p) => <MoneyText paisa={p.dailyRatePaisa} /> },
+                { id: "rate", header: t("labor.common.rateDay"), align: "right", hidden: !wages, cell: (p) => <MoneyText paisa={p.dailyRatePaisa} /> },
                 { id: "from", header: t("common.from"), cell: (p) => formatDate(p.startDate) },
                 { id: "to", header: t("labor.detail.until"), cell: (p) => (p.endDate ? formatDate(p.endDate) : "—") },
                 { id: "status", header: t("field.status"), cell: (p) => <StatusBadge domain="active" value={p.isActive} /> },

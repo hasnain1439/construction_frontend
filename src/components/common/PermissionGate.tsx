@@ -39,6 +39,14 @@ export function useCan(rule: AccessRule | PermissionKey): boolean {
 }
 
 /**
+ * Worker daily wages (`fields.wages`, owner decision 4 — on by default for the Munshi, PM, Accountant
+ * and Administrator). Without it the API leaves the rates out and refuses rate inputs, so hide them.
+ */
+export function useSeesWages(): boolean {
+  return canSeeField(useMe(), "wages");
+}
+
+/**
  * `limitHint(key, amountPaisa)` → a translated reason when the amount is above the user's approval
  * limit for `key` (use it to disable an Approve button), otherwise undefined.
  */

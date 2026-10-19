@@ -2,7 +2,16 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { AllocationMap, Equipment, EquipmentTransfer, ProjectEquipment, Rental } from "@/api/types";
+import type {
+  AllocationMap,
+  Equipment,
+  EquipmentCharge,
+  EquipmentLoss,
+  EquipmentTransfer,
+  IdleRentals,
+  ProjectEquipment,
+  Rental,
+} from "@/api/types";
 import { translate, translateEnum } from "@/i18n/useT";
 import { COMPANY_NAV, PROJECT_NAV, visibleItemIds } from "@/lib/navigation";
 import { meFixture } from "../fixtures";
@@ -67,7 +76,7 @@ const base = {
   createdAt: "2026-09-01T05:00:00.000Z",
   updatedAt: "2026-09-01T05:00:00.000Z",
 };
-/** What the API sends with fields.rates … */
+/** What the API sends with fields.amounts … */
 const WITH_RATES: Equipment[] = [
   { ...plate, ...base, hireRatePaisaPerDay: "500", replacementValuePaisa: "450000" },
 ];
@@ -150,6 +159,65 @@ const RENTAL: Rental = {
 };
 const mutation = () => [vi.fn(), { isLoading: false }];
 
+/** RNT-0003 as the API sends it without fields.amounts: every rupee key left out (owner decision 3). */
+function withoutMoney(rental: Rental): Rental {
+  const {
+    depositPaisa: _d,
+    depositRefundedPaisa: _dr,
+    damageChargesPaisa: _dc,
+    missingChargesPaisa: _mc,
+    rentChargedPaisa: _rc,
+    accruedToDatePaisa: _a,
+    postedPaisa: _p,
+    ...rest
+  } = rental;
+  return {
+    ...rest,
+    items: rental.items.map(({ ratePaisaPerDay: _r, ...i }) => i),
+    returns: rental.returns.map(({ damageChargesPaisa: _x, missingChargesPaisa: _y, ...r }) => r),
+  };
+}
+const rental = () => (state.rates ? RENTAL : withoutMoney(RENTAL));
+
+const CHARGE: EquipmentCharge = {
+  id: "c1",
+  date: "2026-10-16",
+  kind: "INTERNAL_HIRE",
+  project: { id: "p1", code: "MSB-2026-012", name: "DHA Phase 6" },
+  location: site,
+  equipment: plate,
+  rental: null,
+  qty: 240,
+};
+const idle = (): IdleRentals => ({
+  today: "2026-10-19",
+  thresholdDays: 5,
+  items: [
+    {
+      rental: {
+        id: "r3",
+        number: "RNT-0003",
+        status: "ACTIVE",
+        startDate: "2026-10-10",
+        expectedEndDate: null,
+        supplier: { id: "s1", name: "Punjab Shuttering Yard" },
+      },
+      project: { id: "p2", code: "MSB-2026-014", name: "Bahria Town" },
+      location: site,
+      items: [{ equipment: plate, qty: 20, ...(state.rates ? { ratePaisaPerDay: "600", dailyCostPaisa: "12000" } : {}) }],
+      qty: 20,
+      since: "2026-10-12",
+      lastActivity: null,
+      hasSchedule: true,
+      idleDays: 7,
+      thresholdDays: 5,
+      idle: true,
+      ...(state.rates ? { dailyCostPaisa: "12000", idleCostPaisa: "84000" } : {}),
+    },
+  ],
+  ...(state.rates ? { totalDailyCostPaisa: "12000" } : {}),
+});
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => "/equipment/owned",
@@ -158,8 +226,23 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/api/services/equipment.api", () => ({
   useGetEquipmentBalancesQuery: () => ({ data: MAP, isLoading: false }),
-  useGetRentalQuery: () => ({ data: RENTAL, isLoading: false }),
-  useGetRentalsQuery: () => ({ data: { items: [RENTAL], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } }, isLoading: false }),
+  useGetRentalQuery: () => ({ data: rental(), isLoading: false }),
+  useGetRentalsQuery: () => ({
+    data: { items: [rental()], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } },
+    isLoading: false,
+  }),
+  useGetEquipmentIdleQuery: () => ({ data: idle(), isLoading: false }),
+  useRunEquipmentIdleCheckMutation: mutation,
+  useGetEquipmentChargesQuery: () => ({
+    data: {
+      items: [state.rates ? { ...CHARGE, ratePaisa: "500", amountPaisa: "120000" } : CHARGE],
+      meta: { page: 1, limit: 50, total: 1, totalPages: 1, ...(state.rates ? { totalPaisa: "120000" } : {}) },
+    },
+    isLoading: false,
+    isFetching: false,
+  }),
+  useGetEquipmentLossesQuery: () => ({ data: { items: [], meta: { page: 1, limit: 25, total: 0, totalPages: 0 } }, isLoading: false }),
+  useRunEquipmentAccrualMutation: mutation,
   useGetEquipmentListQuery: () => ({
     data: {
       items: state.rates ? WITH_RATES : WITHOUT_RATES,
@@ -230,7 +313,9 @@ vi.mock("@/features/projects/views/ProjectModeViews", () => ({
 const { AllocationMapView } = await import("@/features/equipment/views/AllocationMapView");
 const { OwnedEquipmentView } = await import("@/features/equipment/views/OwnedEquipmentViews");
 const { SiteEquipmentView } = await import("@/features/equipment/views/SiteEquipmentView");
-const { RentalDetailView } = await import("@/features/equipment/views/RentalViews");
+const { RentalDetailView, RentalsView } = await import("@/features/equipment/views/RentalViews");
+const { ChargesView } = await import("@/features/equipment/views/LossChargeViews");
+const { ChargeLossSlideOver } = await import("@/features/equipment/components/LossSlideOvers");
 const { ReceiveTransferSlideOver, previewLosses } =
   await import("@/features/equipment/components/TransferSlideOvers");
 
@@ -248,7 +333,7 @@ describe("Equipment — allocation map", () => {
   });
 });
 
-describe("Equipment — money is gated by fields.rates", () => {
+describe("Equipment — money is gated by fields.amounts", () => {
   it("the owner sees hire rate and replacement value", () => {
     state.rates = true;
     renderWithStore(<OwnedEquipmentView />, { me: meFixture("THEKEDAR") });
@@ -355,6 +440,36 @@ describe("Equipment — receiving with counts", () => {
   });
 });
 
+describe("Equipment — charging a loss (owner decisions 3 + 6)", () => {
+  const baseLoss = {
+    id: "l1",
+    number: "EL-0001",
+    status: "REPORTED",
+    source: "REPORT",
+    equipment: plate,
+    location: site,
+    project: null,
+    transfer: null,
+    qty: 3,
+    note: "",
+    photoUrl: null,
+  };
+
+  it("missing rented pieces: no value to enter — they are worth the yard charge, whoever charges them", () => {
+    const loss = { ...baseLoss, kind: "MISSING", rental: { id: "r1", number: "RNT-0003" } } as unknown as EquipmentLoss;
+    renderWithStore(<ChargeLossSlideOver loss={loss} open onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.getByText(translate("en", "equipment.loss.yardValueHint"))).toBeInTheDocument();
+    expect(screen.queryByLabelText(translate("en", "equipment.field.chargeValue"))).not.toBeInTheDocument();
+  });
+
+  it("other losses: a value may be entered, also without fields.amounts", () => {
+    const loss = { ...baseLoss, kind: "DAMAGED", rental: null } as unknown as EquipmentLoss;
+    renderWithStore(<ChargeLossSlideOver loss={loss} open onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.getByLabelText(translate("en", "equipment.field.chargeValue"))).toBeInTheDocument();
+    expect(screen.queryByText(translate("en", "equipment.loss.yardValueHint"))).not.toBeInTheDocument();
+  });
+});
+
 describe("Equipment — navigation and language", () => {
   it("menu items follow the equipment keys", () => {
     const owner = visibleItemIds(meFixture("THEKEDAR"), COMPANY_NAV);
@@ -387,5 +502,89 @@ describe("Equipment — navigation and language", () => {
     expect(translate("ur", "status.equipmentTransfer.RECEIVED_WITH_GAP")).not.toBe(
       translate("en", "status.equipmentTransfer.RECEIVED_WITH_GAP"),
     );
+  });
+});
+
+describe("Equipment — owner decision 3: rupees follow fields.amounts, not fields.rates", () => {
+  /** The default PM: fields.rates yes, fields.amounts no — and equipment.rental.manage. */
+  const pm = () => meFixture("PM");
+  const pmWithMoney = () => meFixture("PM", { canSeeFinancials: true });
+
+  it("register: a PM with only fields.rates sees no hire rate / value, no placeholder, no crash", () => {
+    state.rates = false;
+    renderWithStore(<OwnedEquipmentView />, { me: pm() });
+    expect(screen.getByText("Steel plate 2×3")).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Hire rate / day" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Replacement value" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden for your role")).not.toBeInTheDocument();
+  });
+
+  it("register: a PM with fields.amounts sees them", () => {
+    state.rates = true;
+    renderWithStore(<OwnedEquipmentView />, { me: pmWithMoney() });
+    expect(screen.getByRole("columnheader", { name: "Hire rate / day" })).toBeInTheDocument();
+    expect(screen.getByText("Rs 5")).toBeInTheDocument();
+  });
+
+  it("rental detail without fields.amounts: counts and returns stay, every rupee goes", () => {
+    state.rates = false;
+    renderWithStore(<RentalDetailView rentalId="r3" />, { me: pm() });
+    expect(screen.getByText("17 nos Steel plate 2×3 (2 nos damaged, 3 nos missing)")).toBeInTheDocument();
+    expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+    expect(screen.queryByText("Rent to date")).not.toBeInTheDocument();
+    expect(screen.queryByText("Missing pieces charge")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden for your role")).not.toBeInTheDocument();
+  });
+
+  it("rentals list without fields.amounts: no rent column, no idle cost — but “Hire equipment” with rent and deposit inputs (may enter, never sees)", async () => {
+    state.rates = false;
+    renderWithStore(<RentalsView />, { me: pm() });
+    expect(screen.getAllByText("RNT-0003").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("columnheader", { name: "Rent to date" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Rent / day" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("idle-total")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: /Hire equipment/ }));
+    expect(await screen.findByText(translate("en", "equipment.field.deposit"))).toBeInTheDocument();
+  });
+
+  it("rentals list with fields.amounts: rent, idle cost and “Hire equipment”", () => {
+    state.rates = true;
+    renderWithStore(<RentalsView />, { me: pmWithMoney() });
+    expect(screen.getByRole("columnheader", { name: "Rent to date" })).toBeInTheDocument();
+    expect(screen.getByTestId("idle-total")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Hire equipment/ })).toBeInTheDocument();
+  });
+
+  it("charges: no rate / amount columns and no total without fields.amounts", () => {
+    state.rates = false;
+    renderWithStore(<ChargesView />, { me: pm() });
+    expect(screen.getByText("Steel plate 2×3")).toBeInTheDocument();
+    expect(screen.queryByText("Total")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+  });
+
+  it("charges with fields.amounts: amounts and the total", () => {
+    state.rates = true;
+    renderWithStore(<ChargesView />, { me: pmWithMoney() });
+    expect(screen.getByText("Total")).toBeInTheDocument();
+    expect(screen.getAllByText("Rs 1,200").length).toBeGreaterThan(0);
+  });
+
+  it("Equipment on Site: no hire money for a PM without fields.amounts, but “Hire equipment” stays", () => {
+    state.rates = false;
+    renderWithStore(<SiteEquipmentView projectId="p1" />, { me: pm() });
+    expect(screen.getByText("ET-0007")).toBeInTheDocument();
+    expect(screen.queryByText("Hire posted")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Hire equipment/ })).toBeInTheDocument();
+  });
+
+  it("Equipment on Site with fields.amounts: hire money and “Hire equipment”", () => {
+    state.rates = true;
+    renderWithStore(<SiteEquipmentView projectId="p1" />, { me: pmWithMoney() });
+    expect(screen.getByText("Hire posted")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Hire equipment/ })).toBeInTheDocument();
   });
 });

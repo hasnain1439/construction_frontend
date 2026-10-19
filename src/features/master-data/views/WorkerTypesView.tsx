@@ -8,7 +8,7 @@ import type { WorkerTypeRow } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar } from "@/components/common/FilterBar";
 import { MoneyText } from "@/components/common/MoneyText";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, useSeesWages } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -33,6 +33,9 @@ export function WorkerTypesView() {
   const readOnly = useReadOnly();
   // Same rule as labour rates.
   const canEdit = useCan("masterdata.laborrate.manage") && !readOnly;
+  // Daily rates need `fields.wages` (owner decision 4); a new type needs a rate, so adding does too.
+  const wages = useSeesWages();
+  const canAdd = canEdit && wages;
   const { data, isLoading, isFetching, error, refetch } = useAllWorkerTypes();
   const [update, { isLoading: toggling }] = useUpdateWorkerTypeMutation();
   const [showInactive, setShowInactive] = useState(false);
@@ -74,7 +77,8 @@ export function WorkerTypesView() {
       id: "rate",
       header: t("workerTypes.colRate"),
       align: "right",
-      sortValue: (row) => Number(row.ratePaisa),
+      hidden: !wages,
+      sortValue: (row) => Number(row.ratePaisa ?? 0),
       cell: (row) => <MoneyText paisa={row.ratePaisa} />,
     },
     {
@@ -144,7 +148,7 @@ export function WorkerTypesView() {
         description={t("workerTypes.description")}
         breadcrumbs={[{ label: t("workerTypes.workforce") }, { label: t("workerTypes.title") }]}
         actions={
-          canEdit ? (
+          canAdd ? (
             <Button onClick={() => setAddOpen(true)}>
               <Plus data-icon="inline-start" />
               {t("workerTypes.add")}
@@ -174,7 +178,7 @@ export function WorkerTypesView() {
             title: t("workerTypes.emptyTitle"),
             description: t("workerTypes.emptyDesc"),
             icon: Tags,
-            ...(canEdit
+            ...(canAdd
               ? {
                   action: (
                     <Button onClick={() => setAddOpen(true)}>

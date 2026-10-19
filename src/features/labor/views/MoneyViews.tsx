@@ -389,7 +389,9 @@ export function SettlementDetailView({ projectId, settlementId }: { projectId: s
   const t = useT();
   const ts = useStatusT();
   const labels = useLaborLabels();
-  const { can } = usePermissions();
+  const { can, canSee } = usePermissions();
+  // The per-line daily rate needs `fields.wages`; gross / overtime / net always come.
+  const wages = canSee("wages");
   const limitHint = useApprovalLimitHint();
   const office = can("labor.settlement.approve");
   const canAdjust = can("labor.settlement.edit");
@@ -445,7 +447,7 @@ export function SettlementDetailView({ projectId, settlementId }: { projectId: s
         </span>
       ),
     },
-    { id: "rate", header: t("field.rate"), align: "right", cell: (l) => <MoneyText paisa={l.dailyRatePaisa} /> },
+    { id: "rate", header: t("field.rate"), align: "right", hidden: !wages, cell: (l) => <MoneyText paisa={l.dailyRatePaisa} /> },
     { id: "ot", header: t("labor.settlement.ot"), align: "right", cell: (l) => (l.overtimeHours ? <span title={t("labor.settlement.hours", { n: l.overtimeHours })}><MoneyText paisa={l.overtimePaisa} /></span> : "—") },
     { id: "gross", header: t("field.wages"), align: "right", cell: (l) => <MoneyText paisa={l.grossPaisa} /> },
     {

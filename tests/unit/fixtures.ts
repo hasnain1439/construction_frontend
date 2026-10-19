@@ -68,6 +68,7 @@ export function meFixture(
       amounts: has("fields.amounts"),
       profit: has("fields.profit"),
       contract: has("fields.contract"),
+      wages: has("fields.wages"),
     },
     scopes: Object.fromEntries(
       keys

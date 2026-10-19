@@ -18,6 +18,7 @@ import {
 import { useGetSubcontractorsQuery, useGetWorkersQuery } from "@/api/services/masterData.api";
 import type { SubcontractAccountRow } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { useSeesWages } from "@/components/common/PermissionGate";
 import { MoneyText } from "@/components/common/MoneyText";
 import { SlideOver } from "@/components/common/SlideOver";
 import { AttachmentField } from "@/components/forms/AttachmentField";
@@ -80,6 +81,8 @@ export const useIsMunshi = () => useMe()?.user.role === "MUNSHI";
 export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const t = useT();
   const munshi = useIsMunshi();
+  // `fields.wages`: without it the rates are absent and a rate in the body is refused (403).
+  const wages = useSeesWages();
   const typeName = useWorkerTypeName();
   const workers = useGetWorkersQuery({ isActive: "true", limit: 100 });
   const onSite = useGetProjectWorkersQuery({ projectId, active: true });
@@ -88,7 +91,11 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
   const taken = new Set((onSite.data ?? []).map((w) => w.worker.id));
   const options = (workers.data?.items ?? [])
     .filter((w) => !taken.has(w.id))
-    .map((w) => ({ value: w.id, label: w.name, description: t("labor.assignWorker.optionDesc", { type: typeName(w.type, namesFromWorker(w)), rate: formatPKR(w.dailyRatePaisa) }) }));
+    .map((w) => {
+      const type = typeName(w.type, namesFromWorker(w));
+      const description = w.dailyRatePaisa !== undefined ? t("labor.assignWorker.optionDesc", { type, rate: formatPKR(w.dailyRatePaisa) }) : type;
+      return { value: w.id, label: w.name, description };
+    });
   const form = useForm<AssignWorkerValues, unknown, z.output<typeof assignWorkerSchema>>({
     resolver: zodResolver(assignWorkerSchema),
     values: { workerId: null, dailyRatePaisa: null, startDate: todayPK() },
@@ -100,7 +107,7 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
       () =>
         assign({
           projectId,
-          body: { workerId: v.workerId, startDate: v.startDate, ...(!munshi && v.dailyRatePaisa ? { dailyRatePaisa: v.dailyRatePaisa } : {}) },
+          body: { workerId: v.workerId, startDate: v.startDate, ...(!munshi && wages && v.dailyRatePaisa ? { dailyRatePaisa: v.dailyRatePaisa } : {}) },
         }).unwrap(),
       { success: t("labor.assignWorker.added"), setError: form.setError, codeFields: { WORKER_ALREADY_ASSIGNED: "workerId", INVALID_WORKER: "workerId" } },
     );
@@ -125,13 +132,13 @@ export function AssignWorkerSlideOver({ open, onOpenChange, projectId }: Open & 
           placeholder={t("labor.assignWorker.searchByName")}
           emptyText={t("labor.assignWorker.everyoneAssigned")}
         />
-        {munshi ? (
-          chosen ? <p className="text-sm text-muted-foreground">{t("labor.assignWorker.munshiRate", { rate: formatPKR(chosen.dailyRatePaisa) })}</p> : null
+        {munshi || !wages ? (
+          chosen?.dailyRatePaisa !== undefined ? <p className="text-sm text-muted-foreground">{t("labor.assignWorker.munshiRate", { rate: formatPKR(chosen.dailyRatePaisa) })}</p> : null
         ) : (
           <MoneyField
             name="dailyRatePaisa"
             label={t("labor.assignWorker.rateLabel")}
-            hint={chosen ? t("labor.assignWorker.rateHintNormal", { rate: formatPKR(chosen.dailyRatePaisa) }) : t("labor.assignWorker.rateHintEmpty")}
+            hint={chosen?.dailyRatePaisa !== undefined ? t("labor.assignWorker.rateHintNormal", { rate: formatPKR(chosen.dailyRatePaisa) }) : t("labor.assignWorker.rateHintEmpty")}
             suffix={t("labor.common.perDay")}
           />
         )}

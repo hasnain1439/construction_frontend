@@ -39,6 +39,12 @@ export const ENDPOINTS = {
     byId: (attachmentId: string) => `/attachments/${id(attachmentId)}`,
   },
 
+  // Owner decision 2 · revocable share links
+  shareLinks: {
+    list: "/share-links",
+    revoke: (linkId: string) => `/share-links/${id(linkId)}/revoke`,
+  },
+
   company: {
     profile: "/company",
     settings: "/company/settings",

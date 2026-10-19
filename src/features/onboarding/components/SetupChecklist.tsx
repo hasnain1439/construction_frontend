@@ -1,18 +1,15 @@
 "use client";
 
 import {
-  BookOpen,
+  ChevronDown,
   CircleCheck,
   EyeOff,
-  FileText,
   FlaskConical,
   FolderKanban,
-  Forklift,
   HardHat,
   ImageUp,
   Landmark,
   PackageSearch,
-  Receipt,
   Trash2,
   Truck,
   UserPlus,
@@ -36,7 +33,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT, type TranslationKey } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
-import type { AccessRule } from "@/lib/permissions";
+import { MORE_OPTIONAL_STEPS, OPTIONAL_STEPS, resolveStep, type OptionalStep } from "../optionalSteps";
 import { DemoBadge } from "./DemoBadge";
 
 const STEPS: Record<
@@ -62,40 +59,59 @@ const STEPS: Record<
 };
 
 /**
- * Step 18 · optional Phase 2 / 3 steps under the checklist: links only (they don't count in the
- * progress), each shown with the key its page needs. Hidden together with the checklist.
+ * Owner decision 5 · optional Phase 2 / 3 steps under the checklist: links only (they don't count in
+ * the progress). First quote, estimate, rulebook, equipment; the rest under a collapsed "Show more".
+ * Each is shown only with the key its page needs (optionalSteps.ts). Hidden together with the checklist.
  */
-const OPTIONAL_STEPS: Array<{ id: string; href: string; icon: LucideIcon; label: TranslationKey; access: AccessRule }> = [
-  { id: "rulebook", href: "/settings/rulebook", icon: BookOpen, label: "onboarding.moreRULEBOOK", access: { permission: "rulebook.override.view" } },
-  { id: "quote", href: "/sales/quotes/new", icon: FileText, label: "onboarding.moreQUOTE", access: { permission: "sales.quote.create" } },
-  { id: "equipment", href: "/equipment/owned", icon: Forklift, label: "onboarding.moreEQUIPMENT", access: { allPermissions: ["equipment.view", "equipment.manage"] } },
-  { id: "tax", href: "/settings/tax", icon: Receipt, label: "onboarding.moreTAX", access: { permission: "tax.view" } },
-];
-
-function OptionalSteps() {
+function OptionalSteps({ latestProjectId }: { latestProjectId: string | null }) {
   const t = useT();
   const { canAccess } = usePermissions();
-  const steps = OPTIONAL_STEPS.filter((s) => canAccess(s.access));
-  if (!steps.length) return null;
+  const [more, setMore] = useState(false);
+  const visible = (list: OptionalStep[]) =>
+    list.flatMap((s) => {
+      const r = resolveStep(s, latestProjectId);
+      return r && canAccess(r.access) ? [{ ...s, href: r.href }] : [];
+    });
+  const first = visible(OPTIONAL_STEPS);
+  const rest = visible(MORE_OPTIONAL_STEPS);
+  if (!first.length && !rest.length) return null;
+  const list = (steps: typeof first, testId: string) => (
+    <ul className="grid gap-2 md:grid-cols-2" data-testid={testId}>
+      {steps.map((s) => {
+        const Icon = s.icon;
+        return (
+          <li key={s.id}>
+            <Link href={s.href} className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-2 text-sm underline-offset-2 hover:underline">
+              <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              {t(s.label)}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
   return (
     <div className="space-y-2">
       <div>
         <p className="text-sm font-semibold">{t("onboarding.moreTitle")}</p>
         <p className="text-xs text-muted-foreground">{t("onboarding.moreDesc")}</p>
       </div>
-      <ul className="grid gap-2 md:grid-cols-2">
-        {steps.map((s) => {
-          const Icon = s.icon;
-          return (
-            <li key={s.id}>
-              <Link href={s.href} className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-2 text-sm underline-offset-2 hover:underline">
-                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                {t(s.label)}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {first.length ? list(first, "optional-steps") : null}
+      {rest.length ? (
+        <>
+          <button
+            type="button"
+            aria-expanded={more}
+            aria-controls="optional-steps-more"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-2 hover:underline"
+            onClick={() => setMore((m) => !m)}
+          >
+            <ChevronDown className={cn("size-4 transition-transform", more && "rotate-180")} aria-hidden />
+            {more ? t("onboarding.showLess") : t("onboarding.showMore")}
+          </button>
+          {more ? <div id="optional-steps-more">{list(rest, "optional-steps-more")}</div> : null}
+        </>
+      ) : null}
     </div>
   );
 }
@@ -294,7 +310,7 @@ export function SetupChecklist() {
             );
           })}
         </ul>
-        <OptionalSteps />
+        <OptionalSteps latestProjectId={data.latestProject?.id ?? null} />
         {canOpening ? (
           <Link
             href="/settings/opening-balances"

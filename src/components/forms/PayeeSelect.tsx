@@ -32,7 +32,12 @@ export function PayeeSelect({
   const subs = useGetSubcontractsQuery({ projectId, active: true }, { skip: !allowSubcontractor });
   const options =
     value.payeeType === "WORKER"
-      ? (workers.data ?? []).map((w) => ({ value: w.worker.id, label: w.worker.name, description: t("app.components.payee.workerDesc", { type: w.worker.type.replace(/_/g, " ").toLowerCase(), rate: formatPKR(w.dailyRatePaisa) }) }))
+      ? (workers.data ?? []).map((w) => {
+          const type = w.worker.type.replace(/_/g, " ").toLowerCase();
+          // The daily rate is absent without `fields.wages` — then just the type.
+          const description = w.dailyRatePaisa !== undefined ? t("app.components.payee.workerDesc", { type, rate: formatPKR(w.dailyRatePaisa) }) : type;
+          return { value: w.worker.id, label: w.worker.name, description };
+        })
       : (subs.data ?? []).map((s) => ({ value: s.id, label: s.subcontractor.name, description: s.scope }));
   return (
     <div className="space-y-2">

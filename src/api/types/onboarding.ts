@@ -28,6 +28,8 @@ export interface SetupChecklist {
     pendingOrSentInvites: number;
   };
   demo: DemoProjectRef | null;
+  /** Owner decision 5: the newest real project (opens the optional next steps on a project page); null without one. */
+  latestProject?: { id: Id; code: string; name: string } | null;
 }
 
 // ─── Imports ────────────────────────────────────────────────────────────────

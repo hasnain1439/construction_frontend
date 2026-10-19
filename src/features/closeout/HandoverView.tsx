@@ -88,7 +88,7 @@ export function HandoverBody({ project }: { project: ProjectDetail }) {
 function CertificateActions({ projectId, phone }: { projectId: string; phone: string | null }) {
   const t = useT();
   const [load] = useGetHandoverCertificateMutation();
-  return <PdfActions load={() => load(projectId).unwrap()} title={t("closeout.handover.certificate")} phone={phone} />;
+  return <PdfActions load={() => load(projectId).unwrap()} title={t("closeout.handover.certificate")} phone={phone} shareRef={{ refType: "HANDOVER", refId: projectId }} />;
 }
 
 function Checklist({ projectId, handover, editable }: { projectId: string; handover: Handover; editable: boolean }) {

@@ -182,6 +182,7 @@ export const PERMISSION_KEYS = [
   "fields.amounts",
   "fields.profit",
   "fields.contract",
+  "fields.wages",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];

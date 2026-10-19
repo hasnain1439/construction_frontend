@@ -61,7 +61,10 @@ export type PermissionRole = Schemas["Role"];
 export type RoleBaseRole = PermissionRole["baseRole"];
 export type RoleGrant = PermissionRole["permissions"][number];
 export type PermissionScope = NonNullable<RoleGrant["scope"]>;
-export type UserPermissions = Schemas["UserPermissions"];
+/** `fieldAccess.wages` (`fields.wages`) is optional until every API sends it. */
+export type UserPermissions = Omit<Schemas["UserPermissions"], "fieldAccess"> & {
+  fieldAccess: Omit<Schemas["UserPermissions"]["fieldAccess"], "wages"> & { wages?: boolean };
+};
 export type EffectivePermission = UserPermissions["effective"][number];
 export type PermissionOverride = UserPermissions["overrides"][number];
 export type CreateRoleBody = RequestBody<"/api/v1/roles", "post">;

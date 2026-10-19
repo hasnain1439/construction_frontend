@@ -94,13 +94,15 @@ function RateDialog({ worker, onClose }: { worker: ProjectWorker | null; onClose
           <Label htmlFor="rate-input">{t("labor.team.ratePerDay")}</Label>
           <MoneyInput
             id="rate-input"
-            value={value ?? worker.dailyRatePaisa}
+            value={value ?? worker.dailyRatePaisa ?? null}
             onChange={setValue}
             suffix={t("labor.common.perDay")}
           />
-          <p className="text-xs text-muted-foreground">
-            {t("labor.team.rateHint", { rate: formatPKR(worker.defaultRatePaisa) })}
-          </p>
+          {worker.defaultRatePaisa !== undefined ? (
+            <p className="text-xs text-muted-foreground">
+              {t("labor.team.rateHint", { rate: formatPKR(worker.defaultRatePaisa) })}
+            </p>
+          ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
@@ -119,8 +121,10 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
   const t = useT();
   const labels = useLaborLabels();
   const typeName = useWorkerTypeName();
-  const { can } = usePermissions();
+  const { can, canSee } = usePermissions();
   const office = can("labor.team.edit");
+  // Daily wages need `fields.wages` (owner decision 4): the API leaves them out otherwise.
+  const wages = canSee("wages");
   const canAssign = can("labor.team.create");
   const canSubcontract = can("labor.subcontract.create");
   const munshi = useIsMunshi();
@@ -157,7 +161,8 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
       id: "rate",
       header: t("labor.common.rateDay"),
       align: "right",
-      sortValue: (w) => Number(w.dailyRatePaisa),
+      hidden: !wages,
+      sortValue: (w) => Number(w.dailyRatePaisa ?? 0),
       cell: (w) => (
         <span className="inline-flex items-center gap-2">
           <MoneyText paisa={w.dailyRatePaisa} />
@@ -201,7 +206,7 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
                   setOpen("peshgi");
                 },
               },
-              { label: t("labor.team.changeRate"), icon: Pencil, hidden: !office, onSelect: () => setRateFor(w) },
+              { label: t("labor.team.changeRate"), icon: Pencil, hidden: !office || !wages, onSelect: () => setRateFor(w) },
               { label: t("action.remove"), icon: Trash2, destructive: true, separatorBefore: true, hidden: !office, onSelect: () => setRemoveFor(w) },
             ]}
           />
@@ -300,13 +305,15 @@ export function TeamOnSiteView({ projectId }: { projectId: string }) {
               loading={today.isLoading}
               tone={today.data?.unmarked ? "warning" : "success"}
             />
-            <KpiCard
-              label={t("labor.team.kpiWageBill")}
-              icon={Wallet}
-              value={formatPKR(sumPaisa(active.map((w) => w.dailyRatePaisa)))}
-              hint={t("labor.team.kpiWageBillHint")}
-              loading={workers.isLoading}
-            />
+            {wages ? (
+              <KpiCard
+                label={t("labor.team.kpiWageBill")}
+                icon={Wallet}
+                value={formatPKR(sumPaisa(active.map((w) => w.dailyRatePaisa ?? "0")))}
+                hint={t("labor.team.kpiWageBillHint")}
+                loading={workers.isLoading}
+              />
+            ) : null}
             <KpiCard
               label={t("labor.common.subContracts")}
               icon={HardHat}
@@ -437,7 +444,8 @@ export function HazriView({ projectId }: { projectId: string }) {
       (grid.data?.workers ?? []).map((w) => ({
         id: w.worker.id,
         name: w.worker.name,
-        subtitle: `${typeName(w.worker.type)} · ${formatPKR(w.dailyRatePaisa)}`,
+        // The daily rate is absent without `fields.wages`.
+        subtitle: w.dailyRatePaisa !== undefined ? `${typeName(w.worker.type)} · ${formatPKR(w.dailyRatePaisa)}` : typeName(w.worker.type),
         days: { ...w.days, ...(pending[w.worker.id] ?? {}) },
       })),
     [grid.data, pending, typeName],

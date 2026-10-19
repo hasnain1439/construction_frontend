@@ -27,7 +27,7 @@ import {
   NewRentalSlideOver,
   ReturnRentalSlideOver,
 } from "../components/RentalSlideOvers";
-import { placeName, useSeesRates } from "../options";
+import { placeName, useSeesAmounts } from "../options";
 import { IdleEquipmentPanel } from "./IdleEquipmentPanel";
 
 const BASE = "/equipment/rentals";
@@ -46,7 +46,7 @@ export function RentalStatus({ rental }: { rental: Pick<Rental, "status" | "over
 
 export function useRentalColumns(): Column<Rental>[] {
   const t = useT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   return [
     {
       id: "number",
@@ -83,7 +83,7 @@ export function useRentalColumns(): Column<Rental>[] {
       id: "accrued",
       header: t("equipment.col.accrued"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (r) => <MoneyText paisa={r.accruedToDatePaisa} />,
     },
     { id: "status", header: t("field.status"), cell: (r) => <RentalStatus rental={r} /> },
@@ -95,7 +95,8 @@ export function RentalsView() {
   const ts = useStatusT();
   const router = useRouter();
   const readOnly = useReadOnly();
-  const canManage = useCan("equipment.rental.manage") && !readOnly;
+  // Owner decision 3: anyone who manages rentals may hire (and enter the rent / deposit); the amounts stay hidden afterwards without fields.amounts.
+  const canCreate = useCan("equipment.rental.manage") && !readOnly;
   const suppliers = useSupplierOptions();
   const projects = useSiteProjectOptions();
   const list = useListState({ status: "ACTIVE", supplierId: "", projectId: "", overdue: "" });
@@ -109,7 +110,7 @@ export function RentalsView() {
         description={t("equipment.rental.desc")}
         breadcrumbs={[{ label: t("crumb.equipment") }, { label: t("equipment.crumb.rentals") }]}
         actions={
-          canManage ? (
+          canCreate ? (
             <Button onClick={() => setNewOpen(true)}>
               <Plus data-icon="inline-start" />
               {t("equipment.rental.new")}
@@ -158,7 +159,7 @@ export function RentalsView() {
             description: t("equipment.rental.emptyDesc"),
             icon: Handshake,
             action:
-              canManage && !list.isFiltered ? (
+              canCreate && !list.isFiltered ? (
                 <Button variant="outline" onClick={() => setNewOpen(true)}>
                   <Plus data-icon="inline-start" />
                   {t("equipment.rental.new")}
@@ -185,7 +186,7 @@ export function RentalsView() {
 
 function RentalBody({ rental }: { rental: Rental }) {
   const t = useT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const readOnly = useReadOnly();
   const canManage = useCan("equipment.rental.manage") && !readOnly;
   const [open, setOpen] = useState<"extend" | "return" | "close" | null>(null);
@@ -225,7 +226,7 @@ function RentalBody({ rental }: { rental: Rental }) {
       id: "rate",
       header: t("equipment.field.ratePerDay"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (i) => <MoneyText paisa={i.ratePaisaPerDay} />,
     },
   ];
@@ -253,14 +254,14 @@ function RentalBody({ rental }: { rental: Rental }) {
       id: "damage",
       header: t("equipment.field.damageCharges"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (r) => <MoneyText paisa={r.damageChargesPaisa} />,
     },
     {
       id: "missingCharges",
       header: t("equipment.qaFixes.missingCharges"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (r) => <MoneyText paisa={r.missingChargesPaisa} />,
     },
     {
@@ -327,7 +328,7 @@ function RentalBody({ rental }: { rental: Rental }) {
             value: rental.returnedDate ? formatDate(rental.returnedDate) : null,
           },
           { label: t("equipment.col.days"), value: String(rental.daysOnRent) },
-          ...(rates
+          ...(money
             ? [
                 { label: t("equipment.col.accrued"), value: <MoneyText paisa={rental.accruedToDatePaisa} /> },
                 { label: t("equipment.rental.posted"), value: <MoneyText paisa={rental.postedPaisa} /> },
