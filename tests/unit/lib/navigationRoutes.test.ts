@@ -8,6 +8,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { REPORTS, isReportName } from "@/features/reports/reports.config";
+import { MORE_OPTIONAL_STEPS, OPTIONAL_STEPS, resolveStep } from "@/features/onboarding/optionalSteps";
 import { matchCompanyRoute } from "@/lib/companyRoutes";
 import { COMPANY_ROUTES } from "@/lib/companyRoutes.generated";
 import { COMPANY_NAV, CREATE_ACTIONS, PROJECT_NAV, type NavItem } from "@/lib/navigation";
@@ -164,6 +165,45 @@ describe("pages with an 'any of' gate", () => {
         if (!src.includes(`useCan("${key}")`)) problems.push(`${item.id}: ${rule.view} never checks useCan("${key}")`);
       }
       if (!/\{ skip: !can\w+ \}/.test(src)) problems.push(`${item.id}: ${rule.view} fetches without a permission skip`);
+    }
+    expect(problems).toEqual([]);
+  });
+});
+
+/**
+ * Owner decision 5 · the optional next steps under the setup checklist are links to real pages, and
+ * whoever a step is shown to may open its page (the step's rule includes the page's gate).
+ */
+describe("setup checklist · optional next steps", () => {
+  const steps = [...OPTIONAL_STEPS, ...MORE_OPTIONAL_STEPS];
+  const targets = steps.flatMap((s) =>
+    [resolveStep(s, "p1"), resolveStep(s, null)].flatMap((r) => (r ? [{ id: s.id, href: r.href, access: r.access }] : [])),
+  );
+
+  it("first: quote, estimate, rulebook, equipment; under Show more: schedule, alert limits, change orders, closeout, tax", () => {
+    expect(OPTIONAL_STEPS.map((s) => s.id)).toEqual(["quote", "estimate", "rulebook", "equipment"]);
+    expect(MORE_OPTIONAL_STEPS.map((s) => s.id)).toEqual(["schedule", "alerts", "changeOrders", "closeout", "tax"]);
+    expect(steps.every((s) => Boolean(s.access))).toBe(true);
+  });
+
+  it("every step opens a real page (no dead link, no catch-all)", () => {
+    const dead = targets.filter((t) => {
+      const project = t.href.startsWith("/projects/p1/");
+      const r = resolve(project ? t.href.slice("/projects/p1".length) : t.href, project);
+      return !r || r.catchAll;
+    });
+    expect(dead.map((t) => `${t.id} → ${t.href}`)).toEqual([]);
+  });
+
+  it("a step's rule includes its page's gate", () => {
+    const problems: string[] = [];
+    for (const t of targets) {
+      const project = t.href.startsWith("/projects/p1/");
+      const r = resolve(project ? t.href.slice("/projects/p1".length) : t.href, project)!;
+      const gate = norm(pageGate(r));
+      const step = norm(t.access);
+      if (!gate.all.every((k) => step.all.includes(k))) problems.push(`${t.id} → ${t.href}: page needs ${JSON.stringify(gate.all)}, step checks ${JSON.stringify(step.all)}`);
+      if (gate.any.length && !gate.any.some((k) => step.all.includes(k))) problems.push(`${t.id} → ${t.href}: page needs one of ${JSON.stringify(gate.any)}`);
     }
     expect(problems).toEqual([]);
   });

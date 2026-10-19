@@ -116,6 +116,8 @@ export const COMPANY_TAGS = [
   "ProjectTax",
   "Milestones",
   "Stoppages",
+  // Owner decision 2
+  "ShareLinks",
 ] as const;
 
 export const ADMIN_TAGS = [

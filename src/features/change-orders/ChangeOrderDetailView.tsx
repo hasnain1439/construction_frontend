@@ -116,7 +116,7 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
               })}
             </div>
           ) : null}
-          {seesPrice ? <PdfActions load={() => loadPdf(co.id).unwrap()} title={t("changeOrders.detail.slipTitle", { code: co.code })} phone={phone} /> : null}
+          {seesPrice ? <PdfActions load={() => loadPdf(co.id).unwrap()} title={t("changeOrders.detail.slipTitle", { code: co.code })} phone={phone} shareRef={{ refType: "CHANGE_ORDER", refId: co.id }} /> : null}
         </div>
       </SectionCard>
 

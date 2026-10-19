@@ -82,6 +82,7 @@ export function ShoppingListBody({ project }: { project: ProjectDetail }) {
                 load={() => getPdf({ projectId: project.id, lang: pdfLang(language), ...(list.estimateId ? { estimateId: list.estimateId } : {}) }).unwrap()}
                 title={t("estimates.shopping.pdfTitle")}
                 phone={phone}
+                shareRef={{ refType: "SHOPPING_LIST", refId: project.id }}
               />
             </div>
           ) : null}

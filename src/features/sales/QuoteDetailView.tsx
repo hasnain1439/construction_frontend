@@ -1,6 +1,6 @@
 "use client";
 
-import { FilePlus2, FileText, Handshake, MessageCircle, Send, ThumbsDown, Trophy } from "lucide-react";
+import { FilePlus2, FileText, Handshake, Link2, MessageCircle, Send, ThumbsDown, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useMemo, useState } from "react";
@@ -25,6 +25,7 @@ import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SHARE_PERMISSION, SharedLinksPanel } from "@/components/common/SharedLinks";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,6 +203,9 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
   const [getPdf] = useGetQuotePdfMutation();
   const customerPdf = usePdfActions({ load: () => getPdf({ id: quote.id, variant: "customer" }).unwrap(), title: quote.number, phone: quote.client.phone });
   const internalPdf = usePdfActions({ load: () => getPdf({ id: quote.id, variant: "internal" }).unwrap(), title: quote.number });
+  // Owner decision 2: the quote's shared links (each revocable)
+  const canLinks = useCan(SHARE_PERMISSION.QUOTE);
+  const [links, setLinks] = useState(false);
 
   const open = OPEN.includes(quote.status);
   const write = !readOnly && canEdit;
@@ -240,6 +244,7 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
           { label: t("sales.detail.action.customerPdf"), icon: FileText, onSelect: () => void customerPdf.act("preview"), hidden: !seesPrice, separatorBefore: true },
           { label: t("sales.detail.action.shareWhatsapp"), icon: MessageCircle, onSelect: () => void customerPdf.act("share"), hidden: !seesPrice },
           { label: t("sales.detail.action.internalPdf"), icon: FileText, onSelect: () => void internalPdf.act("preview"), hidden: !seesCost },
+          { label: t("app.components.sharedLinks.button"), icon: Link2, onSelect: () => setLinks(true), hidden: !canLinks },
           {
             label: t("sales.detail.action.delete"),
             destructive: true,
@@ -278,6 +283,7 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
       />
       {customerPdf.preview}
       {internalPdf.preview}
+      {links ? <SharedLinksPanel refType="QUOTE" refId={quote.id} onClose={() => setLinks(false)} /> : null}
       {shared ? (
         <InlineAlert
           tone="success"

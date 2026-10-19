@@ -234,6 +234,8 @@ export interface OwnerStatement {
 
 export interface SharedPdf {
   attachmentId: Id;
+  /** Owner decision 2: the recorded (revocable) share link — see GET /share-links. */
+  shareLinkId?: Id;
   /** Durable public share link (about 30 days) — the one in `whatsappText` (QA-B-02). */
   url: string;
   /** When the share link stops working. */
@@ -243,6 +245,26 @@ export interface SharedPdf {
   fileUrlExpiresAt?: IsoDateTime;
   whatsappText: string;
   clientPhone: string | null;
+}
+
+/** Owner decision 2 · the document a share link opens (refId: quote / estimate revision / change order / invoice / payment id; the project for a shopping list, statement or handover). */
+export type ShareRefType = "QUOTE" | "ESTIMATE" | "SHOPPING_LIST" | "CHANGE_ORDER" | "INVOICE" | "RECEIPT" | "STATEMENT" | "HANDOVER";
+export type ShareLinkStatus = "ACTIVE" | "EXPIRED" | "REVOKED";
+
+/** One WhatsApp share link of a document (GET /share-links) — the link itself is never shown again. */
+export interface ShareLink {
+  id: Id;
+  refType: ShareRefType;
+  refId: Id;
+  projectId: Id | null;
+  attachmentId: Id;
+  fileName: string;
+  status: ShareLinkStatus;
+  createdAt: IsoDateTime;
+  createdBy: { id: Id; name: string } | null;
+  expiresAt: IsoDateTime;
+  revokedAt: IsoDateTime | null;
+  revokedBy: { id: Id; name: string } | null;
 }
 
 export interface BillingEvent {

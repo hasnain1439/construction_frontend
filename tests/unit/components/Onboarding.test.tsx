@@ -119,12 +119,34 @@ describe("SetupChecklist", () => {
       "/settings/opening-balances",
     );
 
-    // Step 18: optional Phase 2 / 3 steps (links only, not counted in the progress)
+    // Owner decision 5: optional next steps (links only, not counted in the progress) — quote,
+    // estimate, rulebook, equipment first; the rest under a collapsed "Show more"
     expect(screen.getByText("Optional next steps")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Review the rulebook values/ })).toHaveAttribute("href", "/settings/rulebook");
+    const first = screen.getByTestId("optional-steps");
+    expect(within(first).getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "Create your first quote",
+      "Make the estimate (BoQ) of a project",
+      "Review the rulebook values (wastage, mixes, labour rates)",
+      "Add your shuttering and equipment",
+    ]);
     expect(screen.getByRole("link", { name: "Create your first quote" })).toHaveAttribute("href", "/sales/quotes/new");
+    // no project yet → the estimate starts with a new project
+    expect(screen.getByRole("link", { name: "Make the estimate (BoQ) of a project" })).toHaveAttribute("href", "/projects/new");
+    expect(screen.getByRole("link", { name: /Review the rulebook values/ })).toHaveAttribute("href", "/settings/rulebook");
     expect(screen.getByRole("link", { name: "Add your shuttering and equipment" })).toHaveAttribute("href", "/equipment/owned");
+    // "Show more" is closed by default
+    expect(screen.queryByRole("link", { name: /Check the tax settings/ })).toBeNull();
+    const toggle = screen.getByRole("button", { name: "Show more" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(screen.getByRole("button", { name: "Show less" })).toHaveAttribute("aria-expanded", "true");
+    // without a project the project-page steps (schedule, change orders, closeout) have nowhere to go
+    expect(within(screen.getByTestId("optional-steps-more")).getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "Set the alert limits (overuse, delays, spending)",
+      "Check the tax settings (PRA / SRB / ICT, WHT)",
+    ]);
     expect(screen.getByRole("link", { name: /Check the tax settings/ })).toHaveAttribute("href", "/settings/tax");
+    expect(screen.getByRole("link", { name: /Set the alert limits/ })).toHaveAttribute("href", "/settings/alerts");
 
     await user.click(screen.getByRole("button", { name: "My rates are fine" }));
     expect(calls.rates).toHaveBeenCalledOnce();
@@ -132,6 +154,34 @@ describe("SetupChecklist", () => {
     expect(calls.createDemo).toHaveBeenCalledOnce();
     await user.click(screen.getByRole("button", { name: "Hide" }));
     expect(calls.dismiss).toHaveBeenCalledWith({ dismissed: true });
+  });
+
+  it("owner decision 5: with a project, estimate / schedule / change orders / closeout open it; each step follows its permission", async () => {
+    const user = userEvent.setup();
+    checklist = { ...BASE, latestProject: { id: "p9", code: "MSB-2026-009", name: "Johar Town" } };
+    const { unmount } = renderWithStore(<SetupChecklist />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByRole("link", { name: "Make the estimate (BoQ) of a project" })).toHaveAttribute("href", "/projects/p9/planning/estimate");
+    await user.click(screen.getByRole("button", { name: "Show more" }));
+    const more = screen.getByTestId("optional-steps-more");
+    expect(within(more).getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+      ["Plan the work schedule of a project", "/projects/p9/schedule/gantt"],
+      ["Set the alert limits (overuse, delays, spending)", "/settings/alerts"],
+      ["Record changes the owner asks for (change orders)", "/projects/p9/change-orders"],
+      ["Hand a finished project over (closeout)", "/projects/p9/documents/handover"],
+      ["Check the tax settings (PRA / SRB / ICT, WHT)", "/settings/tax"],
+    ]);
+    unmount();
+
+    // a user without a step's key never sees that step (only the keys listed here)
+    renderWithStore(<SetupChecklist />, {
+      me: meFixture("PM", { permissions: ["company.settings.manage", "projects.estimate.view", "rulebook.override.view", "equipment.view", "schedule.plan.view"] }),
+    });
+    expect(screen.queryByRole("link", { name: "Create your first quote" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Add your shuttering and equipment" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Show more" }));
+    expect(screen.queryByRole("link", { name: /Check the tax settings/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /change orders/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Plan the work schedule of a project" })).toBeInTheDocument();
   });
 
   it("with demo data: DEMO badge, link to the project, remove after confirming", async () => {

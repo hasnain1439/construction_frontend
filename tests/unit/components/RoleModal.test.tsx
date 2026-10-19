@@ -17,7 +17,10 @@ const siteLead: PermissionRole = {
   baseRole: "PM",
   permissions: [{ key: "projects.project.view", scope: "ASSIGNED_PROJECTS", maxAmountPaisa: null }],
 };
-const roles = rolesFixture([siteLead]);
+// Owner decisions 7 + 8: a company's own copy of the Project Manager template
+const pmTemplate = rolesFixture().find((r) => r.key === "PROJECT_MANAGER")!;
+const pmCopy: PermissionRole = { ...pmTemplate, id: "role-pm-copy", key: "CUSTOM_2", name: "Project Manager (copy)", isSystem: false };
+const roles = rolesFixture([siteLead, pmCopy]);
 const ok = <T,>(value: T) => vi.fn((_arg: unknown) => ({ unwrap: async () => value }));
 const create = ok(siteLead);
 const update = ok(siteLead);
@@ -64,6 +67,27 @@ describe("Role modal: Details | Permissions", { timeout: 60_000 }, () => {
     await vi.waitFor(() => expect(update).toHaveBeenCalledWith(expect.objectContaining({ id: siteLead.id, body: expect.objectContaining({ name: "Senior site lead" }) })));
     const body = setPermissions.mock.calls[0]![0] as { body: { permissions: Array<{ key: string }> } };
     expect(body.body.permissions.map((p) => p.key)).toEqual(expect.arrayContaining(["clients.client.view", "clients.client.create", "projects.project.view"]));
+  });
+
+  it("owner decisions 7 + 8: the company's PM role can lose changeorder.approve and get sales.quote.approve (Mark as won)", async () => {
+    expect(pmCopy.permissions.map((p) => p.key)).toContain("changeorder.approve");
+    const user = show(pmCopy.id);
+    await user.click(screen.getByRole("tab", { name: "Permissions" }));
+    const approve = within(cell("changeorder.approve")).getByRole("checkbox");
+    const won = within(cell("sales.quote.approve")).getByRole("checkbox");
+    const create = within(cell("projects.project.create")).getByRole("checkbox");
+    expect(approve).toBeChecked();
+    expect(approve).toBeEnabled();
+    expect(won).not.toBeChecked();
+    expect(won).toBeEnabled();
+    expect(create).toBeChecked();
+    await user.click(approve);
+    await user.click(won);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await vi.waitFor(() => expect(setPermissions).toHaveBeenCalled());
+    const keys = (setPermissions.mock.calls[0]![0] as { body: { permissions: Array<{ key: string }> } }).body.permissions.map((p) => p.key);
+    expect(keys).not.toContain("changeorder.approve");
+    expect(keys).toEqual(expect.arrayContaining(["sales.quote.approve", "projects.project.create", "changeorder.view"]));
   });
 
   it("a system template is read-only with Duplicate to edit", async () => {
