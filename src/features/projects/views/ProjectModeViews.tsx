@@ -52,10 +52,21 @@ function useProjectPage(projectId: string) {
   return { query, canEdit: canManage && !locked, locked, readOnly };
 }
 
-function LockedNotice({ project, readOnly }: { project: ProjectDetail; readOnly: boolean }) {
+function LockedNotice({
+  project,
+  readOnly,
+  editableStatuses,
+}: {
+  project: ProjectDetail;
+  readOnly: boolean;
+  editableStatuses?: readonly ProjectDetail["status"][];
+}) {
   const t = useT();
   const ts = useStatusT();
   if (!LOCKED_STATUSES.includes(project.status)) return null;
+  // This page's own records still change in this status (e.g. the handover in Closeout): no
+  // "records are read-only" banner above an editable form (QA-C-09).
+  if (!readOnly && editableStatuses?.includes(project.status)) return null;
   if (readOnly && project.status !== "READ_ONLY") return null;
   return <ReadOnlyBanner message={t("projects.mode.lockedNotice", { status: ts("project", project.status) })} />;
 }
@@ -65,12 +76,15 @@ export function ProjectPageShell({
   title,
   crumb,
   actions,
+  editableStatuses,
   children,
 }: {
   projectId: string;
   title?: string;
   crumb?: string;
   actions?: (project: ProjectDetail) => ReactNode;
+  /** Statuses in which this page still edits (closeout pages); the locked banner is not shown then. */
+  editableStatuses?: readonly ProjectDetail["status"][];
   children: (project: ProjectDetail, flags: { canEdit: boolean; readOnly: boolean }) => ReactNode;
 }) {
   const t = useT();
@@ -95,7 +109,7 @@ export function ProjectPageShell({
             ]}
             actions={actions?.(project)}
           />
-          <LockedNotice project={project} readOnly={readOnly} />
+          <LockedNotice project={project} readOnly={readOnly} editableStatuses={editableStatuses} />
           <DemoProjectBanner isDemo={project.isDemo} />
           {children(project, { canEdit, readOnly })}
         </>

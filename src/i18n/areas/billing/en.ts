@@ -145,6 +145,7 @@ export const strings = {
     noStageReady: "No stage is ready yet",
     stageOption: "{stage} — {percent}% · {amount}",
     stageOptionNotReady: "{stage} — {percent}% · {amount} (not ready)",
+    stageOptionDraftExists: "{stage} — {percent}% · {amount} (draft invoice exists)",
     forceBill: "Bill a stage that is not marked ready",
     why: "Why",
     alsoBillPurchases: "Also bill owner purchases (optional)",

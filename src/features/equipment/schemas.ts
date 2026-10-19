@@ -185,6 +185,8 @@ export type ExtendValues = z.input<typeof extendSchema>;
 export const returnSchema = z.object({
   returnDate: date,
   damageChargesPaisa: paisa,
+  /** What the yard bills for the missing pieces (QA-C-08); empty = their replacement value. */
+  missingChargesPaisa: paisa,
   note: z.string().trim().max(500),
   items: z
     .array(

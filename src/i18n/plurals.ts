@@ -1,11 +1,49 @@
+import type { UiLanguage } from "@/store/slices/uiSlice";
 import type { TranslationKey } from "./useT";
 
 /**
- * English singular forms for texts with a count {n} (QA-B-24: "1 working days", "Rain · 1 days").
- * translate() uses them when {n} is 1 in English; Roman Urdu and Urdu use the same word for 1 and
- * many in these texts (din / دن), so they need none.
+ * The count a text's singular form depends on: `{n}`, else `{days}`, `{count}` or `{rooms}`.
+ * translate() uses the language's singular form below when that count is 1 (QA-B-24 / QA-A-32 / R1-N4).
  */
+export const COUNT_VARS = ["n", "days", "count", "rooms"] as const;
+
+/** English singular forms for texts with a count (QA-B-24: "1 working days", "Rain · 1 days"). */
 export const EN_SINGULAR: Partial<Record<TranslationKey, string>> = {
+  "control.delay.stoppage": "{reason} · {days} day ({category})",
+  "changeOrders.list.kpiApprovedHint": "{n} approved change order",
+  "changeOrders.project.revisedContractValue": "{changes} from {n} change order",
+  "projects.mode.floorDesc": "{rooms} room · {area} sq ft · ceiling {height} ft",
+  "projects.section.roomsTotals": "{rooms} room · {area} floor area · {wall} net wall",
+  "projects.rooms.floorOption": "{floor} ({n} room)",
+  "projects.rooms.floorSummary": "{n} room · {area} sq ft",
+  "sales.live.floorLine": "{name}: {area} sq ft · {rooms} room ({wet} wet)",
+  "billing.reports.nRows": "{n} row",
+  "reports.common.rows": "{n} row",
+  "billing.receivables.nProjects": "{n} project",
+  "dashboard.payments": "{n} payment",
+  "dashboard.dispatchesOnWay": "{n} dispatch on the way",
+  "dashboard.subsOverpaid": "{n} sub-contractor overpaid",
+  "roles.permissionsCount": "{n} permission",
+  "imports.allValid": "The {n} row is ready to import.",
+  "imports.import": "Import {n} row",
+  "estimates.boq.linesCount": "{n} line",
+  "equipment.charges.accrualDone": "Charges posted up to {through} ({n} row)",
+  "changeOrders.instructions.photoCount": "{n} photo",
+  "cashSite.site.nPhotos": "{n} photo",
+  "cashSite.site.nLogs": "{n} log",
+  "app.components.lineItems.nMaterials": "{n} material",
+  "app.components.money.nStagesReady": "{n} stage ready to bill",
+  "procurement.newPurchase.orderDesc": "{n} material · {place}",
+  "procurement.storeStock.kpiValueHint": "{n} material in store",
+  "masterData.common.nRatesSaved": "{n} rate saved",
+  "masterData.categories.addedWithRates": "{name} added with {n} rate",
+  "closeout.handover.openSnags": "{n} snag is not verified yet",
+  "closeout.handover.acceptOpenSnags": "Hand over with {n} snag still open (it stays on the snag list)",
+  "projects.foundation.pilesValue": "{count} pile · {diameter} in × {depth} ft",
+  "projects.estimate.formula.columns": "{count} column × {widthIn}″ × {depthIn}″ × {height} ft",
+  "projects.estimate.formula.columnShuttering": "{count} column × 2 × ({widthIn}″ + {depthIn}″) × {height} ft",
+  "projects.estimate.formula.lintels": "{count} opening, Σ (width + {bearing} ft) = {length} ft × {widthIn}″ × {depthIn}″",
+  "projects.estimate.formula.bars": "#{bar} ({mm} mm): {count} bar, {length} ft × {kgPerFt} kg/ft",
   "procurement.money.days": "{n} day",
   "projects.estimate.kpi.cementValue": "{n} bag",
   "projects.unit.monthsValue": "{n} month",
@@ -58,3 +96,124 @@ export const EN_SINGULAR: Partial<Record<TranslationKey, string>> = {
   "dashboard.oldestDays": "Oldest {n} day",
   "dashboard.days": "{n} day",
 };
+
+/**
+ * Roman Urdu singular forms where the word changes for 1 ("1 kaam ka din", "1 kamra", "1 mahina").
+ * Words that stay the same for 1 and many (din, ton, bori) need none.
+ */
+export const ROMAN_SINGULAR: Partial<Record<TranslationKey, string>> = {
+  "changeOrders.list.kpiDaysValue": "+{n} kaam ka din",
+  "changeOrders.detail.daysValue": "+{n} kaam ka din",
+  "changeOrders.project.revisedEndValue": "Tabdeeli orders se +{n} kaam ka din",
+  "changeOrders.list.kpiApprovedHint": "{n} manzoor tabdeeli order",
+  "changeOrders.project.revisedContractValue": "{n} tabdeeli order se {changes}",
+  "schedule.stoppages.workingDays": "{n} kaam ka din",
+  "schedule.delays.lateBy": "Nazar-e-sani khatme se {n} kaam ka din der",
+  "schedule.delays.pending": "Manzoori ke intezar wala {n} kaam band din abhi shamil nahi.",
+  "projects.unit.monthsValue": "{n} mahina",
+  "billing.finance.nMonths": "{n} mahina",
+  "sales.insights.months": "{n} mahina",
+  "app.time.agoNMonth": "{n} maheena pehle",
+  "app.time.agoNHour": "{n} ghanta pehle",
+  "equipment.shuttering.weeksN": "{n} hafta",
+  "projects.mode.floorDesc": "{rooms} kamra · {area} sq ft · chhat {height} ft",
+  "projects.section.roomsTotals": "{rooms} kamra · {area} farsh · {wall} net deewar",
+  "projects.rooms.floorOption": "{floor} ({n} kamra)",
+  "projects.rooms.floorSummary": "{n} kamra · {area} sq ft",
+  "projects.rooms.copyDesc": "{n} kamra us ke darwazon aur khirkiyon samet copy hoga. Oonchai nayi manzil ke mutabiq hogi.",
+  "sales.live.floorLine": "{name}: {area} sq ft · {rooms} kamra ({wet} geela)",
+  "sales.live.unit.bags": "{n} bori",
+  "schedule.gantt.chartLabel": "Schedule timeline, {n} marhala",
+  "schedule.generate.done": "Schedule ban gaya — {n} marhala",
+  "schedule.stoppages.approvedShift": "Kaam band din manzoor — {n} marhala hila, mansoobay ka khatma {date}",
+  "billing.reports.nRows": "{n} qataar",
+  "imports.allValid": "{n} line import ke liye tayyar hai.",
+  "imports.import": "{n} line import karein",
+  "equipment.charges.accrualDone": "{through} tak charges darj ({n} line)",
+  "estimates.shopping.items": "{n} cheez",
+  "app.components.approval.titleWithCount": "{label} — {n} cheez",
+  "changeOrders.instructions.photoCount": "{n} tasveer",
+  "control.common.points": "{n} point",
+  "control.common.signedPoints": "{sign}{n} point",
+  "control.burn.gapHint": "{n} point se upar nishan lagta hai",
+  "dashboard.payments": "{n} adaigi",
+  "dashboard.dispatchesOnWay": "{n} gaari raste mein",
+  "roles.permissionsCount": "{n} ijazat",
+  "labor.pay.titleMany": "{n} kaarigar ko adaigi",
+  "masterData.common.nRatesSaved": "{n} rate mehfooz ho gaya",
+  "masterData.bulk.nUpdated": "{n} rate {percent}% badal gaya",
+  "masterData.categories.addedWithRates": "{name} {n} rate ke saath shamil ho gayi",
+  "closeout.handover.openSnags": "{n} kami ki abhi tasdeeq nahi hui",
+  "closeout.handover.acceptOpenSnags": "{n} khuli kami ke saath hawale karein (woh list par rahegi)",
+  "projects.estimate.formula.bars": "#{bar} ({mm} mm): {count} sarya, {length} ft × {kgPerFt} kg/ft",
+  "projects.estimate.formula.lintels": "{count} darwaza/khirki, jor (chaurai + {bearing} ft) = {length} ft × {widthIn}″ × {depthIn}″",
+};
+
+/** Urdu singular forms where the word changes for 1 ("1 کام کا دن", "1 کمرہ", "1 مہینہ"). */
+export const UR_SINGULAR: Partial<Record<TranslationKey, string>> = {
+  "changeOrders.list.kpiDaysValue": "+{n} کام کا دن",
+  "changeOrders.detail.daysValue": "+{n} کام کا دن",
+  "changeOrders.project.revisedEndValue": "تبدیلی آرڈرز سے +{n} کام کا دن",
+  "changeOrders.list.kpiApprovedHint": "{n} منظور تبدیلی آرڈر",
+  "changeOrders.project.revisedContractValue": "{n} تبدیلی آرڈر سے {changes}",
+  "schedule.stoppages.workingDays": "{n} کام کا دن",
+  "schedule.delays.lateBy": "نظرِ ثانی شدہ اختتام سے {n} کام کا دن تاخیر",
+  "schedule.delays.pending": "منظوری کے انتظار والا {n} کام بند دن ابھی شامل نہیں۔",
+  "projects.unit.monthsValue": "{n} مہینہ",
+  "billing.finance.nMonths": "{n} مہینہ",
+  "sales.insights.months": "{n} مہینہ",
+  "app.time.agoNMonth": "{n} مہینہ پہلے",
+  "app.time.agoNHour": "{n} گھنٹہ پہلے",
+  "equipment.shuttering.weeksN": "{n} ہفتہ",
+  "projects.mode.floorDesc": "{rooms} کمرہ · {area} مربع فٹ · چھت {height} فٹ",
+  "projects.section.roomsTotals": "{rooms} کمرہ · {area} فرش · {wall} خالص دیوار",
+  "projects.rooms.floorOption": "{floor} ({n} کمرہ)",
+  "projects.rooms.floorSummary": "{n} کمرہ · {area} مربع فٹ",
+  "projects.rooms.copyDesc": "{n} کمرہ اس کے دروازوں اور کھڑکیوں سمیت نقل ہو گا۔ اونچائی نئی منزل کے مطابق ہو گی۔",
+  "sales.live.floorLine": "{name}: {area} مربع فٹ · {rooms} کمرہ ({wet} گیلا)",
+  "sales.live.unit.bags": "{n} بوری",
+  "schedule.gantt.chartLabel": "شیڈول ٹائم لائن، {n} مرحلہ",
+  "schedule.generate.done": "شیڈول بن گیا — {n} مرحلہ",
+  "schedule.stoppages.approvedShift": "کام بند دن منظور — {n} مرحلہ ہلا، منصوبے کا اختتام {date}",
+  "billing.reports.nRows": "{n} قطار",
+  "billing.receivables.nProjects": "{n} پراجیکٹ",
+  "estimates.boq.linesCount": "{n} لائن",
+  "equipment.charges.accrualDone": "{through} تک چارجز درج ({n} لائن)",
+  "imports.allValid": "{n} لائن امپورٹ کے لیے تیار ہے۔",
+  "imports.import": "{n} لائن امپورٹ کریں",
+  "estimates.shopping.items": "{n} چیز",
+  "app.components.approval.titleWithCount": "{label} — {n} اندراج",
+  "changeOrders.builder.incomplete": "{n} آئٹم کی مقدار یا ریٹ ابھی باقی ہے۔",
+  "changeOrders.instructions.photoCount": "{n} تصویر",
+  "cashSite.site.nPhotos": "{n} تصویر",
+  "cashSite.site.nEntries": "{n} اندراج",
+  "control.common.points": "{n} پوائنٹ",
+  "control.common.signedPoints": "{sign}{n} پوائنٹ",
+  "control.burn.gapHint": "{n} پوائنٹ سے اوپر نشان لگتا ہے",
+  "dashboard.payments": "{n} ادائیگی",
+  "dashboard.dispatchesOnWay": "{n} گاڑی راستے میں",
+  "dashboard.subsOverpaid": "{n} ذیلی ٹھیکیدار کو زائد ادائیگی",
+  "roles.permissionsCount": "{n} اجازت",
+  "app.components.money.nStagesReady": "{n} مرحلہ بل کے لیے تیار",
+  "labor.pay.titleMany": "{n} کاریگر کو ادائیگی",
+  "masterData.common.nRatesSaved": "{n} ریٹ محفوظ ہو گیا",
+  "masterData.bulk.nUpdated": "{n} ریٹ {percent}% بدل گیا",
+  "masterData.categories.addedWithRates": "{name} {n} ریٹ کے ساتھ شامل ہو گیا",
+  "closeout.handover.openSnags": "{n} خامی کی ابھی تصدیق نہیں ہوئی",
+  "closeout.handover.acceptOpenSnags": "{n} کھلی خامی کے ساتھ حوالے کریں (وہ فہرست پر رہے گی)",
+  "projects.estimate.formula.bars": "#{bar} ({mm} ملی میٹر): {count} سریا، {length} فٹ × {kgPerFt} کلو فی فٹ",
+  "projects.estimate.formula.columns": "{count} کالم × {widthIn}″ × {depthIn}″ × {height} فٹ",
+  "projects.estimate.formula.columnShuttering": "{count} کالم × 2 × ({widthIn}″ + {depthIn}″) × {height} فٹ",
+  "projects.foundation.pilesValue": "{count} پائل · {diameter} انچ × {depth} فٹ",
+  "projects.estimate.formula.lintels": "{count} دروازہ/کھڑکی، جوڑ (چوڑائی + {bearing} فٹ) = {length} فٹ × {widthIn}″ × {depthIn}″",
+  "projects.estimate.formula.lintelsDetailed": "{count} اوپننگ، کل (چوڑائی + {bearing} فٹ) × دیوار کی موٹائی × {depthIn}″ = {volume} مکعب فٹ",
+};
+
+export const SINGULAR: Record<UiLanguage, Partial<Record<TranslationKey, string>>> = { en: EN_SINGULAR, "roman-ur": ROMAN_SINGULAR, ur: UR_SINGULAR };
+
+/** The count a text's singular form depends on (the first of COUNT_VARS given), or null. */
+export function countOf(vars: Record<string, string | number> | undefined): number | null {
+  if (!vars) return null;
+  for (const name of COUNT_VARS) if (name in vars) return Number(vars[name]);
+  return null;
+}

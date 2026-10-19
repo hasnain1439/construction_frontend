@@ -13,25 +13,13 @@ import { COMPANY_ROUTES } from "@/lib/companyRoutes.generated";
 import { COMPANY_NAV, CREATE_ACTIONS, PROJECT_NAV, type NavItem } from "@/lib/navigation";
 import type { AccessRule } from "@/lib/permissions";
 
-/** Phase 1 pages without a page-level gate (the view or the API decides). Do not add new ones. */
+/**
+ * Phase 1 pages without a page-level gate (the view or the API decides). Do not add new ones.
+ * QA-C-02: the site, labour and cash pages now gate themselves, so they are no longer listed.
+ */
 const LEGACY_UNGATED = new Set([
   "projects.all",
   "projects.closed",
-  "p.site.logs",
-  "p.site.incoming",
-  "p.site.deliveries",
-  "p.site.usage",
-  "p.site.stock",
-  "p.site.counts",
-  "p.labor.team",
-  "p.labor.hazri",
-  "p.labor.measurements",
-  "p.labor.peshgi",
-  "p.labor.settlements",
-  "p.cash.kharcha",
-  "p.cash.floats",
-  "p.cash.topups",
-  "p.cash.counts",
 ]);
 
 interface Resolved {
@@ -141,5 +129,42 @@ describe("navigation ↔ pages", () => {
       return !r || pageGate(r) !== null;
     });
     expect(stale).toEqual([]);
+  });
+});
+
+/**
+ * QA-C-02 (re-test): a page gated with "any of" opens for a user who holds only ONE of the keys, so
+ * every API call on it must be either open to each of those keys (the API also takes any of them) or
+ * gated in the view by its own key (`useCan("<key>")` + `skip`). Every "any of" menu item is listed
+ * here; new ones must say which way they work.
+ */
+const ANY_GATES: Record<string, { apiAcceptsAny: string } | { view: string; sections: string[] }> = {
+  "team.members": { apiAcceptsAny: "GET /users takes team.member.view or team.member.manage" },
+  "p.changes.instructions": { apiAcceptsAny: "GET /projects/:id/site-instructions takes view or create" },
+  "p.site.deliveries": {
+    view: "src/features/site/SiteViews.tsx",
+    sections: ["procurement.dispatch.view", "procurement.purchase.view", "inventory.ownerdelivery.view"],
+  },
+};
+
+describe("pages with an 'any of' gate", () => {
+  const anyItems = items.filter(({ item }) => (item.access?.anyPermission?.length ?? 0) > 0);
+
+  it("every 'any of' menu item is listed with how its sections are gated", () => {
+    expect(anyItems.map(({ item }) => item.id).sort()).toEqual(Object.keys(ANY_GATES).sort());
+  });
+
+  it("a view that gates its sections checks every key of the gate (and fetches with skip)", () => {
+    const problems: string[] = [];
+    for (const { item } of anyItems) {
+      const rule = ANY_GATES[item.id];
+      if (!rule || !("view" in rule)) continue;
+      const src = readFileSync(rule.view, "utf8");
+      for (const key of new Set([...(item.access?.anyPermission ?? []), ...rule.sections])) {
+        if (!src.includes(`useCan("${key}")`)) problems.push(`${item.id}: ${rule.view} never checks useCan("${key}")`);
+      }
+      if (!/\{ skip: !can\w+ \}/.test(src)) problems.push(`${item.id}: ${rule.view} fetches without a permission skip`);
+    }
+    expect(problems).toEqual([]);
   });
 });

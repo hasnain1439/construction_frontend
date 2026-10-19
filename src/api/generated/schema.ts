@@ -1507,6 +1507,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Look at an invitation before accepting it
+         * @description Public (the token is the secret). The company, the invited name and the permission role given on accept — for the invite page header.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Token from the invitation link */
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The invitation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["InvitationPreview"];
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVITE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVITE_ALREADY_ACCEPTED */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description INVITE_EXPIRED | INVITE_CANCELLED */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description RATE_LIMITED */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invitations/{token}/accept": {
         parameters: {
             query?: never;
@@ -33640,6 +33731,7 @@ export interface paths {
                          *             "depositPaisa": "2000000",
                          *             "depositRefundedPaisa": "0",
                          *             "damageChargesPaisa": "0",
+                         *             "missingChargesPaisa": "0",
                          *             "rentChargedPaisa": "0",
                          *             "accruedToDatePaisa": "3600000",
                          *             "postedPaisa": "3375000",
@@ -34580,7 +34672,7 @@ export interface paths {
         };
         /**
          * Rentals from yards
-         * @description equipment.view (rentals of projects in scope; yard rentals for equipment managers). accruedToDatePaisa = days × outstanding × rate up to today (live); postedPaisa = daily charges posted. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
+         * @description equipment.view (rentals of projects in scope; yard rentals for equipment managers). daysOnRent / accruedToDatePaisa = from the start day up to (not including) the return date, or today while on hire — the same days the bill at return charges; postedPaisa = daily charges posted. Rates, values and amounts are left out without fields.rates (Munshi never sees them).
          */
         get: {
             parameters: {
@@ -34655,6 +34747,7 @@ export interface paths {
                          *           "depositPaisa": "2000000",
                          *           "depositRefundedPaisa": "0",
                          *           "damageChargesPaisa": "0",
+                         *           "missingChargesPaisa": "0",
                          *           "rentChargedPaisa": "0",
                          *           "accruedToDatePaisa": "3600000",
                          *           "postedPaisa": "3375000",
@@ -34825,6 +34918,7 @@ export interface paths {
                          *         "depositPaisa": "2000000",
                          *         "depositRefundedPaisa": "0",
                          *         "damageChargesPaisa": "0",
+                         *         "missingChargesPaisa": "0",
                          *         "rentChargedPaisa": "0",
                          *         "accruedToDatePaisa": "3600000",
                          *         "postedPaisa": "3375000",
@@ -34975,6 +35069,7 @@ export interface paths {
                          *         "depositPaisa": "2000000",
                          *         "depositRefundedPaisa": "0",
                          *         "damageChargesPaisa": "0",
+                         *         "missingChargesPaisa": "0",
                          *         "rentChargedPaisa": "0",
                          *         "accruedToDatePaisa": "3600000",
                          *         "postedPaisa": "3375000",
@@ -35119,6 +35214,7 @@ export interface paths {
                          *         "depositPaisa": "2000000",
                          *         "depositRefundedPaisa": "0",
                          *         "damageChargesPaisa": "0",
+                         *         "missingChargesPaisa": "0",
                          *         "rentChargedPaisa": "0",
                          *         "accruedToDatePaisa": "3600000",
                          *         "postedPaisa": "3375000",
@@ -35204,7 +35300,7 @@ export interface paths {
         put?: never;
         /**
          * Return to the yard (partly or fully), with damage charges
-         * @description equipment.rental.manage. `qty` leaves the location (RENTAL_RETURN_OUT); `missingQty` = never handed back and must already be reported as a MISSING loss (400 MISSING_NOT_REPORTED). Damage charges → supplier ledger (RENTAL_DAMAGE). When nothing is outstanding: the remaining days are posted, rent = Σ daily RENTAL charges → supplier ledger (RENTAL_CHARGE), status RETURNED. Return day is not charged.
+         * @description equipment.rental.manage. `qty` leaves the location (RENTAL_RETURN_OUT); `missingQty` = never handed back and must already be reported as a MISSING loss (400 MISSING_NOT_REPORTED). Damage charges → supplier ledger (RENTAL_DAMAGE). Missing pieces → supplier ledger (RENTAL_MISSING): missingChargesPaisa, default missing qty × the equipment replacement value. When nothing is outstanding: the remaining days are posted, rent = Σ daily RENTAL charges → supplier ledger (RENTAL_CHARGE), status RETURNED. Return day is not charged.
          */
         post: {
             parameters: {
@@ -35250,6 +35346,11 @@ export interface paths {
                          * @example 450000
                          */
                         damageChargesPaisa?: string | number;
+                        /**
+                         * @description What the yard bills for the missing pieces (supplier ledger RENTAL_MISSING). Default: missing qty × the equipment’s replacement value
+                         * @example 1050000
+                         */
+                        missingChargesPaisa?: string | number;
                         note?: string;
                     };
                 };
@@ -35311,6 +35412,7 @@ export interface paths {
                          *         "depositPaisa": "2000000",
                          *         "depositRefundedPaisa": "0",
                          *         "damageChargesPaisa": "450000",
+                         *         "missingChargesPaisa": "0",
                          *         "rentChargedPaisa": "3375000",
                          *         "accruedToDatePaisa": "3600000",
                          *         "postedPaisa": "3375000",
@@ -35477,6 +35579,7 @@ export interface paths {
                          *         "depositPaisa": "2000000",
                          *         "depositRefundedPaisa": "0",
                          *         "damageChargesPaisa": "0",
+                         *         "missingChargesPaisa": "0",
                          *         "rentChargedPaisa": "0",
                          *         "accruedToDatePaisa": "3600000",
                          *         "postedPaisa": "3375000",
@@ -54560,7 +54663,7 @@ export interface paths {
         head?: never;
         /**
          * Set a revision’s approval date / notes
-         * @description closeout.drawing.manage. `approvedAt: null` clears the approval.
+         * @description closeout.drawing.manage. `approvedAt: null` clears the approval. Only the latest revision can be approved (409 REVISION_SUPERSEDED).
          */
         patch: {
             parameters: {
@@ -54716,7 +54819,7 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description PROJECT_LOCKED */
+                /** @description PROJECT_LOCKED | REVISION_SUPERSEDED */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -63707,6 +63810,27 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             current: boolean;
+        };
+        InvitationPreview: {
+            /** @example Malik & Sons Builders */
+            companyName: string;
+            /**
+             * @description The invited person
+             * @example Kamran Shah
+             */
+            name: string;
+            /**
+             * @description Account type
+             * @enum {string}
+             */
+            role: "THEKEDAR" | "PM" | "MUNSHI";
+            /**
+             * @description Permission role(s) given on accept, in the invite language
+             * @example Accountant
+             */
+            roleName: string | null;
+            /** Format: date-time */
+            expiresAt: string;
         };
         AdminAuthResult: {
             admin: components["schemas"]["PlatformAdmin"];

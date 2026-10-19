@@ -27,7 +27,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   v: {
     chooseWorker: "کاریگر منتخب کریں",
-    chooseSubcontractor: "ٹھیکیدار منتخب کریں",
+    chooseSubcontractor: "ذیلی ٹھیکیدار منتخب کریں",
     choosePayee: "منتخب کریں کہ پیشگی کس کو دی",
     chooseSubContract: "ٹھیکہ منتخب کریں",
     retentionMax: "روکی گئی رقم زیادہ سے زیادہ 20% ہو سکتی ہے",
@@ -81,7 +81,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   measureForm: {
     title: "ناپ درج کریں",
-    description: "ناپ والے ٹھیکیدار کا کیا ہوا کام۔ دفتر کی تصدیق کے بعد اس کی قیمت کھاتے میں جڑتی ہے۔",
+    description: "ناپ والے ذیلی ٹھیکیدار کا کیا ہوا کام۔ دفتر کی تصدیق کے بعد اس کی قیمت کھاتے میں جڑتی ہے۔",
     submit: "ناپ محفوظ کریں",
     saved: "ناپ محفوظ ہو گیا — دفتر اس کی تصدیق کرے گا",
     optionDesc: "{scope} · فی {unit}",
@@ -121,7 +121,7 @@ export const strings: Widen<typeof En.strings> = {
     rejected: "ناپ مسترد کر دیا",
     pendingOne: "1 ناپ کی تصدیق باقی",
     pendingMany: "{n} ناپ کی تصدیق باقی",
-    officeHint: "سائٹ پر کام دیکھیں، پھر تصدیق کریں — قیمت ٹھیکیدار کے کھاتے میں جائے گی۔",
+    officeHint: "سائٹ پر کام دیکھیں، پھر تصدیق کریں — قیمت ذیلی ٹھیکیدار کے کھاتے میں جائے گی۔",
     munshiHint: "دفتر ان کی تصدیق کرتا ہے۔",
     title: "ناپ",
     empty: "ابھی کوئی ناپ نہیں",
@@ -195,7 +195,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "ابھی کوئی اندراج نہیں",
   },
   accounts: {
-    crumb: "ٹھیکیداروں کے کھاتے",
+    crumb: "ذیلی ٹھیکیداروں کے کھاتے",
     toVerify: "{n} تصدیق باقی",
     done: "ہوا",
     overpaidCount: "{n} کو زیادہ ادائیگی",
@@ -263,7 +263,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   detail: {
     workersDirectory: "مزدوروں کی فہرست",
-    subcontractors: "ٹھیکیدار",
+    subcontractors: "ذیلی ٹھیکیدار",
     normalRate: "عام ریٹ {rate} یومیہ",
     sitesNow: "موجودہ سائٹس",
     daysThisWeek: "اس ہفتے کے دن",
@@ -297,7 +297,7 @@ export const enums: Widen<typeof En.enums> = {
     EXPENSE: "خرچہ",
     PESHGI: "پیشگی",
     WAGE_PAYMENT: "مزدوری",
-    SUBCONTRACT_PAYMENT: "ٹھیکیدار کو ادائیگی",
+    SUBCONTRACT_PAYMENT: "ذیلی ٹھیکیدار کو ادائیگی",
     PURCHASE: "مال خریدا",
     HANDOVER_OUT: "حوالے کیا",
     HANDOVER_IN: "وصول (حوالگی)",

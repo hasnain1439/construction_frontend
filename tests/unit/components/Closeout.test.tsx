@@ -33,7 +33,7 @@ const DRAWING: Drawing = {
   createdAt: "2026-03-02T07:00:00.000Z",
   updatedAt: "2026-06-18T09:30:00.000Z",
 };
-const DETAIL: DrawingDetail = { ...DRAWING, revisions: [rev(1, true), rev(0, false)] };
+let DETAIL: DrawingDetail = { ...DRAWING, revisions: [rev(1, true), rev(0, false)] };
 
 const snag = (over: Partial<Snag>): Snag => ({
   id: "s1",
@@ -183,6 +183,23 @@ describe("Closeout — drawings", () => {
     expect(screen.getByRole("button", { name: "Upload new revision" })).toBeInTheDocument();
   });
 
+  it("QA-C-23: only the latest revision offers \"Mark approved today\"", async () => {
+    const saved = DETAIL;
+    DETAIL = { ...DRAWING, revisions: [rev(1, true), { ...rev(0, false), approvedAt: null }] };
+    try {
+      const user = userEvent.setup();
+      renderWithStore(<DrawingsView projectId="p1" />, { me: meFixture("THEKEDAR") });
+      await user.click(screen.getByText("Ground floor plan"));
+      const r0 = await screen.findByTestId("revision-0");
+      expect(within(r0).queryByRole("button", { name: "Mark approved today" })).toBeNull();
+      expect(within(screen.getByTestId("revision-1")).getByRole("button", { name: "Mark approved today" })).toBeInTheDocument();
+      // Revision notes follow their own direction (QA-C-13).
+      expect(within(r0).getByText("Society set")).toHaveAttribute("dir", "auto");
+    } finally {
+      DETAIL = saved;
+    }
+  });
+
   it("Munshi sees the drawings but cannot add or upload", () => {
     renderWithStore(<DrawingsView projectId="p1" />, { me: meFixture("MUNSHI") });
     expect(screen.getByText("Ground floor plan")).toBeInTheDocument();
@@ -221,6 +238,10 @@ describe("Closeout — snags", () => {
     expect(await screen.findByText("Snag SN-001")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open photo 1" })).toBeInTheDocument();
     expect(screen.getByText(/Logged by Rafaqat Ali/)).toBeInTheDocument();
+    // QA-C-27: the read-only field says who it is assigned to, not the form's "Assign to".
+    const detail = screen.getByRole("dialog");
+    expect(within(detail).getByText("Assigned to")).toBeInTheDocument();
+    expect(within(detail).queryByText("Assign to")).toBeNull();
   });
 });
 
@@ -249,6 +270,11 @@ describe("Closeout — handover", () => {
     await user.type(await screen.findByLabelText(/Note/), "Cards in the blue file");
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(setItem).toHaveBeenCalledWith({ projectId: "p1", key: "WARRANTY_CARDS", body: { done: false, note: "Cards in the blue file" } }));
+  });
+
+  it("QA-C-13: a checklist note keeps its own direction (\"3 sets\" stays first in Urdu)", () => {
+    renderWithStore(<HandoverBody project={PROJECT} />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByText("3 sets")).toHaveAttribute("dir", "auto");
   });
 
   it("a PM without projects.project.manage fills the checklist but cannot complete", () => {

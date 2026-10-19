@@ -1,7 +1,7 @@
 "use client";
 
 import type { EstimateWarning } from "@/api/types";
-import { isTranslationKey, useEnumT, useT } from "@/i18n/useT";
+import { hasAllVars, isTranslationKey, useEnumT, useT } from "@/i18n/useT";
 
 /** What a warning carries: the estimate's, the BoQ's and a quote's warnings all fit. */
 export interface WarningLike {
@@ -31,6 +31,9 @@ export function useEstimateWarningText() {
       materials: (w.materials ?? (w.code === "RATES_MISSING" ? w.items : undefined) ?? []).map((m) => keyText(`projects.estimate.material.${m}`, `estimates.material.${m}`, m)).join(", "),
       items: (w.items ?? []).map((i) => keyText(`projects.estimate.labour.item.${i}`, `estimates.item.${i}`, i)).join(", "),
     };
+    // R1-N1: a warning stored before params existed (old quotes) has only code + message — show the
+    // stored message rather than a sentence with "{actual}" or an empty list.
+    if (!hasAllVars(key, vars)) return w.message?.trim() ? w.message : t(key, vars);
     return t(key, vars);
   };
 }

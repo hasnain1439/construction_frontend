@@ -8,7 +8,7 @@ import { en, type Dictionary } from "./en";
 import { romanUr } from "./roman-ur";
 import { ur } from "./ur";
 import { decodeMsg } from "./message";
-import { EN_SINGULAR } from "./plurals";
+import { countOf, SINGULAR } from "./plurals";
 
 const DICTIONARIES: Record<UiLanguage, Dictionary> = { en, "roman-ur": romanUr, ur };
 
@@ -25,8 +25,17 @@ export type TranslationKey = Leaves<Dictionary>;
 /** Values for `{name}` placeholders, e.g. `t("dashboard.atRisk", { n: 2 })`. */
 export type TranslationVars = Record<string, string | number>;
 
+const PLACEHOLDER = /\{(\w+)\}/g;
+
+/**
+ * Fills `{name}` placeholders. When values are passed, a placeholder without one becomes "—" so a
+ * raw `{name}` never reaches the screen (R1-N1: old stored data without params).
+ */
 const fill = (text: string, vars?: TranslationVars) =>
-  vars ? text.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match)) : text;
+  vars ? text.replace(PLACEHOLDER, (_match, name: string) => (vars[name] !== undefined && vars[name] !== null ? String(vars[name]) : "—")) : text;
+
+/** The `{placeholders}` of a string, e.g. `["actual", "norm"]`. */
+export const placeholdersOf = (text: string): string[] => [...text.matchAll(PLACEHOLDER)].map((m) => m[1]!);
 
 const lookup = (dict: Dictionary, key: string): string | undefined => {
   let node: unknown = dict;
@@ -38,8 +47,9 @@ const lookup = (dict: Dictionary, key: string): string | undefined => {
 export const isTranslationKey = (text: string): text is TranslationKey => /^[a-z]\w*(\.[\w-]+)+$/.test(text) && lookup(en, text) !== undefined;
 
 export function translate(language: UiLanguage, key: TranslationKey, vars?: TranslationVars): string {
-  if (language === "en" && vars && Number(vars.n) === 1) {
-    const singular = EN_SINGULAR[key];
+  // Singular forms when the text's count is 1, in every language (QA-B-24, QA-A-32, R1-N4).
+  if (vars && countOf(vars) === 1) {
+    const singular = (SINGULAR[language] ?? SINGULAR.en)[key];
     if (singular !== undefined) return fill(singular, vars);
   }
   const own = lookup(dictionaryOf(language), key);
@@ -47,6 +57,16 @@ export function translate(language: UiLanguage, key: TranslationKey, vars?: Tran
   // Fall back to English, then to the key itself (never crash on a missing string).
   const fallback = lookup(en, key);
   return fallback !== undefined ? fill(fallback, vars) : key;
+}
+
+/** True when `vars` has a non-empty value for every `{placeholder}` of the (English) string `key`. */
+export function hasAllVars(key: TranslationKey, vars: TranslationVars | undefined): boolean {
+  const text = lookup(en, key);
+  if (text === undefined) return false;
+  return placeholdersOf(text).every((name) => {
+    const v = vars?.[name];
+    return v !== undefined && v !== null && String(v).trim() !== "";
+  });
 }
 
 /**

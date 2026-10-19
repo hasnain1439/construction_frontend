@@ -24,6 +24,7 @@ export const ENDPOINTS = {
     mePreferences: "/auth/me/preferences",
     sessions: "/auth/sessions",
     acceptInvitation: (token: string) => `/invitations/${id(token)}/accept`,
+    invitationPreview: (token: string) => `/invitations/${id(token)}`,
   },
 
   adminAuth: {

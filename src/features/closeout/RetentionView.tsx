@@ -24,12 +24,13 @@ import { useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { projectHref } from "@/lib/navigation";
 import { reminderSchema, type ReminderValues } from "./schemas";
+import { RETENTION_EDIT_STATUSES } from "./shared";
 
 /** Project → Documents & Closeout → Retention: due dates after handover, held amounts (gated), reminders. */
 export function RetentionView({ projectId }: { projectId: string }) {
   const t = useT();
   return (
-    <ProjectPageShell projectId={projectId} crumb={t("closeout.retention.crumb")}>
+    <ProjectPageShell projectId={projectId} crumb={t("closeout.retention.crumb")} editableStatuses={RETENTION_EDIT_STATUSES}>
       {() => <RetentionBody projectId={projectId} />}
     </ProjectPageShell>
   );

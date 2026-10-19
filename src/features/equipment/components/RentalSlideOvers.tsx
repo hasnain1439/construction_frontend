@@ -261,6 +261,7 @@ export function ReturnRentalSlideOver({
     values: {
       returnDate: todayPK(),
       damageChargesPaisa: null,
+      missingChargesPaisa: null,
       note: "",
       items: open_.map((i) => ({
         rentalItemId: i.id,
@@ -271,8 +272,11 @@ export function ReturnRentalSlideOver({
       })),
     },
   });
+  const watchedItems = useWatch({ control: form.control, name: "items" });
+  const anyMissingNow = (watchedItems ?? []).some((i) => Number(i?.missingQty ?? 0) > 0);
   if (!rental) return null;
   const onSubmit = async (v: z.output<typeof returnSchema>) => {
+    const anyMissing = v.items.some((i) => Number(i.missingQty ?? 0) > 0);
     const items = v.items
       .filter((i) => Number(i.qty ?? 0) > 0 || Number(i.missingQty ?? 0) > 0)
       .map((i) => ({
@@ -289,6 +293,7 @@ export function ReturnRentalSlideOver({
             returnDate: v.returnDate,
             items,
             ...(rates && v.damageChargesPaisa ? { damageChargesPaisa: v.damageChargesPaisa } : {}),
+            ...(rates && anyMissing && v.missingChargesPaisa ? { missingChargesPaisa: v.missingChargesPaisa } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -362,6 +367,13 @@ export function ReturnRentalSlideOver({
               name="damageChargesPaisa"
               label={t("equipment.field.damageCharges")}
               hint={t("equipment.rental.damageHint")}
+            />
+          ) : null}
+          {rates && anyMissingNow ? (
+            <MoneyField
+              name="missingChargesPaisa"
+              label={t("equipment.qaFixes.missingCharges")}
+              hint={t("equipment.qaFixes.missingChargesHint")}
             />
           ) : null}
         </FieldGrid>

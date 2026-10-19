@@ -238,7 +238,7 @@ describe("ImportWizard", () => {
       // All-or-nothing: nothing can be imported until the bad rows are skipped.
       expect(screen.getByRole("button", { name: "Import 0 rows" })).toBeDisabled();
       await user.click(screen.getByLabelText("Import only the 1 good rows (skip 1 with problems)"));
-      await user.click(screen.getByRole("button", { name: "Import 1 rows" }));
+      await user.click(screen.getByRole("button", { name: "Import 1 row" }));
       expect(calls.commit).toHaveBeenCalledWith({ entity: "workers", file, skipInvalid: true });
       await waitFor(() => expect(screen.getAllByText("1 imported, 1 skipped").length).toBeGreaterThan(0));
       expect(screen.getAllByRole("button", { name: "Close" }).length).toBe(2); // the panel’s X and the footer button

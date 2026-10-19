@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysUntil, formatDate, formatDateTime, formatMonth, isEndBeforeStart, todayPK } from "@/lib/dates";
+import { daysUntil, formatDate, formatDateRange, formatDateTime, formatMonth, isEndBeforeStart, todayPK } from "@/lib/dates";
 
 describe("dates in Asia/Karachi", () => {
   it("formats calendar dates without shifting them", () => {
@@ -44,6 +44,22 @@ describe("dates in right-to-left pages", () => {
     try {
       expect(formatDate("2026-10-08")).toBe("⁦8 Oct 2026⁩");
       expect(formatDate(null)).toBe("—");
+    } finally {
+      document.documentElement.dir = "ltr";
+    }
+  });
+});
+
+describe("date ranges (QA-C-12)", () => {
+  it("in RTL the whole range is one left-to-right unit, start first", () => {
+    expect(formatDateRange("2026-10-12", "2026-10-18")).toBe("12 Oct 2026 – 18 Oct 2026");
+    document.documentElement.dir = "rtl";
+    try {
+      const range = formatDateRange("2026-10-12", "2026-10-18");
+      expect(range.startsWith("⁦")).toBe(true);
+      expect(range.endsWith("⁩")).toBe(true);
+      expect(range.indexOf("12 Oct 2026")).toBeLessThan(range.indexOf("18 Oct 2026"));
+      expect(formatDateRange("2026-10-12", null)).toContain("…");
     } finally {
       document.documentElement.dir = "ltr";
     }

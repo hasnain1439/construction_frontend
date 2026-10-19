@@ -5,6 +5,7 @@ import type {
   AuthResult,
   ForgotPasswordBody,
   ForgotPasswordResult,
+  InvitationPreview,
   LoggedOut,
   LoginBody,
   LogoutAllResult,
@@ -57,6 +58,10 @@ export const authApi = baseApi.injectEndpoints({
       query: ({ token, body }) => ({ url: ENDPOINTS.auth.acceptInvitation(token), method: "POST", body: web(body) }),
       invalidatesTags: ["Me"],
     }),
+    /** Public: who invited this person and as what (no cache sharing between tokens). */
+    getInvitationPreview: build.query<InvitationPreview, string>({
+      query: (token) => ENDPOINTS.auth.invitationPreview(token),
+    }),
     getMe: build.query<Me, void>({
       query: () => ENDPOINTS.auth.me,
       providesTags: ["Me"],
@@ -91,6 +96,7 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useAcceptInvitationMutation,
+  useGetInvitationPreviewQuery,
   useGetMeQuery,
   useUpdateMeMutation,
   useUpdatePreferencesMutation,

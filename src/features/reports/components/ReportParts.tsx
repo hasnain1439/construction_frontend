@@ -113,7 +113,7 @@ export function ReportTableCard({
         error={error}
         onRetry={onRetry}
         clientPageSize={pageSize}
-        className={cols.length >= 10 ? DENSE_TABLE : undefined}
+        className={cols.length >= 8 ? DENSE_TABLE : undefined}
         empty={{ title: t("reports.common.nothing"), description: t("reports.common.nothingDesc"), icon: FileBarChart }}
       />
       {shownTotals.length ? (

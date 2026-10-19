@@ -36,7 +36,7 @@ import { wizardHref } from "../utils/links";
 import { ProjectPageShell } from "../views/ProjectModeViews";
 import { EstimateSettingsModal } from "./EstimateSettingsModal";
 import { BoqWorkspace } from "@/features/estimates/BoqWorkspace";
-import { iso } from "@/features/estimates/labels";
+import { boqRateUnit, iso } from "@/features/estimates/labels";
 import { fmt, fmtUp, formulaText, lineText, materialText, rupees, unitText } from "./labels";
 
 type T = ReturnType<typeof useT>;
@@ -511,7 +511,7 @@ function RateCell({
     return <StatusBadge tone="warning" label={t("projects.estimate.unitMismatch")} />;
   return (
     <span className="tabular whitespace-nowrap">
-      <bdi>{t("projects.estimate.perUnit", { rate: formatPKR(ratePaisa), unit: unitText(t, rateUnit) })}</bdi>
+      <bdi>{t("projects.estimate.perUnit", { rate: formatPKR(ratePaisa), unit: boqRateUnit(t, rateUnit) })}</bdi>
     </span>
   );
 }

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
-import { useAcceptInvitationMutation } from "@/api/services/auth.api";
+import { useAcceptInvitationMutation, useGetInvitationPreviewQuery } from "@/api/services/auth.api";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
@@ -51,8 +51,14 @@ export function AcceptInviteView({ token }: { token: string }) {
   const language = useLanguage();
   const afterLogin = useAfterLogin();
   const [accept, { isLoading }] = useAcceptInvitationMutation();
+  // Name the company and the role in the header (QA-C-16); the generic text is the fallback.
+  const previewQuery = useGetInvitationPreviewQuery(token);
+  const preview = previewQuery.data;
   const [formError, setFormError] = useState<string | null>(null);
-  const [deadCode, setDeadCode] = useState<string | null>(null);
+  const [deadCodeAfterAccept, setDeadCode] = useState<string | null>(null);
+  // A cancelled / expired / unknown link shows at once, before the form is filled in.
+  const previewCode = errorCode(previewQuery.error);
+  const deadCode = deadCodeAfterAccept ?? (previewCode && DEAD_LINK.has(previewCode) ? previewCode : null);
   const form = useForm<z.input<typeof acceptInviteSchema>, unknown, z.output<typeof acceptInviteSchema>>({
     resolver: zodResolver(acceptInviteSchema),
     defaultValues: { name: "", password: "", confirmPassword: "", munshi: false },
@@ -105,7 +111,13 @@ export function AcceptInviteView({ token }: { token: string }) {
   return (
     <AuthCard
       title={t("app.auth.invitedTitle")}
-      description={t("app.auth.invitedDesc")}
+      description={
+        preview
+          ? preview.roleName
+            ? t("app.qaFixes.invitedByAs", { company: preview.companyName, role: preview.roleName })
+            : t("app.qaFixes.invitedBy", { company: preview.companyName })
+          : t("app.auth.invitedDesc")
+      }
       icon={
         <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
           <MailOpen className="size-6" aria-hidden />

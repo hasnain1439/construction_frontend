@@ -6,6 +6,26 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### QA re-test fixes (areas A, C)
+
+- **QA-C-02:** Site deliveries opens with either permission, so each section now fetches only with its own key: the received list uses `/dispatches` only with `procurement.dispatch.view` and `/purchases` only with `procurement.purchase.view`; the Owner deliveries tab (and `/owner-deliveries`) needs `inventory.ownerdelivery.view`; the record buttons need the matching create key. An Accountant no longer gets 403s or the permission toast there. The navigation test now lists every "any of" menu item and checks that a view gating its sections calls `useCan` for each key and fetches with `skip`.
+- **R1-N1:** quote / estimate warnings stored before params existed (code + message only) show their stored message instead of "{actual}" placeholders or an empty "No price-list rate for: ." list. `translate()` never leaves a raw `{placeholder}` when values are passed (a missing one reads "—"), and `hasAllVars()` tells whether a string can be filled.
+- **R1-N2:** the "Use as contract value" dialog says "The new value is Rs 34,53,000 lower / higher than the current one" (amount without a sign) in all three languages.
+- **R1-N3:** outside the wizard, the "Contract value from this estimate" card says the value can be changed in Edit project → Contract & Supply instead of "step 2".
+- **R1-N5:** New invoice marks a stage that already has a draft invoice "(draft invoice exists)" and disables it.
+
+### QA re-test fixes (area B)
+- **Urdu dates read naturally again (R2-B-01):** a date with an Urdu month name is a right-to-left island ("17 فروری 2027", not "فروری 2027 17") on the Gantt, Overview, alerts and everywhere else; only Latin dates and numbers are left-to-right islands.
+- **Money and quantities in Urdu (QA-B-04):** every formatted amount is a left-to-right island on Urdu pages ("-Rs 36,470", never "Rs 36,470-"), also inside sentences; quantities read number-then-Urdu-unit with the sign in front.
+- **Units in the UI language (QA-A-10 / QA-A-28 / QA-B-24):** quota units on Milestones, the variance page, equipment / loss & damage, rental returns and change-order lines are translated (بوری, عدد, مکعب فٹ, ٹن, کلو, اینٹ …); "bags" / "tons" / "sq ft" spellings are recognised; English says "1 no." / "1 bag"; rates use the singular ("Rs 1,450 / bag").
+- **Singular forms in English, Roman Urdu and Urdu (QA-B-24 / QA-A-32 / R1-N4):** "Rain · 1 day", "1 kaam ka din", "1 کام کا دن", "1 room" / "1 کمرہ", "1 approved change order", "1 no. damaged" and more.
+- **Milestone names (QA-B-26):** the change-order builder's "Affected milestones", the change-order detail and the variance milestone filter show translated milestone names.
+- **Wide tables (QA-B-30):** the P&L and wide report tables (CO register) are dense — small text, tight padding, wrapping headers — and fit 1440 and 1280 px; they still scroll sideways inside the card on smaller screens.
+- **Stored UI preferences (R2-B-02):** `cw.ui` = `null` or any other non-object no longer crashes every page.
+- **Hydration warning (R2-B-05):** the page hydrates against the state the server rendered with, so a part that hydrates late (login form, pages with search params) no longer meets Urdu text against English server HTML.
+- Roman Urdu: "20 qataarein", "der se" instead of "rows" / "late" (R2-B-04). Export downloads keep their name on every storage provider (API change, QA-B-15).
+- Tests: `tests/unit/components/QaFixesR2B.test.tsx`.
+
 ### QA fixes (area A)
 - **One BoQ cost everywhere (QA-A-01 / 02):** the wizard Estimate step and Review show the BoQ total (direct + overheads + contingency) and its margin from the API's new `boqCost`; the old grey-structure cost summary is no longer shown next to it. "Contract value from this estimate" starts from the same total — on the BoQ page from the revision on screen (sent as `estimateId`), and says which revision it uses.
 - **No silent replace (QA-A-03):** replacing an existing contract value shows current vs suggested and the difference; lowering it, or replacing the price agreed in a won quote, needs a tick. "Finalize estimate" also offers "Keep current and continue".
@@ -39,6 +59,20 @@ All notable changes to the construction web app. The format follows [Keep a Chan
   - "Make change order" is not styled as dangerous.
   - The tax settings page shows no extra 403 toast for users without access.
 - API types regenerated.
+
+### QA fixes (area C)
+- **No more permission toasts on project pages for the Accountant (QA-C-01)**: the project shell loads the "Incoming Material" count only when that menu item is visible (`procurement.dispatch.view`); the same for the Purchases location filter (`inventory.stock.view`, QA-C-03) and Settings → Company / Alerts / Tax behind their gate.
+- **Page gates on the Phase 1 site, labour and cash pages (QA-C-02)**: Daily Logs, Incoming (and receiving), Deliveries (and site purchase), Usage, Stock, Counts, Team, Hazri, Measurements, Peshgi, Settlements (and detail), Kharcha, Floats, Top-ups and Cash Counts show "Not available for you" by URL, with the same rule as their menu item (the navigation test now checks them; only All / Closed projects stay ungated).
+- **Rentals**: the return form asks for the yard's **Missing pieces charge** when pieces are missing (empty = replacement value, QA-C-08); the rental and its returns show the missing-pieces charge, and each return line shows its damaged and missing pieces ("17 nos … (2 nos damaged, 3 nos missing)", QA-C-07). Days / rent to date follow the API's single rent-day rule (QA-C-04).
+- **Equipment on Site (QA-C-05)**: the KPI tiles are "Hire posted" / "Rent posted" (charges posted so far), so they no longer share the "Rent to date" label with the live per-rental figure.
+- **Owned Equipment (QA-C-06)**: "On rent" sits next to "Owned", and the location columns say "At sites (own + rented)" / "Yard (own + rented)", so Owned + On rent = At sites + Yard + In transit.
+- **Closeout pages (QA-C-09)**: no "records are read-only" banner on Handover (ACTIVE / CLOSEOUT), Retention (CLOSEOUT / HANDED_OVER), Drawings and Snags (until handed over) while their forms still work (`ProjectPageShell editableStatuses`).
+- **Urdu**: date ranges read start → end ("{from} سے {to} تک" in Shuttering Demand, dashboard and holidays; the date-range picker keeps the range as one left-to-right unit, QA-C-12); user notes and descriptions on equipment and closeout screens use `dir="auto"` ("3 sets — …" stays as typed, QA-C-13); a sub-contractor is "ذیلی ٹھیکیدار" / "Sub-contractor" everywhere (equipment, labour, workforce, cash, reports), never the owner's word "ٹھیکیدار" / "Theke daar" (QA-C-14).
+- **Team (QA-C-15)**: Members and Invitations show the permission role ("Accountant") first and label the PM / Munshi badge "Account type".
+- **Signup / invite (QA-C-16)**: the trial note says "2 active projects"; the invite page names the company and the role ("Malik & Sons Builders invited you to join them as Accountant") and shows a dead link at once.
+- **Drawings (QA-C-23)**: only the latest revision offers "Mark approved today".
+- Smaller: lighter placeholders and "e.g." examples on the Add equipment form (QA-C-24); the Shuttering Demand "Needed" line uses straight segments (QA-C-25); "1 loss recorded" / "2 losses recorded" (QA-C-26); the snag detail says "Assigned to" (QA-C-27); Admin → Company → Timeline shows who did it by name (QA-C-28); the dashboard greets "Welcome, {name}." (QA-C-29).
+- API types regenerated (`GET /invitations/{token}`, `missingChargesPaisa`, drawing `REVISION_SUPERSEDED`).
 
 ### Step 18 — Performance and polish
 - Every Phase 2 / 3 page now checks its permission itself (estimate, revisions, shopping list, rulebook, change orders + detail / edit / site instructions, drawings, snags, handover, retention), with the same key as its menu item; a new test walks the whole menu and checks every link opens a real page with a matching gate.

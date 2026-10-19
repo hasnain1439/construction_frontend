@@ -437,7 +437,20 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                   header: "Action",
                   cell: (a) => <span className="font-mono text-xs">{a.action}</span>,
                 },
-                { id: "actor", header: "By", cell: (a) => a.actorType.replace("_", " ").toLowerCase() },
+                {
+                  id: "actor",
+                  header: "By",
+                  // The person's name; the actor type only when there is none (system jobs) — QA-C-28.
+                  cell: (a) =>
+                    a.actorName ? (
+                      <span>
+                        {a.actorName}
+                        {a.actorType === "PLATFORM_ADMIN" ? <span className="text-muted-foreground"> · admin</span> : null}
+                      </span>
+                    ) : (
+                      a.actorType.replace("_", " ").toLowerCase()
+                    ),
+                },
                 { id: "entity", header: "Entity", cell: (a) => a.entityType ?? "—" },
               ]}
             />

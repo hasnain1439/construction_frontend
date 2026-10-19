@@ -1,7 +1,8 @@
 /**
  * Saves a signed file under `fileName` (QA-B-15: a cross-origin link saved as "file.pdf").
- * Fetches the bytes and saves them through a blob link; when the storage does not allow that
- * (no CORS), it opens the link instead — the API's `downloadUrl` already asks for an attachment.
+ * Export links are API links on every storage provider (R2-B-03: `/attachments/:id/file/<name>`,
+ * streamed by the API with `Content-Disposition` naming the file, CORS allowed for the web app), so
+ * the blob save works; if it still fails, opening the link saves it under the same name.
  */
 export async function downloadFile(url: string, fileName: string, fetchFn?: typeof fetch): Promise<"saved" | "opened"> {
   try {

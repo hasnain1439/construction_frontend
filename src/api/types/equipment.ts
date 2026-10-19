@@ -192,6 +192,8 @@ export interface RentalReturn {
   returnDate: IsoDate;
   location: LocationRef;
   damageChargesPaisa?: Paisa;
+  /** What the yard billed for pieces never handed back (QA-C-08). */
+  missingChargesPaisa?: Paisa;
   note: string | null;
   items: Array<{ rentalItemId: Id; qty: number; damagedQty: number; missingQty: number }>;
 }
@@ -213,6 +215,8 @@ export interface Rental {
   depositPaisa?: Paisa;
   depositRefundedPaisa?: Paisa;
   damageChargesPaisa?: Paisa;
+  /** What the yard billed for pieces never handed back (QA-C-08). */
+  missingChargesPaisa?: Paisa;
   rentChargedPaisa?: Paisa;
   accruedToDatePaisa?: Paisa;
   postedPaisa?: Paisa;

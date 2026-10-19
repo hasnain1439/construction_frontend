@@ -36,7 +36,7 @@ export const strings: Widen<typeof En.strings> = {
     by: "کس نے",
     worker: "کاریگر",
     workers: "کاریگر",
-    subcontractor: "ٹھیکیدار",
+    subcontractor: "ذیلی ٹھیکیدار",
     reason: "وجہ",
     reference: "حوالہ",
     method: "طریقہ",
@@ -215,7 +215,7 @@ export const strings: Widen<typeof En.strings> = {
 };
 
 export const enums: Widen<typeof En.enums> = {
-  measureUnit: { bag: "بوری", day: "دن", job: "کام", nos: "عدد", cft: "مکعب فٹ", kg: "کلو", sqft: "مربع فٹ", sft: "مربع فٹ", rft: "رننگ فٹ", gallon: "گیلن", litre: "لیٹر", ton: "ٹن", ls: "یکمشت", hour: "گھنٹہ", trip: "چکر", month: "مہینہ", week: "ہفتہ", point: "پوائنٹ", set: "سیٹ", coil: "کوائل", drum: "ڈرم", trolley: "ٹرالی", lot: "لاٹ", piece: "عدد" },
+  measureUnit: { bag: "بوری", day: "دن", job: "کام", nos: "عدد", cft: "مکعب فٹ", kg: "کلو", sqft: "مربع فٹ", sft: "مربع فٹ", rft: "رننگ فٹ", gallon: "گیلن", litre: "لیٹر", ton: "ٹن", ls: "یکمشت", hour: "گھنٹہ", trip: "چکر", month: "مہینہ", week: "ہفتہ", point: "پوائنٹ", set: "سیٹ", coil: "کوائل", drum: "ڈرم", trolley: "ٹرالی", lot: "لاٹ", piece: "عدد", brick: "اینٹ", tile: "ٹائل", block: "بلاک", sheet: "شیٹ", bundle: "گٹھا", roll: "رول", box: "ڈبہ" },
   region: { PUNJAB_KP: "پنجاب / خیبر پختونخوا", KARACHI_SINDH: "کراچی / سندھ" },
   regionDesc: { PUNJAB_KP: "اینٹ کی تعمیر", KARACHI_SINDH: "بلاک کی تعمیر" },
   userLanguage: { ENGLISH: "انگریزی", ROMAN_URDU: "رومن اردو", URDU: "اردو" },

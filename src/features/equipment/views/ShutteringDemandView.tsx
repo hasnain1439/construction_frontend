@@ -174,7 +174,8 @@ function DemandBody({
           { key: "owned", label: t("equipment.shuttering.ownedAvailable"), color: "var(--chart-1)" },
           { key: "onRent", label: t("equipment.shuttering.onRent"), color: "var(--chart-2)" },
           { key: "shortfall", label: t("equipment.shuttering.shortfall"), color: "var(--danger)" },
-          { key: "needed", label: t("equipment.shuttering.needed"), color: "var(--foreground)", kind: "line" },
+          // Weekly values: straight segments, never a curve dipping between weeks (QA-C-25).
+          { key: "needed", label: t("equipment.shuttering.needed"), color: "var(--foreground)", kind: "line", curve: "linear" },
         ]}
       />
       <WeeksTable weeks={weeks} />

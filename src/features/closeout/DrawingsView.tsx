@@ -47,6 +47,7 @@ export function DrawingsView({ projectId }: { projectId: string }) {
     <ProjectPageShell
       projectId={projectId}
       crumb={t("closeout.drawings.crumb")}
+      editableStatuses={DRAWING_EDIT_STATUSES}
       actions={(project) =>
         canManage && DRAWING_EDIT_STATUSES.includes(project.status) ? <AddDrawingButton projectId={projectId} /> : null
       }
@@ -229,11 +230,12 @@ function RevisionHistorySlideOver({ drawingId, editable, onClose, onUpload }: { 
               <p className="text-sm">
                 {r.approvedAt ? t("closeout.drawings.approvedOn", { date: formatDate(r.approvedAt) }) : <span className="text-muted-foreground">{t("closeout.drawings.notApproved")}</span>}
               </p>
-              {r.notes ? <p className="text-sm whitespace-pre-line text-muted-foreground">{r.notes}</p> : null}
+              {r.notes ? <p dir="auto" className="text-sm whitespace-pre-line text-muted-foreground">{r.notes}</p> : null}
               <p className="text-xs text-muted-foreground">
                 {t("closeout.drawings.uploadedBy", { name: r.uploadedBy?.name ?? "—", date: formatDate(r.createdAt.slice(0, 10)) })}
               </p>
-              {editable && !r.approvedAt ? (
+              {/* Only the latest revision can be approved; a superseded one is history (QA-C-23). */}
+              {editable && r.isLatest && !r.approvedAt ? (
                 <Button
                   size="sm"
                   variant="ghost"

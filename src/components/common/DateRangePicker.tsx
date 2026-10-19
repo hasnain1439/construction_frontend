@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
-import { formatDate, todayPK } from "@/lib/dates";
+import { formatDateRange, todayPK } from "@/lib/dates";
 
 export interface DateRange {
   from: string;
@@ -40,7 +40,7 @@ export function DateRangePicker({
     { key: "month", label: t("common.thisMonth"), range: { from: `${today.slice(0, 8)}01`, to: today } },
   ];
   const summary =
-    value.from || value.to ? `${formatDate(value.from, "…")} – ${formatDate(value.to, "…")}` : (label ?? t("common.anyDate"));
+    value.from || value.to ? formatDateRange(value.from, value.to) : (label ?? t("common.anyDate"));
 
   return (
     <Popover>

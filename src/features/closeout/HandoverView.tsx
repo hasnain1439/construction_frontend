@@ -51,7 +51,7 @@ export function addMonths(date: string, months: number): string {
 export function HandoverView({ projectId }: { projectId: string }) {
   const t = useT();
   return (
-    <ProjectPageShell projectId={projectId} crumb={t("closeout.handover.crumb")}>
+    <ProjectPageShell projectId={projectId} crumb={t("closeout.handover.crumb")} editableStatuses={HANDOVER_EDIT_STATUSES}>
       {(project) => <HandoverBody project={project} />}
     </ProjectPageShell>
   );
@@ -120,7 +120,7 @@ function Checklist({ projectId, handover, editable }: { projectId: string; hando
               <p className={cn("flex items-center gap-2 font-medium", item.done && "text-success")}>
                 {t(`closeout.item.${item.key}`)}
               </p>
-              {item.note ? <p className="text-sm text-muted-foreground">{item.note}</p> : null}
+              {item.note ? <p dir="auto" className="text-sm text-muted-foreground">{item.note}</p> : null}
               {item.attachments.length ? <PhotoStrip photos={item.attachments} size="sm" label={t(`closeout.item.${item.key}`)} /> : null}
               {item.doneAt ? <p className="text-xs text-muted-foreground">{t("closeout.handover.doneBy", { name: item.doneBy?.name ?? "—", date: formatDate(item.doneAt.slice(0, 10)) })}</p> : null}
             </div>
@@ -195,7 +195,7 @@ function SignOffCard({ project, handover, editable }: { project: ProjectDetail; 
       {s ? (
         <div className="space-y-2">
           <p className="font-medium">{t("closeout.handover.signedBy", { name: s.ownerName, date: formatDate(s.signedOn) })}</p>
-          {s.note ? <p className="text-sm text-muted-foreground">{s.note}</p> : null}
+          {s.note ? <p dir="auto" className="text-sm text-muted-foreground">{s.note}</p> : null}
           {s.signature ? <PhotoStrip photos={[s.signature]} label={t("closeout.handover.signature")} /> : null}
         </div>
       ) : (

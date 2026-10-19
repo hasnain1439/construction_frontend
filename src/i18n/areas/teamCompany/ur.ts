@@ -206,7 +206,7 @@ export const strings: Widen<typeof En.strings> = {
     endHint: "ایک دن کے لیے خالی چھوڑ دیں۔",
     colHoliday: "چھٹی",
     colDates: "تاریخیں",
-    range: "{from} – {to}",
+    range: "{from} سے {to} تک",
     colSource: "ذریعہ",
     national: "قومی",
     company: "کمپنی",

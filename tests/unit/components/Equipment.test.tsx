@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { AllocationMap, Equipment, EquipmentTransfer, ProjectEquipment } from "@/api/types";
+import type { AllocationMap, Equipment, EquipmentTransfer, ProjectEquipment, Rental } from "@/api/types";
 import { translate, translateEnum } from "@/i18n/useT";
 import { COMPANY_NAV, PROJECT_NAV, visibleItemIds } from "@/lib/navigation";
 import { meFixture } from "../fixtures";
@@ -109,6 +109,45 @@ const TRANSFER: EquipmentTransfer = {
 };
 
 const state = vi.hoisted(() => ({ rates: true }));
+
+/** RNT-0003 after the return of 17 with 2 damaged and 3 missing (QA-C-07 / 08). */
+const RENTAL: Rental = {
+  id: "r3",
+  number: "RNT-0003",
+  status: "RETURNED",
+  supplier: { id: "s1", name: "Punjab Shuttering Yard", phone: null },
+  project: { id: "p2", code: "MSB-2026-014", name: "Bahria Town" },
+  location: site,
+  startDate: "2026-10-10",
+  expectedEndDate: null,
+  returnedDate: "2026-10-17",
+  closedAt: null,
+  reference: null,
+  note: null,
+  items: [{ id: "ri1", equipment: plate, qty: 20, returnedQty: 17, missingQty: 3, outstandingQty: 0, ratePaisaPerDay: "600" }],
+  depositPaisa: "200000",
+  depositRefundedPaisa: "0",
+  damageChargesPaisa: "150000",
+  missingChargesPaisa: "1050000",
+  rentChargedPaisa: "84000",
+  accruedToDatePaisa: "84000",
+  postedPaisa: "84000",
+  daysOnRent: 7,
+  overdue: false,
+  returns: [
+    {
+      id: "ret1",
+      returnDate: "2026-10-17",
+      location: site,
+      damageChargesPaisa: "150000",
+      missingChargesPaisa: "1050000",
+      note: null,
+      items: [{ rentalItemId: "ri1", qty: 17, damagedQty: 2, missingQty: 3 }],
+    },
+  ],
+  createdBy: null,
+  createdAt: "2026-10-10T05:00:00.000Z",
+};
 const mutation = () => [vi.fn(), { isLoading: false }];
 
 vi.mock("next/navigation", () => ({
@@ -119,6 +158,8 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/api/services/equipment.api", () => ({
   useGetEquipmentBalancesQuery: () => ({ data: MAP, isLoading: false }),
+  useGetRentalQuery: () => ({ data: RENTAL, isLoading: false }),
+  useGetRentalsQuery: () => ({ data: { items: [RENTAL], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } }, isLoading: false }),
   useGetEquipmentListQuery: () => ({
     data: {
       items: state.rates ? WITH_RATES : WITHOUT_RATES,
@@ -189,6 +230,7 @@ vi.mock("@/features/projects/views/ProjectModeViews", () => ({
 const { AllocationMapView } = await import("@/features/equipment/views/AllocationMapView");
 const { OwnedEquipmentView } = await import("@/features/equipment/views/OwnedEquipmentViews");
 const { SiteEquipmentView } = await import("@/features/equipment/views/SiteEquipmentView");
+const { RentalDetailView } = await import("@/features/equipment/views/RentalViews");
 const { ReceiveTransferSlideOver, previewLosses } =
   await import("@/features/equipment/components/TransferSlideOvers");
 
@@ -228,7 +270,7 @@ describe("Equipment — money is gated by fields.rates", () => {
   it("Equipment on Site: the Munshi sees counts and can receive, without hire money", () => {
     state.rates = false;
     renderWithStore(<SiteEquipmentView projectId="p1" />, { me: meFixture("MUNSHI") });
-    expect(screen.queryByText("Hire to date")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hire posted")).not.toBeInTheDocument();
     expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
     expect(screen.getByText("ET-0007")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Receive/ })).toBeInTheDocument();
@@ -240,9 +282,36 @@ describe("Equipment — money is gated by fields.rates", () => {
   it("Equipment on Site: the owner sees hire and rent to date", () => {
     state.rates = true;
     renderWithStore(<SiteEquipmentView projectId="p1" />, { me: meFixture("THEKEDAR") });
-    expect(screen.getByText("Hire to date")).toBeInTheDocument();
+    expect(screen.getByText("Hire posted")).toBeInTheDocument();
     expect(screen.getByText("Rs 36,000")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Send \/ return/ })).toBeInTheDocument();
+  });
+});
+
+describe("Equipment — QA area C", () => {
+  it("QA-C-06: Owned + On rent sit next to each other, and the location columns say they include rented units", () => {
+    state.rates = true;
+    renderWithStore(<OwnedEquipmentView />, { me: meFixture("THEKEDAR") });
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent ?? "");
+    const at = (name: string) => headers.findIndex((h) => h.includes(name));
+    expect(at("On rent")).toBe(at("Owned") + 1);
+    expect(at("At sites (own + rented)")).toBe(at("On rent") + 1);
+    expect(at("Yard (own + rented)")).toBe(at("At sites (own + rented)") + 1);
+  });
+
+  it("QA-C-07 / 08: the return shows its damaged and missing pieces and the yard's charge for them", () => {
+    state.rates = true;
+    renderWithStore(<RentalDetailView rentalId="r3" />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByText("17 nos Steel plate 2×3 (2 nos damaged, 3 nos missing)")).toBeInTheDocument();
+    expect(screen.getAllByText("Missing pieces charge").length).toBeGreaterThanOrEqual(2); // summary + returns column
+    expect(screen.getAllByText("Rs 10,500").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("QA-C-05: Equipment on Site calls the posted totals \"posted\", not \"to date\"", () => {
+    state.rates = true;
+    renderWithStore(<SiteEquipmentView projectId="p1" />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByText("Rent posted")).toBeInTheDocument();
+    expect(screen.queryByText("Rent to date")).not.toBeInTheDocument();
   });
 });
 

@@ -6,7 +6,7 @@ export const strings = {
     pointProjects: "Projects, rooms and contracts in one place",
     pointMoney: "Money in PKR with lakh / crore — paisa-exact",
     pointTeam: "Your team on site with the Munshi app",
-    trialNote: "14-day free trial · 1 project · no card needed",
+    trialNote: "14-day free trial · 2 active projects · no card needed",
     signingIn: "Signing in",
     emailOrPhone: "Email or phone",
     loginPlaceholder: "0300 1234567 or you@company.pk",
@@ -91,7 +91,7 @@ export const strings = {
     chooseCompanyDesc: "Your number works for more than one company. Which one do you want to open?",
     trialStarted: "Welcome! Your 14-day free trial has started.",
     createCompanyTitle: "Create your company",
-    createCompanyDesc: "14-day free trial, 1 project, no card needed.",
+    createCompanyDesc: "14-day free trial, 2 active projects, no card needed.",
     alreadyRegistered: "Already registered?",
     companyNamePlaceholder: "Malik & Sons Builders",
     emailHint: "Optional — for password resets.",
@@ -333,6 +333,11 @@ export const strings = {
     agoNYear: "{n} years ago",
     inOneYear: "in 1 year",
     inNYear: "in {n} years",
+  },
+  // QA area C fixes (Phase 2+3)
+  qaFixes: {
+    invitedBy: "{company} invited you to join them on Construction Platform. Set up your account to continue.",
+    invitedByAs: "{company} invited you to join them as {role}. Set up your account to continue.",
   },
 } as const;
 

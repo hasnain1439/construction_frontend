@@ -51,8 +51,6 @@ export function MembersView() {
       sortValue: (u) => u.name,
     },
     { id: "phone", header: t("field.phone"), cell: (u) => <bdi dir="ltr" className="tabular">{formatPhone(u.phone)}</bdi> },
-    { id: "role", header: t("field.role"), cell: (u) => <RoleBadge role={u.role} />, sortValue: (u) => u.role },
-    { id: "projects", header: t("field.projects"), cell: (u) => <ProjectChips projects={u.projects} all={u.allProjects} /> },
     {
       id: "permissionRole",
       header: t("roles.inviteRole"),
@@ -65,6 +63,9 @@ export function MembersView() {
           <span className="text-muted-foreground">—</span>
         ),
     },
+    // The account type (PM for every office role) — not the role people are given (QA-C-15).
+    { id: "role", header: t("roles.accountType"), cell: (u) => <RoleBadge role={u.role} />, sortValue: (u) => u.role },
+    { id: "projects", header: t("field.projects"), cell: (u) => <ProjectChips projects={u.projects} all={u.allProjects} /> },
     { id: "status", header: t("field.status"), cell: (u) => <StatusBadge domain="user" value={u.status} />, sortValue: (u) => u.status },
     {
       id: "lastActive",

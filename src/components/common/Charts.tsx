@@ -15,6 +15,8 @@ export interface Series {
   /** Defaults to the next categorical colour. */
   color?: string;
   kind?: "bar" | "area" | "line";
+  /** Line / area shape. "linear" draws straight segments between the points (no curve between values that do not exist). Default "monotone". */
+  curve?: "monotone" | "linear";
 }
 
 const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
@@ -97,9 +99,9 @@ function MoneyComposed({ data, xKey, series, height = 288, stacked, label, forma
           />
           {colored.map((s) =>
             s.kind === "area" ? (
-              <Area key={s.key} dataKey={s.key} name={s.key} type="monotone" stroke={s.color} strokeWidth={2} fill={`url(#${uid}-${s.key})`} fillOpacity={1} activeDot={{ r: 4, fill: s.color, stroke: "var(--card)", strokeWidth: 2 }} stackId={stacked ? "a" : undefined} />
+              <Area key={s.key} dataKey={s.key} name={s.key} type={s.curve ?? "monotone"} stroke={s.color} strokeWidth={2} fill={`url(#${uid}-${s.key})`} fillOpacity={1} activeDot={{ r: 4, fill: s.color, stroke: "var(--card)", strokeWidth: 2 }} stackId={stacked ? "a" : undefined} />
             ) : s.kind === "line" ? (
-              <Line key={s.key} dataKey={s.key} name={s.key} type="monotone" stroke={s.color} strokeWidth={2} dot={{ r: 4, fill: s.color, stroke: "var(--card)", strokeWidth: 2 }} />
+              <Line key={s.key} dataKey={s.key} name={s.key} type={s.curve ?? "monotone"} stroke={s.color} strokeWidth={2} dot={{ r: 4, fill: s.color, stroke: "var(--card)", strokeWidth: 2 }} />
             ) : (
               <Bar
                 key={s.key}
