@@ -21,6 +21,7 @@ import { MoneyText } from "@/components/common/MoneyText";
 import { PdfActions } from "@/components/common/PdfActions";
 import { usePermissions } from "@/components/common/PermissionGate";
 import { QtyUnitText } from "@/components/common/QtyText";
+import { useMilestoneName } from "@/features/schedule/labels";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
@@ -67,6 +68,7 @@ const ACTION_ICON: Record<ChangeOrderAction, typeof Send> = {
 
 export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: ChangeOrderDetail; projectId: string; editable: boolean; phone?: string | null }) {
   const t = useT();
+  const milestoneName = useMilestoneName();
   const te = useEnumT();
   const router = useRouter();
   const { can, canSee } = usePermissions();
@@ -178,7 +180,7 @@ export function ChangeOrderDetailBody({ co, projectId, editable, phone }: { co: 
                 { label: t("changeOrders.detail.markup", { percent: co.markupPercent ?? 0 }), value: <MoneyText paisa={co.markupPaisa} />, hidden: co.markupPaisa === undefined },
                 { label: co.type === "DEDUCTION" ? t("changeOrders.detail.deduction") : t("changeOrders.detail.total"), value: <SignedMoney paisa={co.totalPaisa} className="font-semibold" /> },
                 { label: t("changeOrders.detail.time"), value: co.daysImpact ? t("changeOrders.detail.daysValue", { n: co.daysImpact }) : t("changeOrders.detail.noDays") },
-                { label: t("changeOrders.detail.milestones"), value: co.affectedMilestones.map((m) => m.name).join(", ") || "—" },
+                { label: t("changeOrders.detail.milestones"), value: co.affectedMilestones.map((m) => milestoneName(m)).join(", ") || "—" },
               ]}
             />
           </SectionCard>

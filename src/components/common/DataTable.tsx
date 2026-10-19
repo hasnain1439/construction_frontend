@@ -58,8 +58,14 @@ const maxHeightClass = {
 const scrollClass =
   "[&_[data-slot=table-container]]:overflow-y-auto [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead_tr]:bg-muted [&_thead_tr]:hover:bg-muted";
 
-/** `className` for wide tables (10+ columns): tighter cell padding so they fit a 1440 px screen (QA-B-30). */
-export const DENSE_TABLE = "[&_td]:px-2.5 [&_th]:px-2.5 [&_td:first-child]:ps-4 [&_th:first-child]:ps-4";
+/**
+ * `className` for wide tables (8+ columns, QA-B-30): small text, tight cell padding, headers that wrap
+ * and a first (name) column that wraps, so the P&L and the CO register fit a 1280–1440 px screen. The
+ * table still scrolls sideways inside its card when it does not fit (phones), so no column is ever
+ * out of reach.
+ */
+export const DENSE_TABLE =
+  "[&_table]:text-xs [&_td]:px-1.5 [&_td]:py-2 [&_th]:h-auto [&_th]:px-1.5 [&_th]:py-2 [&_th]:whitespace-normal [&_th]:align-bottom [&_th]:leading-tight [&_th]:text-[11px] [&_th]:tracking-normal [&_td:first-child]:ps-3 [&_th:first-child]:ps-3 [&_td:last-child]:pe-3 [&_th:last-child]:pe-3 [&_td:first-child]:whitespace-normal [&_td:first-child]:min-w-32";
 
 type SortDirection = "asc" | "desc";
 

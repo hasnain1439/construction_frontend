@@ -152,7 +152,7 @@ export const strings: Widen<typeof En.strings> = {
     bag: "بوری",
     nos: "عدد",
     cft: "مکعب فٹ",
-    kg: "kg",
+    kg: "کلو",
     litre: "لیٹر",
     sqft: "مربع فٹ",
     ton: "ٹن",

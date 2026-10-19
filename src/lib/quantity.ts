@@ -3,6 +3,11 @@
  * most 3 decimals. Forms keep quantities as strings ("12.5") so nothing is lost to floats;
  * amounts are worked out in BigInt exactly like the backend (qty × rate, half-up to paisa).
  */
+import { en } from "@/i18n/en";
+import { romanUr } from "@/i18n/roman-ur";
+import { ur } from "@/i18n/ur";
+import type { UiLanguage } from "@/store/slices/uiSlice";
+import { isolateQty } from "./bidi";
 import { toPaisaBigInt, type PaisaInput } from "./money";
 
 export const QTY_DECIMALS = 3;
@@ -54,25 +59,88 @@ export function qtyDiff(a: string | number | null | undefined, b: string | numbe
 
 const qtyFormatter = new Intl.NumberFormat("en-IN", { maximumFractionDigits: QTY_DECIMALS });
 
-/** 5000 → "5,000"; with a unit → "5,000 bags". `null` → "—". */
-export function formatQty(value: number | string | null | undefined, unit?: string): string {
+/**
+ * 5000 → "5,000"; with a unit → "5,000 bags" / "5,000 بوری" (the unit in the page language, QA-A-10 /
+ * QA-B-24). On an Urdu page the signed number stays one LTR island (QA-B-04). `null` → "—".
+ */
+export function formatQty(value: number | string | null | undefined, unit?: string | null, language?: UiLanguage): string {
   if (value === null || value === undefined || value === "") return "—";
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return "—";
   const text = qtyFormatter.format(n);
-  return unit ? `${text} ${unitLabel(unit, n)}` : text;
+  return isolateQty(text, unit ? unitLabel(unit, n, language) : "");
 }
 
-/** "bag" → "bags" for counts other than 1; units like "cft", "kg", "nos" stay as they are. */
-export function unitLabel(unit: string, n: number): string {
-  if (Math.abs(n) === 1) return unit;
-  if (["bag", "coil", "drum", "gallon", "litre", "trolley", "ton", "lot"].includes(unit)) return `${unit}s`;
-  return unit;
+type UnitKey = keyof typeof en.enum.measureUnit;
+const UNIT_NAMES: Record<UiLanguage, Record<UnitKey, string>> = { en: en.enum.measureUnit, "roman-ur": romanUr.enum.measureUnit, ur: ur.enum.measureUnit };
+
+/** Spellings people and older data use for the same unit. */
+const UNIT_ALIASES: Record<string, UnitKey> = {
+  "sq ft": "sqft",
+  "sq. ft": "sqft",
+  "sq.ft": "sqft",
+  "sq ft.": "sqft",
+  sft: "sqft",
+  "sq-ft": "sqft",
+  no: "nos",
+  "no.": "nos",
+  "nos.": "nos",
+  number: "nos",
+  numbers: "nos",
+  pcs: "piece",
+  pc: "piece",
+  "lump sum": "ls",
+  lumpsum: "ls",
+  kgs: "kg",
+  ltr: "litre",
+  liter: "litre",
+  liters: "litre",
+  "cu ft": "cft",
+  "running ft": "rft",
+  days: "day",
+};
+
+/** The catalogue key of a unit ("bags" → "bag", "Sq Ft" → "sqft"); null for a unit typed by hand. */
+export function unitKey(unit: string | null | undefined): UnitKey | null {
+  if (!unit) return null;
+  const u = unit.trim().toLowerCase();
+  if (Object.hasOwn(UNIT_NAMES.en, u)) return u as UnitKey;
+  if (Object.hasOwn(UNIT_ALIASES, u)) return UNIT_ALIASES[u]!;
+  const singular = u.endsWith("es") && Object.hasOwn(UNIT_NAMES.en, u.slice(0, -2)) ? u.slice(0, -2) : u.endsWith("s") ? u.slice(0, -1) : u;
+  return Object.hasOwn(UNIT_NAMES.en, singular) ? (singular as UnitKey) : null;
 }
+
+/** English units counted one by one: "1 bag" / "2 bags". "cft", "kg", "sq ft", "nos" never change. */
+const COUNTABLE = new Set<UnitKey>(["bag", "coil", "drum", "gallon", "litre", "trolley", "ton", "lot", "brick", "tile", "block", "trip", "hour", "day", "week", "month", "job", "point", "set", "piece", "sheet", "bundle", "roll", "box"]);
+
+/** The page language from <html lang> (set by StoreProvider); English on the server and in tests. */
+export function pageLanguage(): UiLanguage {
+  if (typeof document === "undefined") return "en";
+  const lang = document.documentElement.lang;
+  return lang === "ur" ? "ur" : lang === "ur-Latn" ? "roman-ur" : "en";
+}
+
+/**
+ * A unit for `n` of it in `language` (default: the page language): English "1 bag" / "2 bags",
+ * "1 no." / "2 nos"; Roman Urdu / Urdu words ("bori", "بوری", "مکعب فٹ"). A unit typed by hand stays
+ * as typed. `n = 1` is also the per-unit form: "Rs 1,450 / bag" (QA-A-28).
+ */
+export function unitLabel(unit: string, n: number, language: UiLanguage = pageLanguage()): string {
+  const key = unitKey(unit);
+  if (!key) return unit;
+  const name = (UNIT_NAMES[language] ?? UNIT_NAMES.en)[key];
+  if (language !== "en") return name;
+  if (Math.abs(n) === 1) return key === "nos" ? "no." : name;
+  return COUNTABLE.has(key) ? `${name}s` : name;
+}
+
+/** "/ bag", "/ بوری" — the per-unit form of a rate. */
+export const perUnitLabel = (unit: string, language?: UiLanguage) => unitLabel(unit, 1, language);
 
 /** Signed with an explicit "+" for positive differences ("+2", "-10", "0"). */
-export function formatSignedQty(value: number | null | undefined, unit?: string): string {
+export function formatSignedQty(value: number | null | undefined, unit?: string | null, language?: UiLanguage): string {
   if (value === null || value === undefined) return "—";
-  const text = formatQty(Math.abs(value), unit);
-  return value > 0 ? `+${text}` : value < 0 ? `-${text}` : text;
+  const n = Math.abs(value);
+  const text = `${value > 0 ? "+" : value < 0 ? "-" : ""}${qtyFormatter.format(n)}`;
+  return isolateQty(text, unit ? unitLabel(unit, n, language) : "");
 }

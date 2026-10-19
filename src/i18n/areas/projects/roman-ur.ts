@@ -225,7 +225,7 @@ export const strings: Widen<typeof En.strings> = {
     startFromTemplatePh: "Template se shuru karein…",
     defaultStage: "Peshgi",
     loadingOptions: "Theke ke options load ho rahe hain…",
-    supplyDesc: "Thekedar wali rows aap ki Price List ki quality categories istemal karti hain.",
+    supplyDesc: "Thekedar wali qataarein aap ki Price List ki quality categories istemal karti hain.",
     valueBilling: "Raqam aur billing",
     billingModel: "Billing ka tareeqa",
     retentionHint: "Defect period khatam hone tak roki jati hai (0–10 %).",

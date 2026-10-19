@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useEnumT, useT } from "@/i18n/useT";
+import { en } from "@/i18n/en";
 import { formatDate } from "@/lib/dates";
 
 /**
@@ -9,10 +10,23 @@ import { formatDate } from "@/lib/dates";
  * renamed or custom ones show the stored name (QA-B-26; also covers QA-A-10). The single mechanism for
  * milestone names: keys live in enum.milestoneTemplate (en / roman-ur / ur).
  */
+/**
+ * The template key of a milestone ref without `templateKey` (change orders, variance filters):
+ * its `key` while the name is still the generated English name, else null (renamed / custom).
+ */
+export function templateKeyOf(m: { name: string; key?: string | null }): string | null {
+  if (!m.key) return null;
+  const generated = (en.enum.milestoneTemplate as Record<string, string>)[m.key];
+  return generated !== undefined && generated === m.name ? m.key : null;
+}
+
 export function useMilestoneName() {
   const te = useEnumT();
   return useCallback(
-    (m: { name: string; templateKey?: string | null }) => (m.templateKey ? te("milestoneTemplate", m.templateKey, m.name) : m.name),
+    (m: { name: string; templateKey?: string | null; key?: string | null }) => {
+      const key = m.templateKey ?? templateKeyOf(m);
+      return key ? te("milestoneTemplate", key, m.name) : m.name;
+    },
     [te],
   );
 }

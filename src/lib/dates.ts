@@ -4,6 +4,7 @@
  */
 import { addDays, differenceInCalendarDays, formatDistanceToNowStrict, parseISO } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { isolate } from "./bidi";
 
 export const TIME_ZONE = "Asia/Karachi";
 
@@ -19,12 +20,12 @@ function toDate(value: DateInput): Date | null {
 
 /**
  * In Urdu (right-to-left) a date such as "8 Oct 2026" would show as "Oct 2026 8": the leading day
- * number joins the right-to-left text around it. While the page is RTL, dates are wrapped in
- * invisible left-to-right isolate marks (U+2066 … U+2069) so they always read as one unit.
+ * number joins the right-to-left text around it. While the page is RTL, a date is one isolated
+ * unit (U+2066 / U+2067 … U+2069) in its own direction: Latin dates left to right, dates with Urdu
+ * month names right to left — an LTR island scrambled "17 فروری 2027" into "فروری 2027 17" (R2-B-01).
  */
 export function isolateLtr(text: string): string {
-  if (typeof document === "undefined" || document.documentElement.dir !== "rtl") return text;
-  return `⁦${text}⁩`;
+  return isolate(text);
 }
 
 const URDU_MONTHS: Record<string, string> = {
