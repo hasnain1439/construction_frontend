@@ -528,6 +528,13 @@ export const romanUr: Dictionary = {
     moreQUOTE: "Pehli quote banayein",
     moreEQUIPMENT: "Apni shuttering aur equipment shamil karein",
     moreTAX: "Tax settings check karein (PRA / SRB / ICT, WHT)",
+    moreESTIMATE: "Kisi project ka estimate (BoQ) banayein",
+    moreSCHEDULE: "Kisi project ke kaam ka schedule banayein",
+    moreALERTS: "Alert ki hadein set karein (zyada kharch, deri, kharcha)",
+    moreCHANGE_ORDERS: "Maalik ki mangi hui tabdeeliyan darj karein (change orders)",
+    moreCLOSEOUT: "Mukammal project hawale karein (closeout)",
+    showMore: "Aur dikhayein",
+    showLess: "Kam dikhayein",
   },
   demo: {
     try: "Demo data se azmayein",

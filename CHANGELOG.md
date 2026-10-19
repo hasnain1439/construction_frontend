@@ -6,6 +6,14 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Owner decisions (1, 2, 5, 6, 7, 8)
+
+- **Finishing allowance line (1):** when the finishing allowance applies (a full contract whose BoQ has no finishing lines), it is shown as its own line — "Finishing allowance — no finishing lines in BoQ" — with its calculation ("Rs 60,00,000 × 30% = Rs 18,00,000") in the contract-from-estimate card (wizard Estimate step and the BoQ page) and the wizard Review estimate card.
+- **Revocable share links (2):** every shared document (quote, estimate / BoQ, owner shopping list, change-order slip, invoice, receipt, owner statement, handover certificate) has **Shared links** next to WhatsApp (in the row menu for quotes and receipts): a slide-over with each link's who / when, expiry and status, and **Revoke link** / "Link band karo" with a confirmation. Shown only with the permission that shares the document (`GET /share-links`, `POST /share-links/:id/revoke`). In English, Roman Urdu and Urdu.
+- **Optional next steps (5):** the setup checklist shows first quote, estimate, rulebook and equipment, and the rest — schedule, alert limits, change orders, closeout, tax — under a collapsed **Show more**. Each is permission-gated and links to a real page (project steps open the newest project; the navigation test checks every link and its gate).
+- **Mark as Won / change-order approval (7, 8):** tests confirm the buttons follow the permissions only — a PM given `sales.quote.approve` sees **Mark as won**; a PM without `changeorder.approve` sees no approve / reject; the role editor lets a company grant / remove both keys.
+- API types regenerated (`schema.ts`): `/share-links`, `lid` / 410 on `/public/files/{id}`, `finishingAllowance`, checklist `latestProject`.
+
 ### QA re-test fixes (areas A, C)
 
 - **QA-C-02:** Site deliveries opens with either permission, so each section now fetches only with its own key: the received list uses `/dispatches` only with `procurement.dispatch.view` and `/purchases` only with `procurement.purchase.view`; the Owner deliveries tab (and `/owner-deliveries`) needs `inventory.ownerdelivery.view`; the record buttons need the matching create key. An Accountant no longer gets 403s or the permission toast there. The navigation test now lists every "any of" menu item and checks that a view gating its sections calls `useCan` for each key and fetches with `skip`.

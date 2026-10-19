@@ -163,6 +163,11 @@ describe("ContractFromEstimateCard", () => {
     await user.type(screen.getByLabelText("Finishing allowance"), "50");
     // Rs 60,00,000 × 1.5 × 1.2 = Rs 1,08,00,000
     expect(screen.getByTestId("contract-breakdown")).toHaveTextContent("Rs 1,08,00,000");
+    // Owner decision 1: a separate labelled line with its calculation
+    const line = screen.getByTestId("finishing-allowance-line");
+    expect(line).toHaveTextContent("Finishing allowance — no finishing lines in BoQ");
+    expect(line).toHaveTextContent("Rs 30,00,000");
+    expect(line).toHaveTextContent("Rs 60,00,000 × 50% = Rs 30,00,000");
     await user.click(screen.getByRole("button", { name: "Use as contract value" }));
     expect(api.apply).toHaveBeenCalledWith({ id: "p1", body: { marginPercent: 20, finishingAllowancePercent: 50, replace: false } });
   });
@@ -254,6 +259,29 @@ describe("Review: apply company margin", () => {
     const button = screen.getByRole("button", { name: "Apply company margin (20%) → Rs 72,00,000" });
     await userEvent.setup().click(button);
     expect(api.apply).toHaveBeenCalledWith({ id: "p1", body: { replace: false } });
+  });
+
+  it("owner decision 1: the Review estimate card shows the finishing allowance as its own line (only when applied)", () => {
+    api.review = review([]);
+    api.estimate = estimate(
+      suggestion({
+        contractType: "FULL",
+        finishingApplies: true,
+        finishingAllowancePercent: 30,
+        finishingAllowance: { label: "Finishing allowance — no finishing lines in BoQ", reason: "NO_FINISHING_LINES", method: "PERCENT_OF_BOQ", percent: 30, basisPaisa: "600000000", amountPaisa: "180000000", calculation: "Rs 60,00,000 × 30% = Rs 18,00,000" },
+      }),
+    );
+    const { unmount } = inWizard(<ReviewTab />);
+    const card = screen.getByTestId("review-finishing-allowance");
+    expect(card).toHaveTextContent("Finishing allowance — no finishing lines in BoQ");
+    expect(card).toHaveTextContent("Rs 18,00,000");
+    expect(card).toHaveTextContent("Rs 60,00,000 × 30% = Rs 18,00,000");
+    unmount();
+    // the BoQ has finishing lines → no allowance line anywhere
+    api.estimate = estimate(suggestion({ contractType: "FULL", finishingApplies: false, finishingAllowance: null }));
+    inWizard(<ReviewTab />);
+    expect(screen.queryByTestId("review-finishing-allowance")).toBeNull();
+    expect(screen.queryByText("Finishing allowance — no finishing lines in BoQ")).toBeNull();
   });
 
   it("project margin is labelled as such; nothing when the value exists", () => {

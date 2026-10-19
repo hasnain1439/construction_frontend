@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteSummary } from "@/api/types";
 import { COMPANY_NAV } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
-import { meFixture } from "../fixtures";
+import { meFixture, permissionsFor } from "../fixtures";
 import { renderWithStore } from "../render";
 
 const push = vi.fn();
@@ -245,6 +245,20 @@ describe("Sales — quote detail", () => {
     renderWithStore(<QuoteDetailView quoteId="q1" />, { me: meFixture("PM") });
     expect(screen.queryByRole("button", { name: "Mark as won" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Send/ })).toBeNull();
+  });
+
+  it("owner decision 7: a PM granted sales.quote.approve (+ projects.project.create) sees Mark as won and can use it", async () => {
+    const user = userEvent.setup();
+    renderWithStore(<QuoteDetailView quoteId="q1" />, { me: meFixture("PM", { permissions: [...permissionsFor("PM"), "sales.quote.approve"] }) });
+    await user.click(screen.getByRole("button", { name: "Mark as won" }));
+    const dialog = await screen.findByRole("alertdialog");
+    await user.click(within(dialog).getByRole("button", { name: "Mark as won" }));
+    await waitFor(() => expect(markWon).toHaveBeenCalledWith({ id: "q1", body: {} }));
+  });
+
+  it("owner decision 7: both keys are needed — sales.quote.approve without projects.project.create shows no Mark as won", () => {
+    renderWithStore(<QuoteDetailView quoteId="q1" />, { me: meFixture("PM", { permissions: [...permissionsFor("PM").filter((k) => k !== "projects.project.create"), "sales.quote.approve"] }) });
+    expect(screen.queryByRole("button", { name: "Mark as won" })).toBeNull();
   });
 
   it("a lost quote shows its reason and no actions", () => {

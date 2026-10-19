@@ -171,6 +171,8 @@ function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => 
   const c = e.boqCost ?? e.cost;
   const qty = (m: string) => e.materials.find((x) => x.material === m)?.quantity ?? 0;
   const margin = c?.marginPercent;
+  // Owner decision 1: the finishing allowance (a FULL contract whose BoQ has no finishing lines) is its own line
+  const allowance = e.contractSuggestion?.finishingAllowance ?? null;
   const stat = (label: string, value: string, className?: string) => (
     <div className="min-w-32">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -196,6 +198,15 @@ function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => 
             {margin !== undefined
               ? stat(t("projects.review.estimateMargin"), margin === null ? "—" : `${fmt(margin)}%`, margin === null ? undefined : margin < 0 ? "text-danger" : "text-success")
               : null}
+            {allowance ? (
+              <div className="min-w-32" data-testid="review-finishing-allowance">
+                <p className="text-xs text-muted-foreground">{t("projects.estimate.contract.allowanceLine")}</p>
+                <p className="text-lg font-semibold tabular">{rupees(allowance.amountPaisa)}</p>
+                <p className="text-xs text-muted-foreground tabular">
+                  {t("projects.estimate.contract.allowanceCalc", { basis: rupees(allowance.basisPaisa), n: fmt(allowance.percent), amount: rupees(allowance.amountPaisa) })}
+                </p>
+              </div>
+            ) : null}
           </>
         ) : (
           <p className="text-sm">

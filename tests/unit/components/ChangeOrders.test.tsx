@@ -182,6 +182,17 @@ describe("Change orders — stepper actions by status and permission", () => {
     expect(stepIndex("BILLED")).toBe(5);
   });
 
+  it("owner decision 8: a PM whose company removed changeorder.approve gets no approve / reject (the rest stays)", () => {
+    const noApprove = meFixture("PM", { deny: ["changeorder.approve"] });
+    const noApproveCan = (k: Parameters<typeof can>[1]) => can(noApprove, k);
+    expect(allowedActions("SENT", noApproveCan)).toEqual(["reopen"]);
+    expect(allowedActions("DRAFT", noApproveCan)).toEqual(["edit", "send", "delete"]);
+    renderWithStore(<ChangeOrderDetailBody co={DETAIL} projectId="p1" editable />, { me: noApprove });
+    const bar = screen.getByTestId("co-actions");
+    expect(within(bar).getAllByRole("button").map((b) => b.textContent)).toEqual([en("changeOrders.actions.reopen")]);
+    expect(within(bar).queryByRole("button", { name: en("changeOrders.actions.approve") })).toBeNull();
+  });
+
   it("detail: the SENT step is current; owner sees approve / reject / reopen and the slip actions", () => {
     renderWithStore(<ChangeOrderDetailBody co={DETAIL} projectId="p1" editable />, { me: meFixture("THEKEDAR") });
     expect(screen.getByTestId("step-DRAFT")).toHaveAttribute("data-state", "done");

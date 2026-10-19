@@ -527,6 +527,13 @@ export const en = {
     moreQUOTE: "Create your first quote",
     moreEQUIPMENT: "Add your shuttering and equipment",
     moreTAX: "Check the tax settings (PRA / SRB / ICT, WHT)",
+    moreESTIMATE: "Make the estimate (BoQ) of a project",
+    moreSCHEDULE: "Plan the work schedule of a project",
+    moreALERTS: "Set the alert limits (overuse, delays, spending)",
+    moreCHANGE_ORDERS: "Record changes the owner asks for (change orders)",
+    moreCLOSEOUT: "Hand a finished project over (closeout)",
+    showMore: "Show more",
+    showLess: "Show less",
   },
   demo: {
     try: "Try with demo data",
