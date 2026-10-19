@@ -34,8 +34,8 @@ export function SiteEquipmentView({ projectId }: { projectId: string }) {
   const canReceive = useCan("equipment.receiving.create");
   const canSend = useCan("equipment.transfer.create");
   const canReport = useCan("equipment.loss.create");
-  // A new rental always sets the daily rent → also `fields.amounts` (owner decision 3).
-  const canRent = useCan("equipment.rental.manage") && money;
+  // Owner decision 3: anyone who manages rentals may hire (and enter the rent / deposit); the amounts stay hidden afterwards without fields.amounts.
+  const canRent = useCan("equipment.rental.manage");
   const [receiving, setReceiving] = useState<EquipmentTransfer | null>(null);
   const [open, setOpen] = useState<"send" | "loss" | "rent" | null>(null);
   const rentalColumns = useRentalColumns();

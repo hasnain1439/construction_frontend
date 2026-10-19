@@ -252,7 +252,6 @@ export function ReturnRentalSlideOver({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useT();
-  const money = useSeesAmounts();
   const [doReturn, { isLoading }] = useReturnRentalMutation();
   const run = useMutationToast();
   const open_ = (rental?.items ?? []).filter((i) => i.outstandingQty > 0);
@@ -292,8 +291,9 @@ export function ReturnRentalSlideOver({
           body: {
             returnDate: v.returnDate,
             items,
-            ...(money && v.damageChargesPaisa ? { damageChargesPaisa: v.damageChargesPaisa } : {}),
-            ...(money && anyMissing && v.missingChargesPaisa ? { missingChargesPaisa: v.missingChargesPaisa } : {}),
+            // Owner decision 3: entered as part of the return even without fields.amounts (never shown back).
+            ...(v.damageChargesPaisa ? { damageChargesPaisa: v.damageChargesPaisa } : {}),
+            ...(anyMissing && v.missingChargesPaisa ? { missingChargesPaisa: v.missingChargesPaisa } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -362,14 +362,12 @@ export function ReturnRentalSlideOver({
             min={rental.startDate}
             max={todayPK()}
           />
-          {money ? (
-            <MoneyField
-              name="damageChargesPaisa"
-              label={t("equipment.field.damageCharges")}
-              hint={t("equipment.rental.damageHint")}
-            />
-          ) : null}
-          {money && anyMissingNow ? (
+          <MoneyField
+            name="damageChargesPaisa"
+            label={t("equipment.field.damageCharges")}
+            hint={t("equipment.rental.damageHint")}
+          />
+          {anyMissingNow ? (
             <MoneyField
               name="missingChargesPaisa"
               label={t("equipment.qaFixes.missingCharges")}
@@ -408,7 +406,7 @@ export function CloseRentalSlideOver({
         close({
           id: rental.id,
           body: {
-            ...(money && v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa } : {}),
+            ...(v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -438,18 +436,17 @@ export function CloseRentalSlideOver({
     >
       <Form form={form} onSubmit={onSubmit} id="close-form">
         {money ? (
-          <>
-            <p className="text-sm">
-              {t("equipment.field.deposit")}:{" "}
-              <MoneyText paisa={rental.depositPaisa} className="font-semibold" />
-            </p>
-            <MoneyField
-              name="depositRefundPaisa"
-              label={t("equipment.field.depositRefund")}
-              hint={t("equipment.rental.refundHint")}
-            />
-          </>
+          <p className="text-sm">
+            {t("equipment.field.deposit")}:{" "}
+            <MoneyText paisa={rental.depositPaisa} className="font-semibold" />
+          </p>
         ) : null}
+        {/* Owner decision 3: the refund is entered even without fields.amounts (never shown back). */}
+        <MoneyField
+          name="depositRefundPaisa"
+          label={t("equipment.field.depositRefund")}
+          hint={t("equipment.rental.refundHint")}
+        />
         <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>

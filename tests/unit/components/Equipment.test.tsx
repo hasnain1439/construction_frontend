@@ -505,15 +505,16 @@ describe("Equipment — owner decision 3: rupees follow fields.amounts, not fiel
     expect(screen.queryByText("Hidden for your role")).not.toBeInTheDocument();
   });
 
-  it("rentals list: no rent column, no idle cost and no “Hire equipment” without fields.amounts", () => {
+  it("rentals list without fields.amounts: no rent column, no idle cost — but “Hire equipment” with rent and deposit inputs (may enter, never sees)", async () => {
     state.rates = false;
     renderWithStore(<RentalsView />, { me: pm() });
     expect(screen.getAllByText("RNT-0003").length).toBeGreaterThan(0);
     expect(screen.queryByRole("columnheader", { name: "Rent to date" })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Rent / day" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("idle-total")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Hire equipment/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: /Hire equipment/ }));
+    expect(await screen.findByText(translate("en", "equipment.field.deposit"))).toBeInTheDocument();
   });
 
   it("rentals list with fields.amounts: rent, idle cost and “Hire equipment”", () => {
@@ -539,13 +540,13 @@ describe("Equipment — owner decision 3: rupees follow fields.amounts, not fiel
     expect(screen.getAllByText("Rs 1,200").length).toBeGreaterThan(0);
   });
 
-  it("Equipment on Site: no hire money and no “Hire equipment” for a PM without fields.amounts", () => {
+  it("Equipment on Site: no hire money for a PM without fields.amounts, but “Hire equipment” stays", () => {
     state.rates = false;
     renderWithStore(<SiteEquipmentView projectId="p1" />, { me: pm() });
     expect(screen.getByText("ET-0007")).toBeInTheDocument();
     expect(screen.queryByText("Hire posted")).not.toBeInTheDocument();
     expect(screen.queryByText(/Rs /)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Hire equipment/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Hire equipment/ })).toBeInTheDocument();
   });
 
   it("Equipment on Site with fields.amounts: hire money and “Hire equipment”", () => {

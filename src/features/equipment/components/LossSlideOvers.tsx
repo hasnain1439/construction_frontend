@@ -206,7 +206,7 @@ export function ChargeLossSlideOver({
           body: {
             chargedTo: v.chargedTo!,
             note: v.note,
-            ...(money && v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
+            ...(v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
             ...(v.chargedTo === "SUBCONTRACTOR" && v.subcontractAssignmentId
               ? { subcontractAssignmentId: v.subcontractAssignmentId }
               : {}),
@@ -277,13 +277,8 @@ export function ChargeLossSlideOver({
             loading={subcontracts.isLoading}
           />
         ) : null}
-        {money ? (
-          <MoneyField
-            name="valuePaisa"
-            label={t("equipment.field.chargeValue")}
-            hint={t("equipment.loss.valueHint")}
-          />
-        ) : null}
+        {/* Owner decision 3: a value may be entered without fields.amounts (never shown back). */}
+        <MoneyField name="valuePaisa" label={t("equipment.field.chargeValue")} hint={t("equipment.loss.valueHint")} />
         <TextareaField name="note" label={t("field.note")} required rows={2} />
       </Form>
     </SlideOver>

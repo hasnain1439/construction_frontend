@@ -95,10 +95,8 @@ export function RentalsView() {
   const ts = useStatusT();
   const router = useRouter();
   const readOnly = useReadOnly();
-  // A new rental always sets the daily rent → also `fields.amounts` (owner decision 3).
-  const canRent = useCan("equipment.rental.manage");
-  const money = useSeesAmounts();
-  const canCreate = canRent && money && !readOnly;
+  // Owner decision 3: anyone who manages rentals may hire (and enter the rent / deposit); the amounts stay hidden afterwards without fields.amounts.
+  const canCreate = useCan("equipment.rental.manage") && !readOnly;
   const suppliers = useSupplierOptions();
   const projects = useSiteProjectOptions();
   const list = useListState({ status: "ACTIVE", supplierId: "", projectId: "", overdue: "" });
