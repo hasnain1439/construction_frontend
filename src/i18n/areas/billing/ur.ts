@@ -140,6 +140,7 @@ export const strings: Widen<typeof En.strings> = {
     noStageReady: "ابھی کوئی مرحلہ تیار نہیں",
     stageOption: "{stage} — {percent}% · {amount}",
     stageOptionNotReady: "{stage} — {percent}% · {amount} (تیار نہیں)",
+    stageOptionDraftExists: "{stage} — {percent}% · {amount} (مسودہ انوائس پہلے سے موجود ہے)",
     forceBill: "ایسے مرحلے کا بل بنائیں جو تیار نشان زد نہیں",
     why: "کیوں",
     alsoBillPurchases: "مالک کی خریداری بھی بل کریں (اختیاری)",

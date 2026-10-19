@@ -25,8 +25,17 @@ export type TranslationKey = Leaves<Dictionary>;
 /** Values for `{name}` placeholders, e.g. `t("dashboard.atRisk", { n: 2 })`. */
 export type TranslationVars = Record<string, string | number>;
 
+const PLACEHOLDER = /\{(\w+)\}/g;
+
+/**
+ * Fills `{name}` placeholders. When values are passed, a placeholder without one becomes "—" so a
+ * raw `{name}` never reaches the screen (R1-N1: old stored data without params).
+ */
 const fill = (text: string, vars?: TranslationVars) =>
-  vars ? text.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match)) : text;
+  vars ? text.replace(PLACEHOLDER, (_match, name: string) => (vars[name] !== undefined && vars[name] !== null ? String(vars[name]) : "—")) : text;
+
+/** The `{placeholders}` of a string, e.g. `["actual", "norm"]`. */
+export const placeholdersOf = (text: string): string[] => [...text.matchAll(PLACEHOLDER)].map((m) => m[1]!);
 
 const lookup = (dict: Dictionary, key: string): string | undefined => {
   let node: unknown = dict;
@@ -47,6 +56,16 @@ export function translate(language: UiLanguage, key: TranslationKey, vars?: Tran
   // Fall back to English, then to the key itself (never crash on a missing string).
   const fallback = lookup(en, key);
   return fallback !== undefined ? fill(fallback, vars) : key;
+}
+
+/** True when `vars` has a non-empty value for every `{placeholder}` of the (English) string `key`. */
+export function hasAllVars(key: TranslationKey, vars: TranslationVars | undefined): boolean {
+  const text = lookup(en, key);
+  if (text === undefined) return false;
+  return placeholdersOf(text).every((name) => {
+    const v = vars?.[name];
+    return v !== undefined && v !== null && String(v).trim() !== "";
+  });
 }
 
 /**

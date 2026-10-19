@@ -33,7 +33,7 @@ import { FormActions } from "@/components/forms/FormActions";
 import { MoneyField } from "@/components/forms/MoneyInput";
 import { NumberField } from "@/components/forms/NumberField";
 import { QuantityField } from "@/components/forms/QuantityInput";
-import { SelectField } from "@/components/forms/SelectField";
+import { SelectField, type SelectOption } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
@@ -128,6 +128,22 @@ export function ProgressSlideOver({ open, onOpenChange, projectId }: Open & { pr
 
 /** Invoice types in menu order (labels: `te("invoiceType", v)`). */
 const TYPES = ["STAGE", "RUNNING_BILL", "RECOVERABLE", "RETENTION", "OTHER"] as const;
+
+/**
+ * Stage choices of a new STAGE invoice. R1-N5: a stage that already has a non-cancelled (draft)
+ * invoice stays in the list but is disabled and marked — the API answers 409 STAGE_ALREADY_INVOICED.
+ */
+export function stageInvoiceOptions(stages: readonly ScheduleStage[], t: ReturnType<typeof useT>): SelectOption[] {
+  return stages.map((s) => ({
+    value: s.id,
+    disabled: Boolean(s.invoice),
+    label: t(s.invoice ? "billing.forms.stageOptionDraftExists" : s.status === "UPCOMING" ? "billing.forms.stageOptionNotReady" : "billing.forms.stageOption", {
+      stage: s.label,
+      percent: s.percent,
+      amount: formatPKR(s.amountPaisa),
+    }),
+  }));
+}
 
 export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingModel, stageId }: Open & { projectId: string; billingModel: string | null; stageId?: string }) {
   const router = useRouter();
@@ -246,8 +262,8 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
               name="billingStageId"
               label={t("field.stage")}
               required
-              placeholder={billable.length ? t("billing.forms.chooseStage") : t("billing.forms.noStageReady")}
-              options={billable.map((s) => ({ value: s.id, label: t(s.status === "UPCOMING" ? "billing.forms.stageOptionNotReady" : "billing.forms.stageOption", { stage: s.label, percent: s.percent, amount: formatPKR(s.amountPaisa) }) }))}
+              placeholder={billable.some((s) => !s.invoice) ? t("billing.forms.chooseStage") : t("billing.forms.noStageReady")}
+              options={stageInvoiceOptions(billable, t)}
             />
             <ToggleField name="force" label={t("billing.forms.forceBill")} />
             {force ? <TextareaField name="forceNote" label={t("billing.forms.why")} rows={2} required /> : null}

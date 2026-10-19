@@ -373,6 +373,7 @@ export const strings: Widen<typeof En.strings> = {
   contract: {
     title: "Is andaze se theke ki raqam",
     desc: "BoQ ki laagat (overheads aur contingency samet) aur aap ka munafa. Raqam step 2 mein ab bhi badal sakte hain.",
+    descProject: "BoQ ki laagat (overheads aur contingency samet) aur aap ka munafa. Raqam baad mein bhi Project tabdeel karein → Theka aur supply mein badal sakte hain.",
     descRate: "Sirf mazdoori: maal malik khareedta hai, is liye rate = BoQ ki laagat (aap ka mazdoori ka kaam) aur aap ka munafa, fi sq ft covered area.",
     margin: "Munafa",
     finishing: "Finishing ki gunjaish",
@@ -408,6 +409,7 @@ export const strings: Widen<typeof En.strings> = {
     confirmLabel: "Badal dein",
     confirmQuote: "Ye raqam jeeti hui quote mein client ke saath tay hui thi. Badalne se theke ki qeemat aur billing stages ki raqam badal jaye gi.",
     confirmLower: "Nayi raqam mojooda se {diff} kam hai. Billing stages ki raqam dobara nikle gi.",
+    confirmHigher: "Nayi raqam mojooda se {diff} zyada hai. Billing stages ki raqam dobara nikle gi.",
     confirmStages: "Billing stages ki raqam dobara nikle gi.",
     currentLabel: "Mojooda raqam",
     currentQuote: "Quote mein tay qeemat",

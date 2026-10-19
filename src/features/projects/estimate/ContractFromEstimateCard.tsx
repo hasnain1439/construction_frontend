@@ -142,6 +142,9 @@ function CardBody({
   const diff = differencePaisa(suggested, s.currentPaisa);
   const diffText = diff === null ? "" : `${diff.startsWith("-") ? "−" : "+"}${rupees(diff.replace("-", ""))}`;
   const lower = diff !== null && diff.startsWith("-");
+  const higher = diff !== null && !lower && diff !== "0";
+  // R1-N2: the sentence says "lower" / "higher", so it carries the amount without a sign.
+  const diffAbsText = diff === null ? "" : rupees(diff.replace("-", ""));
   // Lowering the value, or replacing the price agreed in a won quote, needs an explicit tick.
   const needsTick = lower || Boolean(fromQuote);
   const basisNote =
@@ -187,7 +190,7 @@ function CardBody({
   );
 
   return (
-    <SectionCard title={t("projects.estimate.contract.title")} description={rate ? t("projects.estimate.contract.descRate") : t("projects.estimate.contract.desc")}>
+    <SectionCard title={t("projects.estimate.contract.title")} description={rate ? t("projects.estimate.contract.descRate") : onFinalize ? t("projects.estimate.contract.desc") : t("projects.estimate.contract.descProject")}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_1fr]" data-testid="contract-from-estimate">
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -262,8 +265,10 @@ function CardBody({
           fromQuote
             ? t("projects.estimate.contract.confirmQuote")
             : lower
-              ? t("projects.estimate.contract.confirmLower", { diff: diffText })
-              : t("projects.estimate.contract.confirmStages")
+              ? t("projects.estimate.contract.confirmLower", { diff: diffAbsText })
+              : higher
+                ? t("projects.estimate.contract.confirmHigher", { diff: diffAbsText })
+                : t("projects.estimate.contract.confirmStages")
         }
         confirmLabel={t("projects.estimate.contract.confirmLabel")}
         confirmDisabled={needsTick && !understood}

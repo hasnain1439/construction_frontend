@@ -296,9 +296,16 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
 
 export function DeliveriesView({ projectId }: { projectId: string }) {
   const t = useT();
-  const dispatches = useGetDispatchesQuery({ projectId, limit: 100 });
-  const purchases = useGetPurchasesQuery({ projectId, limit: 100 });
-  const owner = useGetOwnerDeliveriesQuery({ projectId, limit: 50 });
+  // QA-C-02: the page opens with either permission, so each section asks only for what the user may read.
+  const canDispatches = useCan("procurement.dispatch.view");
+  const canPurchases = useCan("procurement.purchase.view");
+  const canOwner = useCan("inventory.ownerdelivery.view");
+  const canRecordPurchase = useCan("procurement.purchase.create");
+  const canRecordOwner = useCan("inventory.ownerdelivery.create");
+  const canReceived = canDispatches || canPurchases;
+  const dispatches = useGetDispatchesQuery({ projectId, limit: 100 }, { skip: !canDispatches });
+  const purchases = useGetPurchasesQuery({ projectId, limit: 100 }, { skip: !canPurchases });
+  const owner = useGetOwnerDeliveriesQuery({ projectId, limit: 50 }, { skip: !canOwner });
   const [open, setOpen] = useState(false);
   const received = useMemo(() => {
     const rows = [
@@ -333,7 +340,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
       projectId={projectId}
       crumb={t("cashSite.site.crumbDeliveries")}
       actions={(project) =>
-        editable(project) ? (
+        editable(project) && canRecordPurchase ? (
           <Button asChild variant="outline">
             <Link href={projectHref(project.id, "/site/deliveries/purchase")}>
               <ReceiptText data-icon="inline-start" />
@@ -344,11 +351,12 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
       }
     >
       {(project) => (
-        <Tabs defaultValue="received" className="gap-5">
+        <Tabs defaultValue={canReceived ? "received" : "owner"} className="gap-5">
           <TabsList>
-            <TabsTrigger value="received">{t("cashSite.site.tabReceived")}</TabsTrigger>
-            <TabsTrigger value="owner">{t("cashSite.site.ownerDeliveries")}</TabsTrigger>
+            {canReceived ? <TabsTrigger value="received">{t("cashSite.site.tabReceived")}</TabsTrigger> : null}
+            {canOwner ? <TabsTrigger value="owner">{t("cashSite.site.ownerDeliveries")}</TabsTrigger> : null}
           </TabsList>
+          {canReceived ? (
           <TabsContent value="received">
             <SectionCard flush>
               <DataTable
@@ -369,13 +377,15 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
               />
             </SectionCard>
           </TabsContent>
+          ) : null}
+          {canOwner ? (
           <TabsContent value="owner">
             <SectionCard
               flush
               title={t("cashSite.site.ownerDeliveries")}
               description={t("cashSite.site.ownerDeliveriesDesc")}
               actions={
-                editable(project) ? (
+                editable(project) && canRecordOwner ? (
                   <Button size="sm" onClick={() => setOpen(true)}>
                     <Plus data-icon="inline-start" />
                     {t("cashSite.site.recordOwnerDelivery")}
@@ -401,6 +411,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
             </SectionCard>
             <OwnerDeliverySlideOver open={open} onOpenChange={setOpen} projectId={project.id} supplyRules={project.supplyRules} />
           </TabsContent>
+          ) : null}
         </Tabs>
       )}
     </ProjectPageShell>
