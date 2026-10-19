@@ -6,6 +6,14 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### QA re-test fixes (areas A, C)
+
+- **QA-C-02:** Site deliveries opens with either permission, so each section now fetches only with its own key: the received list uses `/dispatches` only with `procurement.dispatch.view` and `/purchases` only with `procurement.purchase.view`; the Owner deliveries tab (and `/owner-deliveries`) needs `inventory.ownerdelivery.view`; the record buttons need the matching create key. An Accountant no longer gets 403s or the permission toast there. The navigation test now lists every "any of" menu item and checks that a view gating its sections calls `useCan` for each key and fetches with `skip`.
+- **R1-N1:** quote / estimate warnings stored before params existed (code + message only) show their stored message instead of "{actual}" placeholders or an empty "No price-list rate for: ." list. `translate()` never leaves a raw `{placeholder}` when values are passed (a missing one reads "—"), and `hasAllVars()` tells whether a string can be filled.
+- **R1-N2:** the "Use as contract value" dialog says "The new value is Rs 34,53,000 lower / higher than the current one" (amount without a sign) in all three languages.
+- **R1-N3:** outside the wizard, the "Contract value from this estimate" card says the value can be changed in Edit project → Contract & Supply instead of "step 2".
+- **R1-N5:** New invoice marks a stage that already has a draft invoice "(draft invoice exists)" and disables it.
+
 ### QA fixes (area A)
 - **One BoQ cost everywhere (QA-A-01 / 02):** the wizard Estimate step and Review show the BoQ total (direct + overheads + contingency) and its margin from the API's new `boqCost`; the old grey-structure cost summary is no longer shown next to it. "Contract value from this estimate" starts from the same total — on the BoQ page from the revision on screen (sent as `estimateId`), and says which revision it uses.
 - **No silent replace (QA-A-03):** replacing an existing contract value shows current vs suggested and the difference; lowering it, or replacing the price agreed in a won quote, needs a tick. "Finalize estimate" also offers "Keep current and continue".

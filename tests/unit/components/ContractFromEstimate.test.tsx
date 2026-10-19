@@ -375,3 +375,38 @@ describe("QA area A: one BoQ cost everywhere, never a silent replace", () => {
     expect(api.apply).toHaveBeenCalledWith({ id: "p1", body: { marginPercent: 20, replace: true } });
   });
 });
+
+describe("QA re-test R1 (contract card wording)", () => {
+  const card = (currentPaisa: string, language: "en" | "roman-ur" | "ur" = "en") =>
+    renderWithStore(<ContractFromEstimateCard projectId="p1" estimate={estimate(suggestion({ currentPaisa }))} />, { me: meFixture("THEKEDAR"), ui: { language } });
+
+  it.each([
+    ["en", "The new value is Rs 8,00,000 lower than the current one.", "The new value is Rs 2,00,000 higher than the current one."],
+    ["roman-ur", "Nayi raqam mojooda se Rs 8,00,000 kam hai.", "Nayi raqam mojooda se Rs 2,00,000 zyada hai."],
+    ["ur", "نئی رقم موجودہ سے Rs 8,00,000 کم ہے۔", "نئی رقم موجودہ سے Rs 2,00,000 زیادہ ہے۔"],
+  ] as const)("R1-N2 (%s): the dialog says lower / higher with the amount and no minus sign", async (language, lowerText, higherText) => {
+    const user = userEvent.setup();
+    const use = translate(language, "projects.estimate.contract.useValue");
+    const description = (dialog: HTMLElement) => document.getElementById(dialog.getAttribute("aria-describedby") ?? "")?.textContent ?? "";
+    const { unmount } = card("800000000", language); // suggested Rs 72 L vs current Rs 80 L
+    await user.click(screen.getByRole("button", { name: use }));
+    const lower = description(await screen.findByRole("alertdialog"));
+    expect(lower).toContain(lowerText);
+    expect(lower).not.toContain("−");
+    unmount();
+    card("700000000", language); // suggested Rs 72 L vs current Rs 70 L
+    await user.click(screen.getByRole("button", { name: use }));
+    const higher = description(await screen.findByRole("alertdialog"));
+    expect(higher).toContain(higherText);
+    expect(higher).not.toContain("+");
+  });
+
+  it("R1-N3: outside the wizard the card does not say 'step 2'", () => {
+    const { unmount } = renderWithStore(<ContractFromEstimateCard projectId="p1" estimate={estimate(suggestion())} />, { me: meFixture("THEKEDAR") });
+    expect(screen.queryByText(/step 2/)).toBeNull();
+    expect(screen.getByText(/Edit project → Contract & Supply/)).toBeInTheDocument();
+    unmount();
+    inWizard(<EstimateTab />);
+    expect(screen.getByText(/You can still change the value in step 2/)).toBeInTheDocument();
+  });
+});

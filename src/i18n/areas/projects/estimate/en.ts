@@ -368,6 +368,7 @@ export const strings = {
   contract: {
     title: "Contract value from this estimate",
     desc: "The BoQ cost (with overheads and contingency) plus your profit margin. You can still change the value in step 2.",
+    descProject: "The BoQ cost (with overheads and contingency) plus your profit margin. You can still change the value later in Edit project → Contract & Supply.",
     descRate: "Labour only: the owner buys the material, so the rate is the BoQ cost (your labour scope) plus your margin, per sq ft of covered area.",
     margin: "Profit margin",
     finishing: "Finishing allowance",
@@ -403,6 +404,7 @@ export const strings = {
     confirmLabel: "Replace",
     confirmQuote: "This value was agreed with the client in the won quote. Replacing it changes the contract price and the billing stage amounts.",
     confirmLower: "The new value is {diff} lower than the current one. Billing stage amounts are worked out again.",
+    confirmHigher: "The new value is {diff} higher than the current one. Billing stage amounts are worked out again.",
     confirmStages: "Billing stage amounts are worked out again.",
     currentLabel: "Current value",
     currentQuote: "Agreed quote price",

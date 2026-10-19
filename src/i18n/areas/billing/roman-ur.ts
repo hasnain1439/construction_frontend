@@ -140,6 +140,7 @@ export const strings: Widen<typeof En.strings> = {
     noStageReady: "Abhi koi stage tayyar nahi",
     stageOption: "{stage} — {percent}% · {amount}",
     stageOptionNotReady: "{stage} — {percent}% · {amount} (tayyar nahi)",
+    stageOptionDraftExists: "{stage} — {percent}% · {amount} (draft invoice pehle se hai)",
     forceBill: "Aisi stage ka bill banayein jo tayyar mark nahi",
     why: "Kyun",
     alsoBillPurchases: "Malik ki khareedari bhi bill karein (ikhtiyari)",
