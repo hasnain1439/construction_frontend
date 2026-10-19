@@ -2,6 +2,8 @@
  * Labour & cash book (Phase 1 · Step 7). Request bodies and queries come from the generated
  * OpenAPI file; responses are documented by example only, so their shapes are written here.
  * Sub-contract money (rates, contract value, retention) is absent for MUNSHI — never null.
+ * Worker daily wages (`dailyRatePaisa`, `defaultRatePaisa`, `rateOverridden`) are absent without
+ * `fields.wages` (owner decision 4) — never null.
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
@@ -30,9 +32,10 @@ export interface ProjectWorker {
   id: Id;
   projectId: Id;
   worker: WorkerRef & { phone: string | null };
-  dailyRatePaisa: Paisa;
-  defaultRatePaisa: Paisa;
-  rateOverridden: boolean;
+  /** Absent without `fields.wages` (also `defaultRatePaisa`, `rateOverridden`). */
+  dailyRatePaisa?: Paisa;
+  defaultRatePaisa?: Paisa;
+  rateOverridden?: boolean;
   startDate: IsoDate;
   endDate: IsoDate | null;
   isActive: boolean;
@@ -89,7 +92,8 @@ export interface TodayAttendance extends AttendanceDay {
 export interface AttendanceGridRow {
   projectWorkerId: Id;
   worker: WorkerRef;
-  dailyRatePaisa: Paisa;
+  /** Absent without `fields.wages`. */
+  dailyRatePaisa?: Paisa;
   isActive: boolean;
   days: Record<IsoDate, AttendanceMark>;
   totals: { full: number; half: number; absent: number; daysWorked: number; overtimeHours: number };
@@ -170,7 +174,8 @@ export interface SettlementLine {
   fullDays: number;
   halfDays: number;
   daysWorked: number;
-  dailyRatePaisa: Paisa;
+  /** Absent without `fields.wages` (gross / overtime / net stay). */
+  dailyRatePaisa?: Paisa;
   overtimeHours: number;
   overtimePaisa: Paisa;
   grossPaisa: Paisa;
@@ -400,8 +405,9 @@ export interface LaborOverview {
 type ProjectStatusRef = ProjectRef & { status: string };
 
 export interface WorkerLaborSummary {
-  worker: WorkerRef & { phone: string | null; dailyRatePaisa: Paisa; isActive: boolean };
-  projects: Array<{ projectWorkerId: Id; project: ProjectStatusRef; dailyRatePaisa: Paisa; startDate: IsoDate; endDate: IsoDate | null; isActive: boolean }>;
+  /** `dailyRatePaisa` (here and per project) is absent without `fields.wages`. */
+  worker: WorkerRef & { phone: string | null; dailyRatePaisa?: Paisa; isActive: boolean };
+  projects: Array<{ projectWorkerId: Id; project: ProjectStatusRef; dailyRatePaisa?: Paisa; startDate: IsoDate; endDate: IsoDate | null; isActive: boolean }>;
   thisWeek: { weekStart: IsoDate; daysWorked: number };
   outstandingAdvancePaisa: Paisa;
   advances: Array<{ id: Id; project: ProjectStatusRef; date: IsoDate; amountPaisa: Paisa; paidFrom: LaborPaidFrom; note: string | null }>;

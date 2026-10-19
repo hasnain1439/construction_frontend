@@ -97,6 +97,7 @@ export const PM_TEMPLATE: PermissionKey[] = [
   "team.member.view",
   "company.profile.view",
   "fields.rates",
+  "fields.wages",
   "closeout.drawing.view",
   "closeout.snag.view",
   "closeout.snag.create",
@@ -164,6 +165,7 @@ export const MUNSHI_TEMPLATE: PermissionKey[] = [
   "schedule.progress.edit",
   "schedule.stoppage.create",
   "changeorder.instruction.create",
+  "fields.wages",
 ];
 
 export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
@@ -196,6 +198,7 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "fields.rates",
   "fields.amounts",
   "fields.contract",
+  "fields.wages",
   "closeout.snag.view",
   "closeout.retention.view",
   "changeorder.view",

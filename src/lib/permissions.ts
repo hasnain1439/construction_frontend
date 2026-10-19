@@ -5,7 +5,7 @@
  *   resolved by the API: role template + ALLOW overrides − DENY overrides.
  * - THEKEDAR (the owner account) always has every key — checked here as well, so an owner is
  *   never locked out by a stale snapshot.
- * - `fieldAccess` says which values the API sends (rates, amounts, profit, contract).
+ * - `fieldAccess` says which values the API sends (rates, amounts, profit, contract, wages).
  *
  * Every show / hide decision in the UI goes through `can()` / `canAccess()`. `user.role` is only
  * used for account-type rules that are not configurable (e.g. a MUNSHI gets the site dashboard).
@@ -20,7 +20,7 @@ type Subject =
   | null
   | undefined;
 
-export type FieldName = "rates" | "amounts" | "profit" | "contract";
+export type FieldName = "rates" | "amounts" | "profit" | "contract" | "wages";
 export type Scope = "ASSIGNED_PROJECTS" | "ALL_PROJECTS";
 
 export const isThekedar = (me: Subject) => me?.user.role === "THEKEDAR";
@@ -44,7 +44,10 @@ export function canAll(me: Subject, keys: readonly PermissionKey[]): boolean {
 export function canSeeField(me: Subject, field: FieldName): boolean {
   if (!me) return false;
   if (isThekedar(me)) return true;
-  return me.fieldAccess ? Boolean(me.fieldAccess[field]) : can(me, `fields.${field}`);
+  // `wages` (owner decision 4) is missing from an older server's fieldAccess → fall back to the key.
+  const access = me.fieldAccess as Partial<Record<FieldName, boolean>> | undefined;
+  const value = access?.[field];
+  return value === undefined ? can(me, `fields.${field}`) : Boolean(value);
 }
 
 /** Contract value, billing money, money KPIs. */
@@ -52,6 +55,9 @@ export const canSeeFinancials = (me: Subject) => canSeeField(me, "amounts");
 
 /** Rates, purchase amounts, stock values, supplier balances. A default MUNSHI never has it. */
 export const canSeeRates = (me: Subject) => canSeeField(me, "rates");
+
+/** Worker daily wages (`fields.wages`, owner decision 4 — on by default, also for the Munshi). */
+export const canSeeWages = (me: Subject) => canSeeField(me, "wages");
 
 /** Scope of a held scoped key (THEKEDAR: always ALL_PROJECTS); null when not held. */
 export function scopeOf(me: Subject, key: PermissionKey): Scope | null {

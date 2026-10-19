@@ -47,7 +47,7 @@ const bilalPerms: UserPermissions = {
   overrides: [{ key: "finance.pnl.view", effect: "ALLOW", scope: null, maxAmountPaisa: null, note: null }],
   denied: [],
   permissions: [],
-  fieldAccess: { rates: true, amounts: false, profit: false, contract: false },
+  fieldAccess: { rates: true, amounts: false, profit: false, contract: false, wages: true },
   scopes: {},
   approvalLimits: {},
 };

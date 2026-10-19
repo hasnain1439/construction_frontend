@@ -30,7 +30,7 @@ import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import { formatDate, formatMonth, todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { ChargeLossSlideOver, ReportLossSlideOver } from "../components/LossSlideOvers";
-import { placeName, useSeesRates } from "../options";
+import { placeName, useSeesAmounts } from "../options";
 
 const LOSS_STATUSES = ["REPORTED", "CHARGED"] as const;
 const LOSS_KINDS = ["MISSING", "DAMAGED"] as const;
@@ -40,7 +40,7 @@ const CHARGE_KINDS = ["INTERNAL_HIRE", "RENTAL"] as const;
 export function useLossColumns(onCharge?: (loss: EquipmentLoss) => void): Column<EquipmentLoss>[] {
   const t = useT();
   const te = useEnumT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   return [
     {
       id: "number",
@@ -109,7 +109,7 @@ export function useLossColumns(onCharge?: (loss: EquipmentLoss) => void): Column
       id: "value",
       header: t("field.value"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (l) => <MoneyText paisa={l.valuePaisa} />,
     },
     {
@@ -243,11 +243,11 @@ const monthRange = (month: string) => {
   return { from: `${month}-01`, to: `${month}-${String(last).padStart(2, "0")}` };
 };
 
-/** Daily internal hire + rent rows (one per equipment per day). Amounts need `fields.rates`. */
+/** Daily internal hire + rent rows (one per equipment per day). Amounts need `fields.amounts`. */
 export function ChargesView() {
   const t = useT();
   const te = useEnumT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const readOnly = useReadOnly();
   const canRun = useCan("equipment.manage") && !readOnly;
   const projects = useSiteProjectOptions();
@@ -294,14 +294,14 @@ export function ChargesView() {
       id: "rate",
       header: t("equipment.field.ratePerDay"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (c) => <MoneyText paisa={c.ratePaisa} />,
     },
     {
       id: "amount",
       header: t("field.amount"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (c) => <MoneyText paisa={c.amountPaisa} />,
     },
   ];
@@ -353,7 +353,7 @@ export function ChargesView() {
           options={CHARGE_KINDS.map((value) => ({ value, label: te("equipmentChargeKind", value) }))}
         />
       </FilterBar>
-      {rates ? (
+      {money ? (
         <KpiGroup columns="md:grid-cols-2" ariaLabel={t("equipment.charges.title")}>
           <KpiCard
             variant="tile"

@@ -32,7 +32,7 @@ import {
   splitBucket,
   useBucketOptions,
   useEquipmentPlaces,
-  useSeesRates,
+  useSeesAmounts,
 } from "../options";
 import { chargeSchema, lossSchema, type ChargeValues, type LossValues } from "../schemas";
 
@@ -172,7 +172,7 @@ export function ChargeLossSlideOver({
 }) {
   const t = useT();
   const te = useEnumT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const [charge, { isLoading }] = useChargeEquipmentLossMutation();
   const run = useMutationToast();
   const projectId = loss?.project?.id;
@@ -206,7 +206,7 @@ export function ChargeLossSlideOver({
           body: {
             chargedTo: v.chargedTo!,
             note: v.note,
-            ...(rates && v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
+            ...(v.valuePaisa ? { valuePaisa: v.valuePaisa } : {}),
             ...(v.chargedTo === "SUBCONTRACTOR" && v.subcontractAssignmentId
               ? { subcontractAssignmentId: v.subcontractAssignmentId }
               : {}),
@@ -250,7 +250,7 @@ export function ChargeLossSlideOver({
       <Form form={form} onSubmit={onSubmit} id="charge-form">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <StatusBadge domain="equipmentLossKind" value={loss.kind} />
-          {rates ? (
+          {money ? (
             <>
               <span>{t("field.value")}</span>
               <MoneyText paisa={loss.valuePaisa} className="font-semibold" />
@@ -277,13 +277,8 @@ export function ChargeLossSlideOver({
             loading={subcontracts.isLoading}
           />
         ) : null}
-        {rates ? (
-          <MoneyField
-            name="valuePaisa"
-            label={t("equipment.field.chargeValue")}
-            hint={t("equipment.loss.valueHint")}
-          />
-        ) : null}
+        {/* Owner decision 3: a value may be entered without fields.amounts (never shown back). */}
+        <MoneyField name="valuePaisa" label={t("equipment.field.chargeValue")} hint={t("equipment.loss.valueHint")} />
         <TextareaField name="note" label={t("field.note")} required rows={2} />
       </Form>
     </SlideOver>

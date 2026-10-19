@@ -275,6 +275,7 @@ function SuggestionList({ suggestions }: { suggestions: ShutteringSuggestion[] }
   const t = useT();
   const text = useSuggestionText();
   const readOnly = useReadOnly();
+  // Owner decision 3: anyone who manages rentals may hire (and enter the rent / deposit); the amounts stay hidden afterwards without fields.amounts.
   const canRent = useCan("equipment.rental.manage") && !readOnly;
   const canMove = useCan("equipment.transfer.create") && !readOnly;
   const [action, setAction] = useState<Action>(null);

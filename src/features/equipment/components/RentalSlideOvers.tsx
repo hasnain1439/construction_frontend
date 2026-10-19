@@ -27,7 +27,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
-import { useEquipmentOptions, useEquipmentPlaces, useSeesRates } from "../options";
+import { useEquipmentOptions, useEquipmentPlaces, useSeesAmounts } from "../options";
 import {
   closeSchema,
   extendSchema,
@@ -252,7 +252,6 @@ export function ReturnRentalSlideOver({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useT();
-  const rates = useSeesRates();
   const [doReturn, { isLoading }] = useReturnRentalMutation();
   const run = useMutationToast();
   const open_ = (rental?.items ?? []).filter((i) => i.outstandingQty > 0);
@@ -292,8 +291,9 @@ export function ReturnRentalSlideOver({
           body: {
             returnDate: v.returnDate,
             items,
-            ...(rates && v.damageChargesPaisa ? { damageChargesPaisa: v.damageChargesPaisa } : {}),
-            ...(rates && anyMissing && v.missingChargesPaisa ? { missingChargesPaisa: v.missingChargesPaisa } : {}),
+            // Owner decision 3: entered as part of the return even without fields.amounts (never shown back).
+            ...(v.damageChargesPaisa ? { damageChargesPaisa: v.damageChargesPaisa } : {}),
+            ...(anyMissing && v.missingChargesPaisa ? { missingChargesPaisa: v.missingChargesPaisa } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -362,14 +362,12 @@ export function ReturnRentalSlideOver({
             min={rental.startDate}
             max={todayPK()}
           />
-          {rates ? (
-            <MoneyField
-              name="damageChargesPaisa"
-              label={t("equipment.field.damageCharges")}
-              hint={t("equipment.rental.damageHint")}
-            />
-          ) : null}
-          {rates && anyMissingNow ? (
+          <MoneyField
+            name="damageChargesPaisa"
+            label={t("equipment.field.damageCharges")}
+            hint={t("equipment.rental.damageHint")}
+          />
+          {anyMissingNow ? (
             <MoneyField
               name="missingChargesPaisa"
               label={t("equipment.qaFixes.missingCharges")}
@@ -394,7 +392,7 @@ export function CloseRentalSlideOver({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const [close, { isLoading }] = useCloseRentalMutation();
   const run = useMutationToast();
   const form = useForm<CloseValues, unknown, z.output<typeof closeSchema>>({
@@ -408,7 +406,7 @@ export function CloseRentalSlideOver({
         close({
           id: rental.id,
           body: {
-            ...(rates && v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa } : {}),
+            ...(v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -437,19 +435,18 @@ export function CloseRentalSlideOver({
       }
     >
       <Form form={form} onSubmit={onSubmit} id="close-form">
-        {rates ? (
-          <>
-            <p className="text-sm">
-              {t("equipment.field.deposit")}:{" "}
-              <MoneyText paisa={rental.depositPaisa} className="font-semibold" />
-            </p>
-            <MoneyField
-              name="depositRefundPaisa"
-              label={t("equipment.field.depositRefund")}
-              hint={t("equipment.rental.refundHint")}
-            />
-          </>
+        {money ? (
+          <p className="text-sm">
+            {t("equipment.field.deposit")}:{" "}
+            <MoneyText paisa={rental.depositPaisa} className="font-semibold" />
+          </p>
         ) : null}
+        {/* Owner decision 3: the refund is entered even without fields.amounts (never shown back). */}
+        <MoneyField
+          name="depositRefundPaisa"
+          label={t("equipment.field.depositRefund")}
+          hint={t("equipment.rental.refundHint")}
+        />
         <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>

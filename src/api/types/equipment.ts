@@ -2,7 +2,7 @@
  * Equipment & shuttering (Phase 2 · Step 16). Request bodies and queries come from the generated
  * OpenAPI file; responses are documented by example only, so their shapes are written here once
  * (PHASE_2_3_CONTRACTS.md → Step 16). Rates, values and amounts are absent (undefined) without
- * `fields.rates` — never null — so `MoneyText` shows "Hidden for your role" (the Munshi never sees them).
+ * `fields.amounts` — never null — so `MoneyText` shows "Hidden for your role" (the Munshi never sees them).
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { LocationRef, ProjectRef } from "./inventory";

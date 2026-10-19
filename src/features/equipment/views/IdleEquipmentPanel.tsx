@@ -15,16 +15,16 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
-import { useSeesRates } from "../options";
+import { useSeesAmounts } from "../options";
 
 /**
  * Rented equipment idle at a site (no milestone work for the company's idle-days threshold): days idle
- * and the rent being paid for nothing (only with fields.rates). "Check now" sends the alert.
+ * and the rent being paid for nothing (only with fields.amounts). "Check now" sends the alert.
  */
 export function IdleEquipmentPanel({ projectId }: { projectId?: string }) {
   const t = useT();
   const te = useEnumT();
-  const rates = useSeesRates();
+  const money = useSeesAmounts();
   const readOnly = useReadOnly();
   const canCheck = useCan("equipment.rental.manage") && !readOnly;
   const { data, isLoading, error, refetch } = useGetEquipmentIdleQuery((projectId ? { projectId } : undefined) as IdleRentalsQuery | undefined);
@@ -86,14 +86,14 @@ export function IdleEquipmentPanel({ projectId }: { projectId?: string }) {
       id: "daily",
       header: t("equipment.idle.colDaily"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (r) => <MoneyText paisa={r.dailyCostPaisa} />,
     },
     {
       id: "wasted",
       header: t("equipment.idle.colWasted"),
       align: "right",
-      hidden: !rates,
+      hidden: !money,
       cell: (r) => <MoneyText paisa={r.idleCostPaisa} />,
     },
   ];
@@ -109,7 +109,7 @@ export function IdleEquipmentPanel({ projectId }: { projectId?: string }) {
       description={t("equipment.idle.desc", { days: threshold })}
       actions={
         <span className="flex flex-wrap items-center gap-2">
-          {rates && data?.totalDailyCostPaisa && data.items.length ? (
+          {money && data?.totalDailyCostPaisa && data.items.length ? (
             <span className="text-sm text-muted-foreground" data-testid="idle-total">
               {t("equipment.idle.totalDaily")} <MoneyText paisa={data.totalDailyCostPaisa} className="font-semibold text-danger" />
             </span>

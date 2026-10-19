@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useCreateWorkerTypeMutation, useUpdateWorkerTypeMutation } from "@/api/services/masterData.api";
 import type { WorkerTypeRow } from "@/api/types";
+import { useSeesWages } from "@/components/common/PermissionGate";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
@@ -38,7 +39,9 @@ export function WorkerTypeSlideOver({
   const FORM_ID = "worker-type-form";
   const t = useT();
   const language = useLanguage();
-  const schema = useMemo(() => createWorkerTypeSchema(t), [t]);
+  // The daily rate needs `fields.wages` (owner decision 4): hidden and never sent without it.
+  const wages = useSeesWages();
+  const schema = useMemo(() => createWorkerTypeSchema(t, wages), [t, wages]);
   const [create, { isLoading: creating }] = useCreateWorkerTypeMutation();
   const [update, { isLoading: updating }] = useUpdateWorkerTypeMutation();
   const run = useMutationToast();
@@ -48,7 +51,7 @@ export function WorkerTypeSlideOver({
       label: workerType?.label ?? "",
       labelRoman: workerType?.labelRoman ?? "",
       labelUrdu: workerType?.labelUrdu ?? "",
-      ratePaisa: workerType?.ratePaisa ?? null,
+      ratePaisa: (wages && workerType?.ratePaisa) || null,
       overtimeMultiplier: workerType ? workerType.overtimeMultiplier : DEFAULT_OVERTIME,
       isActive: workerType?.isActive ?? true,
     },
@@ -66,7 +69,7 @@ export function WorkerTypeSlideOver({
                 label: v.label,
                 labelRoman: v.labelRoman || null,
                 labelUrdu: v.labelUrdu || null,
-                ratePaisa: v.ratePaisa,
+                ...(wages && v.ratePaisa ? { ratePaisa: v.ratePaisa } : {}),
                 overtimeMultiplier: v.overtimeMultiplier,
                 ...(v.isActive !== workerType.isActive ? { isActive: v.isActive } : {}),
               },
@@ -79,7 +82,8 @@ export function WorkerTypeSlideOver({
               label: v.label,
               ...(v.labelRoman ? { labelRoman: v.labelRoman } : {}),
               ...(v.labelUrdu ? { labelUrdu: v.labelUrdu } : {}),
-              ratePaisa: v.ratePaisa,
+              // Adding a type is offered only with `fields.wages`, so the rate is there (schema).
+              ratePaisa: v.ratePaisa ?? "",
               overtimeMultiplier: v.overtimeMultiplier,
             }).unwrap(),
           { ...options, success: (row) => t("workerTypes.added", { name: names(row) }) },
@@ -112,7 +116,7 @@ export function WorkerTypeSlideOver({
         </FieldGrid>
         <p className="-mt-2 text-xs text-muted-foreground">{t("workerTypes.nameHint")}</p>
         <FieldGrid>
-          <MoneyField name="ratePaisa" label={t("workerTypes.dailyRate")} required />
+          {wages ? <MoneyField name="ratePaisa" label={t("workerTypes.dailyRate")} required /> : null}
           <NumberField name="overtimeMultiplier" label={t("workerTypes.overtime")} required unit="×" decimals={2} hint={t("workerTypes.overtimeHint")} />
         </FieldGrid>
         {workerType ? <ToggleField name="isActive" label={t("workerTypes.activeLabel")} description={t("workerTypes.activeHint")} /> : null}
