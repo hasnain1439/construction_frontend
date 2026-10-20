@@ -43,7 +43,7 @@ import { formatPKR, paisaToRupees, rupeesToPaisa } from "@/lib/money";
 import { useEnumT, useT } from "@/i18n/useT";
 import { BulkPercentDialog } from "../components/BulkPercentDialog";
 import { AddCategoryDialog, DuplicateCategoryDialog, RenameCategoryDialog } from "../components/CategoryDialogs";
-import { PriceExcelActions } from "../components/PriceExcelImport";
+import { PriceImportButton } from "../components/PriceExcelImport";
 import { RateHistorySlideOver } from "../components/RateHistorySlideOver";
 
 interface Draft {
@@ -318,7 +318,7 @@ export function PriceListView() {
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.priceList.title") }]}
         actions={
           <>
-            <PriceExcelActions />
+            <PriceImportButton />
             {canEdit ? (
               <>
                 {dirtyCount ? (

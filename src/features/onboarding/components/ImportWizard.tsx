@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleCheck, Download, FileSpreadsheet, Upload } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   useCommitImportMutation,
   useDownloadImportTemplateMutation,
@@ -31,16 +31,21 @@ const ENTITY: Record<ImportEntity, { label: TranslationKey; permission: Permissi
   clients: { label: "imports.entityClients", permission: "clients.client.create" },
 };
 
-type Step = "template" | "upload" | "preview" | "done";
-const STEP_ORDER: Step[] = ["template", "upload", "preview", "done"];
-const STEP_LABEL: Record<Step, TranslationKey> = {
+export type ImportStep = "template" | "upload" | "preview" | "done";
+const STEP_ORDER: ImportStep[] = ["template", "upload", "preview", "done"];
+const STEP_LABEL: Record<ImportStep, TranslationKey> = {
   template: "imports.stepTemplate",
   upload: "imports.stepUpload",
   preview: "imports.stepPreview",
   done: "imports.stepDone",
 };
 
-function Steps({ current }: { current: Step }) {
+/** Files every Excel import accepts. */
+export const IMPORT_ACCEPT =
+  ".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv";
+
+/** "1 Template · 2 Upload · 3 Check · 4 Done" progress pills shared by every Excel import. */
+export function ImportSteps({ current }: { current: ImportStep }) {
   const t = useT();
   const at = STEP_ORDER.indexOf(current);
   return (
@@ -63,6 +68,155 @@ function Steps({ current }: { current: Step }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+/** Step 1: title, hint and the download button (plus optional extra content, e.g. a note). */
+export function ImportTemplateSection({
+  title,
+  hint,
+  label,
+  downloading,
+  onDownload,
+  children,
+}: {
+  title: string;
+  hint: string;
+  label: string;
+  downloading: boolean;
+  onDownload: () => void;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="text-sm text-muted-foreground">{hint}</p>
+      <Button variant="outline" disabled={downloading} onClick={onDownload}>
+        <Download data-icon="inline-start" />
+        {label}
+      </Button>
+      {children}
+    </section>
+  );
+}
+
+/** Step 2: file picker (the file stays in the browser), file name, "checking…" and the file error. */
+export function ImportUploadSection({
+  title,
+  hint,
+  inputRef,
+  file,
+  checking,
+  error,
+  onFile,
+  inputLabel,
+}: {
+  title: string;
+  hint: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  file: File | null;
+  checking: boolean;
+  error: string | null;
+  onFile: (file: File) => void;
+  /** Accessible name of the hidden input (defaults to the visible "Choose file" label). */
+  inputLabel?: string;
+}) {
+  const t = useT();
+  const inputId = useId();
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="text-sm text-muted-foreground">{hint}</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={inputRef}
+          id={inputId}
+          type="file"
+          className="sr-only"
+          aria-label={inputLabel}
+          accept={IMPORT_ACCEPT}
+          onChange={(e) => {
+            const chosen = e.target.files?.[0];
+            if (chosen) onFile(chosen);
+          }}
+        />
+        <Button variant="outline" asChild>
+          <label htmlFor={inputId} className="cursor-pointer">
+            <FileSpreadsheet data-icon="inline-start" />
+            {t("imports.chooseFile")}
+          </label>
+        </Button>
+        {file ? (
+          <span className="text-sm" dir="auto">
+            {file.name}
+          </span>
+        ) : null}
+        {checking ? <span className="text-sm text-muted-foreground">{t("imports.checking")}</span> : null}
+      </div>
+      {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
+    </section>
+  );
+}
+
+/** A labelled checkbox under the preview summary ("only rows with problems", "import only the good rows"). */
+export function ImportOption({
+  id,
+  checked,
+  onCheckedChange,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onCheckedChange(v === true)} />
+      <Label htmlFor={id}>{children}</Label>
+    </div>
+  );
+}
+
+/** Footer: Close when done; otherwise "Choose another file" (after a preview) + the import button. */
+export function ImportFooter({
+  done,
+  hasPreview,
+  importing,
+  importDisabled,
+  importLabel,
+  onImport,
+  onReset,
+  onClose,
+}: {
+  done: boolean;
+  hasPreview: boolean;
+  importing: boolean;
+  importDisabled: boolean;
+  importLabel: string;
+  onImport: () => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  const t = useT();
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {done ? (
+        <Button onClick={onClose}>{t("imports.close")}</Button>
+      ) : (
+        <>
+          {hasPreview ? (
+            <Button variant="outline" onClick={onReset} disabled={importing}>
+              {t("imports.anotherFile")}
+            </Button>
+          ) : null}
+          <Button onClick={onImport} disabled={importDisabled || importing}>
+            <Upload data-icon="inline-start" />
+            {importing ? t("imports.importing") : importLabel}
+          </Button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -137,7 +291,7 @@ export function ImportWizard({
     if (r) setResult(r);
   };
 
-  const step: Step = result ? "done" : preview ? "preview" : file ? "upload" : "template";
+  const step: ImportStep = result ? "done" : preview ? "preview" : file ? "upload" : "template";
   const label = (c: ImportPreview["columns"][number]) =>
     language === "ur" ? c.labelUrdu : language === "roman-ur" ? c.labelRoman : c.label;
   const errorsOf = (r: ImportPreviewRow, key: string) => r.errors.filter((e) => e.column === key);
@@ -209,26 +363,19 @@ export function ImportWizard({
       title={t("imports.title", { entity: entityLabel })}
       description={t("imports.desc")}
       footer={
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {result ? (
-            <Button onClick={() => close(false)}>{t("imports.close")}</Button>
-          ) : (
-            <>
-              {preview ? (
-                <Button variant="outline" onClick={reset} disabled={importing}>
-                  {t("imports.anotherFile")}
-                </Button>
-              ) : null}
-              <Button onClick={() => void doImport()} disabled={!preview || importCount === 0 || importing}>
-                <Upload data-icon="inline-start" />
-                {importing ? t("imports.importing") : t("imports.import", { n: importCount })}
-              </Button>
-            </>
-          )}
-        </div>
+        <ImportFooter
+          done={Boolean(result)}
+          hasPreview={Boolean(preview)}
+          importing={importing}
+          importDisabled={!preview || importCount === 0}
+          importLabel={t("imports.import", { n: importCount })}
+          onImport={() => void doImport()}
+          onReset={reset}
+          onClose={() => close(false)}
+        />
       }
     >
-      <Steps current={step} />
+      <ImportSteps current={step} />
       {result ? (
         <InlineAlert
           tone="success"
@@ -242,51 +389,23 @@ export function ImportWizard({
         </InlineAlert>
       ) : (
         <div className="space-y-6">
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("imports.templateTitle")}</h3>
-            <p className="text-sm text-muted-foreground">{t("imports.templateHint")}</p>
-            <Button
-              variant="outline"
-              disabled={downloading}
-              onClick={() => void run(() => download(entity).unwrap(), { success: t("imports.downloaded") })}
-            >
-              <Download data-icon="inline-start" />
-              {t("imports.download")}
-            </Button>
-          </section>
+          <ImportTemplateSection
+            title={t("imports.templateTitle")}
+            hint={t("imports.templateHint")}
+            label={t("imports.download")}
+            downloading={downloading}
+            onDownload={() => void run(() => download(entity).unwrap(), { success: t("imports.downloaded") })}
+          />
 
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("imports.uploadTitle")}</h3>
-            <p className="text-sm text-muted-foreground">{t("imports.uploadHint")}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                ref={inputRef}
-                id={inputId}
-                type="file"
-                className="sr-only"
-                accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-                onChange={(e) => {
-                  const chosen = e.target.files?.[0];
-                  if (chosen) void runPreview(chosen);
-                }}
-              />
-              <Button variant="outline" asChild>
-                <label htmlFor={inputId} className="cursor-pointer">
-                  <FileSpreadsheet data-icon="inline-start" />
-                  {t("imports.chooseFile")}
-                </label>
-              </Button>
-              {file ? (
-                <span className="text-sm" dir="auto">
-                  {file.name}
-                </span>
-              ) : null}
-              {checking ? (
-                <span className="text-sm text-muted-foreground">{t("imports.checking")}</span>
-              ) : null}
-            </div>
-            {fileError ? <InlineAlert tone="danger">{fileError}</InlineAlert> : null}
-          </section>
+          <ImportUploadSection
+            title={t("imports.uploadTitle")}
+            hint={t("imports.uploadHint")}
+            inputRef={inputRef}
+            file={file}
+            checking={checking}
+            error={fileError}
+            onFile={(chosen) => void runPreview(chosen)}
+          />
 
           {preview ? (
             <section className="space-y-3" aria-live="polite">
@@ -310,26 +429,14 @@ export function ImportWizard({
               </InlineAlert>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                 {preview.invalidRows ? (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${inputId}-only`}
-                      checked={onlyProblems}
-                      onCheckedChange={(v) => setOnlyProblems(v === true)}
-                    />
-                    <Label htmlFor={`${inputId}-only`}>{t("imports.onlyProblems")}</Label>
-                  </div>
+                  <ImportOption id={`${inputId}-only`} checked={onlyProblems} onCheckedChange={setOnlyProblems}>
+                    {t("imports.onlyProblems")}
+                  </ImportOption>
                 ) : null}
                 {preview.invalidRows && preview.validRows ? (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${inputId}-skip`}
-                      checked={skipInvalid}
-                      onCheckedChange={(v) => setSkipInvalid(v === true)}
-                    />
-                    <Label htmlFor={`${inputId}-skip`}>
-                      {t("imports.skipInvalid", { n: preview.validRows, bad: preview.invalidRows })}
-                    </Label>
-                  </div>
+                  <ImportOption id={`${inputId}-skip`} checked={skipInvalid} onCheckedChange={setSkipInvalid}>
+                    {t("imports.skipInvalid", { n: preview.validRows, bad: preview.invalidRows })}
+                  </ImportOption>
                 ) : null}
               </div>
               <DataTable

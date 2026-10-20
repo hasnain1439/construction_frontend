@@ -1,8 +1,7 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, FileSpreadsheet } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import { toast } from "sonner";
 import {
   useCommitPriceImportMutation,
   useDownloadPriceListMutation,
@@ -13,27 +12,21 @@ import type {
   PriceImportError,
   PriceImportErrorCode,
   PriceImportPreview,
+  PriceImportResult,
 } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { usePermissions } from "@/components/common/PermissionGate";
+import { SlideOver } from "@/components/common/SlideOver";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
+  ImportFooter,
+  ImportOption,
+  ImportSteps,
+  ImportTemplateSection,
+  ImportUploadSection,
+  type ImportStep,
+} from "@/features/onboarding/components/ImportWizard";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useLanguage, useT, type TranslationKey } from "@/i18n/useT";
@@ -84,27 +77,19 @@ function Difference({ change }: { change: PriceImportChange }) {
   );
 }
 
-/** Preview of an uploaded price list file: changes grouped by category, the problems, then confirm. */
-export function PriceImportPreviewDialog({
+/** Step 3: summary counts, the "import only the changes without problems" option, problems, changes by category. */
+function PricePreview({
   preview,
-  file,
-  onClose,
+  skipInvalid,
+  onSkipInvalidChange,
 }: {
-  preview: PriceImportPreview | null;
-  file: File | null;
-  onClose: () => void;
+  preview: PriceImportPreview;
+  skipInvalid: boolean;
+  onSkipInvalidChange: (skip: boolean) => void;
 }) {
   const t = useT();
-  const run = useMutationToast();
-  const checkboxId = useId();
-  const [skipInvalid, setSkipInvalid] = useState(false);
-  const [commit, { isLoading: saving }] = useCommitPriceImportMutation();
-  const open = Boolean(preview && file);
-
-  const close = () => {
-    setSkipInvalid(false);
-    onClose();
-  };
+  const optionId = useId();
+  const hasErrors = preview.errorCount > 0;
 
   const errorText = (e: PriceImportError) =>
     t(ERROR_TEXT[e.code], { value: e.value ?? "", column: e.column ?? "" });
@@ -178,154 +163,131 @@ export function PriceImportPreviewDialog({
     },
   ];
 
-  const groups = (preview?.categories ?? [])
-    .map((category) => ({
-      category,
-      rows: (preview?.changes ?? []).filter((c) => c.category.id === category.id),
-    }))
+  const groups = preview.categories
+    .map((category) => ({ category, rows: preview.changes.filter((c) => c.category.id === category.id) }))
     .filter((g) => g.rows.length > 0);
-  const hasErrors = Boolean(preview?.errorCount);
-  const saveCount = !preview || (hasErrors && !skipInvalid) ? 0 : preview.changedCount;
-
-  const save = async () => {
-    if (!file) return;
-    const result = await run(() => commit({ file, ...(hasErrors ? { skipInvalid: true } : {}) }).unwrap(), {
-      success: (r) =>
-        r.changed === 1
-          ? t("masterData.priceImport.oneUpdated")
-          : t("masterData.priceImport.nUpdated", { n: r.changed }),
-    });
-    if (result) close();
-  };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && !saving && close()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle className="text-base font-semibold">{t("masterData.priceImport.title")}</DialogTitle>
-          <DialogDescription>{t("masterData.priceImport.description")}</DialogDescription>
-        </DialogHeader>
-        {preview ? (
-          <div className="space-y-4" aria-live="polite">
-            <InlineAlert
-              tone={hasErrors ? "warning" : preview.changedCount ? "success" : "info"}
-              title={t("masterData.priceImport.summary", {
-                changed: preview.changedCount,
-                unchanged: preview.unchangedCount,
-                errors: preview.errorCount,
-              })}
-            >
-              <span dir="auto">{t("masterData.priceImport.file", { name: preview.fileName })}</span>
-              {!preview.changedCount ? (
-                <span className="block">{t("masterData.priceImport.noChanges")}</span>
-              ) : null}
-              {preview.changedCount && !hasErrors ? (
-                <span className="block">{t("masterData.priceImport.allGood")}</span>
-              ) : null}
-            </InlineAlert>
+    <section className="space-y-3" aria-live="polite">
+      <InlineAlert
+        tone={hasErrors ? "warning" : preview.changedCount ? "success" : "info"}
+        title={t("masterData.priceImport.summary", {
+          changed: preview.changedCount,
+          unchanged: preview.unchangedCount,
+          errors: preview.errorCount,
+        })}
+      >
+        <span className="block" dir="auto">
+          {t("masterData.priceImport.file", { name: preview.fileName })}
+        </span>
+        {!preview.changedCount ? (
+          <span className="block">{t("masterData.priceImport.noChanges")}</span>
+        ) : hasErrors ? (
+          <span className="block">{t("masterData.priceImport.allOrNothing")}</span>
+        ) : (
+          <span className="block">{t("masterData.priceImport.allGood")}</span>
+        )}
+      </InlineAlert>
 
-            {hasErrors ? (
-              <InlineAlert
-                tone="danger"
-                title={t("masterData.priceImport.errorsTitle", { n: preview.errorCount })}
-              >
-                <p>{t("masterData.priceImport.errorsHint")}</p>
-                <ul
-                  className="mt-2 max-h-48 space-y-1 overflow-y-auto text-xs"
-                  data-testid="price-import-errors"
-                >
-                  {preview.errors.map((e, i) => (
-                    <li key={i}>
-                      <span className="font-semibold" dir="auto">
-                        {errorWhere(e)}:
-                      </span>{" "}
-                      {errorText(e)}
-                    </li>
-                  ))}
-                </ul>
-              </InlineAlert>
-            ) : null}
+      {hasErrors && preview.changedCount ? (
+        <ImportOption id={optionId} checked={skipInvalid} onCheckedChange={onSkipInvalidChange}>
+          {t("masterData.priceImport.skipInvalid", { n: preview.changedCount })}
+        </ImportOption>
+      ) : null}
 
-            {groups.map(({ category, rows }) => (
-              <section key={category.id} className="space-y-2" aria-label={category.name}>
-                <h3 className="text-sm font-semibold">
-                  {t("masterData.priceImport.categoryCount", { name: category.name, n: rows.length })}
-                </h3>
-                <DataTable
-                  rows={rows}
-                  columns={columns}
-                  getRowId={(c) => `${c.material.id}:${c.category.id}`}
-                  clientPageSize={0}
-                  maxHeight="md"
-                  rowClassName={(c) =>
-                    c.rateChanged && c.diffPaisa?.startsWith("-")
-                      ? "bg-success-soft/40"
-                      : c.rateChanged
-                        ? "bg-danger-soft/40"
-                        : undefined
-                  }
-                  empty={{ title: t("masterData.priceImport.noChanges"), compact: true }}
-                />
-              </section>
+      {hasErrors ? (
+        <InlineAlert tone="danger" title={t("masterData.priceImport.errorsTitle", { n: preview.errorCount })}>
+          <p>{t("masterData.priceImport.errorsHint")}</p>
+          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-xs" data-testid="price-import-errors">
+            {preview.errors.map((e, i) => (
+              <li key={i}>
+                <span className="font-semibold" dir="auto">
+                  {errorWhere(e)}:
+                </span>{" "}
+                {errorText(e)}
+              </li>
             ))}
+          </ul>
+        </InlineAlert>
+      ) : null}
 
-            {hasErrors && preview.changedCount ? (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={checkboxId}
-                  checked={skipInvalid}
-                  onCheckedChange={(v) => setSkipInvalid(v === true)}
-                />
-                <Label htmlFor={checkboxId}>
-                  {t("masterData.priceImport.skipInvalid", { n: preview.changedCount })}
-                </Label>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        <DialogFooter>
-          <Button variant="outline" onClick={close} disabled={saving}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={() => void save()} disabled={saveCount === 0 || saving}>
-            <Upload data-icon="inline-start" />
-            {saving
-              ? t("masterData.priceImport.saving")
-              : t("masterData.priceImport.confirm", { n: saveCount })}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {groups.map(({ category, rows }) => (
+        <section key={category.id} className="space-y-2" aria-label={category.name}>
+          <h3 className="text-sm font-semibold">
+            {t("masterData.priceImport.categoryCount", { name: category.name, n: rows.length })}
+          </h3>
+          <DataTable
+            rows={rows}
+            columns={columns}
+            getRowId={(c) => `${c.material.id}:${c.category.id}`}
+            clientPageSize={0}
+            maxHeight="md"
+            rowClassName={(c) =>
+              c.rateChanged && c.diffPaisa?.startsWith("-")
+                ? "bg-success-soft/40"
+                : c.rateChanged
+                  ? "bg-danger-soft/40"
+                  : undefined
+            }
+            empty={{ title: t("masterData.priceImport.noChanges"), compact: true }}
+          />
+        </section>
+      ))}
+    </section>
   );
 }
 
 /**
- * "Excel rates" menu on the price list: download every material × category with today's rates
- * (view + fields.rates), upload the edited file → preview dialog → save (masterdata.pricelist.manage).
+ * Price list Excel import, same steps as the other Excel imports (ImportWizard): download the
+ * pre-filled price list → upload the edited file → check old → new per category → import → done.
+ * Without `canUpload` (e.g. a PM) only step 1 is shown, with a note that the owner/admin uploads.
  */
-export function PriceExcelActions() {
+export function PriceImportWizard({
+  open,
+  onOpenChange,
+  canDownload,
+  canUpload,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  canDownload: boolean;
+  canUpload: boolean;
+}) {
   const t = useT();
   const language = useLanguage();
-  const readOnly = useReadOnly();
-  const { can, canSee } = usePermissions();
   const run = useMutationToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PriceImportPreview | null>(null);
+  const [result, setResult] = useState<PriceImportResult | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [skipInvalid, setSkipInvalid] = useState(false);
   const [download, { isLoading: downloading }] = useDownloadPriceListMutation();
   const [check, { isLoading: checking }] = usePreviewPriceImportMutation();
-  const canDownload = can("masterdata.pricelist.view") && canSee("rates");
-  const canUpload = can("masterdata.pricelist.manage") && !readOnly;
-  if (!canDownload && !canUpload) return null;
+  const [commit, { isLoading: importing }] = useCommitPriceImportMutation();
 
-  const onFile = async (chosen: File) => {
+  const reset = () => {
+    setFile(null);
+    setPreview(null);
+    setResult(null);
+    setFileError(null);
+    setSkipInvalid(false);
     if (inputRef.current) inputRef.current.value = "";
+  };
+  const close = (next: boolean) => {
+    if (!next) reset();
+    onOpenChange(next);
+  };
+
+  const runPreview = async (chosen: File) => {
+    setFile(chosen);
+    setPreview(null);
+    setFileError(null);
+    setSkipInvalid(false);
     try {
-      const p = await check(chosen).unwrap();
-      setFile(chosen);
-      setPreview(p);
+      setPreview(await check(chosen).unwrap());
     } catch (error) {
-      toast.error(
+      setFileError(
         errorCode(error) === "FILE_TOO_LARGE"
           ? t("masterData.priceImport.tooLarge")
           : getErrorMessage(error, language),
@@ -333,57 +295,122 @@ export function PriceExcelActions() {
     }
   };
 
+  const updatedText = (r: PriceImportResult) =>
+    r.changed === 1
+      ? t("masterData.priceImport.oneUpdated")
+      : t("masterData.priceImport.nUpdated", { n: r.changed });
+
+  const hasErrors = Boolean(preview?.errorCount);
+  const importCount = !preview || (hasErrors && !skipInvalid) ? 0 : preview.changedCount;
+
+  const doImport = async () => {
+    if (!file) return;
+    // The commit sends the same file again; with problems it only goes through as "skip the bad cells".
+    const r = await run(() => commit(hasErrors ? { file, skipInvalid: true } : { file }).unwrap(), {
+      success: updatedText,
+    });
+    if (r) setResult(r);
+  };
+
+  const step: ImportStep = result ? "done" : preview ? "preview" : file ? "upload" : "template";
+
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" disabled={checking}>
-            <FileSpreadsheet data-icon="inline-start" />
-            {checking ? t("masterData.priceImport.checking") : t("masterData.priceImport.button")}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+    <SlideOver
+      open={open}
+      onOpenChange={close}
+      size="lg"
+      busy={importing}
+      title={canUpload ? t("masterData.priceImport.title") : t("masterData.priceImport.downloadTitle")}
+      description={canUpload ? t("masterData.priceImport.description") : undefined}
+      footer={
+        canUpload ? (
+          <ImportFooter
+            done={Boolean(result)}
+            hasPreview={Boolean(preview)}
+            importing={importing}
+            importDisabled={importCount === 0}
+            importLabel={t("masterData.priceImport.import", { n: importCount })}
+            onImport={() => void doImport()}
+            onReset={reset}
+            onClose={() => close(false)}
+          />
+        ) : (
+          <div className="flex justify-end">
+            <Button onClick={() => close(false)}>{t("imports.close")}</Button>
+          </div>
+        )
+      }
+    >
+      {canUpload ? <ImportSteps current={step} /> : null}
+      {result ? (
+        <InlineAlert tone="success" title={updatedText(result)}>
+          <span className="block" dir="auto">
+            {result.fileName}
+          </span>
+          {result.skipped ? (
+            <span className="block">{t("masterData.priceImport.skipped", { n: result.skipped })}</span>
+          ) : null}
+        </InlineAlert>
+      ) : (
+        <div className="space-y-6">
           {canDownload ? (
-            <DropdownMenuItem
-              disabled={downloading}
-              onSelect={() =>
+            <ImportTemplateSection
+              title={t("masterData.priceImport.templateTitle")}
+              hint={t("masterData.priceImport.templateHint")}
+              label={t("masterData.priceImport.download")}
+              downloading={downloading}
+              onDownload={() =>
                 void run(() => download().unwrap(), { success: t("masterData.priceImport.downloaded") })
               }
             >
-              <Download />
-              {t("masterData.priceImport.download")}
-            </DropdownMenuItem>
+              {canUpload ? null : (
+                <InlineAlert tone="info">{t("masterData.priceImport.uploadOnlyOwner")}</InlineAlert>
+              )}
+            </ImportTemplateSection>
           ) : null}
+
           {canUpload ? (
-            <DropdownMenuItem onSelect={() => inputRef.current?.click()}>
-              <Upload />
-              {t("masterData.priceImport.upload")}
-            </DropdownMenuItem>
+            <ImportUploadSection
+              title={t("masterData.priceImport.uploadTitle")}
+              hint={t("masterData.priceImport.uploadHint")}
+              inputLabel={t("masterData.priceImport.uploadAria")}
+              inputRef={inputRef}
+              file={file}
+              checking={checking}
+              error={fileError}
+              onFile={(chosen) => void runPreview(chosen)}
+            />
           ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {canUpload ? (
-        <input
-          ref={inputRef}
-          type="file"
-          className="sr-only"
-          tabIndex={-1}
-          aria-label={t("masterData.priceImport.uploadAria")}
-          accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-          onChange={(e) => {
-            const chosen = e.target.files?.[0];
-            if (chosen) void onFile(chosen);
-          }}
-        />
-      ) : null}
-      <PriceImportPreviewDialog
-        preview={preview}
-        file={file}
-        onClose={() => {
-          setPreview(null);
-          setFile(null);
-        }}
-      />
+
+          {preview ? (
+            <PricePreview preview={preview} skipInvalid={skipInvalid} onSkipInvalidChange={setSkipInvalid} />
+          ) : null}
+        </div>
+      )}
+    </SlideOver>
+  );
+}
+
+/**
+ * "Import from Excel" toolbar button on the price list (same look as the other Excel imports).
+ * Download needs view + fields.rates; upload needs masterdata.pricelist.manage. Hidden without fields.rates.
+ */
+export function PriceImportButton() {
+  const t = useT();
+  const readOnly = useReadOnly();
+  const { can, canSee } = usePermissions();
+  const [open, setOpen] = useState(false);
+  const seesRates = canSee("rates");
+  const canDownload = seesRates && can("masterdata.pricelist.view");
+  const canUpload = seesRates && can("masterdata.pricelist.manage") && !readOnly;
+  if (!canDownload && !canUpload) return null;
+  return (
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <FileSpreadsheet data-icon="inline-start" />
+        {canUpload ? t("masterData.priceImport.button") : t("masterData.priceImport.download")}
+      </Button>
+      <PriceImportWizard open={open} onOpenChange={setOpen} canDownload={canDownload} canUpload={canUpload} />
     </>
   );
 }
