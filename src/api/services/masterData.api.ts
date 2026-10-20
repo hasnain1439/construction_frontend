@@ -1,8 +1,10 @@
 import { baseApi } from "@/api/baseApi";
 import { ENDPOINTS } from "@/api/endpoints";
 import { LIST, providesList } from "@/api/tags";
+import { saveBlob } from "@/api/services/onboarding.api";
 import { cleanParams, toPage } from "@/api/transform";
 import type {
+  ApiError,
   BulkPercentBody,
   CreateMaterialBody,
   CreatePaymentTemplateBody,
@@ -19,6 +21,8 @@ import type {
   Paginated,
   PaymentTemplate,
   PriceHistoryQuery,
+  PriceImportPreview,
+  PriceImportResult,
   PriceList,
   PriceListQuery,
   PriceListUpdateResult,
@@ -54,6 +58,13 @@ const workerTypesChanged = [
   "Workers" as const,
   "Dashboard" as const,
 ];
+
+/** The multipart body of an import upload. */
+function fileForm(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return form;
+}
 
 const priceListChanged = [
   { type: "PriceList" as const, id: LIST },
@@ -138,6 +149,33 @@ export const masterDataApi = baseApi.injectEndpoints({
     }),
     bulkPercent: build.mutation<PriceListUpdateResult, BulkPercentBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.priceListBulkPercent, method: "POST", body }),
+      invalidatesTags: priceListChanged,
+    }),
+    /** Downloads the whole price list as .xlsx (every material × every active category, today's rates). */
+    downloadPriceList: build.mutation<null, void>({
+      async queryFn(_arg, _api, _extra, baseQuery) {
+        const result = await baseQuery({
+          url: ENDPOINTS.masterData.priceListExport,
+          responseHandler: async (response) => (response.ok ? response.blob() : response.json()),
+        });
+        if (result.error) return { error: result.error as ApiError };
+        const disposition = result.meta?.response?.headers.get("content-disposition") ?? "";
+        saveBlob(result.data as Blob, /filename="([^"]+)"/.exec(disposition)?.[1] ?? "price-list.xlsx");
+        return { data: null };
+      },
+    }),
+    /** Checks an edited price list file; writes nothing. */
+    previewPriceImport: build.mutation<PriceImportPreview, File>({
+      query: (file) => ({ url: ENDPOINTS.masterData.priceListImportPreview, method: "POST", body: fileForm(file) }),
+    }),
+    /** Saves the same file again (all-or-nothing unless skipInvalid). */
+    commitPriceImport: build.mutation<PriceImportResult, { file: File; skipInvalid?: boolean }>({
+      query: ({ file, skipInvalid }) => ({
+        url: ENDPOINTS.masterData.priceListImportCommit,
+        method: "POST",
+        body: fileForm(file),
+        ...(skipInvalid ? { params: { skipInvalid: "true" } } : {}),
+      }),
       invalidatesTags: priceListChanged,
     }),
     getRateHistory: build.query<RateHistory, PriceHistoryQuery>({
@@ -294,6 +332,9 @@ export const {
   useGetPriceListQuery,
   useUpdatePriceListMutation,
   useBulkPercentMutation,
+  useDownloadPriceListMutation,
+  usePreviewPriceImportMutation,
+  useCommitPriceImportMutation,
   useGetRateHistoryQuery,
   useGetLaborRatesQuery,
   useUpdateLaborRatesMutation,

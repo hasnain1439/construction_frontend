@@ -156,6 +156,9 @@ export const ENDPOINTS = {
     priceList: "/price-list",
     priceListBulkPercent: "/price-list/bulk-percent",
     priceListHistory: "/price-list/history",
+    priceListExport: "/price-list/export.xlsx",
+    priceListImportPreview: "/price-list/import/preview",
+    priceListImportCommit: "/price-list/import/commit",
 
     laborRates: "/labor-rates",
 

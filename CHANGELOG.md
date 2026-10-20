@@ -6,6 +6,17 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Top bar search and Create
+
+- **Fixed: the search (magnifier / Ctrl+K) crashed the page** ("This page couldn't load") as soon as it opened — the cmdk input and list now sit inside `<Command>`. It lists every page the user may open (company menu, the open project's pages and the Create actions), filtered by permissions, and matches whole words of the page name (no loose letter matching); a page under Create is listed once. Tests in `tests/unit/components/CommandSearch.test.tsx`.
+- **The Create button moved to the left of the top bar**, next to the search.
+
+### Price list Excel import
+
+- **Settings → Price List → "Excel rates" (Excel se rates):** "Download rates (Excel)" saves every material with today's rate and specification for each quality category (needs the price list view + `fields.rates`); "Upload edited file" checks the file and opens a preview — changes grouped by category with old rate, new rate and the difference (red arrow up / green arrow down, %), specification changes, and the problems in the file (unknown material, not a number, negative, unknown category column, repeated row …) with row and column. Confirm saves (or "save only the changes without problems"), shows "N rates updated" and refreshes the list. Upload needs `masterdata.pricelist.manage`. Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/PriceExcelImport.test.tsx`.
+- **Same popup as the other Excel imports:** the "Excel rates" menu is replaced by one "Import from Excel" button (Excel se import) that opens the same side panel and steps as the Material / Worker / Supplier import — 1 download the pre-filled price list (only change the numbers, an empty cell means no change), 2 choose the edited file, 3 check (counts changing / unchanged / with problems, the problems, old → new per category), "Import only the changes without problems" (`skipInvalid`), 4 done ("N rates updated", list refreshes). A PM without `masterdata.pricelist.manage` sees the button as "Download rates (Excel)" and the panel shows only the download with a note that the owner/admin uploads; hidden without `fields.rates`. The steps, download, file picker, option checkbox and footer are now exported from `ImportWizard.tsx` and shared by both imports.
+- API types (`schema.ts`) regenerated for `GET /price-list/export.xlsx`, `POST /price-list/import/preview` and `POST /price-list/import/commit`.
+
 ### Owner decisions (integration)
 
 - **Charging a loss (decisions 3 + 6):** for missing rented pieces the charge form no longer asks for a value; it says they are valued at what the yard bills at the return, whoever charges them. Other losses keep the optional value field, also for users without `fields.amounts` (never shown back). Tests in `tests/unit/components/Equipment.test.tsx`.

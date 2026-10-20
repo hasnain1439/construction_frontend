@@ -43,6 +43,7 @@ import { formatPKR, paisaToRupees, rupeesToPaisa } from "@/lib/money";
 import { useEnumT, useT } from "@/i18n/useT";
 import { BulkPercentDialog } from "../components/BulkPercentDialog";
 import { AddCategoryDialog, DuplicateCategoryDialog, RenameCategoryDialog } from "../components/CategoryDialogs";
+import { PriceImportButton } from "../components/PriceExcelImport";
 import { RateHistorySlideOver } from "../components/RateHistorySlideOver";
 
 interface Draft {
@@ -316,20 +317,23 @@ export function PriceListView() {
         description={t("masterData.priceList.description")}
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.priceList.title") }]}
         actions={
-          canEdit ? (
-            <>
-              {dirtyCount ? (
-                <Button variant="outline" onClick={() => setDrafts({})}>
-                  <RotateCcw data-icon="inline-start" />
-                  {t("action.discard")}
+          <>
+            <PriceImportButton />
+            {canEdit ? (
+              <>
+                {dirtyCount ? (
+                  <Button variant="outline" onClick={() => setDrafts({})}>
+                    <RotateCcw data-icon="inline-start" />
+                    {t("action.discard")}
+                  </Button>
+                ) : null}
+                <Button onClick={() => void saveAll()} disabled={!dirtyCount || saving}>
+                  <Save data-icon="inline-start" />
+                  {dirtyCount ? t("masterData.common.saveChangesCount", { n: dirtyCount }) : t("common.saveChanges")}
                 </Button>
-              ) : null}
-              <Button onClick={() => void saveAll()} disabled={!dirtyCount || saving}>
-                <Save data-icon="inline-start" />
-                {dirtyCount ? t("masterData.common.saveChangesCount", { n: dirtyCount }) : t("common.saveChanges")}
-              </Button>
-            </>
-          ) : null
+              </>
+            ) : null}
+          </>
         }
       />
       {categories.isLoading ? (

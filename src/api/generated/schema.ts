@@ -7888,6 +7888,299 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/price-list/export.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download the price list as Excel
+         * @description `masterdata.pricelist.view` + `fields.rates`. Sheet "Rates": one row per visible material — Group, Material, Unit (read only), then for each active quality category in sortOrder "<name> [<code>] Rate (Rs)" (today's rate in rupees) and "<name> [<code>] Specification / brand". Sheet "Instructions" in English / Roman Urdu / Urdu. Edit the numbers and upload it to /price-list/import/preview.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Excel file */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/price-list/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview a price list import
+         * @description `masterdata.pricelist.manage`. Writes nothing. Lists every change per material × category (old → new rate, difference, %; specification) and every error: UNKNOWN_MATERIAL, MATERIAL_HIDDEN, MATERIAL_REQUIRED, DUPLICATE_ROW, NOT_A_NUMBER, NEGATIVE_RATE, RATE_TOO_LARGE, RATE_REQUIRED, SPEC_TOO_LONG (per cell) and UNKNOWN_CATEGORY_COLUMN, CATEGORY_ARCHIVED, DUPLICATE_COLUMN (per column). A blank cell is "no change", never a delete; unchanged values are counted, not listed. Headers may be English, Roman Urdu or Urdu. `oldRatePaisa` / `diffPaisa` / `diffPercent` need `fields.rates`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The downloaded price list with edited numbers: .xlsx (first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Changes and errors */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "fileName": "price-list-2026-10-20.xlsx",
+                         *         "categories": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *             "name": "A Standard",
+                         *             "code": "A_STD"
+                         *           }
+                         *         ],
+                         *         "totalRows": 39,
+                         *         "changedCount": 1,
+                         *         "unchangedCount": 37,
+                         *         "errorCount": 1,
+                         *         "changes": [
+                         *           {
+                         *             "rowNumber": 2,
+                         *             "material": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "Cement OPC",
+                         *               "unit": "bag",
+                         *               "group": "Cement"
+                         *             },
+                         *             "category": {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *               "name": "A Standard",
+                         *               "code": "A_STD"
+                         *             },
+                         *             "oldRatePaisa": "145000",
+                         *             "diffPaisa": "5000",
+                         *             "diffPercent": 3.45,
+                         *             "newRatePaisa": "150000",
+                         *             "oldSpecification": "Lucky / Maple Leaf",
+                         *             "newSpecification": "Lucky / Maple Leaf",
+                         *             "rateChanged": true,
+                         *             "specChanged": false
+                         *           }
+                         *         ],
+                         *         "errors": [
+                         *           {
+                         *             "rowNumber": 7,
+                         *             "column": "A Standard [A_STD] Rate (Rs)",
+                         *             "code": "NOT_A_NUMBER",
+                         *             "message": "Enter the rate in rupees, e.g. 1450 — or leave it empty for no change",
+                         *             "value": "abc",
+                         *             "materialName": "Bricks",
+                         *             "categoryId": "0199a8c0-0000-7000-8000-0000000000e2"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/price-list/import/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save a price list import
+         * @description `masterdata.pricelist.manage`. Send the SAME file again (nothing is kept between preview and commit; it is checked again). All-or-nothing by default: any error → 400 IMPORT_HAS_ERRORS (`details.errors`); `?skipInvalid=true` saves every change whose cell has no error. Each change is a new rate row with effectiveFrom = now (old rates stay in the history; approved estimates keep their snapshot; DRAFT ones show "rates outdated"). Unchanged values write nothing. One transaction; a `price_list.update` audit row per category plus one `price_list.import`.
+         */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description true = import only the valid rows (default: all-or-nothing) */
+                    skipInvalid?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The downloaded price list with edited numbers: .xlsx (first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "fileName": "price-list-2026-10-20.xlsx",
+                         *         "changed": 12,
+                         *         "unchanged": 105,
+                         *         "skipped": 0,
+                         *         "categories": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000e2",
+                         *             "name": "A Standard",
+                         *             "code": "A_STD",
+                         *             "changed": 12
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD | IMPORT_HAS_ERRORS | VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/labor-rates": {
         parameters: {
             query?: never;

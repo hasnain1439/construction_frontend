@@ -88,6 +88,68 @@ export interface PriceListUpdateResult {
   unchanged: number;
 }
 
+// ─── Price list Excel import ("Excel se rates") ────────────────────────────
+
+export type PriceImportErrorCode =
+  | "UNKNOWN_CATEGORY_COLUMN"
+  | "CATEGORY_ARCHIVED"
+  | "DUPLICATE_COLUMN"
+  | "MATERIAL_REQUIRED"
+  | "UNKNOWN_MATERIAL"
+  | "MATERIAL_HIDDEN"
+  | "DUPLICATE_ROW"
+  | "NOT_A_NUMBER"
+  | "NEGATIVE_RATE"
+  | "RATE_TOO_LARGE"
+  | "RATE_REQUIRED"
+  | "SPEC_TOO_LONG";
+
+export interface PriceImportError {
+  /** Excel row (null = a column problem). */
+  rowNumber: number | null;
+  /** Header text of the cell's column (null = the whole row). */
+  column: string | null;
+  code: PriceImportErrorCode;
+  message: string;
+  value?: string;
+  materialName?: string;
+  categoryId?: Id;
+}
+
+export interface PriceImportChange {
+  rowNumber: number;
+  material: { id: Id; name: string; unit: string; group: string };
+  category: { id: Id; name: string; code: string };
+  /** Old rate, difference and % need fields.rates. */
+  oldRatePaisa?: Paisa | null;
+  diffPaisa?: Paisa | null;
+  diffPercent?: number | null;
+  newRatePaisa: Paisa;
+  oldSpecification: string | null;
+  newSpecification: string | null;
+  rateChanged: boolean;
+  specChanged: boolean;
+}
+
+export interface PriceImportPreview {
+  fileName: string;
+  categories: Array<{ id: Id; name: string; code: string }>;
+  totalRows: number;
+  changedCount: number;
+  unchangedCount: number;
+  errorCount: number;
+  changes: PriceImportChange[];
+  errors: PriceImportError[];
+}
+
+export interface PriceImportResult {
+  fileName: string;
+  changed: number;
+  unchanged: number;
+  skipped: number;
+  categories: Array<{ id: Id; name: string; code: string; changed: number }>;
+}
+
 export interface RateHistory {
   material: { id: Id; name: string; unit: string };
   history: Array<{
