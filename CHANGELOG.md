@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Price list Excel import
+
+- **Settings → Price List → "Excel rates" (Excel se rates):** "Download rates (Excel)" saves every material with today's rate and specification for each quality category (needs the price list view + `fields.rates`); "Upload edited file" checks the file and opens a preview — changes grouped by category with old rate, new rate and the difference (red arrow up / green arrow down, %), specification changes, and the problems in the file (unknown material, not a number, negative, unknown category column, repeated row …) with row and column. Confirm saves (or "save only the changes without problems"), shows "N rates updated" and refreshes the list. Upload needs `masterdata.pricelist.manage`. Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/PriceExcelImport.test.tsx`.
+- API types (`schema.ts`) regenerated for `GET /price-list/export.xlsx`, `POST /price-list/import/preview` and `POST /price-list/import/commit`.
+
 ### Owner decisions (integration)
 
 - **Charging a loss (decisions 3 + 6):** for missing rented pieces the charge form no longer asks for a value; it says they are valued at what the yard bills at the return, whoever charges them. Other losses keep the optional value field, also for users without `fields.amounts` (never shown back). Tests in `tests/unit/components/Equipment.test.tsx`.
