@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Top bar search and Create
+
+- **Fixed: the search (magnifier / Ctrl+K) crashed the page** ("This page couldn't load") as soon as it opened — the cmdk input and list now sit inside `<Command>`. It lists every page the user may open (company menu, the open project's pages and the Create actions), filtered by permissions, and matches whole words of the page name (no loose letter matching); a page under Create is listed once. Tests in `tests/unit/components/CommandSearch.test.tsx`.
+- **The Create button moved to the left of the top bar**, next to the search.
+
 ### Price list Excel import
 
 - **Settings → Price List → "Excel rates" (Excel se rates):** "Download rates (Excel)" saves every material with today's rate and specification for each quality category (needs the price list view + `fields.rates`); "Upload edited file" checks the file and opens a preview — changes grouped by category with old rate, new rate and the difference (red arrow up / green arrow down, %), specification changes, and the problems in the file (unknown material, not a number, negative, unknown category column, repeated row …) with row and column. Confirm saves (or "save only the changes without problems"), shows "N rates updated" and refreshes the list. Upload needs `masterdata.pricelist.manage`. Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/PriceExcelImport.test.tsx`.

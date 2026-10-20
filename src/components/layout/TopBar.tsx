@@ -43,7 +43,10 @@ export function SearchTrigger() {
         </button>
       </TooltipTrigger>
       <TooltipContent>
-        {t("shell.searchMenu")} <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">Ctrl K{/* i18n-ignore: key names */}</kbd>
+        {t("shell.searchMenu")}{" "}
+        <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">
+          Ctrl K{/* i18n-ignore: key names */}
+        </kbd>
       </TooltipContent>
     </Tooltip>
   );
@@ -64,12 +67,14 @@ function CreateMenu() {
           <ChevronDown data-icon="inline-end" className="max-sm:hidden" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="start" className="w-56">
         {actions.map((action) => (
           <DropdownMenuItem key={action.id} asChild>
             <Link href={action.href} className="flex items-center justify-between gap-2">
               {pickLabel(action.label, language)}
-              {!action.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" /> : null}
+              {!action.available ? (
+                <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" />
+              ) : null}
             </Link>
           </DropdownMenuItem>
         ))}
@@ -87,10 +92,15 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1 rounded-full border glass py-1 pe-2 ps-1 text-start shadow-card transition-colors hover:bg-card"
+          className="flex items-center gap-1 rounded-full border glass py-1 ps-1 pe-2 text-start shadow-card transition-colors hover:bg-card"
           aria-label={t("shell.accountMenu")}
         >
-          <AvatarName name={me.user.name} subtitle={me.tenant.name} photoUrl={me.user.photoUrl} className="max-w-52 [&>div]:max-sm:hidden" />
+          <AvatarName
+            name={me.user.name}
+            subtitle={me.tenant.name}
+            photoUrl={me.user.photoUrl}
+            className="max-w-52 [&>div]:max-sm:hidden"
+          />
           <ChevronDown className="size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden />
         </button>
       </DropdownMenuTrigger>
@@ -101,9 +111,14 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
             {/* A custom role (Accountant, "Site PM" …) shows its name; the default templates show the translated account type. */}
             {me.permissionRole?.name && !["PROJECT_MANAGER", "MUNSHI"].includes(me.permissionRole.key ?? "")
               ? me.permissionRole.name
-              : t(me.user.role === "THEKEDAR" ? "role.THEKEDAR" : me.user.role === "PM" ? "role.PM" : "role.MUNSHI")}{" "}
-            ·{" "}
-            {me.tenant.name}
+              : t(
+                  me.user.role === "THEKEDAR"
+                    ? "role.THEKEDAR"
+                    : me.user.role === "PM"
+                      ? "role.PM"
+                      : "role.MUNSHI",
+                )}{" "}
+            · {me.tenant.name}
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -125,7 +140,10 @@ function CompanyBrand() {
   const me = useMe();
   if (!me) return null;
   return (
-    <Link href="/dashboard" className="hidden min-w-0 items-center gap-2.5 rounded-full py-1 pe-3 ps-1 hover:bg-muted md:flex">
+    <Link
+      href="/dashboard"
+      className="hidden min-w-0 items-center gap-2.5 rounded-full py-1 ps-1 pe-3 hover:bg-muted md:flex"
+    >
       {me.tenant.logoUrl ? (
         // Signed, short-lived logo URL from the API.
         // eslint-disable-next-line @next/next/no-img-element
@@ -160,10 +178,10 @@ export function TopBar({
           <Menu />
         </Button>
         <SearchTrigger />
+        <CreateMenu />
       </div>
       <CompanyBrand />
       <div className="flex min-w-0 items-center justify-end gap-1 sm:gap-1.5">
-        <CreateMenu />
         <LanguageMenu />
         <ThemeToggle />
         <NotificationBell />
@@ -173,4 +191,3 @@ export function TopBar({
     </header>
   );
 }
-
