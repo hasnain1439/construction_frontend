@@ -351,11 +351,10 @@ export const strings = {
     FOUNDATION_LENGTH_UNKNOWN:
       "Foundation wall length is unknown — add rooms or the plot size, or enter it in the assumptions.",
     ROOMS_BELOW_COVERED: "Rooms add up to only {percent}% of the covered area — walls, lintels and plaster are probably under-counted (add passages, stairs, stores …).",
-    FOOTPRINT_EXCEEDS_PLOT: "Ground floor footprint {footprintSqft} sq ft is larger than the plot ({plotAreaSqft} sq ft) — check the covered area and the floors.",
     RATES_MISSING: "No price-list rate for: {materials}. These lines are left out of the cost.",
     LABOUR_RATES_MISSING: "No labour rate for: {items}. Left out of the labour cost.",
     CONTRACT_VALUE_MISSING: "No contract value — the margin can't be worked out.",
-    STEEL_NORM_DEVIATION: "Steel works out to {actual} kg per sq ft of covered area, {percent}% off the rulebook norm of {norm} — check the structure inputs.",
+    STEEL_NORM_DEVIATION: "Steel works out to {actual} kg per sq ft of covered area, outside the usual {min}–{max} kg — check the structure inputs.",
     RCC_NORM_DEVIATION: "RCC concrete works out to {actual} cft per sq ft of covered area, {percent}% off the rulebook norm of {norm} — check the structure inputs.",
     CONTRACT_INCLUDES_FINISHING:
       "Full contract: the contract value also covers finishing, which this grey-structure estimate does not.",

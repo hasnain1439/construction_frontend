@@ -356,11 +356,10 @@ export const strings: Widen<typeof En.strings> = {
     FOUNDATION_LENGTH_UNKNOWN:
       "Bunyaad ki deewaron ki lambai maloom nahin — kamre ya plot ka size daalein, ya andazay ki buniyad mein likhein.",
     ROOMS_BELOW_COVERED: "Kamre covered area ka sirf {percent}% hain — deewarein, lintel aur plaster shayad kam gine gaye (rahdari, seerhiyan, store bhi daalein).",
-    FOOTPRINT_EXCEEDS_PLOT: "Ground floor ka footprint {footprintSqft} sq ft plot ({plotAreaSqft} sq ft) se bara hai — covered area aur manzilein check karein.",
     RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh kharche mein shamil nahin.",
     LABOUR_RATES_MISSING: "In ki mazdoori ka rate nahin: {items}. Mazdoori mein shamil nahin.",
     CONTRACT_VALUE_MISSING: "Theke ki raqam nahin — nafa nahin nikal sakta.",
-    STEEL_NORM_DEVIATION: "Sariya covered area ke fi murabba ft {actual} kg ban raha hai, qawaid ke mayaar {norm} se {percent}% farq — dhanche ki maloomat check karein.",
+    STEEL_NORM_DEVIATION: "Sariya covered area ke fi murabba ft {actual} kg ban raha hai, aam had {min}–{max} kg se bahar — dhanche ki maloomat check karein.",
     RCC_NORM_DEVIATION: "RCC concrete covered area ke fi murabba ft {actual} cft ban raha hai, qawaid ke mayaar {norm} se {percent}% farq — dhanche ki maloomat check karein.",
     CONTRACT_INCLUDES_FINISHING:
       "Poora theka: theke ki raqam mein finishing bhi hai, jo is grey structure andaze mein nahin.",

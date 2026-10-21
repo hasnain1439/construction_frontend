@@ -93,7 +93,7 @@ describe("QA-A-10 / 28 units and rulebook texts", () => {
 describe("QA-A-10 warnings from their code", () => {
   it("a quote / BoQ warning is shown in Urdu, the English message only for an unknown code", () => {
     const { result } = renderHook(() => useEstimateWarningText(), { wrapper: ({ children }) => <Store language="ur">{children}</Store> });
-    const steel = result.current({ code: "STEEL_NORM_DEVIATION", message: "Steel works out to 2.34 kg …", params: { actual: 2.34, norm: 4, percent: -41 } });
+    const steel = result.current({ code: "STEEL_NORM_DEVIATION", message: "Steel works out to 2.34 kg …", params: { actual: 2.34, min: 2.7, max: 3.6 } });
     expect(steel).not.toContain("Steel works out");
     expect(steel).toContain("2.34");
     expect(result.current({ code: "RATES_MISSING", message: "No price-list rate for: termite", items: ["termite"] })).not.toContain("No price-list rate");

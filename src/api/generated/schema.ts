@@ -8712,6 +8712,7 @@ export interface paths {
                          *           "name": "Residential standard",
                          *           "billingModel": "STAGE_SCHEDULE",
                          *           "isDefault": true,
+                         *           "contractType": null,
                          *           "stages": [
                          *             {
                          *               "label": "Agreement & mobilisation",
@@ -8829,6 +8830,11 @@ export interface paths {
                         }[];
                         /** @default false */
                         isDefault?: boolean;
+                        /**
+                         * @description Default schedule for this contract type (a project of this type starts from it). One template per type: setting it here clears it on the other template. null = any type
+                         * @enum {string}
+                         */
+                        contractType?: "FULL" | "GREY_OWNER_FINISHING" | "LABOR_ONLY";
                     };
                 };
             };
@@ -8847,6 +8853,7 @@ export interface paths {
                          *         "name": "Residential standard",
                          *         "billingModel": "STAGE_SCHEDULE",
                          *         "isDefault": true,
+                         *         "contractType": null,
                          *         "stages": [
                          *           {
                          *             "label": "Agreement & mobilisation",
@@ -9064,6 +9071,11 @@ export interface paths {
                         }[];
                         /** @enum {boolean} */
                         isDefault?: true;
+                        /**
+                         * @description Default schedule for this contract type (a project of this type starts from it). One template per type: setting it here clears it on the other template. null = any type
+                         * @enum {string|null}
+                         */
+                        contractType?: "FULL" | "GREY_OWNER_FINISHING" | "LABOR_ONLY" | null;
                     };
                 };
             };
@@ -9082,6 +9094,7 @@ export interface paths {
                          *         "name": "Residential standard",
                          *         "billingModel": "STAGE_SCHEDULE",
                          *         "isDefault": true,
+                         *         "contractType": null,
                          *         "stages": [
                          *           {
                          *             "label": "Agreement & mobilisation",
@@ -19714,7 +19727,7 @@ export interface paths {
          * Grey-structure estimate (BoQ) with cost
          * @description Computed live from the project's plot, structure type, foundation (bunyaad), floors / rooms / openings, the rulebook (platform version of the company region → company values → the project's own settings) and the company price list — nothing is stored but the settings.
          *
-         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 14 sections with lines per build stage (`stageKey`), trace, wastage, supplier, rates / amounts (fields.rates), direct cost, overheads, contingency, total, cost per sq ft, `parameters` (value + source per rulebook key), `warnings` (RATES_MISSING, LABOUR_RATES_MISSING, STEEL_NORM_DEVIATION, RCC_NORM_DEVIATION). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
+         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 15 sections (each with its plain English `label`) with lines per build stage (`stageKey`), trace, wastage, supplier, `supplyCategory`, `costNature` (MATERIAL / LABOUR / MATERIAL_LABOUR), `labourOnly`, `rateKey` (the rulebook key of a lump-sum rate), rates / amounts (fields.rates), direct cost, overheads (% of direct), contingency (% of direct only), total, cost per sq ft, `check` { visibleLinesPaisa, directCostPaisa, matches } (Direct = Σ visible lines), `parameters` (value + source per rulebook key), `assumptions` (every project-editable rulebook key with labels, unit, value, source, company value and safe range; rupee keys need fields.rates), `warnings` (RATES_MISSING with items + categories, LABOUR_RATES_MISSING, RULEBOOK_RATE_ZERO, STEEL_NORM_DEVIATION { actual, min, max }, RCC_NORM_DEVIATION). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
          *
          *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`.
          *
@@ -19764,6 +19777,7 @@ export interface paths {
                          *           "blocksPerSqft": 1.125,
                          *           "mortarPerCftBrickwork": 0.25,
                          *           "masonryMortarMix": "1:6",
+                         *           "foundationMortarMix": "1:4",
                          *           "slabThicknessIn": 5,
                          *           "rccMix": "1:2:4",
                          *           "frameConcretePercent": 45,
@@ -19789,6 +19803,7 @@ export interface paths {
                          *           "cementWastagePercent": 5,
                          *           "sandWastagePercent": 5,
                          *           "steelWastagePercent": 5,
+                         *           "steelLapPercent": 4,
                          *           "concreteDryFactor": 1.54,
                          *           "mortarDryFactor": 1.33,
                          *           "cementBagCft": 1.25,
@@ -19804,6 +19819,7 @@ export interface paths {
                          *           "blocksPerSqft": 1.125,
                          *           "mortarPerCftBrickwork": 0.25,
                          *           "masonryMortarMix": "1:6",
+                         *           "foundationMortarMix": "1:4",
                          *           "slabThicknessIn": 5,
                          *           "rccMix": "1:2:4",
                          *           "frameConcretePercent": 45,
@@ -19829,6 +19845,7 @@ export interface paths {
                          *           "cementWastagePercent": 5,
                          *           "sandWastagePercent": 5,
                          *           "steelWastagePercent": 5,
+                         *           "steelLapPercent": 4,
                          *           "concreteDryFactor": 1.54,
                          *           "mortarDryFactor": 1.33,
                          *           "cementBagCft": 1.25,
@@ -20252,6 +20269,7 @@ export interface paths {
                          *           "blocksPerSqft": 1.125,
                          *           "mortarPerCftBrickwork": 0.25,
                          *           "masonryMortarMix": "1:6",
+                         *           "foundationMortarMix": "1:4",
                          *           "slabThicknessIn": 5,
                          *           "rccMix": "1:2:4",
                          *           "frameConcretePercent": 45,
@@ -20277,6 +20295,7 @@ export interface paths {
                          *           "cementWastagePercent": 5,
                          *           "sandWastagePercent": 5,
                          *           "steelWastagePercent": 5,
+                         *           "steelLapPercent": 4,
                          *           "concreteDryFactor": 1.54,
                          *           "mortarDryFactor": 1.33,
                          *           "cementBagCft": 1.25,
@@ -20292,6 +20311,7 @@ export interface paths {
                          *           "blocksPerSqft": 1.125,
                          *           "mortarPerCftBrickwork": 0.25,
                          *           "masonryMortarMix": "1:6",
+                         *           "foundationMortarMix": "1:4",
                          *           "slabThicknessIn": 5,
                          *           "rccMix": "1:2:4",
                          *           "frameConcretePercent": 45,
@@ -20317,6 +20337,7 @@ export interface paths {
                          *           "cementWastagePercent": 5,
                          *           "sandWastagePercent": 5,
                          *           "steelWastagePercent": 5,
+                         *           "steelLapPercent": 4,
                          *           "concreteDryFactor": 1.54,
                          *           "mortarDryFactor": 1.33,
                          *           "cementBagCft": 1.25,
@@ -20913,7 +20934,7 @@ export interface paths {
         };
         /**
          * Estimate revision (BoQ)
-         * @description Lines grouped by section with section totals, totals per build stage, direct cost, site overheads (% of direct), contingency (% of direct + overheads), total, cost per sq ft and the margin against the current contract value. Each line has its calculation `trace` and any override { quantity, ratePaisa, note, by, at }. Owner-supplied lines have no rate or amount. Permission projects.estimate.view (project in scope, else 404). Money fields (`ratePaisa`, `amountPaisa`, every `*Paisa` total, `perSqftPaisa`) need fields.rates — without it they are left out; `contractTotalPaisa` needs fields.contract; `marginPaisa` / `marginPercent` fields.contract + fields.profit.
+         * @description Lines grouped by section with section totals, totals per build stage, direct cost, site overheads (% of direct), contingency (% of direct only), total, cost per sq ft and the margin against the current contract value. Each line has its calculation `trace` and any override { quantity, ratePaisa, note, by, at }. Owner-supplied lines have no rate or amount. Permission projects.estimate.view (project in scope, else 404). Money fields (`ratePaisa`, `amountPaisa`, every `*Paisa` total, `perSqftPaisa`) need fields.rates — without it they are left out; `contractTotalPaisa` needs fields.contract; `marginPaisa` / `marginPercent` fields.contract + fields.profit.
          */
         get: {
             parameters: {
@@ -66384,15 +66405,20 @@ export interface components {
              */
             blocksPerSqft?: number;
             /**
-             * @description Wet mortar per cft of masonry. Default 0.25 (blocks 0.10)
-             * @example 0.25
+             * @description Wet mortar per cft of masonry. Rulebook 0.30 (blocks 0.10)
+             * @example 0.3
              */
             mortarPerCftBrickwork?: number;
             /**
-             * @description Cement : sand for brick masonry. Default 1:6
+             * @description Cement : sand for brick masonry above the DPC. Default 1:6
              * @enum {string}
              */
             masonryMortarMix?: "1:3" | "1:4" | "1:5" | "1:6" | "1:8";
+            /**
+             * @description Cement : sand for the foundation masonry below the DPC. Default 1:4
+             * @enum {string}
+             */
+            foundationMortarMix?: "1:3" | "1:4" | "1:5" | "1:6" | "1:8";
             /**
              * @description Roof slab thickness, inches. Default 5″ (6″ for larger spans)
              * @example 5
@@ -66444,7 +66470,7 @@ export interface components {
              */
             lintelBearingFt?: number;
             /**
-             * @description Cement : sand for internal wall + ceiling plaster. Rulebook 1:6
+             * @description Cement : sand for internal wall + ceiling plaster. Rulebook 1:4
              * @enum {string}
              */
             internalPlasterMix?: "1:3" | "1:4" | "1:5" | "1:6";
@@ -66519,13 +66545,18 @@ export interface components {
              */
             steelWastagePercent?: number;
             /**
+             * @description Lap / hook allowance on bar steel, on top of the steel wastage. Default 4 %
+             * @example 4
+             */
+            steelLapPercent?: number;
+            /**
              * @description Wet → dry volume of concrete. Default 1.54
              * @example 1.54
              */
             concreteDryFactor?: number;
             /**
-             * @description Wet → dry volume of mortar / plaster. Default 1.33
-             * @example 1.33
+             * @description Wet → dry volume of mortar / plaster. Rulebook 1.27
+             * @example 1.27
              */
             mortarDryFactor?: number;
             /**
@@ -66541,10 +66572,25 @@ export interface components {
              */
             labourRatePerSqftPaisa?: string | null;
             /**
+             * @description Concreting labour (Rs / cft). Rulebook v1: 30
+             * @example 30
+             */
+            concretingLabourRsPerCft?: number;
+            /**
+             * @description Curing (water + labour) (Rs / sq ft). Rulebook v1: 4
+             * @example 4
+             */
+            curingLabourRsPerSqft?: number;
+            /**
              * @description Roof waterproofing (lump sum) (Rs / sq ft). Rulebook v1: 60
              * @example 60
              */
             roofWaterproofingRsPerSqft?: number;
+            /**
+             * @description Roof waterproofing labour share (Rs / sq ft). Rulebook v1: 20
+             * @example 20
+             */
+            roofWaterproofingLabourRsPerSqft?: number;
             /**
              * @description Excavation rate (Rs / cft). Rulebook v1: 12
              * @example 12
@@ -66555,6 +66601,16 @@ export interface components {
              * @example 10
              */
             earthFillingRsPerCft?: number;
+            /**
+             * @description Earth filling labour share (Rs / cft). Rulebook v1: 5
+             * @example 5
+             */
+            earthFillingLabourRsPerCft?: number;
+            /**
+             * @description Trench backfill and compaction labour (Rs / cft). Rulebook v1: 5
+             * @example 5
+             */
+            backfillLabourRsPerCft?: number;
             /**
              * @description Bathroom wall tiles height (ft). Rulebook v1: 7
              * @example 7
@@ -66581,6 +66637,11 @@ export interface components {
              */
             leepRsPerSqft?: number;
             /**
+             * @description Surplus earth cart-away (Rs / cft). Rulebook v1: 15
+             * @example 15
+             */
+            cartAwayRsPerCft?: number;
+            /**
              * @description Paint coats (coats). Rulebook v1: 2
              * @example 2
              */
@@ -66606,20 +66667,85 @@ export interface components {
              */
             mepElectricalRsPerSqft?: number;
             /**
+             * @description Electrical rough-in labour share (Rs / sq ft). Rulebook v1: 50
+             * @example 50
+             */
+            mepElectricalLabourRsPerSqft?: number;
+            /**
              * @description Plumbing rough-in per wet room (Rs / wet room). Rulebook v1: 35000
              * @example 35000
              */
             mepPlumbingRsPerWetRoom?: number;
+            /**
+             * @description Plumbing rough-in labour share (Rs / wet room). Rulebook v1: 12000
+             * @example 12000
+             */
+            mepPlumbingLabourRsPerWetRoom?: number;
             /**
              * @description Sewerage + gas lump sum (Rs). Rulebook v1: 75000
              * @example 75000
              */
             mepSewerageGasRsLumpSum?: number;
             /**
+             * @description Sewerage + gas labour share (Rs). Rulebook v1: 25000
+             * @example 25000
+             */
+            mepSewerageGasLabourRsLumpSum?: number;
+            /**
+             * @description Sanitary ware allowance (Rs / bath). Rulebook v1: 120000
+             * @example 120000
+             */
+            finishSanitaryRsPerBath?: number;
+            /**
+             * @description Plumbing fittings allowance (Rs / wet room). Rulebook v1: 40000
+             * @example 40000
+             */
+            finishPlumbingFittingsRsPerWetRoom?: number;
+            /**
+             * @description Electrical fittings allowance (Rs / sq ft). Rulebook v1: 150
+             * @example 150
+             */
+            finishElectricalRsPerSqft?: number;
+            /**
+             * @description Doors, windows and woodwork allowance (Rs / sq ft). Rulebook v1: 400
+             * @example 400
+             */
+            finishWoodworkRsPerSqft?: number;
+            /**
+             * @description Kitchen allowance (Rs / kitchen). Rulebook v1: 300000
+             * @example 300000
+             */
+            finishKitchenRsPerKitchen?: number;
+            /**
+             * @description Marble, skirting and sills allowance (Rs / sq ft). Rulebook v1: 60
+             * @example 60
+             */
+            finishMarbleRsPerSqft?: number;
+            /**
+             * @description External finish allowance (Rs / sq ft). Rulebook v1: 100
+             * @example 100
+             */
+            finishExternalRsPerSqft?: number;
+            /**
+             * @description Water tanks allowance (Rs). Rulebook v1: 150000
+             * @example 150000
+             */
+            finishWaterTanksRsLumpSum?: number;
+            /**
+             * @description Railings allowance (Rs / sq ft). Rulebook v1: 25
+             * @example 25
+             */
+            finishRailingsRsPerSqft?: number;
+            /**
              * @description Equipment & shuttering hire (Rs / sq ft). Rulebook v1: 60
              * @example 60
              */
             equipmentShutteringRsPerSqft?: number;
+            /**
+             * @description Tools and scaffolding (labour only) (Rs / sq ft). Rulebook v1: 15
+             * @example 15
+             */
+            equipmentLabourOnlyRsPerSqft?: number;
             /**
              * @description Site overheads (%). Rulebook v1: 3
              * @example 3
@@ -66641,15 +66767,25 @@ export interface components {
              */
             rccCftPerSqftLoadBearing?: number;
             /**
-             * @description Steel per sq ft (frame) (kg / sq ft). Rulebook v1: 4
-             * @example 4
+             * @description Steel per sq ft, frame (lowest) (kg / sq ft). Rulebook v1: 2.7
+             * @example 2.7
              */
-            steelKgPerSqftFramed?: number;
+            steelKgPerSqftFramedMin?: number;
             /**
-             * @description Steel per sq ft (load bearing) (kg / sq ft). Rulebook v1: 2.5
-             * @example 2.5
+             * @description Steel per sq ft, frame (highest) (kg / sq ft). Rulebook v1: 3.6
+             * @example 3.6
              */
-            steelKgPerSqftLoadBearing?: number;
+            steelKgPerSqftFramedMax?: number;
+            /**
+             * @description Steel per sq ft, load bearing (lowest) (kg / sq ft). Rulebook v1: 1.6
+             * @example 1.6
+             */
+            steelKgPerSqftLoadBearingMin?: number;
+            /**
+             * @description Steel per sq ft, load bearing (highest) (kg / sq ft). Rulebook v1: 2
+             * @example 2
+             */
+            steelKgPerSqftLoadBearingMax?: number;
         };
         GenerateEstimateInput: {
             /**

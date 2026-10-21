@@ -94,7 +94,7 @@ describe("QA B-24 / B-30 — coverage", () => {
 describe("QA B-23 — pairing asks before overwriting the other room's wall", () => {
   const partner = (walls: PairRoom["walls"]): PairRoom => ({ id: "r2", name: "Bed 2", lengthFt: 12, widthFt: 12, walls });
   const wall = (side: "TOP" | "BOTTOM" | "LEFT" | "RIGHT", type: string) =>
-    ({ side, type, thicknessIn: 9, sharedWithRoomId: null, sharedWithSide: null, existing: false }) as unknown as PairRoom["walls"][number];
+    ({ side, type, thicknessIn: 9, sharedWithRoomId: null, sharedWithSide: null, existing: false }) as unknown as NonNullable<PairRoom["walls"]>[number];
   it("targets the opposite side and reports a party / external wall there", () => {
     const p = partner([wall("LEFT", "PARTY")]);
     expect(pairTarget("r1", "RIGHT", 12, p)).toBe("LEFT");

@@ -108,7 +108,7 @@ describe("R1-N1: legacy quote warnings (code + message, no params)", () => {
   });
 
   it("new warnings with params are still translated", () => {
-    renderWithStore(<Warnings warnings={[{ code: "STEEL_NORM_DEVIATION", message: "x", params: { actual: 3.1, percent: 40, norm: 2.2 } }, { code: "RATES_MISSING", message: "y", materials: ["Termite chemical"] }]} />, {
+    renderWithStore(<Warnings warnings={[{ code: "STEEL_NORM_DEVIATION", message: "x", params: { actual: 3.1, min: 1.6, max: 2 } }, { code: "RATES_MISSING", message: "y", materials: ["Termite chemical"] }]} />, {
       me: meFixture("THEKEDAR"),
       ui: { language: "roman-ur" },
     });
@@ -123,7 +123,7 @@ describe("R1-N1: legacy quote warnings (code + message, no params)", () => {
     const partial: TranslationVars = { actual: 3.1 };
     for (const language of ["en", "roman-ur", "ur"] as const) expect(translate(language, key, partial)).not.toMatch(/\{\w+\}/);
     expect(hasAllVars(key, partial)).toBe(false);
-    expect(hasAllVars(key, { actual: 3.1, percent: 40, norm: 2.2 })).toBe(true);
+    expect(hasAllVars(key, { actual: 3.1, min: 1.6, max: 2 })).toBe(true);
     expect(hasAllVars("projects.estimate.warn.RATES_MISSING" as TranslationKey, { materials: "" })).toBe(false);
   });
 });

@@ -89,6 +89,8 @@ export interface EstimateSettings {
   bricksPerCft: number;
   mortarPerCftBrickwork: number;
   masonryMortarMix: MortarMix;
+  /** Mortar below the DPC (QA B-10, default 1:4); absent from an older settings snapshot. */
+  foundationMortarMix?: MortarMix;
   slabThicknessIn: number;
   rccMix: "1:1.5:3" | "1:2:4";
   frameConcretePercent: number;
@@ -115,6 +117,8 @@ export interface EstimateSettings {
   cementWastagePercent?: number;
   sandWastagePercent?: number;
   steelWastagePercent?: number;
+  /** Lap / hook allowance on bar steel, on top of the steel wastage (QA B-15, default 4 %). */
+  steelLapPercent?: number;
   concreteDryFactor: number;
   mortarDryFactor: number;
   cementBagCft: number;
@@ -194,6 +198,10 @@ export interface EstimateFloorBasis {
   roofMethod?: EstimateMethod;
   /** RCC frame columns of the floor (QA B-22, newer API): the derived count, the one typed (null = auto), the one used. */
   columns?: { derived: number; entered: number | null; used: number } | null;
+  /** A floor with no rooms, estimated from its share of the covered area (QA B-12). */
+  estimatedFromArea?: boolean;
+  /** Rooms below 85 % of the floor: walls, plaster, lintels, beams and floor tiles × this factor (QA B-13); 1 = none. */
+  coverageScale?: number;
   walls?: {
     partyWallFt: number;
     partyExistingFt: number;
@@ -240,8 +248,8 @@ export type EstimateWarningCode =
   // BoQ (Step 11)
   | "STEEL_NORM_DEVIATION"
   | "RCC_NORM_DEVIATION"
-  // QE2: the ground footprint is larger than the plot (blocks activation)
-  | "FOOTPRINT_EXCEEDS_PLOT";
+  // A contractor lump sum / allowance with a Rs 0 rulebook rate (QA B-07; items = rate keys)
+  | "RULEBOOK_RATE_ZERO";
 
 export interface EstimateWarning {
   code: EstimateWarningCode;
@@ -250,8 +258,6 @@ export interface EstimateWarning {
   blocking?: boolean;
   tab?: number;
   params?: Record<string, number>;
-  /** A blocking problem (shown as an error; activation is refused). */
-  blocking?: boolean;
   /** The floor it is about (roof / wall warnings). */
   floor?: { level: FloorLevel; name: string };
   materials?: EstimateMaterial[];

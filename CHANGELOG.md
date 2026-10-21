@@ -11,6 +11,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - **Changed:** steel bars are shown mm-first everywhere ("12 mm (#4)"; Urdu / Roman Urdu with the local sooter size), and the estimate names the new boundary wall, porch, plinth beam, column stub, backfill, cart-away and plinth-fill lines in all three languages.
 - **Added:** the boundary-wall length defaults to the plot perimeter minus a 12 ft gate; the new FOOTPRINT_EXCEEDS_PLOT warning is translated.
 
+### Estimate QA integration (QE2 + QE3)
+
+- **Fixed:** the steel norm warning shows the usual range ({min}–{max} kg per sq ft) the API now sends, in all three languages; a duplicate FOOTPRINT_EXCEEDS_PLOT text and duplicate warning type entries are removed.
+- API types (`schema.ts`) regenerated from the merged API (estimate settings `foundationMortarMix`, `steelLapPercent`, the new rulebook rate keys, payment template `contractType`); estimate types gain `coverageScale`, `estimatedFromArea` and RULEBOOK_RATE_ZERO.
+
 ### QA wave E3 (wizard, Estimate tab, Assumptions)
 
 - **Contract tab:** switching the contract type asks first and says what changes; each type keeps its own value, rate, billing and stages, so switching back restores them (B-18). Running bills hide the stage table and show "x % running bills + y % retention"; switching back restores the typed stages. The retention row follows the retention % and is locked in the stage table; the other stages must add up to 100 − retention, and a stage-total error clears as soon as the stages are fixed (B-08, B-29). Each contract type starts from its own default template, grey structure without flooring / finishing stages (B-35).
