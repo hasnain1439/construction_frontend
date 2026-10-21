@@ -357,7 +357,7 @@ export const strings: Widen<typeof En.strings> = {
     pccThickness: "پی سی سی کی موٹائی",
     rccMix: "آر سی سی مکس",
     mainBar: "مین سریا",
-    barValue: "{bar} ({mm} ملی میٹر)",
+    barValue: "{mm} ملی میٹر ({bar})",
     termite: "دیمک کا علاج",
     termiteDesc: "پی سی سی سے پہلے کھائیوں میں دیمک مار دوا۔",
     dpcMaterial: "ڈی پی سی کا مٹیریل",

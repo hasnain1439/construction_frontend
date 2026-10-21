@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Estimate geometry (QA audit, QE2)
+
+- **Changed:** steel bars are shown mm-first everywhere ("12 mm (#4)"; Urdu / Roman Urdu with the local sooter size), and the estimate names the new boundary wall, porch, plinth beam, column stub, backfill, cart-away and plinth-fill lines in all three languages.
+- **Added:** the boundary-wall length defaults to the plot perimeter minus a 12 ft gate; the new FOOTPRINT_EXCEEDS_PLOT warning is translated.
+
 ### T-iron + tiles roof
 
 - **Wizard tab 3 → roof card → "T-iron + tiles"** now shows the real build-up as 6 numbered steps, bottom to top: 1 structure (T-iron only / Girder + T-iron, with girder size G6×3 / G8×4 and spacing), 2 T-iron size (3″ / 4″) and spacing (default 1.1 ft = 13″), 3 bottom tile layers (1 / 2), 4 waterproof layer (polythene sheet / bitumen / none), 5 earth inches (default 5″), 6 top finish (tiles in mortar / mud + straw plaster / concrete screed) and its thickness (1″, concrete 2″). Steel grade and the slab fields are hidden; the concrete mix shows only for a concrete finish. Warnings: span over 12 ft with T-irons only, T-irons over 14″ apart, girders over 10 ft apart, no waterproof layer. Old saved T-iron roofs open with the mapped values. Texts in English / Roman Urdu / Urdu; the estimate shows the new lines (girders, T-irons, bottom tiles, waterproof layer, roof earth, top finish), the polythene sheet and mud-plaster lump sum, and the new warnings. Two new estimate settings (roof polythene overlap, roof bitumen). `SegmentedField` takes an optional `onValueChange`. API types (`schema.ts`) regenerated.

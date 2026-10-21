@@ -12,7 +12,7 @@ import { SegmentedField } from "@/components/forms/SegmentedField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
-import { formatArea } from "../utils/calc";
+import { defaultBoundaryLengthFt, formatArea } from "../utils/calc";
 import { coverageSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
@@ -24,7 +24,7 @@ const toValues = (p: ProjectDetail | null): Values => ({
   semiCoveredSqft: p?.coverage?.semiCoveredSqft ?? 0,
   openAreaSqft: p?.coverage?.openAreaSqft ?? 0,
   boundaryWall: p?.coverage?.boundaryWall ?? false,
-  boundaryLengthFt: p?.coverage?.boundaryLengthFt ?? null,
+  boundaryLengthFt: p?.coverage?.boundaryLengthFt ?? defaultBoundaryLengthFt(p?.plot?.frontFt, p?.plot?.depthFt),
   boundaryHeightFt: p?.coverage?.boundaryHeightFt ?? 7,
   boundaryThickness: p?.coverage?.boundaryThickness ?? "IN_9",
   boundaryPlasterSides: p?.coverage?.boundaryPlasterSides === 1 ? "1" : "2",

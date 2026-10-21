@@ -356,7 +356,7 @@ export const strings = {
     pccThickness: "PCC thickness",
     rccMix: "RCC mix",
     mainBar: "Main steel bar",
-    barValue: "{bar} ({mm} mm)",
+    barValue: "{mm} mm ({bar})",
     termite: "Termite treatment",
     termiteDesc: "Anti-termite chemical in the trenches before the PCC.",
     dpcMaterial: "DPC material",
