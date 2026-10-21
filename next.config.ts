@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
   // Docker image runs. `next dev` and `next start` are unaffected.
   output: "standalone",
   devIndicators: false,
+  // `next dev` keeps compiled pages on disk between restarts. On a machine short of memory a
+  // killed dev server can leave that cache broken (pages hang or 404 until .next is deleted);
+  // NEXT_DEV_DISK_CACHE=off in .env.local turns it off. Builds are unaffected.
+  ...(process.env.NEXT_DEV_DISK_CACHE === "off" ? { experimental: { turbopackFileSystemCacheForDev: false } } : {}),
   // Smallest modern formats first (the login photo is served as AVIF/WebP at the screen size).
   images: { formats: ["image/avif", "image/webp"] },
   async headers() {
