@@ -5,6 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import type { ReactNode } from "react";
 import type { FloorLevel, RoofTopFinish, RoofType, SlabSuggestion, StructureType } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { TermHints } from "../components/TermHints";
 import { SectionCard } from "@/components/common/SectionCard";
 import { FieldGrid } from "@/components/forms/Form";
 import { NumberField } from "@/components/forms/NumberField";
@@ -60,12 +61,15 @@ export function RoofCard({
   level,
   suggestion,
   structure,
+  derivedColumns = null,
   disabled,
 }: {
   index: number;
   level: FloorLevel;
   suggestion?: SlabSuggestion;
   structure: StructureType | null;
+  /** QA B-22: the column count worked out for this floor (shown next to the hint; typing a number overrides it). */
+  derivedColumns?: number | null;
   disabled: boolean;
 }) {
   const t = useT();
@@ -79,7 +83,7 @@ export function RoofCard({
   const sqft = t("projects.unit.sqft");
   const s = suggestion ?? suggestSlab(null);
   const warnings = roofWarnings(roof, s);
-  const barOptions = BAR_NUMBERS.map((b) => ({ value: String(b), label: t("projects.foundation.barValue", { bar: `#${b}`, mm: BAR_MM[b] }) }));
+  const barOptions = BAR_NUMBERS.map((b) => ({ value: String(b), label: t("projects.foundation.barValue", { bar: `#${b}`, n: b, mm: BAR_MM[b] }) }));
   const floorName = te("projectFloorLevel", level);
   const field = (k: keyof RoofFormValues) => `${base}.${k}`;
 
@@ -113,7 +117,12 @@ export function RoofCard({
   return (
     <SectionCard
       title={t("projects.roof.title", { floor: floorName })}
-      description={t("projects.roof.description")}
+      description={
+        <>
+          {t("projects.roof.description")}
+          <TermHints terms={["lenter", "chajja"]} />
+        </>
+      }
     >
       <div className="space-y-6" data-testid={`roof-card-${level}`}>
         <ToggleField name={field("enabled")} label={t("projects.roof.enabled")} description={t("projects.roof.enabledDesc")} disabled={disabled} />
@@ -315,17 +324,25 @@ export function RoofCard({
                 <FieldGrid columns={3}>
                   <NumberField name={field("beamWidthIn")} label={t("projects.roof.beamWidth")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("beamDepthIn")} label={t("projects.roof.beamDepth")} required unit={inch} disabled={disabled} />
-                  <NumberField name={field("beamBars")} label={t("projects.roof.beamBars")} required decimals={0} disabled={disabled} />
+                  <NumberField name={field("beamBars")} label={t("projects.roof.beamBars")} required decimals={0} unit={t("projects.unit.bars")} disabled={disabled} />
                   <SelectField name={field("beamBar")} label={t("projects.roof.beamBar")} required disabled={disabled} options={barOptions} />
                   <SelectField name={field("stirrupBar")} label={t("projects.roof.stirrupBar")} required disabled={disabled} options={barOptions} />
                   <NumberField name={field("stirrupSpacingIn")} label={t("projects.roof.stirrupSpacing")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("beamRunFt")} label={t("projects.roof.beamRun")} hint={t("projects.roof.beamRunHint")} unit={ft} disabled={disabled} />
                 </FieldGrid>
                 <FieldGrid columns={3}>
-                  <NumberField name={field("columnCount")} label={t("projects.roof.columnCount")} hint={t("projects.roof.columnCountHint")} decimals={0} disabled={disabled} />
+                  <NumberField
+                    name={field("columnCount")}
+                    label={t("projects.roof.columnCount")}
+                    hint={derivedColumns ? t("projects.roof.columnCountDerived", { n: derivedColumns }) : t("projects.roof.columnCountHint")}
+                    placeholder={derivedColumns ? String(derivedColumns) : undefined}
+                    decimals={0}
+                    unit={t("projects.unit.nos")}
+                    disabled={disabled}
+                  />
                   <NumberField name={field("columnWidthIn")} label={t("projects.roof.columnWidth")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("columnDepthIn")} label={t("projects.roof.columnDepth")} required unit={inch} disabled={disabled} />
-                  <NumberField name={field("columnBars")} label={t("projects.roof.columnBars")} required decimals={0} disabled={disabled} />
+                  <NumberField name={field("columnBars")} label={t("projects.roof.columnBars")} required decimals={0} unit={t("projects.unit.bars")} disabled={disabled} />
                   <SelectField name={field("columnBar")} label={t("projects.roof.columnBar")} required disabled={disabled} options={barOptions} />
                   <SelectField name={field("tieBar")} label={t("projects.roof.tieBar")} required disabled={disabled} options={barOptions} />
                   <NumberField name={field("tieSpacingIn")} label={t("projects.roof.tieSpacing")} required unit={inch} disabled={disabled} />

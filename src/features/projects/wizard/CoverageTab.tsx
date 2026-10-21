@@ -1,10 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, useFormContext, useWatch } from "react-hook-form";
 import type { z } from "zod";
-import { useUpdateCoverageMutation } from "@/api/services/projects.api";
+import { projectsApi, useUpdateCoverageMutation } from "@/api/services/projects.api";
 import type { ProjectDetail } from "@/api/types";
+import { InlineAlert } from "@/components/common/InlineAlert";
 import { SectionCard } from "@/components/common/SectionCard";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { NumberField } from "@/components/forms/NumberField";
@@ -30,22 +32,52 @@ const toValues = (p: ProjectDetail | null): Values => ({
   boundaryPlasterSides: p?.coverage?.boundaryPlasterSides === 1 ? "1" : "2",
 });
 
-/** Covered / semi-covered / open as one proportional bar. */
-function SplitBar() {
+/** Storeys that carry covered area (the mumty is a small stair room; the basement sits under the ground floor). */
+const STOREYS = ["GROUND", "FIRST", "SECOND", "THIRD"];
+
+/** 2 × (front + depth) − a 12 ft gate: the boundary wall around the plot (QA B-30). */
+export const GATE_FT = 12;
+export function boundaryLengthDefault(frontFt: number | null | undefined, depthFt: number | null | undefined): number | null {
+  if (!frontFt || !depthFt) return null;
+  return Math.max(0, Math.round((2 * (frontFt + depthFt) - GATE_FT) * 100) / 100);
+}
+
+/**
+ * What fits on the plot (QA B-24): covered area is the total of every floor; what has to fit on the plot
+ * is the ground footprint + porch (semi-covered) + open area. A warning when it is larger than the plot.
+ */
+export function plotFit(p: { coveredSqft: number | null; semiSqft: number | null; openSqft: number | null; plotSqft: number | null; storeys: number; groundFootprintSqft?: number | null }) {
+  const footprint = p.groundFootprintSqft ?? (p.coveredSqft && p.storeys > 0 ? Math.round((p.coveredSqft / p.storeys) * 100) / 100 : 0);
+  const onPlot = Math.round((footprint + (p.semiSqft ?? 0) + (p.openSqft ?? 0)) * 100) / 100;
+  return { footprint, onPlot, overflow: p.plotSqft !== null && p.plotSqft > 0 && onPlot > p.plotSqft };
+}
+
+/** Covered (all floors) and what stands on the plot vs the plot area. */
+function SplitBar({ project }: { project: ProjectDetail | null }) {
   const [covered, semi, open] = useWatch({ name: ["coveredAreaSqft", "semiCoveredSqft", "openAreaSqft"] }) as [number | null, number | null, number | null];
   const t = useT();
+  const cached = projectsApi.endpoints.getEstimate.useQueryState(project?.id ?? "", { skip: !project });
+  const plotSqft = project?.calculations?.plotAreaSqft ?? null;
+  const storeys = Math.max(1, (project?.floors ?? []).filter((f) => STOREYS.includes(f.level)).length);
+  const ground = cached.data?.basis.floors.find((f) => f.level === "GROUND")?.footprintSqft ?? null;
+  const fit = plotFit({ coveredSqft: covered, semiSqft: semi, openSqft: open, plotSqft, storeys, groundFootprintSqft: ground || null });
   const parts = [
-    { label: t("projects.section.covered"), value: covered ?? 0, className: "bg-primary" },
+    { label: t("projects.coverage.groundFootprint"), value: fit.footprint, className: "bg-primary" },
     { label: t("projects.section.semiCovered"), value: semi ?? 0, className: "bg-amber" },
     { label: t("projects.section.open"), value: open ?? 0, className: "bg-success" },
   ];
-  const total = parts.reduce((s, p) => s + p.value, 0);
-  if (!total) return null;
+  const scale = Math.max(fit.onPlot, plotSqft ?? 0);
+  if (!scale && !covered) return null;
   return (
-    <div className="space-y-2" aria-label={t("projects.coverage.areaSplit")}>
-      <div className="flex h-3 overflow-hidden rounded-full bg-muted">
-        {parts.map((p) => (p.value ? <div key={p.label} className={p.className} style={{ width: `${(p.value / total) * 100}%` }} /> : null))}
-      </div>
+    <div className="space-y-2" aria-label={t("projects.coverage.areaSplit")} data-testid="coverage-fit">
+      <p className="text-sm">
+        {t("projects.coverage.coveredAllFloors", { area: formatArea(covered ?? 0), floors: storeys })}
+      </p>
+      {scale ? (
+        <div className="flex h-3 overflow-hidden rounded-full bg-muted">
+          {parts.map((p) => (p.value ? <div key={p.label} className={p.className} style={{ width: `${Math.min(100, (p.value / scale) * 100)}%` }} /> : null))}
+        </div>
+      ) : null}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
         {parts.map((p) => (
           <span key={p.label} className="flex items-center gap-1.5">
@@ -53,20 +85,43 @@ function SplitBar() {
             {t("projects.coverage.splitItem", { label: p.label, area: formatArea(p.value) })}
           </span>
         ))}
-        <span className="font-medium text-foreground">{t("projects.coverage.total", { area: formatArea(total) })}</span>
+        <span className="font-medium text-foreground">
+          {plotSqft
+            ? t("projects.coverage.onPlotOf", { area: formatArea(fit.onPlot), plot: formatArea(plotSqft) })
+            : t("projects.coverage.onPlot", { area: formatArea(fit.onPlot) })}
+        </span>
       </div>
+      {fit.overflow && plotSqft ? (
+        <InlineAlert tone="warning">
+          <span data-testid="coverage-overflow">{t("projects.coverage.overflow", { area: formatArea(fit.onPlot), plot: formatArea(plotSqft) })}</span>
+        </InlineAlert>
+      ) : null}
     </div>
   );
 }
 
-function BoundaryFields({ disabled }: { disabled: boolean }) {
+function BoundaryFields({ disabled, project }: { disabled: boolean; project: ProjectDetail | null }) {
   const on = useWatch({ name: "boundaryWall" }) as boolean;
+  const { getValues, setValue } = useFormContext();
   const t = useT();
+  const suggested = boundaryLengthDefault(project?.plot?.frontFt, project?.plot?.depthFt);
+  // QA B-30: an empty length starts as 2 × (front + depth) − 12 ft gate
+  useEffect(() => {
+    if (on && suggested && getValues("boundaryLengthFt") === null) setValue("boundaryLengthFt", suggested, { shouldDirty: true });
+  }, [on, suggested, getValues, setValue]);
   if (!on) return null;
   return (
     <FieldGrid>
-      <NumberField name="boundaryLengthFt" label={t("projects.coverage.length")} required unit={t("projects.unit.runningFt")} disabled={disabled} />
-      <NumberField name="boundaryHeightFt" label={t("projects.coverage.height")} required unit={t("projects.unit.ft")} disabled={disabled} />
+      <NumberField
+        name="boundaryLengthFt"
+        label={t("projects.coverage.length")}
+        required
+        min={1}
+        unit={t("projects.unit.runningFt")}
+        hint={suggested ? t("projects.coverage.lengthHint", { n: formatArea(suggested), gate: GATE_FT }) : undefined}
+        disabled={disabled}
+      />
+      <NumberField name="boundaryHeightFt" label={t("projects.coverage.height")} required min={1} max={30} unit={t("projects.unit.ft")} disabled={disabled} />
       <SegmentedField
         name="boundaryThickness"
         label={t("projects.coverage.thickness")}
@@ -135,16 +190,16 @@ export function CoverageTab() {
         <div className="space-y-4">
           <FieldGrid columns={3}>
             <NumberField name="coveredAreaSqft" label={t("projects.coverage.coveredArea")} required unit={t("projects.unit.sqft")} disabled={locked} />
-            <NumberField name="semiCoveredSqft" label={t("projects.coverage.semiCovered")} unit={t("projects.unit.sqft")} disabled={locked} />
-            <NumberField name="openAreaSqft" label={t("projects.coverage.openArea")} unit={t("projects.unit.sqft")} disabled={locked} />
+            <NumberField name="semiCoveredSqft" label={t("projects.coverage.semiCovered")} min={0} unit={t("projects.unit.sqft")} disabled={locked} />
+            <NumberField name="openAreaSqft" label={t("projects.coverage.openArea")} min={0} unit={t("projects.unit.sqft")} disabled={locked} />
           </FieldGrid>
-          <SplitBar />
+          <SplitBar project={project} />
         </div>
       </SectionCard>
       <SectionCard title={t("projects.section.boundaryWall")}>
         <div className="space-y-4">
           <ToggleField name="boundaryWall" label={t("projects.section.boundaryWall")} description={t("projects.coverage.boundaryWallDesc")} disabled={locked} />
-          <BoundaryFields disabled={locked} />
+          <BoundaryFields disabled={locked} project={project} />
         </div>
       </SectionCard>
     </Form>

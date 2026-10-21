@@ -111,6 +111,10 @@ export interface EstimateSettings {
   termiteLitrePerSqft: number;
   wastagePercent: number;
   brickWastagePercent: number;
+  /** Per-material wastage (QA B-20); absent from an older API. */
+  cementWastagePercent?: number;
+  sandWastagePercent?: number;
+  steelWastagePercent?: number;
   concreteDryFactor: number;
   mortarDryFactor: number;
   cementBagCft: number;
@@ -188,6 +192,8 @@ export interface EstimateFloorBasis {
   windowsSqft: number;
   wallsMethod?: EstimateMethod;
   roofMethod?: EstimateMethod;
+  /** RCC frame columns of the floor (QA B-22, newer API): the derived count, the one typed (null = auto), the one used. */
+  columns?: { derived: number; entered: number | null; used: number } | null;
   walls?: {
     partyWallFt: number;
     partyExistingFt: number;
@@ -233,7 +239,9 @@ export type EstimateWarningCode =
   | "ROOF_NO_WATERPROOFING"
   // BoQ (Step 11)
   | "STEEL_NORM_DEVIATION"
-  | "RCC_NORM_DEVIATION";
+  | "RCC_NORM_DEVIATION"
+  // QE2: the ground footprint is larger than the plot (blocks activation)
+  | "FOOTPRINT_EXCEEDS_PLOT";
 
 export interface EstimateWarning {
   code: EstimateWarningCode;
@@ -242,6 +250,8 @@ export interface EstimateWarning {
   blocking?: boolean;
   tab?: number;
   params?: Record<string, number>;
+  /** A blocking problem (shown as an error; activation is refused). */
+  blocking?: boolean;
   /** The floor it is about (roof / wall warnings). */
   floor?: { level: FloorLevel; name: string };
   materials?: EstimateMaterial[];

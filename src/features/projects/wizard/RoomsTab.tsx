@@ -28,16 +28,19 @@ function CopyFloorDialog({
   floors,
   open,
   onOpenChange,
+  initialTargetId = "",
 }: {
   projectId: string;
   source: FloorWithRooms;
   floors: FloorWithRooms[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Copy-from-ground on an empty floor: that floor is the target already. */
+  initialTargetId?: string;
 }) {
   const [copy, { isLoading }] = useCopyFloorMutation();
   const run = useMutationToast();
-  const [targetId, setTargetId] = useState("");
+  const [targetId, setTargetId] = useState(initialTargetId);
   const [replace, setReplace] = useState(false);
   const target = floors.find((f) => f.id === targetId);
   const targetHasRooms = Boolean(target?.rooms.length);
@@ -110,6 +113,7 @@ export function RoomsTab() {
   const [floorId, setFloorId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const [copyFromGround, setCopyFromGround] = useState(false);
   const [autoOpen, setAutoOpen] = useState(false);
   const [autoWalls, { isLoading: autoSaving }] = useAutoFloorWallsMutation();
   const run = useMutationToast();
@@ -134,6 +138,7 @@ export function RoomsTab() {
     );
   }
   const floor = floors.find((f) => f.id === floorId) ?? floors.find((f) => f.level === "GROUND") ?? floors[0];
+  const ground = floors.find((f) => f.level === "GROUND");
   const covered = project?.coverage?.coveredAreaSqft ?? null;
   const roomArea = data?.totals.totalFloorAreaSqft ?? 0;
   const mismatch = covered && roomArea ? Math.abs(roomArea - covered) / covered > 0.15 : false;
@@ -164,10 +169,18 @@ export function RoomsTab() {
                 <BrickWall data-icon="inline-start" />
                 {t("projects.rooms.autoWalls")}
               </Button>
-              <Button variant="outline" disabled={!floor.rooms.length || floors.length < 2} onClick={() => setCopyOpen(true)}>
-                <Copy data-icon="inline-start" />
-                {t("projects.rooms.copyFloor")}
-              </Button>
+              {!floor.rooms.length && ground && ground.id !== floor.id && ground.rooms.length ? (
+                // QA B-31: an empty floor copies the ground floor's rooms into itself
+                <Button variant="outline" onClick={() => setCopyFromGround(true)}>
+                  <Copy data-icon="inline-start" />
+                  {t("projects.rooms.copyFromGround")}
+                </Button>
+              ) : (
+                <Button variant="outline" disabled={!floor.rooms.length || floors.length < 2} onClick={() => setCopyOpen(true)}>
+                  <Copy data-icon="inline-start" />
+                  {t("projects.rooms.copyFloor")}
+                </Button>
+              )}
               <Button onClick={() => setAdding(true)} disabled={adding}>
                 <Plus data-icon="inline-start" />
                 {t("projects.rooms.addRoom")}
@@ -249,6 +262,9 @@ export function RoomsTab() {
         </SectionCard>
       </aside>
       <CopyFloorDialog projectId={projectId} source={floor} floors={floors} open={copyOpen} onOpenChange={setCopyOpen} />
+      {ground && copyFromGround ? (
+        <CopyFloorDialog key={`ground-${floor.id}`} projectId={projectId} source={ground} floors={floors} open onOpenChange={setCopyFromGround} initialTargetId={floor.id} />
+      ) : null}
       <ConfirmDialog
         open={autoOpen}
         onOpenChange={setAutoOpen}

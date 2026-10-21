@@ -38,6 +38,7 @@ import { formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { BoqTable } from "./BoqTable";
 import { LineOverrideSlideOver } from "./LineOverrideSlideOver";
+import { RateAction, RateEditSlideOver } from "@/features/projects/estimate/RateEditSlideOver";
 import { fmt, hasMargin, hasMoney, iso, pdfLang, rupees, stageText } from "./labels";
 
 const PREVIEW = "preview";
@@ -87,6 +88,8 @@ export function BoqWorkspace({
   const list = revisions.data ?? [];
   const current = selected === PREVIEW ? null : (list.find((r) => r.id === selected) ?? defaultRevision(list));
   const detail = useGetEstimateRevisionQuery(current?.id ?? "", { skip: !current });
+  const readOnly = useReadOnly();
+  const [rateEdit, setRateEdit] = useState<{ line: BoqLine; key: string } | null>(null);
 
   if (revisions.isLoading) return <CardsSkeleton count={2} height="h-32" />;
   if (revisions.error) return <ErrorState error={revisions.error} onRetry={revisions.refetch} />;
@@ -109,7 +112,25 @@ export function BoqWorkspace({
           {t("estimates.boq.previewBody")}
         </InlineAlert>
         <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} />
-        {boq ? <BoqBody money={boq} coveredAreaSqft={boq.coveredAreaSqft} ownerLines={countOwner(boq.sections.flatMap((s) => s.lines))} lineCount={boq.sections.reduce((a, s) => a + s.lines.length, 0)} sections={boq.sections} stages={boq.stages} /> : null}
+        {boq ? (
+          <BoqBody
+            money={boq}
+            coveredAreaSqft={boq.coveredAreaSqft}
+            ownerLines={countOwner(boq.sections.flatMap((s) => s.lines))}
+            lineCount={boq.sections.reduce((a, s) => a + s.lines.length, 0)}
+            sections={boq.sections}
+            stages={boq.stages}
+            rateAction={(line) => <RateAction line={line} onEdit={(l, key) => setRateEdit({ line: l, key })} />}
+          />
+        ) : null}
+        <RateEditSlideOver
+          projectId={project.id}
+          estimate={live}
+          line={rateEdit?.line ?? null}
+          rateKey={rateEdit?.key ?? null}
+          locked={readOnly || !ESTIMATING_STATUSES.includes(project.status)}
+          onClose={() => setRateEdit(null)}
+        />
         {boq?.totalPaisa && contractCard
           ? contractCard({ estimateId: null, totalPaisa: boq.totalPaisa, revision: null, status: null, coveredAreaSqft: boq.coveredAreaSqft })
           : null}
@@ -186,6 +207,7 @@ function BoqBody({
   sections,
   stages,
   onAdjust,
+  rateAction,
 }: {
   money: BoqMoney;
   coveredAreaSqft: number;
@@ -194,6 +216,7 @@ function BoqBody({
   sections: EstimateDetail["sections"];
   stages: BoqStageTotal[];
   onAdjust?: (line: BoqLine) => void;
+  rateAction?: (line: BoqLine) => ReactNode;
 }) {
   const t = useT();
   const money = hasMoney(m);
@@ -201,7 +224,7 @@ function BoqBody({
     <>
       {!money ? <InlineAlert tone="info">{t("estimates.boq.noMoney")}</InlineAlert> : null}
       <BoqKpis money={m} coveredAreaSqft={coveredAreaSqft} ownerLines={ownerLines} lineCount={lineCount} />
-      <BoqTable sections={sections} totals={m} money={money} onAdjust={onAdjust} />
+      <BoqTable sections={sections} totals={m} money={money} onAdjust={onAdjust} rateAction={money ? rateAction : undefined} />
       {money ? <StageTotals stages={stages} /> : null}
     </>
   );

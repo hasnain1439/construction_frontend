@@ -95,7 +95,7 @@ describe("FoundationCard (wizard tab 3)", () => {
     const { unmount } = renderWithStore(<Harness foundation={{ type: "ISOLATED" }} />, { ui: { language: "ur" } });
     expect(screen.getByText("بنیاد")).toBeInTheDocument();
     expect(screen.getByText("کھدائی کی گہرائی", { exact: false })).toBeInTheDocument();
-    expect(screen.getAllByText("12 ملی میٹر (#4)").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("12 ملی میٹر (4 سوتر)").length).toBeGreaterThan(0);
     unmount();
     renderWithStore(<Harness foundation={{}} />, { ui: { language: "roman-ur" } });
     expect(screen.getByText("Bunyaad (Foundation)")).toBeInTheDocument();

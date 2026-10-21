@@ -196,6 +196,8 @@ export interface PaymentTemplate {
   name: string;
   billingModel: BillingModel;
   isDefault: boolean;
+  /** The contract type this template is the default schedule for (QA B-35); null / absent = any type. */
+  contractType?: "FULL" | "GREY_OWNER_FINISHING" | "LABOR_ONLY" | null;
   stages: TemplateStage[];
   updatedAt: IsoDateTime;
 }

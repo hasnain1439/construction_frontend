@@ -3,6 +3,7 @@ import type * as En from "./en";
 
 export const strings: Widen<typeof En.strings> = {
   section: {
+    FINISHING_ITEMS: "فنشنگ کا سامان",
     EXCAVATION_EARTHWORK: "کھدائی اور بھرائی",
     CONCRETE: "کنکریٹ (سادہ / سریا دار)",
     STEEL: "سریا",
@@ -112,6 +113,10 @@ export const strings: Widen<typeof En.strings> = {
     OWNER: "مالک",
   },
   boq: {
+    percentOfDirect: "براہ راست لاگت ({base}) کا {percent}%",
+    percentOfDirectOverheads: "براہ راست لاگت + اوور ہیڈز ({base}) کا {percent}%",
+    linesMatch: "اوپر کی لائنوں کا جوڑ براہ راست لاگت کے برابر ہے۔",
+    linesDiffer: "اوپر کی لائنوں کا جوڑ {lines} ہے، براہ راست لاگت {direct} ہے۔",
     previewTitle: "براہِ راست جائزہ — ابھی محفوظ نہیں",
     previewBody: "آج کی مقداریں اور ریٹ۔ تخمینہ بنائیں تاکہ یہ نظرثانی کے طور پر محفوظ ہو اور آپ جانچ کر منظور کر سکیں۔",
     generateTitle: "پہلا تخمینہ بنائیں",

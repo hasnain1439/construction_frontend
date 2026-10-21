@@ -131,6 +131,9 @@ export const strings = {
     control: "Control",
   },
   validation: {
+    atLeastUnit: "{label} must be at least {n} {unit}",
+    atMostUnit: "{label} must be at most {n} {unit}",
+    noNegative: "Negative numbers are not allowed",
     required: "{label} is required",
     tooShort: "{label} is too short",
     tooLong: "{label} is too long",

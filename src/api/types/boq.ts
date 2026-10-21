@@ -17,6 +17,7 @@ export const BOQ_SECTIONS = [
   "ROOF_WATERPROOFING",
   "FLOORING_TILES",
   "PAINT",
+  "FINISHING_ITEMS",
   "MEP_ROUGH_IN",
   "GREY_LABOUR",
   "FINISHING_LABOUR",
@@ -99,12 +100,37 @@ export interface BoqLine {
   rateQuantity?: number | null;
   amountPaisa?: Paisa | null;
   rateStatus?: BoqRateStatus | null;
+  // Newer API (QA B-05 / B-06), absent before ↓
+  /** The rulebook key the rate comes from (editable per project); null = price list / piece rate. */
+  rateKey?: string | null;
+  supplyCategory?: string | null;
+  costNature?: "MATERIAL" | "LABOUR" | "MATERIAL_LABOUR" | null;
+  labourOnly?: boolean;
 }
 
 export interface BoqSectionBlock {
   section: BoqSection;
+  /** Plain English section name (newer API) — used for a section this app does not know yet. */
+  label?: string;
   lines: BoqLine[];
   amountPaisa?: Paisa;
+}
+
+/** One project-editable rulebook key with its value in effect (newer API, `boq.assumptions`). */
+export interface BoqAssumption {
+  key: string;
+  group: RulebookGroup;
+  label: string;
+  labelRoman: string;
+  labelUrdu: string;
+  description: string;
+  unit: string;
+  value: number;
+  source: ParameterSource;
+  companyValue: number;
+  safeMin: number;
+  safeMax: number;
+  reviewStatus: ReviewStatus;
 }
 
 export interface BoqStageTotal {
@@ -169,6 +195,10 @@ export interface BoqPreview extends BoqMoney {
   sections: BoqSectionBlock[];
   stages: BoqStageTotal[];
   warnings: EstimateWarning[];
+  /** Newer API: Σ visible contractor lines = direct cost. */
+  check?: { visibleLinesPaisa: Paisa; directCostPaisa: Paisa; matches: boolean };
+  /** Newer API: every project-editable rulebook key (rupee keys only with fields.rates). */
+  assumptions?: BoqAssumption[];
 }
 
 export type CompareChange = "ADDED" | "REMOVED" | "CHANGED" | "UNCHANGED";

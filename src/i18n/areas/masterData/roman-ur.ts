@@ -178,6 +178,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "Abhi koi rate nahi laga",
   },
   stages: {
+    retentionFollows: "Retention ka stage neeche diye gaye retention % ke mutabiq hai, yahan badla nahin ja sakta.",
     nameAria: "Marhala {n} ka naam",
     namePlaceholder: "Maslan Plinth / DPC",
     percentAria: "Marhala {n} feesad",

@@ -6,9 +6,13 @@ import { isTranslationKey, type TranslationKey, type TranslationVars } from "@/i
 type T = (key: TranslationKey, vars?: TranslationVars) => string;
 
 const numberFormat = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 });
+const smallFormat = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 });
 
-/** 1234.5 → "1,234.5" (Pakistani grouping, at most 2 decimals). */
-export const fmt = (n: number) => numberFormat.format(n);
+/**
+ * 1234.5 → "1,234.5" (Pakistani grouping, at most 2 decimals). Values under 0.1 keep up to 4 decimals,
+ * so a rate prints as it is used (QA B-19: termite 0.005 L / sq ft, not "0.01").
+ */
+export const fmt = (n: number) => (n !== 0 && Math.abs(n) < 0.1 ? smallFormat : numberFormat).format(n);
 
 /** Rounded up for buying: 289.04 bags → "290". */
 export const fmtUp = (n: number) => numberFormat.format(Math.ceil(n - 1e-9));

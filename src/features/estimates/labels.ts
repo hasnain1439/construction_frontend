@@ -14,7 +14,11 @@ export const pdfLang = (language: UiLanguage): PdfLang => (language === "roman-u
 /** The API label in the UI language (rulebook parameters carry en / roman / ur). */
 export const localized = (label: LocalizedLabel, language: UiLanguage) => (language === "roman-ur" ? label.roman : language === "ur" ? label.ur : label.en) || label.en;
 
-export const sectionText = (t: T, section: BoqSection) => t(`estimates.section.${section}`);
+/** Section name in the UI language; a section the app does not know yet uses the API's English label. */
+export const sectionText = (t: T, section: BoqSection, label?: string) => {
+  const key = `estimates.section.${section}`;
+  return isTranslationKey(key) ? t(key) : (label ?? section);
+};
 
 export const stageText = (t: T, stage: BuildStageKey | null) => t(stage ? `estimates.stage.${stage}` : "estimates.stage.ALL");
 

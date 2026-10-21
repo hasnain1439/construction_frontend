@@ -460,7 +460,7 @@ describe("estimate with roof / wall data", () => {
     unmount();
     renderWithStore(<EstimateBasis estimate={detailed()} />, { ui: { language: "ur" } });
     await userEvent.setup().click(screen.getAllByRole("button")[0]!);
-    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("12 ملی میٹر (#4): 139.53 کلو");
+    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("12 ملی میٹر (4 سوتر): 139.53 کلو");
     expect(screen.getAllByText("تفصیلی").length).toBeGreaterThan(0);
   });
 });
