@@ -130,10 +130,10 @@ export function foundationDefaultsFor(structureType: string | null | undefined, 
   };
 }
 
-/** Saved foundation → form values (defaults when none is saved yet; the wizard's structure default is FRAMED). */
+/** Saved foundation → form values (defaults when none is saved yet: strip without a structure type; the wizard passes FRAMED, its default). */
 export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null, columnCount: number | null = null): FoundationFormValues {
   // An RCC frame stands on column footings (QA-A-21, B-04); a load-bearing house on a strip footing.
-  if (!f) return foundationDefaultsFor(structureType ?? "FRAMED", columnCount);
+  if (!f) return structureType ? foundationDefaultsFor(structureType, columnCount) : { ...FOUNDATION_DEFAULTS };
   return {
     type: f.type,
     excavationDepthFt: f.excavationDepthFt,

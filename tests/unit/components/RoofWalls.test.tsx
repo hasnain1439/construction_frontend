@@ -54,8 +54,8 @@ describe("RoofCard (wizard tab 3)", () => {
     expect(field(/^Slab thickness/)).toHaveValue("5");
     expect(field(/^Main bar spacing/)).toHaveValue("6");
     expect(field(/^Distribution bar spacing/)).toHaveValue("9");
-    expect(screen.getAllByText("#4 (12 mm)").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("#3 (10 mm)").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("12 mm (#4)").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 mm (#3)").length).toBeGreaterThan(0);
     expect(screen.getByTestId("roof-suggestion")).toHaveTextContent("Suggested: 4.5–5″ for the largest room span of 12 ft");
     expect(screen.queryByTestId("roof-warnings")).toBeNull();
     // Load-bearing: no beams / columns
@@ -453,14 +453,14 @@ describe("estimate with roof / wall data", () => {
   it("basis shows the method per floor, brickwork by thickness and slab steel by size (en + ur)", async () => {
     const { unmount } = renderWithStore(<EstimateBasis estimate={detailed()} />);
     await userEvent.setup().click(screen.getByRole("button", { name: /What the estimate is based on/ }));
-    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("#3 (10 mm): 51.18 kg");
-    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("#4 (12 mm): 139.53 kg");
+    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("10 mm (#3): 51.18 kg");
+    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("12 mm (#4): 139.53 kg");
     expect(screen.getByText("4.5″ walls: 37.5 cft · 507 bricks")).toBeInTheDocument();
     expect(screen.getAllByText("Estimated").length).toBeGreaterThan(0);
     unmount();
     renderWithStore(<EstimateBasis estimate={detailed()} />, { ui: { language: "ur" } });
     await userEvent.setup().click(screen.getAllByRole("button")[0]!);
-    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("#4 (12 ملی میٹر): 139.53 کلو");
+    expect(screen.getByTestId("steel-by-size")).toHaveTextContent("12 ملی میٹر (4 سوتر): 139.53 کلو");
     expect(screen.getAllByText("تفصیلی").length).toBeGreaterThan(0);
   });
 });
