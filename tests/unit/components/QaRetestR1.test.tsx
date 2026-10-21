@@ -62,7 +62,7 @@ describe("QA-C-02: site deliveries asks only for what the user may read", () => 
     expect(calls.dispatches.every(Boolean)).toBe(true);
     expect(calls.owner.every(Boolean)).toBe(true);
     expect(calls.purchases.some((skip) => !skip)).toBe(true);
-    expect(screen.getByRole("tab", { name: /received/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Received/ })).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Owner deliveries" })).toBeNull();
     expect(screen.queryByRole("link", { name: /Record site purchase/ })).toBeNull();
   });

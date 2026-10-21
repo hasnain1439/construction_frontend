@@ -180,7 +180,7 @@ describe("Add member modal: Details | Roles | Custom permissions", { timeout: 60
     expect(create).not.toHaveBeenCalled();
     expect(await screen.findByRole("tab", { name: /Personal details/ })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByTestId("details-tab-error")).toBeInTheDocument();
-    expect(screen.getByTestId("account-type")).toHaveTextContent("Site accounts (Munshi)");
+    expect(screen.getByTestId("account-type")).toHaveTextContent("Site accounts (site clerk)");
 
     await user.type(screen.getByLabelText(/Name/), "Naveed Iqbal");
     await user.type(screen.getByLabelText(/Phone/), "03127654321");

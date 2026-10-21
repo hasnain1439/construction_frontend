@@ -217,7 +217,7 @@ export const strings = {
     colStatus: "Status",
     photoCount: "{n} photos",
     empty: "No site instructions",
-    emptyDesc: "The Munshi records what the owner asks for on site (photo + note) from the app.",
+    emptyDesc: "The site clerk records what the owner asks for on site (photo + note) from the app.",
     convert: "Make change order",
     convertTitle: "Make a change order from {code}",
     convertDesc: "A draft is made with this note; add the items and price in the next step.",

@@ -50,8 +50,8 @@ const MESSAGES: Record<string, Message> = {
   PHONE_TAKEN: { en: "This phone number is already registered.", ur: "Yeh phone number pehle se register hai." },
   EMAIL_TAKEN: { en: "This email is already in use.", ur: "Yeh email pehle se istemal mein hai." },
   INVITE_NOT_FOUND: { en: "This invitation link is not valid.", ur: "Yeh invitation link durust nahi." },
-  INVITE_EXPIRED: { en: "This invitation has expired. Ask your Thekedar for a new link.", ur: "Invitation expire ho gayi. Thekedar se naya link mangwayein." },
-  INVITE_CANCELLED: { en: "This invitation was cancelled. Ask your Thekedar for a new link.", ur: "Invitation cancel ho gayi. Thekedar se naya link mangwayein." },
+  INVITE_EXPIRED: { en: "This invitation has expired. Ask the company owner for a new link.", ur: "Invitation expire ho gayi. Thekedar se naya link mangwayein." },
+  INVITE_CANCELLED: { en: "This invitation was cancelled. Ask the company owner for a new link.", ur: "Invitation cancel ho gayi. Thekedar se naya link mangwayein." },
   INVITE_ALREADY_ACCEPTED: { en: "This invitation was already used. Sign in instead.", ur: "Yeh invitation istemal ho chuki. Login karein." },
 
   // Account state
@@ -64,7 +64,7 @@ const MESSAGES: Record<string, Message> = {
 
   // Permissions (PERMISSIONS_API.md §4)
   PERMISSION_DENIED: {
-    en: "You don't have permission for this. Ask your Thekedar.",
+    en: "You don't have permission for this. Ask the company owner.",
     ur: "Aap ko is ki ijazat nahi. Apne Thekedar se kahein.",
     urdu: "آپ کو اس کی اجازت نہیں۔ اپنے ٹھیکیدار سے کہیں۔",
   },
@@ -75,7 +75,7 @@ const MESSAGES: Record<string, Message> = {
   },
   OWNER_ONLY_PERMISSION: { en: "Only the owner can have this permission.", ur: "Ye ijazat sirf maalik ke paas ho sakti hai.", urdu: "یہ اجازت صرف مالک کے پاس ہو سکتی ہے۔" },
   ROLE_IS_SYSTEM: { en: "System templates can't be changed — duplicate it first.", ur: "System template nahi badalta — pehle copy banayein.", urdu: "سسٹم ٹیمپلیٹ نہیں بدلتا — پہلے کاپی بنائیں۔" },
-  CANNOT_EDIT_OWNER: { en: "The Thekedar's permissions can't be changed.", ur: "Thekedar ki ijazatein nahi badal sakti.", urdu: "ٹھیکیدار کی اجازتیں نہیں بدل سکتیں۔" },
+  CANNOT_EDIT_OWNER: { en: "The owner's permissions can't be changed.", ur: "Thekedar ki ijazatein nahi badal sakti.", urdu: "ٹھیکیدار کی اجازتیں نہیں بدل سکتیں۔" },
   CANNOT_EDIT_OWN_PERMISSIONS: { en: "You can't change your own permissions.", ur: "Aap apni ijazatein khud nahi badal sakte.", urdu: "آپ اپنی اجازتیں خود نہیں بدل سکتے۔" },
   GRANT_EXCEEDS_OWN: { en: "You can only give permissions you have yourself.", ur: "Aap sirf wohi ijazat de sakte hain jo aap ke paas hai.", urdu: "آپ صرف وہی اجازت دے سکتے ہیں جو آپ کے پاس ہے۔" },
   ROLE_NOT_FOR_ACCOUNT: { en: "This role doesn't fit this kind of account.", ur: "Ye role is qisam ke account ke liye nahi.", urdu: "یہ رول اس قسم کے اکاؤنٹ کے لیے نہیں۔" },
@@ -91,14 +91,14 @@ const MESSAGES: Record<string, Message> = {
   CANNOT_CHANGE_OWN_ROLE: { en: "You can't change your own role.", ur: "Aap apna role khud nahi badal sakte." },
   CANNOT_CHANGE_OWNER_ROLE: { en: "The owner's role can't be changed.", ur: "Owner ka role nahi badla ja sakta." },
   CANNOT_DEACTIVATE_SELF: { en: "You can't deactivate yourself.", ur: "Aap khud ko band nahi kar sakte." },
-  LAST_THEKEDAR: { en: "The last Thekedar can't be deactivated.", ur: "Aakhri Thekedar ko band nahi kiya ja sakta." },
+  LAST_THEKEDAR: { en: "The last owner can't be deactivated.", ur: "Aakhri Thekedar ko band nahi kiya ja sakta." },
   CASH_BALANCE_OPEN: { en: "Hand over the cash balance first.", ur: "Pehle cash balance hawale karein." },
   ALREADY_MEMBER: { en: "This person is already in your team.", ur: "Yeh shakhs pehle se team mein hai." },
   INVITE_PENDING: { en: "An invitation is already pending for this phone.", ur: "Is phone ke liye invitation pehle se pending hai." },
   INVITE_RESEND_WAIT: { en: "Wait a minute before resending.", ur: "Dobara bhejne se pehle ek minute ruk jayein." },
   USER_ALREADY_ACTIVE: { en: "This member is already active.", ur: "Yeh member pehle se active hai." },
   CANNOT_REVOKE_CURRENT_DEVICE: { en: "You can't log out the device you're using.", ur: "Jis device par aap hain usay logout nahi kar sakte." },
-  THEKEDAR_HAS_ALL_PROJECTS: { en: "A Thekedar already works on every project.", ur: "Thekedar har project par kaam karta hai." },
+  THEKEDAR_HAS_ALL_PROJECTS: { en: "An owner already works on every project.", ur: "Thekedar har project par kaam karta hai." },
   FINANCIALS_PM_ONLY: { en: "Only a PM can be given financial access.", ur: "Sirf PM ko financial access diya ja sakta hai." },
 
   // Company / holidays / attachments
@@ -163,7 +163,7 @@ const MESSAGES: Record<string, Message> = {
   DISPATCH_NOT_CANCELLABLE: { en: "Only a dispatch that is still on the way can be cancelled.", ur: "Sirf raste mein maujood dispatch cancel ho sakti hai." },
   SHORTAGE_RESOLVED: { en: "This shortage has already been resolved.", ur: "Is kami ka faisla pehle ho chuka hai." },
   RATES_ALREADY_SET: { en: "This purchase already has its rates.", ur: "Is kharidari ke rates pehle se lag chuke hain." },
-  CHALLAN_REQUIRED: { en: "Upload the challan photo.", ur: "Challan ki photo upload karein." },
+  CHALLAN_REQUIRED: { en: "Upload the delivery note photo.", ur: "Challan ki photo upload karein." },
   PURCHASE_ORDER_HAS_RECEIPTS: { en: "Goods were already received against this order; it can't be cancelled.", ur: "Is order par maal aa chuka hai, cancel nahi ho sakta." },
   PURCHASE_ORDER_LOCKED: { en: "Only an open order without deliveries can be changed.", ur: "Sirf khula order (bina maal) badla ja sakta hai." },
   PO_CLOSED: { en: "This purchase order is closed.", ur: "Yeh purchase order band hai." },
@@ -175,8 +175,8 @@ const MESSAGES: Record<string, Message> = {
   // Labour & cash book (messages with amounts / dates come from the server)
   WORKER_NOT_ASSIGNED: { en: "Some workers are not on this site — add them in Team on Site first.", ur: "Kuch mazdoor is site par nahi — pehle Team on Site mein shamil karein." },
   WORKER_ALREADY_ASSIGNED: { en: "This worker is already on this site.", ur: "Yeh mazdoor pehle se is site par hai." },
-  RATE_CHANGE_NOT_ALLOWED: { en: "A munshi assigns at the worker's normal rate — the office can change it.", ur: "Munshi mazdoor ke aam rate par hi lagata hai — rate office badal sakta hai." },
-  PAID_FROM_NOT_ALLOWED: { en: "A munshi pays from site cash only.", ur: "Munshi sirf site cash se adaigi kar sakta hai." },
+  RATE_CHANGE_NOT_ALLOWED: { en: "A site clerk assigns at the worker's normal rate — the office can change it.", ur: "Munshi mazdoor ke aam rate par hi lagata hai — rate office badal sakta hai." },
+  PAID_FROM_NOT_ALLOWED: { en: "A site clerk pays from site cash only.", ur: "Munshi sirf site cash se adaigi kar sakta hai." },
   FUTURE_DATE: { en: "The date can't be in the future.", ur: "Aane wali tareekh nahi ho sakti." },
   FUTURE_WEEK: { en: "This week hasn't started yet.", ur: "Yeh hafta abhi shuru nahi hua." },
   SETTLEMENT_NOT_APPROVED: { en: "Wages can be paid only after approval.", ur: "Mazdoori approval ke baad hi di ja sakti hai." },
@@ -187,12 +187,12 @@ const MESSAGES: Record<string, Message> = {
   MEASUREMENT_NOT_PENDING: { en: "This measurement is already decided.", ur: "Is paimaish ka faisla ho chuka hai." },
   LUMPSUM_USES_PROGRESS: { en: "A lump-sum contract is paid by % progress, not measurements.", ur: "Theka (lump sum) % taraqqi se chalta hai, paimaish se nahi." },
   ALREADY_ACKNOWLEDGED: { en: "This float is already acknowledged.", ur: "Yeh raqam pehle hi wusool tasleem ho chuki hai." },
-  EXPENSE_NOT_PENDING: { en: "This kharcha is already decided.", ur: "Is kharche ka faisla ho chuka hai." },
-  OWN_EXPENSE: { en: "Your own kharcha is approved by the owner.", ur: "Apna kharcha maalik approve karta hai." },
+  EXPENSE_NOT_PENDING: { en: "This expense is already decided.", ur: "Is kharche ka faisla ho chuka hai." },
+  OWN_EXPENSE: { en: "Your own expense is approved by the owner.", ur: "Apna kharcha maalik approve karta hai." },
   TOPUP_PENDING: { en: "You already have a top-up request waiting.", ur: "Aap ki top-up darkhwast pehle se zair-e-ghaur hai." },
   TOPUP_DECIDED: { en: "This request is already decided.", ur: "Is darkhwast ka faisla ho chuka hai." },
   NO_CASH_ACCOUNT: { en: "You hold no site cash yet — the office sends a float first.", ur: "Aap ke paas abhi site cash nahi — pehle office raqam bheje." },
-  INVALID_HOLDER: { en: "Choose an active munshi or project manager.", ur: "Koi active munshi ya PM chunein." },
+  INVALID_HOLDER: { en: "Choose an active site clerk or project manager.", ur: "Koi active munshi ya PM chunein." },
 
   // Onboarding: imports, opening balances, demo data
   FILE_REQUIRED: { en: "Choose the filled template (.xlsx or .csv).", ur: "Bhara hua template (.xlsx ya .csv) chunein.", urdu: "بھرا ہوا ٹیمپلیٹ (.xlsx یا .csv) چنیں۔" },

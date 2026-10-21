@@ -22,7 +22,7 @@ export const strings = {
     whtHelp: "Usual WHT rate clients deduct when they pay you — filled in on the payment form, you can change it per payment.",
     whtDefault: "Usual WHT rate",
     rulesTitle: "How tax is worked out",
-    ruleBase: "Taxable value = invoice lines except owner purchases passed through at cost (recoverable kharcha).",
+    ruleBase: "Taxable value = invoice lines except owner purchases passed through at cost (recoverable site expenses).",
     ruleRound: "Tax = taxable value × rate, rounded to the nearest paisa, once per invoice.",
     ruleFrozen: "Issuing an invoice freezes its tax; changing these settings only changes drafts.",
     ruleRetention: "Retention held on a running bill lowers its taxable value; the retention release invoice is taxed when issued.",

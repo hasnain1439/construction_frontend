@@ -153,7 +153,7 @@ export const strings = {
   },
   rental: {
     title: "Rentals",
-    desc: "Equipment hired from yards: rent per day accrues to the project; deposit, damage and rent go to the yard's khata.",
+    desc: "Equipment hired from yards: rent per day accrues to the project; deposit, damage and rent go to the yard's account.",
     new: "Hire equipment",
     newTitle: "Hire from a yard",
     newDesc:
@@ -183,9 +183,9 @@ export const strings = {
     missingHint:
       "Missing pieces must first be reported in Loss & Damage; then enter them here so the yard can bill them.",
     outstanding: "Still out: {qty}",
-    damageHint: "What the yard charges for damage (added to their khata).",
+    damageHint: "What the yard charges for damage (added to their account).",
     returnedToast: "Return saved for {number}",
-    fullyReturnedToast: "{number} fully returned — rent posted to the yard's khata",
+    fullyReturnedToast: "{number} fully returned — rent posted to the yard's account",
     close: "Close rental",
     closeTitle: "Close {number}",
     closeDesc: "Settle the deposit. Whatever is not refunded is adjusted against the yard's bill.",
@@ -339,7 +339,7 @@ export const strings = {
     atSitesAll: "At sites (own + rented)",
     yardAll: "Yard (own + rented)",
     missingCharges: "Missing pieces charge",
-    missingChargesHint: "What the yard bills for the missing pieces (added to their khata). Leave it empty to use the replacement value.",
+    missingChargesHint: "What the yard bills for the missing pieces (added to their account). Leave it empty to use the replacement value.",
     damagedN: "{qty} damaged",
     missingN: "{qty} missing",
     savedWithOneLoss: "{number} received — 1 loss recorded",

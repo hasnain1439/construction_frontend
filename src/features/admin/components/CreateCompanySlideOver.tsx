@@ -116,7 +116,7 @@ function Success({ result, onClose }: { result: CreateTenantResult; onClose: () 
         </div>
       </div>
       {invite.inviteUrl ? (
-        <InviteShare url={invite.inviteUrl} name={result.owner.name} phone={result.owner.phone} companyName={result.tenant.name} roleLabel="Thekedar (owner)" />
+        <InviteShare url={invite.inviteUrl} name={result.owner.name} phone={result.owner.phone} companyName={result.tenant.name} roleLabel="Owner" />
       ) : null}
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>

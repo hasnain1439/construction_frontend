@@ -232,7 +232,7 @@ describe("Owner shopping list", () => {
 
   it("WhatsApp text in the UI language", () => {
     const text = shoppingText(en, "DHA Phase 6", SHOPPING.items.slice(0, 1));
-    expect(text).toBe("Assalam o Alaikum! Material list for DHA Phase 6 — to be bought by you:\n• Cement OPC: 42 bags — by Finishing");
+    expect(text).toBe("Hello! Material list for DHA Phase 6 — to be bought by you:\n• Cement OPC: 42 bags — by Finishing");
     const roman = shoppingText((k, v) => translate("roman-ur", k, v), "DHA Phase 6", SHOPPING.items.slice(0, 1));
     expect(roman).toContain("Cement OPC: 42 boriyan — Finishing tak");
   });

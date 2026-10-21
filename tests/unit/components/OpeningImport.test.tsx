@@ -90,7 +90,7 @@ describe("Opening balances Excel import", () => {
       await user.click(screen.getByRole("button", { name: "Download template" }));
       expect(calls.download).toHaveBeenLastCalledWith("opening-stock");
 
-      await user.click(screen.getByRole("radio", { name: /Supplier udhaar/ }));
+      await user.click(screen.getByRole("radio", { name: /Supplier balance/ }));
       await user.click(screen.getByRole("button", { name: "Download template" }));
       expect(calls.download).toHaveBeenLastCalledWith("opening-udhaar");
 
@@ -123,7 +123,7 @@ describe("Opening balances Excel import", () => {
     await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["x"], "stock.xlsx"));
     expect(await screen.findByText("The 1 row is ready to import.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("radio", { name: /Worker peshgi/ }));
+    await user.click(screen.getByRole("radio", { name: /Worker advance/ }));
     expect(screen.queryByText("stock.xlsx")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Import 0 rows" })).toBeDisabled();
 

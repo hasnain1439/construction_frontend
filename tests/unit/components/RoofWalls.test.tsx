@@ -46,9 +46,9 @@ function RoofHarness({ roof, structure = "LOAD_BEARING", span = 12 }: { roof: Pa
 const field = (name: RegExp) => screen.queryByLabelText(name);
 
 describe("RoofCard (wizard tab 3)", () => {
-  it("is off until switched on; then shows the RCC lenter defaults (5″, #4 @ 6″, #3 @ 9″) and the span suggestion", async () => {
+  it("is off until switched on; then shows the RCC roof slab defaults (5″, #4 @ 6″, #3 @ 9″) and the span suggestion", async () => {
     renderWithStore(<RoofHarness roof={{}} />);
-    expect(screen.getByText("Roof / Lenter — Ground floor")).toBeInTheDocument();
+    expect(screen.getByText("Roof slab — Ground floor")).toBeInTheDocument();
     expect(field(/^Slab thickness/)).toBeNull();
     await userEvent.setup().click(screen.getByRole("switch", { name: /Enter roof details/ }));
     expect(field(/^Slab thickness/)).toHaveValue("5");
@@ -70,9 +70,9 @@ describe("RoofCard (wizard tab 3)", () => {
     expect(screen.getByTestId("roof-suggestion")).toHaveTextContent("Suggested: 6″ for the largest room span of 16 ft");
   });
 
-  it("shows the fields of the roof type: garders for T-iron, topping for a deck; beams and columns for an RCC frame", () => {
+  it("shows the fields of the roof type: girders for T-iron, topping for a deck; beams and columns for an RCC frame", () => {
     const { unmount } = renderWithStore(<RoofHarness roof={{ enabled: true, type: "T_IRON_TILE" }} />);
-    expect(field(/^Garder spacing/)).toHaveValue("3");
+    expect(field(/^Girder spacing/)).toHaveValue("3");
     expect(field(/^Earth filling/)).toHaveValue("4");
     expect(field(/^Slab thickness/)).toBeNull();
     expect(field(/^Main bar spacing/)).toBeNull();

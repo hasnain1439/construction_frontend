@@ -315,7 +315,7 @@ export function CompanyActivityTab({ tenantId }: { tenantId: string }) {
           />
           <KpiCard
             loading={!a}
-            label="Supplier udhaar"
+            label="Supplier balance (owed)"
             icon={Truck}
             tone="danger"
             value={a ? formatPKR(a.money.supplierUdhaarPaisa) : ""}
@@ -357,7 +357,7 @@ export function CompanyActivityTab({ tenantId }: { tenantId: string }) {
         >
           {a ? (
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <Row icon={HardHat} label="Hazri marks" value={a.last30Days.hazriMarks} />
+              <Row icon={HardHat} label="Attendance marks" value={a.last30Days.hazriMarks} />
               <Row icon={ClipboardList} label="Daily logs" value={a.last30Days.dailyLogs} />
               <Row
                 icon={Truck}
@@ -372,7 +372,7 @@ export function CompanyActivityTab({ tenantId }: { tenantId: string }) {
               />
               <Row
                 icon={Wallet}
-                label="Kharcha"
+                label="Site expenses"
                 value={`${a.last30Days.kharcha.count} · ${formatPKR(a.last30Days.kharcha.totalPaisa)}`}
               />
               <Row

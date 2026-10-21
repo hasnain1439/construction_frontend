@@ -16,8 +16,8 @@ export const MARLA_OPTIONS = [
   { value: "272.25" as const, label: "272.25 sq ft" },
 ];
 
-export const ROLE_LABEL: Record<Role, string> = { THEKEDAR: "Thekedar", PM: "Project Manager", MUNSHI: "Munshi" };
-export const ROLE_SHORT: Record<Role, string> = { THEKEDAR: "Thekedar", PM: "PM", MUNSHI: "Munshi" };
+export const ROLE_LABEL: Record<Role, string> = { THEKEDAR: "Owner", PM: "Project Manager", MUNSHI: "Site clerk" };
+export const ROLE_SHORT: Record<Role, string> = { THEKEDAR: "Owner", PM: "PM", MUNSHI: "Site clerk" };
 
 export const LANGUAGE_LABEL: Record<string, string> = { ENGLISH: "English", ROMAN_URDU: "Roman Urdu", URDU: "اردو (Urdu)" };
 

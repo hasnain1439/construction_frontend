@@ -24,7 +24,7 @@ describe("estimate labels", () => {
   });
 
   it("line, unit and rounding helpers", () => {
-    expect(lineText(en, slabSteel)).toBe("Steel (sarya)");
+    expect(lineText(en, slabSteel)).toBe("Steel");
     expect(lineText(en, { ...slabSteel, kind: "WORK", material: null, measure: "SHUTTERING" })).toBe("Roof slab — shuttering");
     expect(unitText(en, "bag")).toBe("bags");
     expect(unitText(ur, "cft")).toBe("مکعب فٹ");

@@ -6,6 +6,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Plain English
+
+- English texts are plain English (no Roman Urdu words); Roman Urdu / Urdu unchanged. The English UI now says advance (peshgi), attendance (hazri), site clerk (munshi), Owner (thekedar), balance owed / on credit (udhaar), site expense (kharcha), delivery note (challan), roof slab (lenter), mason / labourer (mistri / mazdoor), stair room (mumty) and so on. Keys, enum values and API codes are unchanged; a guard test fails if a Roman Urdu word comes back into the English texts.
+
 ### Opening balances Excel import
 
 - **Settings → Opening balances → "Import from Excel" (Excel se import karein):** opens the same side panel and steps as the other Excel imports — 1 choose what to import (store stock, supplier udhaar, cash in hand, worker peshgi) and download its template, 2 upload the filled file, 3 check (rows with problems shown per cell, "Import only the N good rows"), 4 done ("N opening balances added"); the list refreshes. Changing the kind clears a file checked for another kind. Needs `company.opening.manage` (hidden in read-only mode). Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/OpeningImport.test.tsx`.
