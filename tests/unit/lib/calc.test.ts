@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatArea, isWetType, openingsArea, plotCalc, roomCalc, totalsCalc } from "@/features/projects/utils/calc";
+import { defaultBoundaryLengthFt, formatArea, isWetType, openingsArea, plotCalc, roomCalc, totalsCalc } from "@/features/projects/utils/calc";
 
 describe("project calculations (same as the backend)", () => {
   it("matches the backend's worked room example: 16 × 14 × 11, door 3.5 × 7, window 5 × 4", () => {
@@ -55,5 +55,14 @@ describe("project calculations (same as the backend)", () => {
     expect(isWetType("BEDROOM")).toBe(false);
     expect(formatArea(3610.5)).toBe("3,610.5");
     expect(formatArea(null)).toBe("—");
+  });
+});
+
+describe("boundary wall default length (QA B-30)", () => {
+  it("is the plot perimeter less a 12 ft gate; unknown without both sides", () => {
+    // 35 × 65 ft: 2 × (35 + 65) − 12 = 188 ft
+    expect(defaultBoundaryLengthFt(35, 65)).toBe(188);
+    expect(defaultBoundaryLengthFt(null, 65)).toBeNull();
+    expect(defaultBoundaryLengthFt(35, 0)).toBeNull();
   });
 });

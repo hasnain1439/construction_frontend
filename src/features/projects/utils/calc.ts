@@ -100,3 +100,12 @@ export function formatArea(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   return value.toLocaleString("en-PK", { maximumFractionDigits: 2 });
 }
+
+/** Boundary wall gate opening deducted from the plot perimeter, ft (QA B-30). */
+const GATE_FT = 12;
+
+/** Default boundary-wall length: the plot perimeter 2 × (front + depth) − a 12 ft gate (QA B-30). */
+export function defaultBoundaryLengthFt(front: number | null | undefined, depth: number | null | undefined): number | null {
+  if (!front || !depth || front <= 0 || depth <= 0) return null;
+  return Math.max(0, 2 * (front + depth) - GATE_FT);
+}

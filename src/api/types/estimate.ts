@@ -38,6 +38,22 @@ export type EstimateElement =
   | "foundationMasonry"
   | "dpc"
   | "termite"
+  | "plinthBeam"
+  | "columnStubs"
+  | "backfill"
+  | "cartAway"
+  | "plinthFill"
+  | "boundaryExcavation"
+  | "boundaryPcc"
+  | "boundaryFooting"
+  | "boundaryWall"
+  | "boundaryPillars"
+  | "boundaryCoping"
+  | "boundaryPlaster"
+  | "porchSlab"
+  | "porchBeams"
+  | "porchColumns"
+  | "porchPlaster"
   | "walls"
   | "parapet"
   | "slab"
@@ -199,6 +215,7 @@ export type EstimateWarningCode =
   | "COVERED_AREA_ESTIMATED"
   | "FOUNDATION_LENGTH_UNKNOWN"
   | "ROOMS_BELOW_COVERED"
+  | "FOOTPRINT_EXCEEDS_PLOT"
   | "RATES_MISSING"
   | "LABOUR_RATES_MISSING"
   | "CONTRACT_VALUE_MISSING"
@@ -221,6 +238,8 @@ export type EstimateWarningCode =
 export interface EstimateWarning {
   code: EstimateWarningCode;
   message: string;
+  /** A hard error (FOOTPRINT_EXCEEDS_PLOT): Review blocks activation on the same check. */
+  blocking?: boolean;
   tab?: number;
   params?: Record<string, number>;
   /** The floor it is about (roof / wall warnings). */
