@@ -210,8 +210,12 @@ export interface AreaTotals {
 export type RoofInput = NonNullable<UpdatePlotStructureBody["floors"][number]["roof"]>;
 export type RoofType = RoofInput["type"];
 export type BarNo = NonNullable<RoofInput["mainBar"]>;
-export type TIronSection = NonNullable<RoofInput["tIronSection"]>;
-export type RoofInfill = NonNullable<RoofInput["infill"]>;
+/** T-iron sections of the build-up model (the API also accepts the old garder values as input). */
+export type TIronSection = "T3X3" | "T4X4";
+export type TIronSystem = NonNullable<RoofInput["tIronSystem"]>;
+export type GarderSection = NonNullable<RoofInput["garderSection"]>;
+export type RoofWaterproofing = NonNullable<RoofInput["waterproofing"]>;
+export type RoofTopFinish = NonNullable<RoofInput["topFinish"]>;
 export type RoofMix = NonNullable<RoofInput["concreteMix"]>;
 export type SteelGrade = NonNullable<RoofInput["steelGrade"]>;
 
@@ -243,11 +247,16 @@ export interface FloorRoof {
   columnBar: BarNo;
   tieBar: BarNo;
   tieSpacingIn: number;
+  tIronSystem: TIronSystem | null;
+  garderSection: GarderSection | null;
+  garderSpacingFt: number | null;
   tIronSection: TIronSection | null;
   tIronSpacingFt: number | null;
-  infill: RoofInfill | null;
-  screedThicknessIn: number | null;
+  bottomTileLayers: 1 | 2 | null;
+  waterproofing: RoofWaterproofing | null;
   earthFillIn: number | null;
+  topFinish: RoofTopFinish | null;
+  topFinishIn: number | null;
   plankAreaSqft: number | null;
   deckAreaSqft: number | null;
   toppingIn: number | null;

@@ -2,7 +2,8 @@
 
 import { Lightbulb } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
-import type { FloorLevel, RoofType, SlabSuggestion, StructureType } from "@/api/types";
+import type { ReactNode } from "react";
+import type { FloorLevel, RoofTopFinish, RoofType, SlabSuggestion, StructureType } from "@/api/types";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { SectionCard } from "@/components/common/SectionCard";
 import { FieldGrid } from "@/components/forms/Form";
@@ -14,20 +15,39 @@ import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import {
   BAR_MM,
   BAR_NUMBERS,
-  ROOF_INFILLS,
+  GARDER_SECTIONS,
   ROOF_MIXES,
+  ROOF_TOP_FINISHES,
   ROOF_TYPES,
+  ROOF_WATERPROOFINGS,
   roofWarnings,
   STEEL_GRADES,
   suggestSlab,
   T_IRON_SECTIONS,
+  T_IRON_SYSTEMS,
+  TILE_LAYERS,
+  topFinishDefault,
   toppingDefault,
   type RoofFormValues,
+  type RoofWarning,
 } from "../utils/roof";
 
 function SubHeading({ children }: { children: string }) {
   return <h3 className="text-sm font-semibold text-muted-foreground">{children}</h3>;
 }
+
+/** One numbered layer of the T-iron roof build-up (bottom to top). */
+function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: ReactNode }) {
+  return (
+    <section className="space-y-2 rounded-md border p-3" data-testid={`tiron-step-${n}`}>
+      <h4 className="text-sm font-semibold">{`${n}. ${title}`}</h4>
+      <p className="text-sm text-muted-foreground">{hint}</p>
+      {children}
+    </section>
+  );
+}
+
+const T_IRON_WARNINGS = new Set<RoofWarning["code"]>(["TIRON_SPAN", "TIRON_SPACING", "GARDER_SPACING", "NO_WATERPROOFING"]);
 
 /**
  * Wizard tab 3 — "Roof / Lenter" card of one floor (`floors.<index>.roof.*` in the plot & structure
@@ -69,6 +89,26 @@ export function RoofCard({
     const current = getValues(field("toppingIn")) as number | null;
     if (current === null || current === 2 || current === 4) setValue(field("toppingIn"), toppingDefault(next as RoofType), { shouldDirty: true });
   };
+  const onTopFinishChange = (next: RoofTopFinish) => {
+    // A thickness that was the other finish's default follows the new finish (1″ ↔ 2″ concrete)
+    const current = getValues(field("topFinishIn")) as number | null;
+    if (current === null || current === 1 || current === 2) setValue(field("topFinishIn"), topFinishDefault(next), { shouldDirty: true });
+  };
+  const tIron = roof.type === "T_IRON_TILE";
+  // A garder saved before (G4X3 / G5X3) stays selectable on its own roof
+  const garderOptions = GARDER_SECTIONS.includes(roof.garderSection) ? GARDER_SECTIONS : [...GARDER_SECTIONS, roof.garderSection];
+  const tIronWarningText = (w: RoofWarning) => {
+    switch (w.code) {
+      case "TIRON_SPAN":
+        return t("projects.roof.warn.tIronSpan", { span: w.spanFt });
+      case "TIRON_SPACING":
+        return t("projects.roof.warn.tIronSpacing", { n: w.spacingIn });
+      case "GARDER_SPACING":
+        return t("projects.roof.warn.garderSpacing", { n: w.spacingFt });
+      default:
+        return t("projects.roof.warn.noWaterproofing");
+    }
+  };
 
   return (
     <SectionCard
@@ -89,14 +129,19 @@ export function RoofCard({
                 options={ROOF_TYPES.map((value) => ({ value, label: te("projectRoofType", value) }))}
                 hint={t(`projects.roof.typeDesc.${roof.type}` as TranslationKey)}
               />
-              <SegmentedField name={field("concreteMix")} label={t("projects.roof.concreteMix")} required disabled={disabled} options={ROOF_MIXES.map((value) => ({ value, label: value }))} />
-              <SegmentedField
-                name={field("steelGrade")}
-                label={t("projects.roof.steelGrade")}
-                required
-                disabled={disabled}
-                options={STEEL_GRADES.map((value) => ({ value, label: te("projectSteelGrade", value) }))}
-              />
+              {/* T-iron roofs: no slab steel; the concrete mix only matters for a concrete top finish (step 6) */}
+              {tIron ? null : (
+                <>
+                  <SegmentedField name={field("concreteMix")} label={t("projects.roof.concreteMix")} required disabled={disabled} options={ROOF_MIXES.map((value) => ({ value, label: value }))} />
+                  <SegmentedField
+                    name={field("steelGrade")}
+                    label={t("projects.roof.steelGrade")}
+                    required
+                    disabled={disabled}
+                    options={STEEL_GRADES.map((value) => ({ value, label: te("projectSteelGrade", value) }))}
+                  />
+                </>
+              )}
             </FieldGrid>
 
             {roof.type === "RCC_SLAB" ? (
@@ -132,7 +177,9 @@ export function RoofCard({
                             ? t("projects.roof.warn.tooThin", { n: roof.thicknessIn ?? 0, span: w.spanFt, suggested: w.suggestedIn })
                             : w.code === "NEEDS_BEAM"
                               ? t("projects.roof.warn.needsBeam", { span: w.spanFt })
-                              : t(w.code === "MAIN_SPACING" ? "projects.roof.warn.mainSpacing" : "projects.roof.warn.distSpacing", { max: w.maxIn })}
+                              : w.code === "MAIN_SPACING" || w.code === "DIST_SPACING"
+                                ? t(w.code === "MAIN_SPACING" ? "projects.roof.warn.mainSpacing" : "projects.roof.warn.distSpacing", { max: w.maxIn })
+                                : null}
                         </li>
                       ))}
                     </ul>
@@ -141,22 +188,107 @@ export function RoofCard({
               </div>
             ) : null}
 
-            {roof.type === "T_IRON_TILE" ? (
-              <div className="space-y-3">
+            {tIron ? (
+              <div className="space-y-3" data-testid="roof-tiron">
                 <SubHeading>{t("projects.roof.tIron")}</SubHeading>
-                <FieldGrid columns={3}>
-                  <SelectField
-                    name={field("tIronSection")}
-                    label={t("projects.roof.tIronSection")}
+                <Step n={1} title={t("projects.roof.step.structure")} hint={t("projects.roof.step.structureHint")}>
+                  <FieldGrid columns={3}>
+                    <SegmentedField
+                      name={field("tIronSystem")}
+                      label={t("projects.roof.tIronSystem")}
+                      required
+                      disabled={disabled}
+                      options={T_IRON_SYSTEMS.map((value) => ({ value, label: te("projectTIronSystem", value) }))}
+                    />
+                    {roof.tIronSystem === "GARDER_T" ? (
+                      <>
+                        <SelectField
+                          name={field("garderSection")}
+                          label={t("projects.roof.garderSection")}
+                          required
+                          disabled={disabled}
+                          options={garderOptions.map((value) => ({ value, label: te("projectGarderSection", value) }))}
+                        />
+                        <NumberField name={field("garderSpacingFt")} label={t("projects.roof.garderSpacing")} hint={t("projects.roof.garderSpacingHint")} required unit={ft} disabled={disabled} />
+                      </>
+                    ) : null}
+                  </FieldGrid>
+                </Step>
+                <Step n={2} title={t("projects.roof.step.tIron")} hint={t("projects.roof.step.tIronHint")}>
+                  <FieldGrid columns={3}>
+                    <SelectField
+                      name={field("tIronSection")}
+                      label={t("projects.roof.tIronSection")}
+                      required
+                      disabled={disabled}
+                      options={T_IRON_SECTIONS.map((value) => ({ value, label: te("projectTIronSection", value) }))}
+                    />
+                    <NumberField
+                      name={field("tIronSpacingFt")}
+                      label={t("projects.roof.tIronSpacing")}
+                      hint={roof.tIronSpacingFt ? t("projects.roof.tIronSpacingHint", { n: Math.round(roof.tIronSpacingFt * 120) / 10 }) : undefined}
+                      required
+                      unit={ft}
+                      disabled={disabled}
+                    />
+                  </FieldGrid>
+                </Step>
+                <Step n={3} title={t("projects.roof.step.tiles")} hint={t("projects.roof.step.tilesHint")}>
+                  <SegmentedField
+                    name={field("bottomTileLayers")}
+                    label={t("projects.roof.bottomTileLayers")}
                     required
                     disabled={disabled}
-                    options={T_IRON_SECTIONS.map((value) => ({ value, label: te("projectTIronSection", value) }))}
+                    options={TILE_LAYERS.map((value) => ({ value, label: t(value === "1" ? "projects.roof.layers1" : "projects.roof.layers2") }))}
                   />
-                  <NumberField name={field("tIronSpacingFt")} label={t("projects.roof.tIronSpacing")} required unit={ft} disabled={disabled} />
-                  <SegmentedField name={field("infill")} label={t("projects.roof.infill")} required disabled={disabled} options={ROOF_INFILLS.map((value) => ({ value, label: te("projectRoofInfill", value) }))} />
-                  <NumberField name={field("screedThicknessIn")} label={t("projects.roof.screed")} unit={inch} disabled={disabled} />
-                  <NumberField name={field("earthFillIn")} label={t("projects.roof.earthFill")} unit={inch} disabled={disabled} />
-                </FieldGrid>
+                </Step>
+                <Step n={4} title={t("projects.roof.step.waterproof")} hint={t("projects.roof.step.waterproofHint")}>
+                  <SegmentedField
+                    name={field("waterproofing")}
+                    label={t("projects.roof.waterproofing")}
+                    required
+                    disabled={disabled}
+                    options={ROOF_WATERPROOFINGS.map((value) => ({ value, label: te("projectRoofWaterproofing", value) }))}
+                  />
+                </Step>
+                <Step n={5} title={t("projects.roof.step.earth")} hint={t("projects.roof.step.earthHint")}>
+                  <FieldGrid columns={3}>
+                    <NumberField name={field("earthFillIn")} label={t("projects.roof.earthFill")} unit={inch} disabled={disabled} />
+                  </FieldGrid>
+                </Step>
+                <Step n={6} title={t("projects.roof.step.top")} hint={t("projects.roof.step.topHint")}>
+                  <FieldGrid columns={3}>
+                    <SegmentedField
+                      name={field("topFinish")}
+                      label={t("projects.roof.topFinish")}
+                      required
+                      disabled={disabled}
+                      onValueChange={onTopFinishChange}
+                      options={ROOF_TOP_FINISHES.map((value) => ({ value, label: te("projectRoofTopFinish", value) }))}
+                    />
+                    <NumberField
+                      name={field("topFinishIn")}
+                      label={t("projects.roof.topFinishThickness")}
+                      placeholder={String(topFinishDefault(roof.topFinish))}
+                      unit={inch}
+                      disabled={disabled}
+                    />
+                    {roof.topFinish === "CONC" ? (
+                      <SegmentedField name={field("concreteMix")} label={t("projects.roof.concreteMix")} required disabled={disabled} options={ROOF_MIXES.map((value) => ({ value, label: value }))} />
+                    ) : null}
+                  </FieldGrid>
+                </Step>
+                {warnings.some((w) => T_IRON_WARNINGS.has(w.code)) ? (
+                  <InlineAlert tone="warning">
+                    <ul className="list-disc space-y-1 ps-5" data-testid="roof-warnings">
+                      {warnings.map((w) => (
+                        <li key={w.code} data-code={w.code}>
+                          {tIronWarningText(w)}
+                        </li>
+                      ))}
+                    </ul>
+                  </InlineAlert>
+                ) : null}
               </div>
             ) : null}
 

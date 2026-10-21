@@ -25,6 +25,8 @@ export const ESTIMATE_DEFAULTS: EstimateSettings = {
   foundationWallLengthFt: null,
   waterproofingKgPerBag: 1,
   bitumenKgPerSqft: 0.15,
+  polytheneLapPercent: 10,
+  roofBitumenKgPerSqft: 0.25,
   termiteLitrePerSqft: 0.005,
   wastagePercent: 5,
   brickWastagePercent: 5,

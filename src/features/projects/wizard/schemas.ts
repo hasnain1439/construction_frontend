@@ -129,11 +129,16 @@ export const roofSchema = z
     columnBar: bar,
     tieBar: bar,
     tieSpacingIn: z.number().nullable(),
-    tIronSection: z.enum(["T3X3", "T4X4", "G4X3", "G5X3", "G6X3"]),
+    tIronSystem: z.enum(["T_ONLY", "GARDER_T"]),
+    garderSection: z.enum(["G6X3", "G8X4", "G4X3", "G5X3"]),
+    garderSpacingFt: z.number().nullable(),
+    tIronSection: z.enum(["T3X3", "T4X4"]),
     tIronSpacingFt: z.number().nullable(),
-    infill: z.enum(["BRICK", "TILE"]),
-    screedThicknessIn: z.number().nullable(),
+    bottomTileLayers: z.enum(["1", "2"]),
+    waterproofing: z.enum(["POLYTHENE", "BITUMEN", "NONE"]),
     earthFillIn: z.number().nullable(),
+    topFinish: z.enum(["TILE", "LEEP", "CONC"]),
+    topFinishIn: z.number().nullable(),
     plankAreaSqft: z.number().nullable(),
     deckAreaSqft: z.number().nullable(),
     toppingIn: z.number().nullable(),
@@ -159,9 +164,10 @@ export const roofSchema = z
       if (v.chajjaLengthFt) check("chajjaWidthFt", "projects.roof.chajjaWidth", 1, 4);
     }
     if (v.type === "T_IRON_TILE") {
-      check("tIronSpacingFt", "projects.roof.tIronSpacing", 1, 6);
-      check("screedThicknessIn", "projects.roof.screed", 0, 6, { optional: true });
+      if (v.tIronSystem === "GARDER_T") check("garderSpacingFt", "projects.roof.garderSpacing", 4, 12);
+      check("tIronSpacingFt", "projects.roof.tIronSpacing", 0.8, 6);
       check("earthFillIn", "projects.roof.earthFill", 0, 12, { optional: true });
+      check("topFinishIn", "projects.roof.topFinishThickness", 0.5, 3, { optional: true });
     }
     if (v.type === "PRECAST") check("plankAreaSqft", "projects.roof.plankArea", 1, 100000, { optional: true });
     if (v.type === "STEEL_DECK") check("deckAreaSqft", "projects.roof.deckArea", 1, 100000, { optional: true });

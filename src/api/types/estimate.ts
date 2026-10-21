@@ -20,11 +20,13 @@ export type EstimateMaterial =
   | "steel16"
   | "steel20"
   | "tIron"
+  | "garder"
   | "roofTile"
   | "precastPlank"
   | "steelDeck"
   | "waterproofing"
   | "bitumen"
+  | "polythene"
   | "termite"
   | "stone";
 /** DETAILED = from the walls / roof entered; ESTIMATED = the % / perimeter rules of thumb. */
@@ -41,9 +43,11 @@ export type EstimateElement =
   | "slab"
   | "chajja"
   | "girders"
-  | "roofInfill"
-  | "screed"
+  | "tIrons"
+  | "bottomTiles"
+  | "waterproofLayer"
   | "earthFill"
+  | "topFinish"
   | "planks"
   | "deck"
   | "topping"
@@ -86,6 +90,8 @@ export interface EstimateSettings {
   foundationWallLengthFt: number | null;
   waterproofingKgPerBag: number;
   bitumenKgPerSqft: number;
+  polytheneLapPercent: number;
+  roofBitumenKgPerSqft: number;
   termiteLitrePerSqft: number;
   wastagePercent: number;
   brickWastagePercent: number;
@@ -204,6 +210,10 @@ export type EstimateWarningCode =
   | "ROOF_SPAN_NEEDS_BEAM"
   | "ROOF_MAIN_SPACING_WIDE"
   | "ROOF_DIST_SPACING_WIDE"
+  | "ROOF_TIRON_SPAN_NEEDS_GARDER"
+  | "ROOF_TIRON_SPACING_WIDE"
+  | "ROOF_GARDER_SPACING_WIDE"
+  | "ROOF_NO_WATERPROOFING"
   // BoQ (Step 11)
   | "STEEL_NORM_DEVIATION"
   | "RCC_NORM_DEVIATION";

@@ -86,6 +86,8 @@ const NUMBERS: NumSpec[] = [
   { key: "foundationWallLengthFt", tab: "foundation", unit: "ft", min: 10, max: 10000, nullable: true },
   { key: "waterproofingKgPerBag", tab: "foundation", unit: "kgPerBag", min: 0, max: 5 },
   { key: "bitumenKgPerSqft", tab: "foundation", unit: "kgPerSqft", min: 0, max: 2 },
+  { key: "polytheneLapPercent", tab: "rcc", unit: "pct", min: 0, max: 50 },
+  { key: "roofBitumenKgPerSqft", tab: "rcc", unit: "kgPerSqft", min: 0, max: 2 },
   { key: "termiteLitrePerSqft", tab: "foundation", unit: "litrePerSqft", min: 0, max: 0.1, decimals: 4 },
   { key: "wastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
   { key: "brickWastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
