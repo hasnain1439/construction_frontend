@@ -6,6 +6,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Opening balances Excel import
+
+- **Settings → Opening balances → "Import from Excel" (Excel se import karein):** opens the same side panel and steps as the other Excel imports — 1 choose what to import (store stock, supplier udhaar, cash in hand, worker peshgi) and download its template, 2 upload the filled file, 3 check (rows with problems shown per cell, "Import only the N good rows"), 4 done ("N opening balances added"); the list refreshes. Changing the kind clears a file checked for another kind. Needs `company.opening.manage` (hidden in read-only mode). Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/OpeningImport.test.tsx`.
+- `ImportWizard` takes an optional kind chooser, title, description and done text; the Material / Worker / Supplier / Client / Sub-contractor imports are unchanged.
+- API types (`schema.ts`) regenerated for the twelve `/imports/opening-*` routes.
+
 ### Top bar search and Create
 
 - **Fixed: the search (magnifier / Ctrl+K) crashed the page** ("This page couldn't load") as soon as it opened — the cmdk input and list now sit inside `<Command>`. It lists every page the user may open (company menu, the open project's pages and the Create actions), filtered by permissions, and matches whole words of the page name (no loose letter matching); a page under Create is listed once. Tests in `tests/unit/components/CommandSearch.test.tsx`.

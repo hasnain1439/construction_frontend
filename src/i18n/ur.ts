@@ -590,6 +590,10 @@ export const ur: Dictionary = {
     entitySuppliers: "سپلائرز",
     entityMaterials: "میٹیریل",
     entityClients: "کلائنٹس",
+    entityOpeningStock: "اسٹور کا ابتدائی اسٹاک",
+    entityOpeningUdhaar: "سپلائر کا پرانا ادھار",
+    entityOpeningCash: "ہاتھ کا ابتدائی کیش",
+    entityOpeningPeshgi: "مزدور کی پرانی پیشگی",
   },
   opening: {
     title: "ابتدائی بیلنس",
@@ -631,6 +635,12 @@ export const ur: Dictionary = {
     required: "ضروری",
     pick: "چنیں…",
     noMatch: "چننے کو کچھ نہیں — پہلے درج شدہ چیزیں یہاں نہیں آتیں۔",
+    importButton: "ایکسل سے امپورٹ کریں",
+    importTitle: "ایکسل سے ابتدائی بیلنس امپورٹ کریں",
+    importDesc: "چنیں کیا امپورٹ کرنا ہے، اس کا ٹیمپلیٹ ڈاؤن لوڈ کریں، رجسٹر سے بھریں اور اپ لوڈ کریں۔ ہر لائن ایک ابتدائی بیلنس کی طرح محفوظ اور لاک ہوتی ہے۔ امپورٹ دبانے تک کچھ محفوظ نہیں ہوتا۔",
+    importKindTitle: "کیا امپورٹ کر رہے ہیں؟",
+    imported: "{n} ابتدائی بیلنس درج ہو گئے",
+    importedSkipped: "{n} ابتدائی بیلنس درج ہو گئے، {skipped} چھوڑ دیے",
   },
   enum: {
     ...sharedUr.enums,

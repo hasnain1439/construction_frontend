@@ -589,6 +589,10 @@ export const en = {
     entitySuppliers: "suppliers",
     entityMaterials: "materials",
     entityClients: "clients",
+    entityOpeningStock: "opening store stock",
+    entityOpeningUdhaar: "opening supplier udhaar",
+    entityOpeningCash: "opening cash in hand",
+    entityOpeningPeshgi: "opening worker peshgi",
   },
   opening: {
     title: "Opening balances",
@@ -630,6 +634,12 @@ export const en = {
     required: "Required",
     pick: "Choose…",
     noMatch: "Nothing to choose — items already entered are not listed.",
+    importButton: "Import from Excel",
+    importTitle: "Import opening balances from Excel",
+    importDesc: "Choose what to import, download its template, fill it from your register and upload it. Each row is saved and locked like a single opening balance. Nothing is saved until you press Import.",
+    importKindTitle: "What are you importing?",
+    imported: "{n} opening balances added",
+    importedSkipped: "{n} opening balances added, {skipped} skipped",
   },
   enum: {
     ...sharedEn.enums,

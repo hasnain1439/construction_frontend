@@ -34,7 +34,9 @@ export interface SetupChecklist {
 
 // ─── Imports ────────────────────────────────────────────────────────────────
 
-export type ImportEntity = "workers" | "subcontractors" | "suppliers" | "materials" | "clients";
+/** Opening balances, one import per kind (company.opening.manage). */
+export type OpeningImportEntity = "opening-stock" | "opening-udhaar" | "opening-cash" | "opening-peshgi";
+export type ImportEntity = "workers" | "subcontractors" | "suppliers" | "materials" | "clients" | OpeningImportEntity;
 
 export interface ImportCellError {
   column: string;
