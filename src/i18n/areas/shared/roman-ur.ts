@@ -128,6 +128,9 @@ export const strings: Widen<typeof En.strings> = {
     control: "Control",
   },
   validation: {
+    atLeastUnit: "{label} kam az kam {n} {unit} hona chahiye",
+    atMostUnit: "{label} zyada se zyada {n} {unit} ho sakta hai",
+    noNegative: "Manfi (minus) number nahin chalega",
     required: "{label} zaroori hai",
     tooShort: "{label} bohat chhota hai",
     tooLong: "{label} bohat lamba hai",

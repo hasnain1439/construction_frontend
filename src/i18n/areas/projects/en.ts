@@ -3,7 +3,27 @@ import * as estimate from "./estimate/en";
 /** English texts for this area: `strings` become `t("projects.…")`, `enums` are extra `useEnumT()` groups. */
 export const strings = {
   estimate: estimate.strings,
+  glossary: {
+    lenter: {
+      term: "Roof slab",
+      text: "The cast concrete roof slab.",
+    },
+    chajja: {
+      term: "Sunshade",
+      text: "The concrete sunshade over a window or the edge of the roof.",
+    },
+    dpc: {
+      term: "Damp-proof course",
+      text: "The waterproof layer on top of the foundation wall that stops ground damp.",
+    },
+    bricks: {
+      term: "Brick grades",
+      text: "First-class and second-class bricks.",
+    },
+  },
   unit: {
+    nos: "nos",
+    bars: "bars",
     ft: "ft",
     sqft: "sq ft",
     ftValue: "{n} ft",
@@ -29,7 +49,7 @@ export const strings = {
     tryAnotherFilter: "Try another filter.",
     noProjectsMatch: "No projects match",
     noProjectsYet: "No projects yet",
-    createFirst: "Create your first project with the 6-step setup.",
+    createFirst: "Create your first project with the step-by-step setup.",
     noAddress: "No address yet",
     noPmYet: "No PM yet",
   },
@@ -143,7 +163,7 @@ export const strings = {
     newTitle: "New Project",
     editTitle: "Edit {name}",
     editProject: "Edit project",
-    newDesc: "Six short steps. You can save a draft at any point.",
+    newDesc: "{n} short steps. You can save a draft at any point.",
     companyReadOnly: "Your company is read-only until the subscription is renewed.",
     projectLocked: "This project is “{status}” — its setup can no longer be changed.",
     stepsAria: "Project setup steps",
@@ -173,6 +193,7 @@ export const strings = {
     inviteHint: "Invite PMs and site clerks from Team → Invitations.",
   },
   v: {
+    stagesBeforeRetention: "Stages before the retention must add up to {expected}% (now {total}%)",
     upTo300: "Up to 300 characters",
     upTo1000: "Up to 1000 characters",
     range: "{label} must be between {min} and {max}",
@@ -203,6 +224,13 @@ export const strings = {
     beamDeeper: "The beam must be deeper than the slab",
   },
   contract: {
+    switchTitle: "Switch to {type}?",
+    switchDesc: "Who supplies what starts again from the {to} preset. What you entered for {from} (value, rate, billing, stages) is kept, so switching back restores it.",
+    switchBilling: "Billing changes to {billing}.",
+    switchConfirm: "Switch",
+    runningBillsNote: "Running bills are billed by progress, so there is no stage table: {running}% through running bills and {retention}% retention after the defect period.",
+    runningStage: "Running bills",
+    retentionStage: "Retention",
     fullTitle: "Full Contract",
     fullDesc: "You supply all material and labour.",
     greyTitle: "Grey + Owner Finishing",
@@ -232,6 +260,12 @@ export const strings = {
     stagesLocked: "Some stages are already invoiced or paid — the schedule may be locked.",
   },
   coverage: {
+    groundFootprint: "Ground footprint",
+    coveredAllFloors: "Covered area, all floors: {area} sq ft ({floors} floors)",
+    onPlotOf: "On the plot: {area} of {plot} sq ft",
+    onPlot: "On the plot: {area} sq ft",
+    overflow: "Ground footprint + porch + open area ({area} sq ft) is more than the plot ({plot} sq ft) — check the covered area per floor or the plot size.",
+    lengthHint: "Suggested {n} ft: 2 × (front + depth) − a {gate} ft gate.",
     areaSplit: "Area split",
     splitItem: "{label} {area} sq ft",
     total: "Total {area} sq ft",
@@ -249,10 +283,11 @@ export const strings = {
     boundaryWallDesc: "Build a boundary wall around the plot.",
   },
   plot: {
+    drivesEstimate: "The estimate uses the plot size ({area} sq ft).",
     plotResult: "{size} {unit} = {area} sq ft",
     frontageResult: " · {front} × {depth} = {area} sq ft",
     enterPlotSize: "Enter the plot size",
-    plotDiffer: "These differ by more than 10 % — check the size or the measurements.",
+    plotDiffer: "Plot size and front × depth differ by more than 2% — check the size or the measurements.",
     basementRow: "Basement — height set above",
     ceilingAria: "{floor} ceiling height",
     removeFloor: "Remove {floor}",
@@ -274,6 +309,7 @@ export const strings = {
     removeFloorsConfirm: "Remove floors and rooms",
   },
   rooms: {
+    copyFromGround: "Copy from ground floor",
     copyTitle: "Copy {floor}",
     copyDesc: "Copies all {n} rooms with their doors and windows. Heights follow the target floor.",
     copyTo: "Copy to",
@@ -292,7 +328,7 @@ export const strings = {
     floorSummary: "{n} rooms · {area} sq ft",
     floorSummaryOne: "1 room · {area} sq ft",
     roomArea: "Room area",
-    netWallArea: "Net wall area",
+    netWallArea: "Plaster face area",
     mismatch: "Room areas total {rooms} sq ft but covered area is {covered} sq ft — check walls and passages.",
     autoWalls: "Auto-set walls",
     autoWallsTitle: "Set walls for {floor}?",
@@ -302,6 +338,7 @@ export const strings = {
     autoWallsDone: "Walls set — now mark the shared walls in each room",
   },
   room: {
+    plasterFace: "Plaster face",
     floor: "Floor",
     wall: "Wall",
     wetAuto: "Wet (auto)",
@@ -334,6 +371,7 @@ export const strings = {
     anyWall: "Any wall",
   },
   foundation: {
+    footingCountHint: "One per column: about {n} for this frame.",
     title: "Foundation",
     description: "Type, size and material of the foundation. The fields change with the type.",
     dimensions: "Dimensions",
@@ -356,7 +394,7 @@ export const strings = {
     pccThickness: "PCC thickness",
     rccMix: "RCC mix",
     mainBar: "Main steel bar",
-    barValue: "{bar} ({mm} mm)",
+    barValue: "{mm} mm (#{n})",
     termite: "Termite treatment",
     termiteDesc: "Anti-termite chemical in the trenches before the PCC.",
     dpcMaterial: "DPC material",
@@ -398,6 +436,7 @@ export const strings = {
     },
   },
   roof: {
+    columnCountDerived: "Worked out: {n} columns (15 ft grid). Type a number to change it.",
     title: "Roof slab — {floor}",
     description: "The slab over this floor: type, thickness and steel. Leave it off to use the slab % from the estimate assumptions.",
     enabled: "Enter roof details",
@@ -492,6 +531,9 @@ export const strings = {
     tieSpacing: "Tie spacing",
   },
   walls: {
+    pairConfirmTitle: "Share this wall with {room}?",
+    pairConfirmDesc: "The {side} wall of {room} is a {type} wall now. Pairing turns it into this shared wall.",
+    pairConfirm: "Share the wall",
     title: "Walls",
     notEntered: "Walls not entered — the estimate works them out from the room sizes.",
     set: "Set walls",
@@ -536,6 +578,8 @@ export const strings = {
     warningsDontBlock: "Warnings don't block activation.",
   },
   issue: {
+    RETENTION_STAGE_MISMATCH: "The retention stage is {a}% but the project retention is {b}% — save the contract tab again",
+    FOOTPRINT_EXCEEDS_PLOT: "The ground footprint ({a} sq ft) is larger than the plot ({b} sq ft) — fix the covered area or the plot size",
     FOUNDATION_MISSING: "Foundation details are not entered",
     CLIENT_MISSING: "Choose the client",
     SITE_ADDRESS_MISSING: "Enter the site address",
@@ -549,7 +593,7 @@ export const strings = {
     BILLING_STAGES_TOTAL: "Billing stages add up to {a}%, not 100%",
     PLOT_STRUCTURE_MISSING: "Fill in the plot size, dimensions and structure type",
     GROUND_FLOOR_MISSING: "Add the ground floor",
-    PLOT_AREA_MISMATCH: "Plot area {a} sq ft differs from front × depth {b} sq ft by more than 10%",
+    PLOT_AREA_MISMATCH: "Plot area {a} sq ft differs from front × depth {b} sq ft by more than 2% — the plot size drives the estimate",
     COVERED_AREA_MISSING: "Enter the covered area",
     NO_ROOMS: "Add the rooms",
     ROOM_AREA_VS_COVERED: "Rooms add up to {a} sq ft vs {b} sq ft covered — more than 15% apart (walls and passages?)",

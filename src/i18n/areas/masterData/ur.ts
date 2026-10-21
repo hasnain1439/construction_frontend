@@ -178,6 +178,7 @@ export const strings: Widen<typeof En.strings> = {
     empty: "ابھی کوئی ریٹ نہیں لگا",
   },
   stages: {
+    retentionFollows: "ریٹینشن کا مرحلہ نیچے دیے گئے ریٹینشن % کے مطابق ہے، یہاں بدلا نہیں جا سکتا۔",
     nameAria: "مرحلہ {n} کا نام",
     namePlaceholder: "مثلاً پلنتھ / ڈی پی سی",
     percentAria: "مرحلہ {n} فیصد",

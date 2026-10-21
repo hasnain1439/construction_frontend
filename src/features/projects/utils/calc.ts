@@ -7,7 +7,7 @@
 
 export const SQFT_PER_KANAL_MARLAS = 20;
 /** Plot vs front × depth differ by more than this → warning. */
-export const PLOT_MISMATCH_RATIO = 0.1;
+export const PLOT_MISMATCH_RATIO = 0.02;
 
 type Num = number | null | undefined;
 

@@ -100,10 +100,40 @@ export const FOUNDATION_DEFAULTS: FoundationFormValues = {
   notes: "",
 };
 
-/** Saved foundation → form values (defaults when none is saved yet). */
-export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null): FoundationFormValues {
-  // An RCC frame stands on column footings (QA-A-21); a load-bearing house on a strip footing.
-  if (!f) return structureType === "FRAMED" ? { ...FOUNDATION_DEFAULTS, type: "ISOLATED", footingThicknessIn: FOOTING_THICKNESS_DEFAULT.ISOLATED } : { ...FOUNDATION_DEFAULTS };
+/** Column grid the API assumes when a floor has no column count (detailed.ts COLUMN_GRID_FT). */
+export const COLUMN_GRID_FT = 15;
+/** Square pad footing side the form suggests (ft); L = W. */
+export const PAD_SIDE_DEFAULT_FT = 4;
+
+/**
+ * Columns of an RCC frame over a footprint — the same rule as the API's defaultColumnCount: a 15 ft grid
+ * over a rectangle with the plot's depth / front ratio. Null without a footprint.
+ */
+export function estimateColumnCount(footprintSqft: number | null | undefined, frontFt?: number | null, depthFt?: number | null): number | null {
+  if (!footprintSqft || footprintSqft <= 0) return null;
+  const ratio = frontFt && depthFt && frontFt > 0 && depthFt > 0 ? depthFt / frontFt : 1;
+  const a = Math.sqrt(footprintSqft / ratio);
+  const b = Math.sqrt(footprintSqft * ratio);
+  return (Math.ceil(a / COLUMN_GRID_FT) + 1) * (Math.ceil(b / COLUMN_GRID_FT) + 1);
+}
+
+/** The foundation a structure type starts from (QA B-04): FRAMED → isolated pads (one per column, L = W), LOAD_BEARING → strip. */
+export function foundationDefaultsFor(structureType: string | null | undefined, columnCount: number | null): FoundationFormValues {
+  if (structureType === "LOAD_BEARING") return { ...FOUNDATION_DEFAULTS };
+  return {
+    ...FOUNDATION_DEFAULTS,
+    type: "ISOLATED",
+    footingThicknessIn: FOOTING_THICKNESS_DEFAULT.ISOLATED,
+    footingCount: columnCount,
+    footingLengthFt: PAD_SIDE_DEFAULT_FT,
+    footingWidthFt: PAD_SIDE_DEFAULT_FT,
+  };
+}
+
+/** Saved foundation → form values (defaults when none is saved yet; the wizard's structure default is FRAMED). */
+export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null, columnCount: number | null = null): FoundationFormValues {
+  // An RCC frame stands on column footings (QA-A-21, B-04); a load-bearing house on a strip footing.
+  if (!f) return foundationDefaultsFor(structureType ?? "FRAMED", columnCount);
   return {
     type: f.type,
     excavationDepthFt: f.excavationDepthFt,

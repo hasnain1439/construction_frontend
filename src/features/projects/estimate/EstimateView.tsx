@@ -181,6 +181,9 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
 
 export { useEstimateWarningText } from "./warningText";
 
+/** Warning codes that block activation even from an older API without `blocking`. */
+const BLOCKING_CODES = new Set<string>(["FOOTPRINT_EXCEEDS_PLOT"]);
+
 /**
  * Estimate warnings. On the project page a warning with a wizard `tab` links to the setup;
  * inside the wizard (`onGoToTab`) it switches the wizard tab instead ("Go to Floors & Rooms").
@@ -226,17 +229,32 @@ export function EstimateWarnings({
     if (w.tab && editSetup) return link(wizardHref(project.id, w.tab), t("projects.estimate.warn.openSetup"));
     return null;
   };
+  const list = (items: EstimateWarning[], testId: string) => (
+    <ul className="mt-1 list-disc space-y-1 ps-5" data-testid={testId}>
+      {items.map((w) => (
+        <li key={`${w.code}.${w.floor?.level ?? ""}`} data-code={w.code}>
+          <span className="me-2">{text(w)}</span>
+          {action(w)}
+        </li>
+      ))}
+    </ul>
+  );
+  // A blocking problem (e.g. FOOTPRINT_EXCEEDS_PLOT) is an error: activation is refused until it is fixed
+  const blocking = warnings.filter((w) => w.blocking || BLOCKING_CODES.has(w.code));
+  const rest = warnings.filter((w) => !blocking.includes(w));
   return (
-    <InlineAlert tone="warning" title={t("projects.estimate.warn.title")}>
-      <ul className="mt-1 list-disc space-y-1 ps-5" data-testid="estimate-warnings">
-        {warnings.map((w) => (
-          <li key={`${w.code}.${w.floor?.level ?? ""}`} data-code={w.code}>
-            <span className="me-2">{text(w)}</span>
-            {action(w)}
-          </li>
-        ))}
-      </ul>
-    </InlineAlert>
+    <>
+      {blocking.length ? (
+        <InlineAlert tone="danger" title={t("projects.estimate.warn.blockingTitle")}>
+          {list(blocking, "estimate-errors")}
+        </InlineAlert>
+      ) : null}
+      {rest.length ? (
+        <InlineAlert tone="warning" title={t("projects.estimate.warn.title")}>
+          {list(rest, "estimate-warnings")}
+        </InlineAlert>
+      ) : null}
+    </>
   );
 }
 
@@ -449,11 +467,29 @@ export function EstimateBasis({ estimate: e }: { estimate: ProjectEstimate }) {
   );
 }
 
-/** Per floor: brickwork by wall thickness and slab steel by bar size (detailed floors only). */
+const MM_BAR: Record<number, number> = { 10: 3, 12: 4, 16: 5, 20: 6 };
+
+/**
+ * RCC steel of a floor by bar size (QA B-25): the roof card's slab / beam / column bars plus the
+ * lintel bars of that floor (estimate lines `lintels`, steel10 … steel20).
+ */
+export function rccSteelBySize(e: ProjectEstimate, level: string): Array<{ bar: number; mm: number; kg: number }> {
+  const kg = new Map<number, number>();
+  const floor = e.basis.floors.find((f) => f.level === level);
+  for (const s of floor?.roof?.steelBySize ?? []) kg.set(s.mm, (kg.get(s.mm) ?? 0) + s.kg);
+  for (const l of e.stages.flatMap((s) => s.lines)) {
+    if (l.kind !== "MATERIAL" || l.element !== "lintels" || l.floor?.level !== level || !l.material || !(l.material in SIZE_BAR)) continue;
+    const mm = Number(l.material.slice(5));
+    kg.set(mm, (kg.get(mm) ?? 0) + l.netQuantity);
+  }
+  return [...kg.entries()].sort((a, b) => a[0] - b[0]).map(([mm, n]) => ({ bar: MM_BAR[mm] ?? 0, mm, kg: Math.round(n * 100) / 100 }));
+}
+
+/** Per floor: brickwork by wall thickness and RCC steel (slab, beams, columns, lintels) by bar size. */
 function DetailedBasis({ estimate: e }: { estimate: ProjectEstimate }) {
   const t = useT();
   const te = useEnumT();
-  const floors = e.basis.floors.filter((f) => f.walls || f.roof);
+  const floors = e.basis.floors.filter((f) => f.walls || f.roof || rccSteelBySize(e, f.level).length);
   if (!floors.length) return null;
   return (
     <div className="grid gap-3 sm:grid-cols-2" data-testid="estimate-detailed-basis">
@@ -472,11 +508,11 @@ function DetailedBasis({ estimate: e }: { estimate: ProjectEstimate }) {
               </ul>
             </>
           ) : null}
-          {f.roof?.steelBySize.length ? (
+          {rccSteelBySize(e, f.level).length ? (
             <>
               <p className="text-xs font-semibold text-muted-foreground">{t("projects.estimate.basis.steelBySize")}</p>
               <ul className="space-y-0.5 tabular" data-testid="steel-by-size">
-                {f.roof.steelBySize.map((s) => (
+                {rccSteelBySize(e, f.level).map((s) => (
                   <li key={s.bar}>
                     <bdi>{t("projects.estimate.basis.steelLine", { bar: s.bar, mm: s.mm, kg: fmt(s.kg) })}</bdi>
                   </li>

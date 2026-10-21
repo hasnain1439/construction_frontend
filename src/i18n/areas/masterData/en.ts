@@ -176,6 +176,7 @@ export const strings = {
     empty: "No rate set yet",
   },
   stages: {
+    retentionFollows: "The retention stage follows the retention % below and cannot be edited here.",
     nameAria: "Stage {n} name",
     namePlaceholder: "e.g. Plinth / DPC",
     percentAria: "Stage {n} percent",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Info, PencilLine } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { BoqLine, BoqMoney, BoqSectionBlock } from "@/api/types";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatPKR } from "@/lib/money";
+import { visibleLinesPaisa } from "@/features/projects/estimate/overrides";
 import { boqRateUnit, boqUnit, fmt, lineText, orderedSections, rupees, sectionText, stageText, visibleText } from "./labels";
 
 type T = ReturnType<typeof useT>;
@@ -113,15 +114,27 @@ export function BoqTable({
   totals,
   money,
   onAdjust,
+  rateAction,
 }: {
   sections: BoqSectionBlock[];
   totals: BoqMoney;
   money: boolean;
   /** Draft revisions: adjust a line (quantity / rate with a note). */
   onAdjust?: (line: BoqLine) => void;
+  /** Live preview (QA B-05): where this line's rate is changed (edit the project value, price list, labour rates). */
+  rateAction?: (line: BoqLine) => ReactNode;
 }) {
   const t = useT();
+  const directPaisa = totals.directCostPaisa;
+  /** How a percent line is worked out: "% of the direct cost" or "% of direct cost + overheads". */
+  const percentHow = (line: BoqLine) => {
+    if (line.kind !== "PERCENT" || line.rateQuantity === null || line.rateQuantity === undefined) return null;
+    const ofDirect = directPaisa !== undefined && Math.round(line.rateQuantity) === Number(directPaisa);
+    return t(ofDirect ? "estimates.boq.percentOfDirect" : "estimates.boq.percentOfDirectOverheads", { percent: fmt(line.quantity), base: rupees(String(Math.round(line.rateQuantity))) });
+  };
   const ordered = orderedSections(sections).filter((s) => s.lines.length);
+  // Direct = Σ visible lines (QA B-05): every contractor line with an amount, the percent lines aside
+  const linesSum = visibleLinesPaisa(ordered.flatMap((s) => s.lines));
   const colCount = 6 + (money ? 2 : 0) + (onAdjust ? 1 : 0);
   if (!ordered.length) {
     return (
@@ -167,7 +180,7 @@ export function BoqTable({
             <Fragment key={block.section}>
               <TableRow className="bg-muted/60 hover:bg-muted/60" data-section={block.section}>
                 <TableCell colSpan={colCount} className="font-semibold">
-                  {sectionText(t, block.section)}
+                  {sectionText(t, block.section, block.label)}
                   <span className="ms-2 text-xs font-normal text-muted-foreground">{t("estimates.boq.linesCount", { n: block.lines.length })}</span>
                 </TableCell>
               </TableRow>
@@ -182,6 +195,11 @@ export function BoqTable({
                     {money && line.suppliedBy !== "OWNER" && line.amountPaisa ? (
                       <p className="text-xs font-medium tabular text-muted-foreground sm:hidden" data-testid="line-amount-mobile">
                         {rupees(line.amountPaisa)}
+                      </p>
+                    ) : null}
+                    {money && percentHow(line) ? (
+                      <p className="text-xs text-muted-foreground" data-testid="percent-how">
+                        {percentHow(line)}
                       </p>
                     ) : null}
                     {visibleText(line.formula, money) ? (
@@ -199,6 +217,7 @@ export function BoqTable({
                   {money ? (
                     <TableCell>
                       <RateCell t={t} line={line} />
+                      {rateAction ? <div className="print:hidden">{rateAction(line)}</div> : null}
                     </TableCell>
                   ) : null}
                   {money ? (
@@ -223,7 +242,7 @@ export function BoqTable({
               {money ? (
                 <TableRow className="border-b-2" data-testid={`section-total-${block.section}`}>
                   <TableCell colSpan={6} className="text-end text-sm font-medium">
-                    {t("estimates.boq.sectionTotal", { section: sectionText(t, block.section) })}
+                    {t("estimates.boq.sectionTotal", { section: sectionText(t, block.section, block.label) })}
                   </TableCell>
                   <TableCell className="text-end font-semibold tabular">{block.amountPaisa ? rupees(block.amountPaisa) : "—"}</TableCell>
                   <TableCell colSpan={colCount - 7} />
@@ -235,6 +254,13 @@ export function BoqTable({
         {money ? (
           <TableFooter>
             {footRow(t("estimates.boq.directCost"), totals.directCostPaisa)}
+            {directPaisa !== undefined ? (
+              <TableRow data-testid="lines-check">
+                <TableCell colSpan={colCount} className={cn("text-end text-xs", linesSum === BigInt(directPaisa) ? "text-muted-foreground" : "font-medium text-warning")}>
+                  {linesSum === BigInt(directPaisa) ? t("estimates.boq.linesMatch") : t("estimates.boq.linesDiffer", { lines: rupees(linesSum.toString()), direct: rupees(directPaisa) })}
+                </TableCell>
+              </TableRow>
+            ) : null}
             {footRow(t("estimates.boq.overheads"), totals.overheadPaisa)}
             {footRow(t("estimates.boq.contingency"), totals.contingencyPaisa)}
             {footRow(t("estimates.boq.grandTotal"), totals.totalPaisa, true)}

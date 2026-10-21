@@ -15,6 +15,22 @@ const positive = (label: TranslationKey, max: number) =>
     .nullable()
     .refine((v): v is number => v !== null, required(label))
     .refine((v) => v === null || (v > 0 && v <= max), msg("projects.v.between", { label, max: max.toLocaleString("en-PK") }));
+/**
+ * A required measurement with explicit bounds and a message that names them (QA B-27):
+ * "Height must be at least 7 ft", "… must be at most 30 ft". Negatives fail the minimum.
+ */
+export const measured = (label: TranslationKey, min: number, max: number, unit: TranslationKey) =>
+  z
+    .number({ error: required(label) })
+    .nullable()
+    .refine((v): v is number => v !== null, required(label))
+    .refine((v) => v === null || v >= min, msg("validation.atLeastUnit", { label, n: String(min), unit }))
+    .refine((v) => v === null || v <= max, msg("validation.atMostUnit", { label, n: String(max), unit }));
+
+/** Storey / room height: 7–30 ft. */
+export const HEIGHT_MIN_FT = 7;
+export const HEIGHT_MAX_FT = 30;
+
 const nonNegative = (max: number) =>
   z
     .number()
@@ -87,6 +103,14 @@ export function contractSchema(_seesMoney: boolean) {
       stages: stagesSchema,
     })
     .superRefine((v, ctx) => {
+      // QA B-08: the stages before the retention add up to 100 − retention (the retention row follows the field)
+      if (v.retentionPercent !== null && v.retentionPercent >= 0 && v.retentionPercent <= 10) {
+        const expected = Math.round((100 - v.retentionPercent) * 100) / 100;
+        const total = Math.round(v.stages.filter((s) => !s.isRetention).reduce((a, s) => a + (s.percent ?? 0), 0) * 100) / 100;
+        if (total !== expected) {
+          ctx.addIssue({ code: "custom", path: ["stages"], message: msg("projects.v.stagesBeforeRetention", { expected: String(expected), total: String(total) }) });
+        }
+      }
       v.supplyRules.forEach((rule, index) => {
         if (rule.suppliedBy === "CONTRACTOR" && !rule.qualityCategoryId && !rule.locked) {
           ctx.addIssue({ code: "custom", path: ["supplyRules", index, "qualityCategoryId"], message: msg("projects.v.chooseQuality") });
@@ -190,7 +214,7 @@ export const roofSchema = z
 
 export const floorRowSchema = z.object({
   level: z.enum(["BASEMENT", "GROUND", "FIRST", "SECOND", "THIRD", "MUMTY"]),
-  ceilingHeightFt: positive("projects.room.height", 30),
+  ceilingHeightFt: measured("projects.room.height", HEIGHT_MIN_FT, HEIGHT_MAX_FT, "projects.unit.ft"),
   roof: roofSchema,
 });
 
@@ -345,9 +369,9 @@ export const roomSchema = z.object({
     "OTHER",
   ]),
   name: z.string().trim().max(60, msg("projects.v.upTo60")),
-  lengthFt: positive("projects.room.length", 200),
-  widthFt: positive("projects.room.width", 200),
-  heightFt: positive("projects.room.height", 30),
+  lengthFt: measured("projects.room.length", 1, 200, "projects.unit.ft"),
+  widthFt: measured("projects.room.width", 1, 200, "projects.unit.ft"),
+  heightFt: measured("projects.room.height", HEIGHT_MIN_FT, HEIGHT_MAX_FT, "projects.unit.ft"),
   wetMode: z.enum(["auto", "wet", "dry"]),
   openings: z.array(openingRowSchema).max(30, msg("projects.v.upTo30Openings")),
   /** null = not entered. */

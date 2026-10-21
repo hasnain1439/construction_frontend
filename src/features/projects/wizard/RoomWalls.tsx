@@ -1,8 +1,10 @@
 "use client";
 
 import { BrickWall, X } from "lucide-react";
+import { useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Room, StructureType, WallSide, WallType } from "@/api/types";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -53,6 +55,43 @@ export const rowsToBody = (rows: WallRow[]) =>
     ...(w.type === "PARTY" ? { existing: w.existing } : {}),
   }));
 
+/** Another room of the floor, as pairing needs it. */
+export interface PairRoom {
+  id: string;
+  name: string;
+  lengthFt: number | null;
+  widthFt: number | null;
+  walls: Room["walls"];
+}
+
+const OPPOSITE: Record<WallSide, WallSide> = { TOP: "BOTTOM", BOTTOM: "TOP", LEFT: "RIGHT", RIGHT: "LEFT" };
+
+/**
+ * The side of `partner` the API pairs with my `side` (walls.service.ts): the side already paired back,
+ * else the opposite side when free, else the free side closest in length. "Free" = not SHARED, or shared
+ * with exactly this side of mine.
+ */
+export function pairTarget(myId: string | null, side: WallSide, myLength: number | null, partner: PairRoom): WallSide | undefined {
+  const theirs = partner.walls ?? [];
+  const at = (s: WallSide) => theirs.find((w) => w.side === s);
+  const free = (s: WallSide) => {
+    const w = at(s);
+    return !w || w.type !== "SHARED" || (w.sharedWithRoomId === myId && w.sharedWithSide === side);
+  };
+  const already = theirs.find((w) => w.type === "SHARED" && myId !== null && w.sharedWithRoomId === myId && w.sharedWithSide === side);
+  if (already) return already.side;
+  if (free(OPPOSITE[side])) return OPPOSITE[side];
+  return [...WALL_SIDES].filter(free).sort((a, b) => Math.abs((sideLength(a, partner) ?? 0) - (myLength ?? 0)) - Math.abs((sideLength(b, partner) ?? 0) - (myLength ?? 0)))[0];
+}
+
+/** The wall pairing would overwrite (QA B-23): a Party wall, or an entered External / Double wall, on the other room. */
+export function overwrittenWall(myId: string | null, side: WallSide, myLength: number | null, partner: PairRoom) {
+  const target = pairTarget(myId, side, myLength, partner);
+  const wall = target ? partner.walls?.find((w) => w.side === target) : undefined;
+  if (!target || !wall || wall.type === "SHARED" || wall.type === "OPEN" || wall.type === "PASSAGE") return null;
+  return { side: target, type: wall.type };
+}
+
 /** Wall colour by type (tokens, so dark mode follows). */
 const TYPE_STROKE: Record<WallType, string> = {
   EXTERNAL: "text-foreground",
@@ -102,17 +141,21 @@ function WallsDiagram({ rows, label }: { rows: WallRow[]; label: string }) {
  * the other room's side on save, so each shared wall is counted once.
  */
 export function RoomWalls({
+  roomId = null,
   otherRooms,
   structure,
   disabled,
 }: {
-  otherRooms: Array<{ id: string; name: string }>;
+  /** This room (null while new). */
+  roomId?: string | null;
+  otherRooms: PairRoom[];
   structure: StructureType | null | undefined;
   disabled: boolean;
 }) {
   const t = useT();
   const te = useEnumT();
   const { setValue, control } = useFormContext();
+  const [pendingPair, setPendingPair] = useState<{ index: number; side: WallSide; partner: PairRoom; wall: { side: WallSide; type: WallType } } | null>(null);
   const [rows, lengthFt, widthFt, name] = useWatch({ name: ["walls", "lengthFt", "widthFt", "name"] }) as [WallRow[] | null, number | null, number | null, string];
   const ft = (n: number | null) => (n === null ? "—" : t("projects.unit.ftValue", { n }));
 
@@ -206,7 +249,17 @@ export function RoomWalls({
                     name={`walls.${index}.sharedWithRoomId`}
                     control={control}
                     render={({ field, fieldState }) => (
-                      <Select value={field.value ?? ""} onValueChange={field.onChange} disabled={disabled}>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={(id) => {
+                          const partner = otherRooms.find((r) => r.id === id);
+                          const wall = partner ? overwrittenWall(roomId, row.side, sideLength(row.side, { lengthFt, widthFt }), partner) : null;
+                          // QA B-23: ask before a Party / External wall of the other room becomes this shared wall
+                          if (partner && wall) setPendingPair({ index, side: row.side, partner, wall });
+                          else field.onChange(id);
+                        }}
+                        disabled={disabled}
+                      >
                         <SelectTrigger
                           size="sm"
                           aria-label={t("projects.walls.sharedWithAria", { side: sideName })}
@@ -250,6 +303,26 @@ export function RoomWalls({
         </div>
       </div>
       {rows.some((r) => r.type === "SHARED") ? <p className="text-xs text-muted-foreground">{t("projects.walls.pairHint")}</p> : null}
+      <ConfirmDialog
+        open={pendingPair !== null}
+        onOpenChange={(o) => (!o ? setPendingPair(null) : undefined)}
+        tone="warning"
+        title={pendingPair ? t("projects.walls.pairConfirmTitle", { room: pendingPair.partner.name }) : ""}
+        description={
+          pendingPair
+            ? t("projects.walls.pairConfirmDesc", {
+                room: pendingPair.partner.name,
+                side: te("projectWallSide", pendingPair.wall.side),
+                type: te("projectWallType", pendingPair.wall.type),
+              })
+            : undefined
+        }
+        confirmLabel={t("projects.walls.pairConfirm")}
+        onConfirm={() => {
+          if (pendingPair) setValue(`walls.${pendingPair.index}.sharedWithRoomId`, pendingPair.partner.id, { shouldDirty: true, shouldValidate: true });
+          setPendingPair(null);
+        }}
+      />
     </div>
   );
 }
