@@ -30,6 +30,7 @@ import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { OpeningImportButton } from "@/features/onboarding/components/OpeningImport";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { msg } from "@/i18n/message";
@@ -336,10 +337,13 @@ export function OpeningBalancesView() {
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("opening.title") }]}
         actions={
           readOnly ? null : (
-            <Button onClick={() => setAdding(true)}>
-              <Plus data-icon="inline-start" />
-              {t("opening.add")}
-            </Button>
+            <>
+              <OpeningImportButton />
+              <Button onClick={() => setAdding(true)}>
+                <Plus data-icon="inline-start" />
+                {t("opening.add")}
+              </Button>
+            </>
           )
         }
       />

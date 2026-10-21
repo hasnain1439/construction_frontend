@@ -65,7 +65,7 @@ export const strings = {
     chartTitle: "Estimate to date vs actual",
     chartDesc: "Each estimate line × the progress of its stage.",
     labourCombined: "Labour + sub-contract together",
-    labourCombinedDesc: "Piece-rate labour is often paid as a theka, so compare the two together: estimate {estimate}, actual {actual} ({variance}).",
+    labourCombinedDesc: "Piece-rate labour is often paid as a lump-sum contract, so compare the two together: estimate {estimate}, actual {actual} ({variance}).",
     stagesTitle: "Progress by stage",
     projectionTitle: "Projected margin at completion",
     projectionDesc: "Cost so far + the rest of the approved estimate, adjusted by how the cost has gone so far.",

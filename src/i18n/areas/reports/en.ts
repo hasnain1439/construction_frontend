@@ -246,7 +246,7 @@ export const strings = {
       F1_STRUCTURE: "First floor structure",
       F2_STRUCTURE: "Second floor structure",
       F3_STRUCTURE: "Third floor structure",
-      MUMTY_ROOF: "Mumty & roof",
+      MUMTY_ROOF: "Stair room & roof",
       PLASTER_MEP: "Plaster & services",
       FINISHING: "Finishing",
     },

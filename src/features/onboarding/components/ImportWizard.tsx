@@ -29,6 +29,10 @@ const ENTITY: Record<ImportEntity, { label: TranslationKey; permission: Permissi
   suppliers: { label: "imports.entitySuppliers", permission: "masterdata.supplier.create" },
   materials: { label: "imports.entityMaterials", permission: "masterdata.material.create" },
   clients: { label: "imports.entityClients", permission: "clients.client.create" },
+  "opening-stock": { label: "imports.entityOpeningStock", permission: "company.opening.manage" },
+  "opening-udhaar": { label: "imports.entityOpeningUdhaar", permission: "company.opening.manage" },
+  "opening-cash": { label: "imports.entityOpeningCash", permission: "company.opening.manage" },
+  "opening-peshgi": { label: "imports.entityOpeningPeshgi", permission: "company.opening.manage" },
 };
 
 export type ImportStep = "template" | "upload" | "preview" | "done";
@@ -224,15 +228,25 @@ export function ImportFooter({
  * Excel / CSV import wizard: download template → upload → preview with row problems
  * highlighted → import. All-or-nothing unless "import only the good rows" is ticked.
  * The file stays in the browser and is sent again on import (the server keeps nothing).
+ * Optional: a `chooser` shown first in step 1 (e.g. which opening balance to import — a new
+ * `entity` clears the chosen file and check), and its own title / description / done text.
  */
 export function ImportWizard({
   entity,
   open,
   onOpenChange,
+  title,
+  description,
+  doneText,
+  chooser,
 }: {
   entity: ImportEntity;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  doneText?: (result: ImportResult) => string;
+  chooser?: (state: { locked: boolean }) => ReactNode;
 }) {
   const t = useT();
   const language = useLanguage();
@@ -249,6 +263,19 @@ export function ImportWizard({
   const [check, { isLoading: checking }] = usePreviewImportMutation();
   const [commit, { isLoading: importing }] = useCommitImportMutation();
   const entityLabel = t(ENTITY[entity].label);
+
+  // Another entity (the chooser): a file checked for the old one does not apply; the upload input
+  // remounts (key) so the same file can be picked again.
+  const [checkedFor, setCheckedFor] = useState(entity);
+  if (checkedFor !== entity) {
+    setCheckedFor(entity);
+    setFile(null);
+    setPreview(null);
+    setResult(null);
+    setFileError(null);
+    setOnlyProblems(false);
+    setSkipInvalid(false);
+  }
 
   const reset = () => {
     setFile(null);
@@ -280,14 +307,16 @@ export function ImportWizard({
     }
   };
 
+  const importedText = (res: ImportResult) =>
+    doneText
+      ? doneText(res)
+      : res.skipped
+        ? t("imports.importedSkipped", { n: res.created, skipped: res.skipped })
+        : t("imports.imported", { n: res.created });
+
   const doImport = async () => {
     if (!file) return;
-    const r = await run(() => commit({ entity, file, skipInvalid }).unwrap(), {
-      success: (res) =>
-        res.skipped
-          ? t("imports.importedSkipped", { n: res.created, skipped: res.skipped })
-          : t("imports.imported", { n: res.created }),
-    });
+    const r = await run(() => commit({ entity, file, skipInvalid }).unwrap(), { success: importedText });
     if (r) setResult(r);
   };
 
@@ -360,8 +389,8 @@ export function ImportWizard({
       onOpenChange={close}
       size="lg"
       busy={importing}
-      title={t("imports.title", { entity: entityLabel })}
-      description={t("imports.desc")}
+      title={title ?? t("imports.title", { entity: entityLabel })}
+      description={description ?? t("imports.desc")}
       footer={
         <ImportFooter
           done={Boolean(result)}
@@ -377,18 +406,12 @@ export function ImportWizard({
     >
       <ImportSteps current={step} />
       {result ? (
-        <InlineAlert
-          tone="success"
-          title={
-            result.skipped
-              ? t("imports.importedSkipped", { n: result.created, skipped: result.skipped })
-              : t("imports.imported", { n: result.created })
-          }
-        >
+        <InlineAlert tone="success" title={importedText(result)}>
           {result.fileName}
         </InlineAlert>
       ) : (
         <div className="space-y-6">
+          {chooser?.({ locked: checking || importing })}
           <ImportTemplateSection
             title={t("imports.templateTitle")}
             hint={t("imports.templateHint")}
@@ -398,6 +421,7 @@ export function ImportWizard({
           />
 
           <ImportUploadSection
+            key={entity}
             title={t("imports.uploadTitle")}
             hint={t("imports.uploadHint")}
             inputRef={inputRef}

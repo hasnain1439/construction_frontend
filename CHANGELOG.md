@@ -6,6 +6,20 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Plain English
+
+- English texts are plain English (no Roman Urdu words); Roman Urdu / Urdu unchanged. The English UI now says advance (peshgi), attendance (hazri), site clerk (munshi), Owner (thekedar), balance owed / on credit (udhaar), site expense (kharcha), delivery note (challan), roof slab (lenter), mason / labourer (mistri / mazdoor), stair room (mumty) and so on. Keys, enum values and API codes are unchanged; a guard test fails if a Roman Urdu word comes back into the English texts.
+
+### Opening balances Excel import
+
+- **Settings → Opening balances → "Import from Excel" (Excel se import karein):** opens the same side panel and steps as the other Excel imports — 1 choose what to import (store stock, supplier udhaar, cash in hand, worker peshgi) and download its template, 2 upload the filled file, 3 check (rows with problems shown per cell, "Import only the N good rows"), 4 done ("N opening balances added"); the list refreshes. Changing the kind clears a file checked for another kind. Needs `company.opening.manage` (hidden in read-only mode). Texts in English / Roman Urdu / Urdu. Tests in `tests/unit/components/OpeningImport.test.tsx`.
+- `ImportWizard` takes an optional kind chooser, title, description and done text; the Material / Worker / Supplier / Client / Sub-contractor imports are unchanged.
+- API types (`schema.ts`) regenerated for the twelve `/imports/opening-*` routes.
+
+### Developer setup
+
+- **`NEXT_DEV_DISK_CACHE=off`** in `.env.local` turns off the dev server's on-disk Turbopack cache. On a PC short of memory a killed `next dev` left that cache broken (pages hung while compiling, or every Settings page returned 404, until `.next` was deleted). Builds are unaffected.
+
 ### Top bar search and Create
 
 - **Fixed: the search (magnifier / Ctrl+K) crashed the page** ("This page couldn't load") as soon as it opened — the cmdk input and list now sit inside `<Command>`. It lists every page the user may open (company menu, the open project's pages and the Create actions), filtered by permissions, and matches whole words of the page name (no loose letter matching); a page under Create is listed once. Tests in `tests/unit/components/CommandSearch.test.tsx`.

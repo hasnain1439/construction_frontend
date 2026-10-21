@@ -29,15 +29,15 @@ const field = (name: RegExp) => screen.queryByLabelText(name);
 describe("FoundationCard (wizard tab 3)", () => {
   it("starts from the Pakistani defaults: brick strip footing 5 ft deep, 3 ft wide, 9 in thick, 2 ft plinth, 1.5 in DPC", () => {
     renderWithStore(<Harness foundation={{}} />);
-    expect(screen.getByText("Foundation (Bunyaad)")).toBeInTheDocument();
+    expect(screen.getByText("Foundation")).toBeInTheDocument();
     expect(field(/^Excavation depth/)).toHaveValue("5");
     expect(field(/^Footing width/)).toHaveValue("3");
     expect(field(/^Footing thickness/)).toHaveValue("9");
     expect(field(/^Plinth height above ground/)).toHaveValue("2");
     expect(field(/^DPC thickness/)).toHaveValue("1.5");
     expect(field(/^PCC thickness/)).toHaveValue("3");
-    expect(screen.getByRole("switch", { name: /Termite \(deemak\) treatment/ })).toBeChecked();
-    expect(screen.getByText("Patti under the walls — common for load-bearing brick houses.")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /Termite treatment/ })).toBeChecked();
+    expect(screen.getByText("Strip footing under the walls — common for load-bearing brick houses.")).toBeInTheDocument();
     // Strip in brick: no pads, no piles, no RCC
     expect(field(/^Number of footings/)).toBeNull();
     expect(field(/^Number of piles/)).toBeNull();

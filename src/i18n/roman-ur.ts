@@ -590,6 +590,10 @@ export const romanUr: Dictionary = {
     entitySuppliers: "suppliers",
     entityMaterials: "materials",
     entityClients: "clients",
+    entityOpeningStock: "store ka shuruaati stock",
+    entityOpeningUdhaar: "supplier ka purana udhaar",
+    entityOpeningCash: "haath ka shuruaati cash",
+    entityOpeningPeshgi: "mazdoor ki purani peshgi",
   },
   opening: {
     title: "Opening balance",
@@ -631,6 +635,12 @@ export const romanUr: Dictionary = {
     required: "Zaroori",
     pick: "Chunein…",
     noMatch: "Chunne ko kuch nahi — pehle darj shuda cheezein yahan nahi aatin.",
+    importButton: "Excel se import karein",
+    importTitle: "Excel se opening balance import karein",
+    importDesc: "Chunein kya import karna hai, us ka template download karein, register se bharein aur upload karein. Har line ek opening balance ki tarah save aur lock hoti hai. Import dabane tak kuch save nahi hota.",
+    importKindTitle: "Kya import kar rahe hain?",
+    imported: "{n} opening balance darj ho gaye",
+    importedSkipped: "{n} opening balance darj ho gaye, {skipped} chhor diye",
   },
   enum: {
     ...sharedRoman.enums,

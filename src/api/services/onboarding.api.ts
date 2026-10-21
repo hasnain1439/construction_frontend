@@ -9,18 +9,21 @@ import type {
   ImportPreview,
   ImportResult,
   OpeningBalance,
+  OpeningImportEntity,
   OpeningKind,
   SetupChecklist,
 } from "@/api/types";
 
-/** List tag of each importable entity. */
+/** List tag of each importable master-data entity (opening balances refresh OPENING_TAGS). */
 const ENTITY_TAG = {
   workers: "Workers",
   subcontractors: "Subcontractors",
   suppliers: "Suppliers",
   materials: "Materials",
   clients: "Clients",
-} as const satisfies Record<ImportEntity, string>;
+} as const satisfies Record<Exclude<ImportEntity, OpeningImportEntity>, string>;
+
+const isOpeningImport = (entity: ImportEntity): entity is OpeningImportEntity => entity.startsWith("opening-");
 
 /** Everything the demo project touches (created and removed in one go). */
 const DEMO_TAGS = [
@@ -115,7 +118,10 @@ export const onboardingApi = baseApi.injectEndpoints({
         body: fileForm(file),
         ...(skipInvalid ? { params: { skipInvalid: "true" } } : {}),
       }),
-      invalidatesTags: (_r, _e, { entity }) => [{ type: ENTITY_TAG[entity], id: LIST }, "Onboarding"],
+      invalidatesTags: (_r, _e, { entity }) =>
+        isOpeningImport(entity)
+          ? [...OPENING_TAGS, "Onboarding"]
+          : [{ type: ENTITY_TAG[entity], id: LIST }, "Onboarding"],
     }),
 
     getOpeningBalances: build.query<OpeningBalance[], { kind?: OpeningKind } | void>({

@@ -176,7 +176,7 @@ const DOMAINS = {
     BOUNCED: S("danger", "Bounced", CircleX),
   },
   paymentMode: {
-    UDHAAR: S("warning", "Udhaar", Clock),
+    UDHAAR: S("warning", "On credit", Clock),
     CASH: S("success", "Cash", CircleCheck),
     PARTIAL: S("info", "Part paid", Hourglass),
   },

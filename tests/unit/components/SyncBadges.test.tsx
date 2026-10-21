@@ -115,8 +115,8 @@ describe("late sync + phone sync health", () => {
     ).not.toBeInTheDocument();
     await user.click(within(asif).getByRole("button", { name: /WEEK_LOCKED \+1/ }));
     const panel = await screen.findByRole("dialog");
-    expect(within(panel).getByText("Hazri")).toBeInTheDocument();
-    expect(within(panel).getByText("Kharcha")).toBeInTheDocument();
+    expect(within(panel).getByText("Attendance")).toBeInTheDocument();
+    expect(within(panel).getByText("Site expense")).toBeInTheDocument();
     expect(within(panel).getByText("This week is locked")).toBeInTheDocument();
   });
 });
