@@ -174,7 +174,7 @@ E2E smoke: Khalid (Thekedar) logs in → dashboard; Bilal (PM) logs in → no Te
 - New Project = FULL PAGE with 6 numbered tabs:
   1. Basic Info (POST /projects, then PATCH basic; team assignment for Thekedar via PUT team)
   2. Contract & Supply (preset cards, supply table with Contractor/Owner toggle + quality category, contract value or rate per sq ft with live total, billing model, payment schedule editor or template with live "100% ✓" chip, retention, defect period)
-  3. Plot & Structure (plot unit/size/marla/front/depth with live area result and warning, structure cards, basement + height, floors builder)
+  3. Plot & Structure (plot unit/size/marla/front/depth with live area result and warning, structure cards, basement + height, floors builder with a roof card per floor — RCC slab fields, or for T-iron + tiles six numbered layers bottom to top: structure (T-iron only / girder + T-iron with girder size and spacing), T-iron size and spacing, bottom tile layers, waterproof layer, earth, top finish + thickness; RCC-only fields hidden; soft warnings for span > 12 ft with T-irons only, T-irons > 14″ apart, girders > 10 ft apart, no waterproof layer)
   4. Coverage & Boundary
   5. Floors & Rooms (floor sub-tabs, room cards with openings mini-table, live floor/wall/net-wall numbers using the same formulas as the backend, Copy floor, add/remove)
   6. Review (GET /projects/:id/review → errors/warnings/summary; Activate button; PLAN_LIMIT_REACHED → PlanLimitDialog)

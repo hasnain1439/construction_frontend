@@ -70,10 +70,10 @@ describe("RoofCard (wizard tab 3)", () => {
     expect(screen.getByTestId("roof-suggestion")).toHaveTextContent("Suggested: 6″ for the largest room span of 16 ft");
   });
 
-  it("shows the fields of the roof type: girders for T-iron, topping for a deck; beams and columns for an RCC frame", () => {
+  it("shows the fields of the roof type: T-iron layers, topping for a deck; beams and columns for an RCC frame", () => {
     const { unmount } = renderWithStore(<RoofHarness roof={{ enabled: true, type: "T_IRON_TILE" }} />);
-    expect(field(/^Girder spacing/)).toHaveValue("3");
-    expect(field(/^Earth filling/)).toHaveValue("4");
+    expect(field(/^T-iron spacing/)).toHaveValue("1.1");
+    expect(field(/^Earth thickness/)).toHaveValue("5");
     expect(field(/^Slab thickness/)).toBeNull();
     expect(field(/^Main bar spacing/)).toBeNull();
     unmount();
@@ -95,14 +95,133 @@ describe("RoofCard (wizard tab 3)", () => {
   });
 });
 
+describe("RoofCard — T-iron + tiles (layers from the bottom up)", () => {
+  const tIron = (roof: Partial<RoofFormValues> = {}, span: number | null = 12, structure: StructureType = "LOAD_BEARING") =>
+    renderWithStore(<RoofHarness roof={{ enabled: true, type: "T_IRON_TILE", ...roof }} span={span} structure={structure} />);
+
+  it("shows exactly the 6 steps in order, with the T-iron defaults, and hides the RCC slab fields", () => {
+    tIron();
+    const steps = screen.getAllByTestId(/^tiron-step-\d$/);
+    expect(steps.map((s) => s.getAttribute("data-testid"))).toEqual(["tiron-step-1", "tiron-step-2", "tiron-step-3", "tiron-step-4", "tiron-step-5", "tiron-step-6"]);
+    expect(steps.map((s) => s.querySelector("h4")?.textContent)).toEqual([
+      "1. Structure",
+      "2. T-iron size and spacing",
+      "3. Bottom tiles",
+      "4. Waterproof layer",
+      "5. Earth",
+      "6. Top finish",
+    ]);
+    expect(within(steps[0]!).getByRole("radio", { name: "T-iron only" })).toBeChecked();
+    expect(within(steps[1]!).getByLabelText(/^T-iron spacing/)).toHaveValue("1.1");
+    expect(within(steps[1]!).getByText(/= 13.2″ apart/)).toBeInTheDocument();
+    expect(within(steps[2]!).getByRole("radio", { name: "1 layer" })).toBeChecked();
+    expect(within(steps[3]!).getByRole("radio", { name: "Polythene sheet" })).toBeChecked();
+    expect(within(steps[4]!).getByLabelText(/^Earth thickness/)).toHaveValue("5");
+    expect(within(steps[5]!).getByRole("radio", { name: "Tiles in mortar" })).toBeChecked();
+    expect(within(steps[5]!).getByLabelText(/^Finish thickness/)).toHaveValue("1");
+    // RCC-only fields are hidden; girder fields only for Girder + T-iron
+    for (const label of [/^Slab thickness/, /^Main bar spacing/, /^Distribution bar spacing/, /^Clear cover/, /^Sunshade length/, /^Girder spacing/]) expect(field(label)).toBeNull();
+    expect(screen.queryByText("Steel grade")).toBeNull();
+    expect(screen.queryByText("Concrete mix")).toBeNull();
+    expect(screen.queryByTestId("roof-suggestion")).toBeNull();
+    expect(screen.queryByTestId("roof-warnings")).toBeNull();
+  });
+
+  it("Girder + T-iron shows the girder size and spacing; a concrete top finish takes 2″ and the concrete mix", async () => {
+    tIron();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("radio", { name: "Girder + T-iron" }));
+    expect(field(/^Girder spacing/)).toHaveValue("8");
+    expect(screen.getAllByText("Girder 6″ × 3″ (5.4 kg/ft)").length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("radio", { name: "Concrete screed" }));
+    expect(field(/^Finish thickness/)).toHaveValue("2");
+    expect(screen.getByText("Concrete mix")).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Mud + straw plaster" }));
+    expect(field(/^Finish thickness/)).toHaveValue("1");
+  });
+
+  it("warns like the owner's page: span over 12 ft with T-irons only, T-irons over 14″ apart, girders over 10 ft apart, no waterproof layer", () => {
+    const a = tIron({}, 14);
+    expect(within(screen.getByTestId("roof-warnings")).getByText("14 ft span is too wide for T-irons alone (up to 12 ft) — choose Girder + T-iron.")).toBeInTheDocument();
+    a.unmount();
+    const b = tIron({ tIronSystem: "GARDER_T", garderSpacingFt: 11, tIronSpacingFt: 1.25, waterproofing: "NONE" }, 14);
+    const w = screen.getByTestId("roof-warnings");
+    expect([...w.querySelectorAll("li")].map((li) => li.getAttribute("data-code"))).toEqual(["TIRON_SPACING", "GARDER_SPACING", "NO_WATERPROOFING"]);
+    expect(within(w).getByText("T-irons 15″ apart — keep them at most 14″ apart so each tile rests on two flanges.")).toBeInTheDocument();
+    expect(within(w).getByText("Girders 11 ft apart — keep them at most 10 ft apart.")).toBeInTheDocument();
+    expect(within(w).getByText(/^No waterproof layer/)).toBeInTheDocument();
+    b.unmount();
+    tIron({ tIronSystem: "GARDER_T" }, 20);
+    expect(screen.queryByTestId("roof-warnings")).toBeNull();
+  });
+
+  it("renders the steps in Roman Urdu and Urdu", () => {
+    const r = renderWithStore(<RoofHarness roof={{ enabled: true, type: "T_IRON_TILE" }} />, { ui: { language: "roman-ur" } });
+    expect(screen.getByText("1. Dhaancha")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Garder + T-iron" })).toBeInTheDocument();
+    r.unmount();
+    renderWithStore(<RoofHarness roof={{ enabled: true, type: "T_IRON_TILE" }} />, { ui: { language: "ur" } });
+    expect(screen.getByText("1. ڈھانچہ")).toBeInTheDocument();
+    expect(screen.getByText("5. مٹی")).toBeInTheDocument();
+  });
+
+  it("schema ranges match the API; saved roofs come back into the form", () => {
+    const paths = (v: Partial<RoofFormValues>) => {
+      const r = roofSchema.safeParse({ ...ROOF_DEFAULTS, enabled: true, type: "T_IRON_TILE", ...v });
+      return r.success ? [] : r.error.issues.map((i) => i.path.join("."));
+    };
+    expect(paths({})).toEqual([]);
+    expect(paths({ tIronSpacingFt: 0.7 })).toEqual(["tIronSpacingFt"]);
+    expect(paths({ tIronSpacingFt: 6 })).toEqual([]);
+    expect(paths({ garderSpacingFt: 3 })).toEqual([]); // only checked for Girder + T-iron
+    expect(paths({ tIronSystem: "GARDER_T", garderSpacingFt: 3 })).toEqual(["garderSpacingFt"]);
+    expect(paths({ tIronSystem: "GARDER_T", garderSpacingFt: 12 })).toEqual([]);
+    expect(paths({ topFinishIn: 3.5 })).toEqual(["topFinishIn"]);
+    expect(paths({ earthFillIn: 13 })).toEqual(["earthFillIn"]);
+    const saved = { ...roofToBody({ ...ROOF_DEFAULTS, enabled: true }, "LOAD_BEARING") } as unknown as Parameters<typeof roofToForm>[0];
+    const form = roofToForm({
+      ...(saved as object),
+      type: "T_IRON_TILE",
+      tIronSystem: "GARDER_T",
+      garderSection: "G5X3",
+      garderSpacingFt: 4,
+      tIronSection: "T4X4",
+      tIronSpacingFt: 1,
+      bottomTileLayers: 2,
+      waterproofing: "BITUMEN",
+      earthFillIn: 6,
+      topFinish: "LEEP",
+      topFinishIn: null,
+    } as Parameters<typeof roofToForm>[0]);
+    expect(form).toMatchObject({ tIronSystem: "GARDER_T", garderSection: "G5X3", tIronSection: "T4X4", bottomTileLayers: "2", waterproofing: "BITUMEN", topFinish: "LEEP", topFinishIn: 1 });
+  });
+});
+
 describe("roof form rules", () => {
   it("body: null when off; only the type's fields; frame fields only for an RCC frame", () => {
     expect(roofToBody(ROOF_DEFAULTS, "FRAMED")).toBeNull();
     const rcc = roofToBody({ ...ROOF_DEFAULTS, enabled: true }, "LOAD_BEARING")!;
     expect(rcc).toEqual({ type: "RCC_SLAB", concreteMix: "1:2:4", steelGrade: "G60", thicknessIn: 5, mainBar: 4, mainSpacingIn: 6, distBar: 3, distSpacingIn: 9, topBars: true, coverIn: 0.75, chajjaLengthFt: null, chajjaWidthFt: null });
     const tIron = roofToBody({ ...ROOF_DEFAULTS, enabled: true, type: "T_IRON_TILE" }, "FRAMED")!;
-    expect(tIron).toMatchObject({ type: "T_IRON_TILE", tIronSection: "G5X3", tIronSpacingFt: 3, infill: "BRICK", beamWidthIn: 9, columnBars: 6, columnBar: 5 });
+    expect(tIron).toMatchObject({
+      type: "T_IRON_TILE",
+      tIronSystem: "T_ONLY",
+      tIronSection: "T3X3",
+      tIronSpacingFt: 1.1,
+      bottomTileLayers: 1,
+      waterproofing: "POLYTHENE",
+      earthFillIn: 5,
+      topFinish: "TILE",
+      topFinishIn: 1,
+      beamWidthIn: 9,
+      columnBars: 6,
+      columnBar: 5,
+    });
     expect(tIron).not.toHaveProperty("mainBar");
+    expect(tIron).not.toHaveProperty("garderSection");
+    expect(tIron).not.toHaveProperty("infill");
+    const garder = roofToBody({ ...ROOF_DEFAULTS, enabled: true, type: "T_IRON_TILE", tIronSystem: "GARDER_T", bottomTileLayers: "2", topFinish: "CONC", topFinishIn: null }, "LOAD_BEARING")!;
+    expect(garder).toMatchObject({ tIronSystem: "GARDER_T", garderSection: "G6X3", garderSpacingFt: 8, bottomTileLayers: 2, topFinish: "CONC", topFinishIn: 2 });
     expect(roofToForm(null)).toEqual(ROOF_DEFAULTS);
   });
 

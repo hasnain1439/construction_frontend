@@ -13500,7 +13500,7 @@ export interface paths {
         put?: never;
         /**
          * Opening store stock: import
-         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-stock`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / peshgi postings, one `opening_balance.create` audit row each), one after another in one transaction.
+         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-stock`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / advance postings, one `opening_balance.create` audit row each), one after another in one transaction.
          */
         post: {
             parameters: {
@@ -13603,7 +13603,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Opening supplier udhaar: download the import template
+         * Opening supplier balances: download the import template
          * @description `company.opening.manage`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `supplier` (required), `amount` (required), `date`, `notes`.
          */
         get: {
@@ -13662,7 +13662,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Opening supplier udhaar: preview an import
+         * Opening supplier balances: preview an import
          * @description `company.opening.manage`. Parses the file and checks every row with the create endpoint’s own rules (Zod schema + supplier must be new — in the company and in the file). **Writes nothing.** Headers are matched by key or by any of the three labels; unknown columns are listed in `unknownColumns`.
          */
         post: {
@@ -13820,8 +13820,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Opening supplier udhaar: import
-         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-udhaar`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / peshgi postings, one `opening_balance.create` audit row each), one after another in one transaction.
+         * Opening supplier balances: import
+         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-udhaar`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / advance postings, one `opening_balance.create` audit row each), one after another in one transaction.
          */
         post: {
             parameters: {
@@ -14142,7 +14142,7 @@ export interface paths {
         put?: never;
         /**
          * Opening cash in hand: import
-         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-cash`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / peshgi postings, one `opening_balance.create` audit row each), one after another in one transaction.
+         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-cash`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / advance postings, one `opening_balance.create` audit row each), one after another in one transaction.
          */
         post: {
             parameters: {
@@ -14245,7 +14245,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Opening worker peshgi: download the import template
+         * Opening worker advances: download the import template
          * @description `company.opening.manage`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `worker` (required), `project` (required), `amount` (required), `date`, `notes`.
          */
         get: {
@@ -14304,7 +14304,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Opening worker peshgi: preview an import
+         * Opening worker advances: preview an import
          * @description `company.opening.manage`. Parses the file and checks every row with the create endpoint’s own rules (Zod schema + worker must be new — in the company and in the file). **Writes nothing.** Headers are matched by key or by any of the three labels; unknown columns are listed in `unknownColumns`.
          */
         post: {
@@ -14462,8 +14462,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Opening worker peshgi: import
-         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-peshgi`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / peshgi postings, one `opening_balance.create` audit row each), one after another in one transaction.
+         * Opening worker advances: import
+         * @description `company.opening.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.opening-peshgi`. Each row is saved through the same service as POST /opening-balances (same rules, ledger / cash / stock / advance postings, one `opening_balance.create` audit row each), one after another in one transaction.
          */
         post: {
             parameters: {
@@ -17275,7 +17275,7 @@ export interface paths {
          *
          *     `foundation` (bunyaad, optional — omitted = unchanged, `null` = cleared): `type` STRIP / ISOLATED / COMBINED / RAFT / PILE; excavation depth 1–30 ft, footing thickness 3–36 in, plinth above natural ground 0–6 ft, DPC 0.5–6 in, PCC (lean concrete) mix + 2–12 in, masonry BRICK / STONE / RCC_ONLY, termite (deemak) treatment, DPC material, soil type, water table, dewatering, soil test + note, notes. Required by type: `footingWidthFt` for STRIP / ISOLATED / COMBINED; `footingCount` + `footingLengthFt` for ISOLATED / COMBINED; `pileCount`, `pileDiameterIn`, `pileDepthFt` for PILE; `rccMix` + `mainBarMm` (10 / 12 / 16 / 20 = #3–#6) wherever RCC applies (every type except a BRICK / STONE strip footing). Fields that don’t apply are stored as null. The excavation must be at least the PCC + footing thickness deep.
          *
-         *     `floors[].roof` (roof / slab — lenter — over that floor, optional — omitted = unchanged, `null` = cleared → the estimate uses the % method): `type` RCC_SLAB (default) / T_IRON_TILE (garder + bricks or tiles) / PRECAST / STEEL_DECK; only `type` is required, everything else gets the Pakistani default. RCC: `thicknessIn` 5 (3–12), `concreteMix` 1:2:4 / 1:1.5:3, `steelGrade` G60 / G40, `mainBar` #4 @ `mainSpacingIn` 6″ (along the short span), `distBar` #3 @ `distSpacingIn` 9″ (bars 3–6 = 10 / 12 / 16 / 20 mm; spacing 3–18″), `topBars` true, `coverIn` 0.75, sunshade `chajjaLengthFt` × `chajjaWidthFt` 2. RCC frame (used for FRAMED): beams `beamWidthIn` 9 × `beamDepthIn` 15 (deeper than the slab), `beamBars` 4 × `beamBar` #5, stirrups #3 @ 6″, `beamRunFt` (default the floor’s wall run); columns `columnCount` (default from the footprint), 12 × 12″, 6 #5, ties #3 @ 6″. T-iron: `tIronSection` T3X3 / T4X4 / G4X3 / G5X3 / G6X3, `tIronSpacingFt` 3, `infill` BRICK / TILE, `screedThicknessIn` 3, `earthFillIn` 4. PRECAST / STEEL_DECK: `plankAreaSqft` / `deckAreaSqft` (default the footprint), `toppingIn` 2 / 4, `mesh`. Each floor in the response has `roof` and `slabSuggestion` { spanFt, suggestedIn, minIn, beamAdvised } (largest room short span: ≤ 12 ft → 4.5–5″, 12–15 → 5″, 15–18 → 6″, > 18 → 6–7″ or a beam).
+         *     `floors[].roof` (roof / slab — lenter — over that floor, optional — omitted = unchanged, `null` = cleared → the estimate uses the % method): `type` RCC_SLAB (default) / T_IRON_TILE (T-irons (+ garders), tiles, waterproof layer, earth, top finish) / PRECAST / STEEL_DECK; only `type` is required, everything else gets the Pakistani default. RCC: `thicknessIn` 5 (3–12), `concreteMix` 1:2:4 / 1:1.5:3, `steelGrade` G60 / G40, `mainBar` #4 @ `mainSpacingIn` 6″ (along the short span), `distBar` #3 @ `distSpacingIn` 9″ (bars 3–6 = 10 / 12 / 16 / 20 mm; spacing 3–18″), `topBars` true, `coverIn` 0.75, sunshade `chajjaLengthFt` × `chajjaWidthFt` 2. RCC frame (used for FRAMED): beams `beamWidthIn` 9 × `beamDepthIn` 15 (deeper than the slab), `beamBars` 4 × `beamBar` #5, stirrups #3 @ 6″, `beamRunFt` (default the floor’s wall run); columns `columnCount` (default from the footprint), 12 × 12″, 6 #5, ties #3 @ 6″. T-iron (bottom to top, no slab): `tIronSystem` T_ONLY (default; T-irons across the short side) / GARDER_T (+ `garderSection` G6X3 / G8X4, `garderSpacingFt` 8, 4–12), `tIronSection` T3X3 / T4X4 @ `tIronSpacingFt` 1.1 (0.8–6), `bottomTileLayers` 1 / 2, `waterproofing` POLYTHENE / BITUMEN / NONE, `earthFillIn` 5, `topFinish` LEEP / TILE (default) / CONC with `topFinishIn` 1 (CONC 2; 0.5–3). The old fields (`infill`, `screedThicknessIn`, a garder G4X3 / G5X3 / G6X3 as `tIronSection`) are still accepted and mapped. PRECAST / STEEL_DECK: `plankAreaSqft` / `deckAreaSqft` (default the footprint), `toppingIn` 2 / 4, `mesh`. Each floor in the response has `roof` and `slabSuggestion` { spanFt, suggestedIn, minIn, beamAdvised } (largest room short span: ≤ 12 ft → 4.5–5″, 12–15 → 5″, 15–18 → 6″, > 18 → 6–7″ or a beam).
          *
          *     Only while DRAFT or ACTIVE (else 409 PROJECT_LOCKED). THEKEDAR, or a PM assigned to the project (others get 404).
          */
@@ -17312,7 +17312,7 @@ export interface paths {
                             /** @description Roof / slab (lenter) over this floor. Omitted = unchanged, null = cleared (estimate uses the % method) */
                             roof?: {
                                 /**
-                                 * @description RCC_SLAB (lenter, default), T_IRON_TILE (garder / T-iron + bricks or tiles), PRECAST (hollow-core planks), STEEL_DECK
+                                 * @description RCC_SLAB (roof slab, default), T_IRON_TILE (T-irons (+ garders), tiles, waterproof layer, earth, top finish), PRECAST (hollow-core planks), STEEL_DECK
                                  * @enum {string}
                                  */
                                 type: "RCC_SLAB" | "T_IRON_TILE" | "PRECAST" | "STEEL_DECK";
@@ -17352,7 +17352,7 @@ export interface paths {
                                  * @example 0.75
                                  */
                                 coverIn?: number;
-                                /** @description Sunshade (chajja) total length, ft. Optional */
+                                /** @description Sunshade total length, ft. Optional */
                                 chajjaLengthFt?: number | null;
                                 /** @description Sunshade projection. Default 2 ft */
                                 chajjaWidthFt?: number | null;
@@ -17403,24 +17403,53 @@ export interface paths {
                                  */
                                 tieSpacingIn?: number;
                                 /**
-                                 * @description T3X3, T4X4, G4X3, G5X3 (default), G6X3 — garder / T-iron section
+                                 * @description T_ONLY (T-irons across the short side, rooms up to ~12 ft; default) or GARDER_T (garders across the short side, T-irons along the long side on them)
+                                 * @enum {string}
+                                 */
+                                tIronSystem?: "T_ONLY" | "GARDER_T";
+                                /**
+                                 * @description GARDER_T: garder (RSJ) G6X3 (6″×3″, 5.4 kg/ft, default) or G8X4 (8″×4″, ~8.2 kg/ft); G4X3 / G5X3 only on roofs saved before
+                                 * @enum {string|null}
+                                 */
+                                garderSection?: "G6X3" | "G8X4" | "G4X3" | "G5X3" | null;
+                                /**
+                                 * @description GARDER_T: garder spacing. Default 8 ft (8–10 ft usual)
+                                 * @example 8
+                                 */
+                                garderSpacingFt?: number | null;
+                                /**
+                                 * @description T-iron T3X3 (3″×3″, 2.7 kg/ft, default) or T4X4 (4″×4″, 4.5 kg/ft). G4X3 / G5X3 / G6X3: the old garder input, mapped like saved roofs
                                  * @enum {string}
                                  */
                                 tIronSection?: "T3X3" | "T4X4" | "G4X3" | "G5X3" | "G6X3";
                                 /**
-                                 * @description Garder spacing. Default 3 ft
-                                 * @example 3
+                                 * @description T-iron spacing c/c. Default 1.1 ft (13″ — a 12″ tile sits on two flanges)
+                                 * @example 1.1
                                  */
                                 tIronSpacingFt?: number;
+                                /** @description Bottom tiles (12″×6″×1″) between the T-iron flanges: 1 (default) or 2 layers */
+                                bottomTileLayers?: 1 | 2;
                                 /**
-                                 * @description BRICK (laid flat, default) or TILE (12″×6″) between the garders
+                                 * @description Waterproof layer on the tiles: POLYTHENE sheet (+ overlap, default), BITUMEN (~0.25 kg / sq ft) or NONE
+                                 * @enum {string}
+                                 */
+                                waterproofing?: "POLYTHENE" | "BITUMEN" | "NONE";
+                                /** @description Compacted earth with slope. Default 5″ (4–6″ usual) */
+                                earthFillIn?: number;
+                                /**
+                                 * @description Top finish: LEEP (mud + straw plaster), TILE (top tiles in 1:4 mortar, default) or CONC (thin concrete screed)
+                                 * @enum {string}
+                                 */
+                                topFinish?: "LEEP" | "TILE" | "CONC";
+                                /** @description Top finish thickness. Default 1″ (LEEP / TILE), 2″ (CONC) */
+                                topFinishIn?: number;
+                                /**
+                                 * @description Deprecated (old input): bricks / tiles between the garders — now 1 layer of bottom tiles
                                  * @enum {string}
                                  */
                                 infill?: "BRICK" | "TILE";
-                                /** @description Concrete screed on top. Default 3″ */
+                                /** @description Deprecated (old input): concrete screed — now topFinish CONC (0 → LEEP) */
                                 screedThicknessIn?: number;
-                                /** @description Earth filling (mitti) on top. Default 4″ */
-                                earthFillIn?: number;
                                 /** @description PRECAST planks area. Omitted = the floor footprint */
                                 plankAreaSqft?: number | null;
                                 /** @description STEEL_DECK sheet area. Omitted = the floor footprint */
@@ -17487,7 +17516,7 @@ export interface paths {
                             /** @description Main steel bar in mm: 10 (#3), 12 (#4), 16 (#5), 20 (#6) */
                             mainBarMm?: 10 | 12 | 16 | 20;
                             /**
-                             * @description Deemak (anti-termite) treatment
+                             * @description Anti-termite treatment
                              * @default true
                              */
                             termiteTreatment?: boolean;
@@ -19689,7 +19718,7 @@ export interface paths {
          *
          *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`.
          *
-         *     **Detailed vs estimated** Every line has `method`: DETAILED when it comes from data the user entered — the floor's roof (`Floor.roof`: RCC slab steel from the actual bars grouped by size as `steel10` / `steel12` / `steel16` / `steel20` kg, beams / columns from their sizes and bars, T-iron garders `tIron`, bricks / `roofTile`, screed, earth, `precastPlank` / `steelDeck` + topping + mesh) or every room's four walls (`Room.walls`: brickwork per wall thickness — lines `WALLS.<floor>.walls.t9`, `.t4_5` … — shared walls once, party walls already built and open sides excluded, double walls both leaves; plaster faces by wall type; lintels at the wall's thickness; the foundation run from the ground-floor walls) — else ESTIMATED (the % / perimeter rules). `basis.methods` { walls, roof } = DETAILED / ESTIMATED / MIXED; `basis.floors[]` has `wallsMethod`, `roofMethod`, `walls` (by thickness, bricks) and `roof` (steel by size, bar runs, beam run, columns). Warnings for the new data carry `floor`: ROOF_TOO_THIN, ROOF_SPAN_NEEDS_BEAM, ROOF_MAIN_SPACING_WIDE, ROOF_DIST_SPACING_WIDE (tab 3), WALLS_PARTIAL, WALLS_UNPAIRED (tab 5).
+         *     **Detailed vs estimated** Every line has `method`: DETAILED when it comes from data the user entered — the floor's roof (`Floor.roof`: RCC slab steel from the actual bars grouped by size as `steel10` / `steel12` / `steel16` / `steel20` kg, beams / columns from their sizes and bars, T-iron roofs bottom to top — garders `garder` (GARDER_T) and T-irons `tIron` in kg, bottom tiles `roofTile` (2 per sq ft per layer + 0.5″ 1:4 joints), `polythene` sheet (area × (1 + overlap %)) or roof `bitumen`, earth (BoQ lump sum), top finish (tiles + 1:4 bed / concrete screed / mud + straw lump sum), no slab or shuttering,`precastPlank` / `steelDeck` + topping + mesh) or every room's four walls (`Room.walls`: brickwork per wall thickness — lines `WALLS.<floor>.walls.t9`, `.t4_5` … — shared walls once, party walls already built and open sides excluded, double walls both leaves; plaster faces by wall type; lintels at the wall's thickness; the foundation run from the ground-floor walls) — else ESTIMATED (the % / perimeter rules). `basis.methods` { walls, roof } = DETAILED / ESTIMATED / MIXED; `basis.floors[]` has `wallsMethod`, `roofMethod`, `walls` (by thickness, bricks) and `roof` (steel by size, bar runs, beam run, columns). Warnings for the new data carry `floor`: ROOF_TOO_THIN, ROOF_SPAN_NEEDS_BEAM, ROOF_MAIN_SPACING_WIDE, ROOF_DIST_SPACING_WIDE, ROOF_TIRON_SPAN_NEEDS_GARDER, ROOF_TIRON_SPACING_WIDE, ROOF_GARDER_SPACING_WIDE, ROOF_NO_WATERPROOFING (tab 3), WALLS_PARTIAL, WALLS_UNPAIRED (tab 5).
          *
          *     **Costing** Each material is priced from the company price list in the project's quality category for its supply category (cement, bricks, steel, sand & bajri, waterproofing; the company default category otherwise), converted to the rate's unit (kg → ton, nos → thousand, cft → trolley, alt units). No rate → `rateStatus: RATE_MISSING`, left out of every total, warning RATES_MISSING. Steel by size is priced from Steel Grade-60 #3 / #4 / #5 / #6 (a company "Grade-40 #n" material first when a roof is G40); a size without a rate takes the general steel rate (`rateFallback: true`, warning STEEL_RATE_GENERIC). Owner-supplied categories are valued but kept out of the contractor cost (`ownerSuppliedPaisa`). Labour: covered area × `labourRatePerSqftPaisa` when set, else the SUBCONTRACT piece rates BRICK_MASONRY / PLASTER / SHUTTERING / STEEL_FIXING. `cost.marginPercent` = (contract total − estimated cost) ÷ contract total.
          *
@@ -19752,6 +19781,8 @@ export interface paths {
                          *           "foundationWallLengthFt": null,
                          *           "waterproofingKgPerBag": 1,
                          *           "bitumenKgPerSqft": 0.15,
+                         *           "polytheneLapPercent": 10,
+                         *           "roofBitumenKgPerSqft": 0.25,
                          *           "termiteLitrePerSqft": 0.005,
                          *           "wastagePercent": 5,
                          *           "brickWastagePercent": 5,
@@ -19790,6 +19821,8 @@ export interface paths {
                          *           "foundationWallLengthFt": null,
                          *           "waterproofingKgPerBag": 1,
                          *           "bitumenKgPerSqft": 0.15,
+                         *           "polytheneLapPercent": 10,
+                         *           "roofBitumenKgPerSqft": 0.25,
                          *           "termiteLitrePerSqft": 0.005,
                          *           "wastagePercent": 5,
                          *           "brickWastagePercent": 5,
@@ -20236,6 +20269,8 @@ export interface paths {
                          *           "foundationWallLengthFt": null,
                          *           "waterproofingKgPerBag": 1,
                          *           "bitumenKgPerSqft": 0.15,
+                         *           "polytheneLapPercent": 10,
+                         *           "roofBitumenKgPerSqft": 0.25,
                          *           "termiteLitrePerSqft": 0.005,
                          *           "wastagePercent": 5,
                          *           "brickWastagePercent": 5,
@@ -20274,6 +20309,8 @@ export interface paths {
                          *           "foundationWallLengthFt": null,
                          *           "waterproofingKgPerBag": 1,
                          *           "bitumenKgPerSqft": 0.15,
+                         *           "polytheneLapPercent": 10,
+                         *           "roofBitumenKgPerSqft": 0.25,
                          *           "termiteLitrePerSqft": 0.005,
                          *           "wastagePercent": 5,
                          *           "brickWastagePercent": 5,
@@ -66442,12 +66479,22 @@ export interface components {
              */
             bitumenKgPerSqft?: number;
             /**
-             * @description Termite (deemak) chemical concentrate per sq ft of treated area (lowest-floor footprint). Default 0.005 L (1 L per 200 sq ft)
+             * @description T-iron roofs: extra polythene sheet for the overlaps, % of the roof area. Default 10 % (area × 1.1)
+             * @example 10
+             */
+            polytheneLapPercent?: number;
+            /**
+             * @description T-iron roofs: bitumen on the tiles when the waterproof layer is BITUMEN, kg per sq ft. Default 0.25
+             * @example 0.25
+             */
+            roofBitumenKgPerSqft?: number;
+            /**
+             * @description Termite chemical concentrate per sq ft of treated area (lowest-floor footprint). Default 0.005 L (1 L per 200 sq ft)
              * @example 0.005
              */
             termiteLitrePerSqft?: number;
             /**
-             * @description Wastage on the other materials (waterproofing, bitumen, termite, stone, garders, roof tiles …). A project value also applies to cement / sand / steel unless those are set too. Default 5 %
+             * @description Wastage on the other materials (waterproofing, bitumen, termite, stone, girders, roof tiles …). A project value also applies to cement / sand / steel unless those are set too. Default 5 %
              * @example 5
              */
             wastagePercent?: number;
@@ -66528,6 +66575,11 @@ export interface components {
              * @example 4
              */
             tileBeddingMix?: number;
+            /**
+             * @description Roof mud plaster (mud + straw) (Rs / sq ft). Rulebook v1: 20
+             * @example 20
+             */
+            leepRsPerSqft?: number;
             /**
              * @description Paint coats (coats). Rulebook v1: 2
              * @example 2

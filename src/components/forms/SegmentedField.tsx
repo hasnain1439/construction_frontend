@@ -14,7 +14,8 @@ export function SegmentedField<V extends string>({
   className,
   hideLabel,
   options,
-}: BaseFieldProps & { options: SegmentOption<V>[] }) {
+  onValueChange,
+}: BaseFieldProps & { options: SegmentOption<V>[]; /** Called after the field changes (e.g. to follow a default). */ onValueChange?: (value: V) => void }) {
   const { control } = useFormContext();
   const error = useFieldError(name);
   return (
@@ -29,7 +30,10 @@ export function SegmentedField<V extends string>({
                 id={id}
                 ariaLabel={label}
                 value={field.value as V | undefined}
-                onChange={field.onChange}
+                onChange={(v) => {
+                  field.onChange(v);
+                  onValueChange?.(v);
+                }}
                 options={options}
                 disabled={disabled}
                 invalid={invalid}

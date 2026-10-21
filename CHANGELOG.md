@@ -6,6 +6,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### T-iron + tiles roof
+
+- **Wizard tab 3 → roof card → "T-iron + tiles"** now shows the real build-up as 6 numbered steps, bottom to top: 1 structure (T-iron only / Girder + T-iron, with girder size G6×3 / G8×4 and spacing), 2 T-iron size (3″ / 4″) and spacing (default 1.1 ft = 13″), 3 bottom tile layers (1 / 2), 4 waterproof layer (polythene sheet / bitumen / none), 5 earth inches (default 5″), 6 top finish (tiles in mortar / mud + straw plaster / concrete screed) and its thickness (1″, concrete 2″). Steel grade and the slab fields are hidden; the concrete mix shows only for a concrete finish. Warnings: span over 12 ft with T-irons only, T-irons over 14″ apart, girders over 10 ft apart, no waterproof layer. Old saved T-iron roofs open with the mapped values. Texts in English / Roman Urdu / Urdu; the estimate shows the new lines (girders, T-irons, bottom tiles, waterproof layer, roof earth, top finish), the polythene sheet and mud-plaster lump sum, and the new warnings. Two new estimate settings (roof polythene overlap, roof bitumen). `SegmentedField` takes an optional `onValueChange`. API types (`schema.ts`) regenerated.
+
 ### Plain English
 
 - English texts are plain English (no Roman Urdu words); Roman Urdu / Urdu unchanged. The English UI now says advance (peshgi), attendance (hazri), site clerk (munshi), Owner (thekedar), balance owed / on credit (udhaar), site expense (kharcha), delivery note (challan), roof slab (lenter), mason / labourer (mistri / mazdoor), stair room (mumty) and so on. Keys, enum values and API codes are unchanged; a guard test fails if a Roman Urdu word comes back into the English texts.

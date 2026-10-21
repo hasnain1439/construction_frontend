@@ -694,11 +694,13 @@ const MATERIAL_UNIT: Record<string, string> = {
   steel16: "kg",
   steel20: "kg",
   tIron: "kg",
+  garder: "kg",
   roofTile: "nos",
   precastPlank: "sqft",
   steelDeck: "sqft",
   waterproofing: "kg",
   bitumen: "kg",
+  polythene: "sqft",
   termite: "litre",
   stone: "cft",
 };
