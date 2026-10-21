@@ -16,6 +16,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - `ImportWizard` takes an optional kind chooser, title, description and done text; the Material / Worker / Supplier / Client / Sub-contractor imports are unchanged.
 - API types (`schema.ts`) regenerated for the twelve `/imports/opening-*` routes.
 
+### Developer setup
+
+- **`NEXT_DEV_DISK_CACHE=off`** in `.env.local` turns off the dev server's on-disk Turbopack cache. On a PC short of memory a killed `next dev` left that cache broken (pages hung while compiling, or every Settings page returned 404, until `.next` was deleted). Builds are unaffected.
+
 ### Top bar search and Create
 
 - **Fixed: the search (magnifier / Ctrl+K) crashed the page** ("This page couldn't load") as soon as it opened — the cmdk input and list now sit inside `<Command>`. It lists every page the user may open (company menu, the open project's pages and the Create actions), filtered by permissions, and matches whole words of the page name (no loose letter matching); a page under Create is listed once. Tests in `tests/unit/components/CommandSearch.test.tsx`.
