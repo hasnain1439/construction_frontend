@@ -13,6 +13,7 @@ import { ProgressPair } from "@/components/common/ProgressPair";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { PHONE_QUERY, useMediaQuery } from "@/hooks/useListView";
 import { useEnumT, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
@@ -42,6 +43,8 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
   const t = useT();
   const te = useEnumT();
   const router = useRouter();
+  // A phone lists the projects as cards, so "Billed · Spent" and the amounts fit the screen (QA R-03).
+  const phone = useMediaQuery(PHONE_QUERY);
   const shown = rows ? mostRelevant(rows) : undefined;
   const total = rows?.length ?? 0;
   const columns: Column<OverviewProjectRow>[] = [
@@ -117,6 +120,7 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
         rows={shown}
         columns={columns}
         getRowId={(r) => r.project.id}
+        view={phone ? "cards" : "table"}
         loading={loading}
         clientPageSize={0}
         onRowClick={(r) => router.push(`/projects/${r.project.id}/overview`)}
@@ -125,7 +129,7 @@ export function ProjectsSummary({ rows, money, loading }: { rows: OverviewProjec
       {total > SUMMARY_LIMIT ? (
         <div className="flex items-center justify-between gap-3 border-t px-4 py-3 text-sm text-muted-foreground">
           <span>{t("dashboard.showingProjects", { shown: SUMMARY_LIMIT, total })}</span>
-          <Link href="/projects" className="font-medium text-foreground underline-offset-2 hover:underline">
+          <Link href="/projects" className="hit-area font-medium text-foreground underline-offset-2 hover:underline">
             {t("common.viewAll")}
           </Link>
         </div>
@@ -255,7 +259,7 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-muted-foreground">{a.source === "CONTROL_ALERT" ? te("controlRule", a.type, humanize(a.type)) : te("notificationType", a.type, humanize(a.type))}</p>
-                  <p dir="auto" className="truncate text-start text-sm font-medium" title={a.title}>
+                  <p dir="auto" className="line-clamp-2 text-start text-sm font-medium break-words" title={a.title}>
                     {a.title}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">

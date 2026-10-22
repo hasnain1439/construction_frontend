@@ -116,7 +116,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.dimensions")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <NumberField name="foundation.excavationDepthFt" label={t("projects.foundation.excavationDepth")} required unit={ft} disabled={disabled} />
             <NumberField name="foundation.footingThicknessIn" label={t("projects.foundation.footingThickness")} required unit={inch} disabled={disabled} />
             {type === "STRIP" ? (
@@ -126,7 +126,7 @@ export function FoundationCard({
             <NumberField name="foundation.dpcThicknessIn" label={t("projects.foundation.dpcThickness")} required unit={inch} disabled={disabled} />
           </FieldGrid>
           {hasPads(type) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <NumberField
                 name="foundation.footingCount"
                 label={t("projects.foundation.footingCount")}
@@ -142,7 +142,7 @@ export function FoundationCard({
             </FieldGrid>
           ) : null}
           {isPile(type) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <NumberField name="foundation.pileCount" label={t("projects.foundation.pileCount")} required decimals={0} min={1} unit={t("projects.unit.nos")} disabled={disabled} />
               <NumberField name="foundation.pileDiameterIn" label={t("projects.foundation.pileDiameter")} required unit={inch} disabled={disabled} />
               <NumberField name="foundation.pileDepthFt" label={t("projects.foundation.pileDepth")} required unit={ft} disabled={disabled} />
@@ -152,7 +152,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.material")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <SelectField
               name="foundation.masonry"
               label={t("projects.foundation.masonry")}
@@ -164,7 +164,7 @@ export function FoundationCard({
             <NumberField name="foundation.pccThicknessIn" label={t("projects.foundation.pccThickness")} required unit={inch} disabled={disabled} />
           </FieldGrid>
           {rccApplies(type, masonry) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <SegmentedField name="foundation.rccMix" label={t("projects.foundation.rccMix")} required disabled={disabled} options={RCC_MIXES.map((value) => ({ value, label: value }))} />
               <SelectField
                 name="foundation.mainBarMm"
@@ -189,7 +189,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.soilSite")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <SelectField
               name="foundation.soilType"
               label={t("projects.foundation.soilType")}

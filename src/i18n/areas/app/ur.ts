@@ -295,6 +295,9 @@ export const strings: Widen<typeof En.strings> = {
       label: "مراحل",
       completed: "مکمل",
       hasErrors: "غلطیاں ہیں",
+      position: "مرحلہ {n} (کل {total})",
+      previous: "پچھلا مرحلہ",
+      next: "اگلا مرحلہ",
     },
     stock: {
       out: "اسٹاک ختم",

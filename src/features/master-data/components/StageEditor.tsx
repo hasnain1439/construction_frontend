@@ -59,7 +59,7 @@ export function StageEditor({
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-xl border">
-        <div className="grid grid-cols-[24px_1fr_110px_auto_36px] items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase sm:grid-cols-[24px_1fr_110px_130px_auto_36px]">
+        <div className="hidden grid-cols-[24px_1fr_110px_130px_auto_36px] items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase sm:grid">
           <span />
           <span>{t("field.stage")}</span>
           <span>%</span>
@@ -74,12 +74,14 @@ export function StageEditor({
             return (
               <li
                 key={field.id}
-                className="grid grid-cols-[24px_1fr_110px_auto_36px] items-center gap-2 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[24px_1fr_110px_130px_auto_36px]"
+                // Phone (QA R-05/R-06): the name takes the whole first line; % · retention · delete sit under it.
+                className="grid grid-cols-[24px_minmax(0,1fr)_auto_40px] items-center gap-2 border-b px-3 py-2 last:border-b-0 sm:grid-cols-[24px_1fr_110px_130px_auto_36px]"
               >
                 <GripVertical className="size-4 text-muted-foreground" aria-hidden />
                 <Input
                   aria-label={t("masterData.stages.nameAria", { n: index + 1 })}
                   placeholder={t("masterData.stages.namePlaceholder")}
+                  className="max-sm:col-span-3"
                   disabled={disabled}
                   {...register(`${name}.${index}.label`)}
                 />
@@ -94,6 +96,7 @@ export function StageEditor({
                       onBlur={f.onBlur}
                       unit="%"
                       decimals={2}
+                      className="max-sm:col-start-2 max-sm:max-w-32"
                       disabled={disabled || lockedRow}
                     />
                   )}
@@ -106,6 +109,9 @@ export function StageEditor({
                   <span className="hidden sm:block" />
                 )}
                 <label className="flex items-center justify-center gap-1.5 text-xs" title={lockedRow ? t("masterData.stages.retentionFollows") : undefined}>
+                  <span className="text-muted-foreground sm:hidden" aria-hidden>
+                    {t("field.retention")}
+                  </span>
                   {lockedRow ? <Lock className="size-3.5 text-muted-foreground" aria-hidden /> : null}
                   <Checkbox
                     checked={Boolean(row?.isRetention)}

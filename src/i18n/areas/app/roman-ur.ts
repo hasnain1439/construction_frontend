@@ -295,6 +295,9 @@ export const strings: Widen<typeof En.strings> = {
       label: "Marahil",
       completed: "Mukammal",
       hasErrors: "Ghaltiyan hain",
+      position: "Marhala {n} (kul {total})",
+      previous: "Pichla marhala",
+      next: "Agla marhala",
     },
     stock: {
       out: "Stock khatam",

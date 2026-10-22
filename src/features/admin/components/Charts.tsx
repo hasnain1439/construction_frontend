@@ -79,13 +79,13 @@ export function RevenueChart({ data }: { data: Array<{ month: string; amountPais
               </pattern>
             </defs>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 4" />
-            <XAxis dataKey="tick" interval={0} tickLine={false} axisLine={false} tickMargin={8} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+            <XAxis dataKey="tick" interval={0} tickLine={false} axisLine={false} tickMargin={8} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
             <YAxis
               tickLine={false}
               axisLine={false}
               width={64}
               tickCount={4}
-              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               tickFormatter={(v: number) => formatPKRShort(Math.round(v))}
             />
             <Tooltip cursor={false} content={<RevenueTooltip total={total} />} />
@@ -103,7 +103,7 @@ export function RevenueChart({ data }: { data: Array<{ month: string; amountPais
                   if (!value) return null;
                   // Drawn by hand: recharts' own label wraps at the bar's width.
                   return (
-                    <text x={Number(x) + Number(width) / 2} y={Number(y) - 8} textAnchor="middle" className="fill-foreground text-[11px] font-semibold">
+                    <text x={Number(x) + Number(width) / 2} y={Number(y) - 8} textAnchor="middle" className="fill-foreground text-xs font-semibold">
                       {String(value)}
                     </text>
                   );

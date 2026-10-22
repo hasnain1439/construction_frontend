@@ -55,7 +55,7 @@ export function NotificationBell() {
             <span
               data-testid="notification-badge"
               className={cn(
-                "absolute -top-0.5 -end-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold text-white tabular",
+                "absolute -top-0.5 -end-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-semibold text-white tabular",
                 critical ? "bg-danger" : "bg-primary",
               )}
             >

@@ -19,7 +19,7 @@ import { formatDate, formatMonth } from "@/lib/dates";
 import { QuoteStatusBadge, useLostReasonLabel } from "./shared";
 
 type Months = "6" | "12" | "24";
-const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
+const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
 
 /** Quotes made / won / lost per month (counts, not money). */
 function PerMonthChart({ data }: { data: QuoteInsights["perMonth"] }) {

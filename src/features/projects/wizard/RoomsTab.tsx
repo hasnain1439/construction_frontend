@@ -154,7 +154,7 @@ export function RoomsTab() {
               setAdding(false);
             }}
           >
-            <TabsList className="h-10!">
+            <TabsList className="h-10! pointer-coarse:h-12!">
               {floors.map((f) => (
                 <TabsTrigger key={f.id} value={f.id} className="px-3">
                   {te("projectFloorLevel", f.level, f.name)}

@@ -294,6 +294,9 @@ export const strings = {
       label: "Steps",
       completed: "Completed",
       hasErrors: "Has errors",
+      position: "Step {n} of {total}",
+      previous: "Previous step",
+      next: "Next step",
     },
     stock: {
       out: "Out of stock",
