@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useGetEstimateQuery } from "@/api/services/projects.api";
 import type {
+  BoqAssumption,
   EstimateLine,
   EstimateMethod,
   EstimateStageBlock,
@@ -31,7 +32,7 @@ import { cn } from "@/lib/cn";
 import { formatPKR, formatPKRShort } from "@/lib/money";
 import { LOCKED_STATUSES } from "../constants";
 import { ContractFromEstimateCard } from "./ContractFromEstimateCard";
-import { useEstimateWarningText } from "./warningText";
+import { isEstimateBlocked, useEstimateWarningText } from "./warningText";
 import { wizardHref } from "../utils/links";
 import { ProjectPageShell } from "../views/ProjectModeViews";
 import { EstimateSettingsModal } from "./EstimateSettingsModal";
@@ -158,7 +159,8 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
           </div>
         )}
         previewExtras={
-          e.boq ? (
+          // QE4: no numbers while the estimate is blocked (rooms under 50 % of the covered area)
+          isEstimateBlocked(e) ? null : e.boq ? (
             <SectionCard flush>
               <CollapsibleSection title={t("estimates.boq.greyWorking")} defaultOpen={false}>
                 <div className="p-4">
@@ -182,7 +184,20 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
 export { useEstimateWarningText } from "./warningText";
 
 /** Warning codes that block activation even from an older API without `blocking`. */
-const BLOCKING_CODES = new Set<string>(["FOOTPRINT_EXCEEDS_PLOT"]);
+const BLOCKING_CODES = new Set<string>(["FOOTPRINT_EXCEEDS_PLOT", "ROOMS_TOO_FEW"]);
+
+/**
+ * QE4: shown instead of the cost, the BoQ and the contract value while the estimate is blocked
+ * (rooms under 50 % of the covered area; the blocking warning above says what to add).
+ */
+export function EstimateBlockedNotice() {
+  const t = useT();
+  return (
+    <InlineAlert tone="info" title={t("projects.estimate.warn.blockedTitle")}>
+      <span data-testid="estimate-blocked">{t("projects.estimate.warn.blockedBody")}</span>
+    </InlineAlert>
+  );
+}
 
 /**
  * Estimate warnings. On the project page a warning with a wizard `tab` links to the setup;
@@ -192,13 +207,16 @@ export function EstimateWarnings({
   project,
   warnings,
   onGoToTab,
+  assumptions,
 }: {
   project: ProjectDetail;
   warnings: EstimateWarning[];
   onGoToTab?: { go: (tab: number) => void; label: (tab: number) => string };
+  /** The BoQ's rulebook keys with their labels (names the rates of RULEBOOK_RATE_ZERO). */
+  assumptions?: readonly BoqAssumption[];
 }) {
   const t = useT();
-  const text = useEstimateWarningText();
+  const text = useEstimateWarningText(assumptions);
   const { can } = usePermissions();
   if (!warnings.length) return null;
   const editSetup = can("projects.project.edit") && !LOCKED_STATUSES.includes(project.status);

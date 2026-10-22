@@ -17,6 +17,7 @@ import { useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { differencePaisa, suggestionBreakdown } from "./contractSuggestion";
 import { fmt, rupees } from "./labels";
+import { isEstimateBlocked } from "./warningText";
 
 /** Who may set the contract value from the estimate: edit + see the contract value + see the cost. */
 export function useCanSetContractFromEstimate() {
@@ -84,7 +85,8 @@ export function ContractFromEstimateCard({
 }) {
   const fromApi = estimate.contractSuggestion;
   const allowed = useCanSetContractFromEstimate();
-  if (!fromApi || !allowed || locked) return null;
+  // QE4: no "Use as contract value" while the estimate is blocked (rooms under 50 % of the covered area)
+  if (!fromApi || !allowed || locked || fromApi.blockedBy || isEstimateBlocked(estimate)) return null;
   const s: ContractSuggestion = basis
     ? {
         ...fromApi,

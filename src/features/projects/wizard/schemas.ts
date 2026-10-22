@@ -99,6 +99,9 @@ export function contractSchema(_seesMoney: boolean) {
         .number({ error: msg("projects.v.enterMonths") })
         .nullable()
         .refine((v): v is number => v !== null && Number.isInteger(v) && v >= 0 && v <= 24, msg("projects.v.monthsRange")),
+      // Labour-only scope (QE4): grey-structure labour unless these are ticked
+      labourScopeIncludesFinishing: z.boolean(),
+      labourScopeIncludesMep: z.boolean(),
       supplyRules: z.array(supplyRuleSchema),
       stages: stagesSchema,
     })

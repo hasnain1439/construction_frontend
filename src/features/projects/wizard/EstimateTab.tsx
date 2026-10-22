@@ -18,6 +18,7 @@ import { REVIEW_STEP, WIZARD_STEPS } from "../constants";
 import { ContractFromEstimateCard } from "../estimate/ContractFromEstimateCard";
 import {
   EstimateBasis,
+  EstimateBlockedNotice,
   EstimateCostSummary,
   EstimateKpis,
   EstimateLabour,
@@ -27,6 +28,7 @@ import {
 } from "../estimate/EstimateView";
 import { EstimateSettingsModal } from "../estimate/EstimateSettingsModal";
 import { RateAction, RateEditSlideOver } from "../estimate/RateEditSlideOver";
+import { isEstimateBlocked } from "../estimate/warningText";
 import { useWizard } from "./WizardContext";
 
 /**
@@ -61,6 +63,19 @@ export function EstimateTab() {
           seen.add(key);
           return true;
         });
+        const warningList = (
+          <EstimateWarnings project={project} warnings={warnings} onGoToTab={{ go: goTo, label: stepLabel }} assumptions={boq?.assumptions} />
+        );
+        // QE4: rooms under 50 % of the covered area → no estimate: the reason and what to add, no numbers
+        if (isEstimateBlocked(e)) {
+          return (
+            <div className="space-y-6" data-testid="wizard-estimate">
+              <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.wizardIntro")}</p>
+              {warningList}
+              <EstimateBlockedNotice />
+            </div>
+          );
+        }
         const greyWorking = (
           <>
             <EstimateMaterialSummary estimate={e} />
@@ -80,7 +95,7 @@ export function EstimateTab() {
               </Button>
             </div>
             <EstimateKpis estimate={e} compact />
-            <EstimateWarnings project={project} warnings={warnings} onGoToTab={{ go: goTo, label: stepLabel }} />
+            {warningList}
             {!money ? <InlineAlert tone="info">{t("projects.estimate.noAccessCost")}</InlineAlert> : null}
             <ContractFromEstimateCard projectId={projectId} estimate={e} locked={locked} fromQuote={Boolean(project.createdFromQuoteId)} onFinalize={() => goTo(REVIEW_STEP)} />
             {boq ? (

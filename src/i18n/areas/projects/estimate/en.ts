@@ -330,6 +330,10 @@ export const strings = {
   },
   warn: {
     blockingTitle: "Fix before activating",
+    blockedTitle: "No estimate yet",
+    blockedBody: "The cost, the bill of quantities and the contract value are hidden until the rooms cover at least half of the covered area.",
+    ROOMS_TOO_FEW: "Rooms cover only {percent}% of the covered area ({roomsAreaSqft} of {coveredAreaSqft} sq ft). Add the remaining rooms (or passages) before the estimate can be trusted.",
+    RULEBOOK_RATE_ZERO: "These rates are Rs 0, so their lines cost nothing: {items}. Set a rate in the assumptions.",
     FOOTPRINT_EXCEEDS_PLOT: "The ground footprint ({footprintSqft} sq ft) is larger than the plot ({plotAreaSqft} sq ft) — fix the covered area or the plot size.",
     STEEL_RATE_GENERIC: "No price-list rate for: {materials} — priced at the general steel rate.",
     WALLS_PARTIAL: "{floor}: {missing} of {rooms} rooms have no walls entered — this floor's walls are worked out from the room sizes.",

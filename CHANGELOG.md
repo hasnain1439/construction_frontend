@@ -6,6 +6,13 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Labour-only scope and sparse projects (QE4)
+
+- **Added:** a labour-only contract (Contract tab) has two options, "Include finishing labour (tiles, paint)" and "Include electrical and plumbing labour"; without them the estimate counts grey-structure labour only and shows the left-out lines as the owner's, with no amount.
+- **Added:** when the rooms cover under half of the covered area, the wizard Estimate tab, the Planning BoQ, the Review estimate card and the project overview show why and what to add instead of the cost, and "Use as contract value" is hidden; Review blocks activation (ROOMS_TOO_FEW). Translated in English, Roman Urdu and Urdu.
+- **Fixed:** the RULEBOOK_RATE_ZERO warning (a rate set to Rs 0) is translated in all three languages and names the rates by their labels.
+- API types (`schema.ts`) regenerated (contract `labourScopeIncludesFinishing` / `labourScopeIncludesMep`).
+
 ### Estimate geometry (QA audit, QE2)
 
 - **Changed:** steel bars are shown mm-first everywhere ("12 mm (#4)"; Urdu / Roman Urdu with the local sooter size), and the estimate names the new boundary wall, porch, plinth beam, column stub, backfill, cart-away and plinth-fill lines in all three languages.

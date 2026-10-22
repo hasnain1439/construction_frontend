@@ -254,6 +254,12 @@ const MESSAGES: Record<string, Message> = {
   ESTIMATE_NOT_FOUND: { en: "Estimate not found.", ur: "Estimate nahi mila.", urdu: "تخمینہ نہیں ملا۔" },
   ESTIMATE_LINE_NOT_FOUND: { en: "This estimate line no longer exists — reload the page.", ur: "Yeh line ab mojood nahi — page dobara kholein.", urdu: "یہ لائن اب موجود نہیں — صفحہ دوبارہ کھولیں۔" },
   ESTIMATE_DRAFT_EXISTS: { en: "A draft revision already exists — regenerate or approve it first.", ur: "Ek draft revision pehle se hai — pehle usay dobara banayein ya manzoor karein.", urdu: "ایک مسودہ نظرثانی پہلے سے موجود ہے — پہلے اسے دوبارہ بنائیں یا منظور کریں۔" },
+  // QE4: rooms under 50 % of the covered area → no estimate
+  ROOMS_TOO_FEW: {
+    en: "The rooms entered cover less than half of the covered area. Add the remaining rooms (or passages) before making an estimate.",
+    ur: "Darj kamre covered area ke aadhe se bhi kam hain. Andaza banane se pehle baqi kamre (ya rahdari) darj karein.",
+    urdu: "درج کمرے ڈھکے ہوئے رقبے کے آدھے سے بھی کم ہیں۔ تخمینہ بنانے سے پہلے باقی کمرے (یا راہداری) درج کریں۔",
+  },
   ESTIMATE_LOCKED: { en: "Only a draft revision can change — this one is approved or superseded.", ur: "Sirf draft revision badal sakta hai — yeh manzoor ya purana ho chuka.", urdu: "صرف مسودہ نظرثانی بدل سکتی ہے — یہ منظور یا پرانی ہو چکی۔" },
   ESTIMATE_NOT_DRAFT: { en: "Only a draft revision can be approved.", ur: "Sirf draft revision manzoor ho sakta hai.", urdu: "صرف مسودہ نظرثانی منظور ہو سکتی ہے۔" },
   RATES_OUTDATED: { en: "The price list changed after this draft — confirm to approve with these rates, or regenerate it.", ur: "Is draft ke baad rate list badal gayi — inhi rates par manzoori ki tasdeeq karein ya dobara banayein.", urdu: "اس مسودے کے بعد ریٹ لسٹ بدل گئی — انہی ریٹ پر منظوری کی تصدیق کریں یا دوبارہ بنائیں۔" },

@@ -15,6 +15,7 @@ import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { CheckboxField } from "@/components/forms/CheckboxField";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { useFieldError } from "@/components/forms/FormField";
 import { MoneyField } from "@/components/forms/MoneyInput";
@@ -67,6 +68,8 @@ function initialValues(p: ProjectDetail, presets: SupplyPreset[], defaultCategor
     ratePerSqftPaisa: p.contract?.ratePerSqftPaisa ?? null,
     retentionPercent,
     defectPeriodMonths: p.contract?.defectPeriodMonths ?? 6,
+    labourScopeIncludesFinishing: p.contract?.labourScopeIncludesFinishing ?? false,
+    labourScopeIncludesMep: p.contract?.labourScopeIncludesMep ?? false,
     supplyRules,
     stages: p.billingStages?.length
       ? p.billingStages.map((s) => ({ label: s.label, percent: s.percent, isRetention: s.isRetention }))
@@ -302,6 +305,24 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
   );
 }
 
+/**
+ * Labour-only scope (QE4): by default the labour contract covers the grey structure only; these
+ * bring finishing labour (tiles, paint) and electrical + plumbing labour into the estimate.
+ */
+function LabourScopeFields({ disabled }: { disabled: boolean }) {
+  const contractType = useWatch({ name: "contractType" }) as ContractType;
+  const t = useT();
+  if (contractType !== "LABOR_ONLY") return null;
+  return (
+    <div className="space-y-2 rounded-xl border bg-muted/30 p-4" data-testid="labour-scope">
+      <p className="text-sm font-medium">{t("projects.contract.labourScope")}</p>
+      <p className="text-sm text-muted-foreground">{t("projects.contract.labourScopeHint")}</p>
+      <CheckboxField name="labourScopeIncludesFinishing" label={t("projects.contract.labourScopeFinishing")} disabled={disabled} />
+      <CheckboxField name="labourScopeIncludesMep" label={t("projects.contract.labourScopeMep")} disabled={disabled} />
+    </div>
+  );
+}
+
 /** Contract value (or labour rate) — optional until activation; running bills also need a rate per sq ft. */
 function ValueFields({ coveredArea, seesMoney, disabled }: { coveredArea: number | null; seesMoney: boolean; disabled: boolean }) {
   const [contractType, billingModel] = useWatch({ name: ["contractType", "billingModel"] }) as [ContractType, string];
@@ -472,6 +493,8 @@ export function ContractTab() {
             ...(seesMoney && (v.contractType === "LABOR_ONLY" || v.billingModel === "RUNNING_BILLS") ? { ratePerSqftPaisa: v.ratePerSqftPaisa || null } : {}),
             retentionPercent: v.retentionPercent,
             defectPeriodMonths: v.defectPeriodMonths,
+            // Labour-only scope (QE4): sent with a labour-only contract; another type keeps what was stored
+            ...(v.contractType === "LABOR_ONLY" ? { labourScopeIncludesFinishing: v.labourScopeIncludesFinishing, labourScopeIncludesMep: v.labourScopeIncludesMep } : {}),
             supplyRules: v.supplyRules
               .filter((r) => !r.locked)
               .map((r) => ({
@@ -514,6 +537,7 @@ export function ContractTab() {
             <ValueFields coveredArea={coveredArea} seesMoney={seesMoney} disabled={locked} />
             <BillingModelField labels={labels} stagesFor={stagesFor} disabled={locked} />
           </FieldGrid>
+          <LabourScopeFields disabled={locked} />
           <Schedule templates={templates.data ?? []} seesMoney={seesMoney} coveredArea={coveredArea} disabled={locked} labels={labels} />
           <FieldGrid>
             <NumberField name="retentionPercent" label={t("field.retention")} required unit="%" decimals={2} hint={t("projects.contract.retentionHint")} disabled={locked} />

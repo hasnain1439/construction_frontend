@@ -230,6 +230,8 @@ export type EstimateWarningCode =
   | "FOUNDATION_LENGTH_UNKNOWN"
   | "ROOMS_BELOW_COVERED"
   | "FOOTPRINT_EXCEEDS_PLOT"
+  // QE4: rooms under 50 % of the covered area → no estimate (blocking; params roomsAreaSqft, coveredAreaSqft, percent)
+  | "ROOMS_TOO_FEW"
   | "RATES_MISSING"
   | "LABOUR_RATES_MISSING"
   | "CONTRACT_VALUE_MISSING"
@@ -254,7 +256,7 @@ export type EstimateWarningCode =
 export interface EstimateWarning {
   code: EstimateWarningCode;
   message: string;
-  /** A hard error (FOOTPRINT_EXCEEDS_PLOT): Review blocks activation on the same check. */
+  /** A hard error (FOOTPRINT_EXCEEDS_PLOT, ROOMS_TOO_FEW): Review blocks activation on the same check. */
   blocking?: boolean;
   tab?: number;
   params?: Record<string, number>;
@@ -320,6 +322,8 @@ export interface ProjectEstimate {
   boqCost?: BoqCost;
   /** Contract value (labour-only: rate) from this estimate — needs fields.contract + fields.rates; null before a contract type. */
   contractSuggestion?: ContractSuggestion | null;
+  /** QE4: why no estimate is produced (rooms under 50 % of the covered area); null / absent = an estimate. */
+  blockedBy?: "ROOMS_TOO_FEW" | null;
   warnings: EstimateWarning[];
   /** BoQ preview = what POST /projects/:id/estimates would save (Step 11). Absent from an older API. */
   boq?: BoqPreview;
@@ -379,8 +383,10 @@ export interface ContractSuggestion {
   finishingAllowance?: FinishingAllowanceLine | null;
   companyMarginPercent: number;
   companyFinishingAllowancePercent: number;
-  /** null without a cost (or covered area for a rate). */
+  /** null without a cost (or covered area for a rate), or while the estimate is blocked. */
   suggestedPaisa: Paisa | null;
+  /** QE4: set while the estimate is blocked (no suggestion). */
+  blockedBy?: "ROOMS_TOO_FEW" | null;
   /** Contract value (labour-only: rate) already on the project. */
   currentPaisa: Paisa | null;
 }

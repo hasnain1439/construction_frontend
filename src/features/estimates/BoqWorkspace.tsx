@@ -28,7 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { EstimateBasisOverride } from "@/features/projects/estimate/ContractFromEstimateCard";
-import { EstimateWarnings } from "@/features/projects/estimate/EstimateView";
+import { EstimateBlockedNotice, EstimateWarnings } from "@/features/projects/estimate/EstimateView";
+import { isEstimateBlocked } from "@/features/projects/estimate/warningText";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useLanguage, useStatusT, useT } from "@/i18n/useT";
@@ -103,6 +104,18 @@ export function BoqWorkspace({
     />
   );
 
+  // QE4: rooms under 50 % of the covered area → no estimate: the reason instead of the numbers
+  const blocked = isEstimateBlocked(live);
+  if (!current && blocked) {
+    return (
+      <div className="space-y-6">
+        {list.length ? bar : null}
+        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, live.boq?.warnings ?? [])} assumptions={live.boq?.assumptions} />
+        <EstimateBlockedNotice />
+      </div>
+    );
+  }
+
   if (!current) {
     const boq = live.boq;
     return (
@@ -111,7 +124,7 @@ export function BoqWorkspace({
         <InlineAlert tone="info" title={t("estimates.boq.previewTitle")}>
           {t("estimates.boq.previewBody")}
         </InlineAlert>
-        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} />
+        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} assumptions={boq?.assumptions} />
         {boq ? (
           <BoqBody
             money={boq}
@@ -142,6 +155,12 @@ export function BoqWorkspace({
   return (
     <div className="space-y-6">
       {bar}
+      {blocked ? (
+        <>
+          <EstimateWarnings project={project} warnings={live.warnings.filter((w) => w.code === "ROOMS_TOO_FEW")} />
+          <EstimateBlockedNotice />
+        </>
+      ) : null}
       {detail.isLoading || (detail.isFetching && detail.data?.id !== current.id) ? (
         <CardsSkeleton count={3} height="h-40" />
       ) : detail.error || !detail.data ? (
@@ -149,7 +168,7 @@ export function BoqWorkspace({
       ) : (
         <>
           <RevisionBody project={project} estimate={detail.data} />
-          {detail.data.totalPaisa && contractCard
+          {detail.data.totalPaisa && contractCard && !blocked
             ? contractCard({
                 estimateId: detail.data.id,
                 totalPaisa: detail.data.totalPaisa,

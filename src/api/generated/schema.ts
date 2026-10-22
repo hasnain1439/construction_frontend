@@ -15220,7 +15220,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -15463,7 +15465,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -15948,7 +15952,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -16228,7 +16234,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -16523,7 +16531,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -16788,7 +16798,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -17017,6 +17029,10 @@ export interface paths {
                         ratePerSqftPaisa?: string | number | null;
                         retentionPercent?: number;
                         defectPeriodMonths?: number;
+                        /** @description LABOR_ONLY: the labour contract also covers finishing labour (tile laying, paint). Default false = grey-structure labour only. Omitted = unchanged */
+                        labourScopeIncludesFinishing?: boolean;
+                        /** @description LABOR_ONLY: the labour contract also covers electrical and plumbing (MEP) rough-in labour. Default false. Omitted = unchanged */
+                        labourScopeIncludesMep?: boolean;
                         /** @description Overrides on top of the contract-type preset */
                         supplyRules?: {
                             /** @enum {string} */
@@ -17093,7 +17109,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -17606,7 +17624,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -17882,7 +17902,9 @@ export interface paths {
                          *           "ratePerSqftPaisa": null,
                          *           "contractTotalPaisa": "1850000000",
                          *           "retentionPercent": 5,
-                         *           "defectPeriodMonths": 6
+                         *           "defectPeriodMonths": 6,
+                         *           "labourScopeIncludesFinishing": false,
+                         *           "labourScopeIncludesMep": false
                          *         },
                          *         "plot": {
                          *           "plotUnit": "MARLA",
@@ -19735,9 +19757,11 @@ export interface paths {
          *
          *     **Costing** Each material is priced from the company price list in the project's quality category for its supply category (cement, bricks, steel, sand & bajri, waterproofing; the company default category otherwise), converted to the rate's unit (kg → ton, nos → thousand, cft → trolley, alt units). No rate → `rateStatus: RATE_MISSING`, left out of every total, warning RATES_MISSING. Steel by size is priced from Steel Grade-60 #3 / #4 / #5 / #6 (a company "Grade-40 #n" material first when a roof is G40); a size without a rate takes the general steel rate (`rateFallback: true`, warning STEEL_RATE_GENERIC). Owner-supplied categories are valued but kept out of the contractor cost (`ownerSuppliedPaisa`). Labour: covered area × `labourRatePerSqftPaisa` when set, else the SUBCONTRACT piece rates BRICK_MASONRY / PLASTER / SHUTTERING / STEEL_FIXING. `cost.marginPercent` = (contract total − estimated cost) ÷ contract total.
          *
-         *     **Contract value from this estimate** `contractSuggestion` (needs fields.contract + fields.rates; null before the contract type is chosen): the cost is the **BoQ total** (Step 11: direct + site overheads + contingency, contractor scope; also returned as `boqCost`) of the saved revision the BoQ page opens by default (draft, else approved, else newest), else of the live BoQ preview (`basisSource` REVISION / LIVE, `estimateId`, `estimateRevision`, `estimateStatus`). `kind` CONTRACT_VALUE (FULL / GREY) = BoQ total × (1 + finishing %) × (1 + margin %) rounded to the nearest Rs 1,000 — the finishing allowance applies to FULL only, and only when the BoQ prices no finishing (`finishingApplies`; the BoQ normally prices tiles, paint and finishing labour, so finishing is never counted twice; when it applies, `finishingAllowance` is its own labelled line { label "Finishing allowance — no finishing lines in BoQ", reason NO_FINISHING_LINES, method PERCENT_OF_BOQ, percent, basisPaisa, amountPaisa = BoQ total × finishing % (before the margin), calculation }, else null — never both finishing lines and the allowance); RATE_PER_SQFT (LABOR_ONLY, the owner buys the material) = BoQ total × (1 + margin %) ÷ covered sq ft rounded to Rs 5. `marginPercent` / `finishingAllowancePercent` come from the project override (`marginSource` / `finishingSource` PROJECT) or the company settings (COMPANY; `companyMarginPercent`, `companyFinishingAllowancePercent`). `basisPaisa` = the cost (labour) used, `suggestedPaisa` (null without a cost / covered area), `currentPaisa` = the value already on the project. Apply it with POST /projects/{id}/contract/from-estimate.
+         *     **Contract value from this estimate** `contractSuggestion` (needs fields.contract + fields.rates; null before the contract type is chosen): the cost is the **BoQ total** (Step 11: direct + site overheads + contingency, contractor scope; also returned as `boqCost`) of the saved revision the BoQ page opens by default (draft, else approved, else newest), else of the live BoQ preview (`basisSource` REVISION / LIVE, `estimateId`, `estimateRevision`, `estimateStatus`). `kind` CONTRACT_VALUE (FULL / GREY) = BoQ total × (1 + finishing %) × (1 + margin %) rounded to the nearest Rs 1,000 — the finishing allowance applies to FULL only, and only when the BoQ prices no finishing (`finishingApplies`; the BoQ normally prices tiles, paint and finishing labour, so finishing is never counted twice; when it applies, `finishingAllowance` is its own labelled line { label "Finishing allowance — no finishing lines in BoQ", reason NO_FINISHING_LINES, method PERCENT_OF_BOQ, percent, basisPaisa, amountPaisa = BoQ total × finishing % (before the margin), calculation }, else null — never both finishing lines and the allowance); RATE_PER_SQFT (LABOR_ONLY, the owner buys the material) = BoQ total × (1 + margin %) ÷ covered sq ft rounded to Rs 5. A LABOR_ONLY BoQ covers grey-structure labour only (earthwork, masonry, RCC, plaster, roof waterproofing labour, the tools + scaffolding share of equipment) unless the project's contract has `labourScopeIncludesFinishing` (tile laying, paint) / `labourScopeIncludesMep` (electrical + plumbing rough-in labour); the lines left out stay as owner lines with no rate or amount. `marginPercent` / `finishingAllowancePercent` come from the project override (`marginSource` / `finishingSource` PROJECT) or the company settings (COMPANY; `companyMarginPercent`, `companyFinishingAllowancePercent`). `basisPaisa` = the cost (labour) used, `suggestedPaisa` (null without a cost / covered area), `currentPaisa` = the value already on the project. Apply it with POST /projects/{id}/contract/from-estimate.
          *
-         *     **Visibility** Rates, amounts and `cost` need fields.rates; `contractTotalPaisa` fields.contract; the margin fields.profit + fields.contract. Warnings: NO_FLOORS, NO_ROOMS, FOUNDATION_MISSING, STRUCTURE_TYPE_ASSUMED, COVERED_AREA_ESTIMATED, FOUNDATION_LENGTH_UNKNOWN, ROOMS_BELOW_COVERED, RATES_MISSING, LABOUR_RATES_MISSING, CONTRACT_VALUE_MISSING, CONTRACT_INCLUDES_FINISHING. A project with no rooms or foundation answers 200 with warnings.
+         *     **Blocked estimate** When the rooms cover under 50 % of the covered area (overall over the floors that have rooms, or on one such floor; a floor with no rooms at all is still estimated from its share), the engine adds the blocking warning ROOMS_TOO_FEW `{ roomsAreaSqft, coveredAreaSqft, percent }` (+ `floor`), `blockedBy` is "ROOMS_TOO_FEW", `boqCost` is left out and `contractSuggestion.suggestedPaisa` is null (`blockedBy` set). Generate, Regenerate and from-estimate answer 400 ROOMS_TOO_FEW; Review blocks activation. 50–85 %: the walls / plaster / lintels / beams are scaled up (`coverageScale`).
+         *
+         *     **Visibility** Rates, amounts and `cost` need fields.rates; `contractTotalPaisa` fields.contract; the margin fields.profit + fields.contract. Warnings: NO_FLOORS, NO_ROOMS, FOUNDATION_MISSING, STRUCTURE_TYPE_ASSUMED, COVERED_AREA_ESTIMATED, FOUNDATION_LENGTH_UNKNOWN, ROOMS_BELOW_COVERED, ROOMS_TOO_FEW (blocking), FOOTPRINT_EXCEEDS_PLOT (blocking), RATES_MISSING, LABOUR_RATES_MISSING, CONTRACT_VALUE_MISSING, CONTRACT_INCLUDES_FINISHING. A project with no rooms or foundation answers 200 with warnings.
          *
          *     Permission projects.estimate.view (THEKEDAR, Administrator, Project Manager, Accountant); out of scope → 404.
          */
@@ -20133,7 +20157,7 @@ export interface paths {
         put?: never;
         /**
          * Set the contract value from the estimate
-         * @description Sets the contract value (FULL / GREY: BoQ total × (1 + finishing %) × (1 + margin %), nearest Rs 1,000; the finishing allowance only when the BoQ prices no finishing) or, for LABOR_ONLY, the rate per sq ft (BoQ total × (1 + margin %) ÷ covered sq ft, nearest Rs 5). The BoQ total is that of the saved revision `estimateId` (the BoQ page sends the one on screen), else the draft / approved / newest revision, else the live BoQ preview — the same numbers as `contractSuggestion` of GET /estimate. Unknown `estimateId` → 404 ESTIMATE_NOT_FOUND. Omitted percentages = the project override, else the company default (TenantSettings.defaultMarginPercent / defaultFinishingAllowancePercent). A percentage that differs from the company default is stored on the project (it sticks for the next suggestion); one equal to it clears the override. Contract type, billing model, supply rules and stages are unchanged; stage amounts are recomputed. A project that already has a value → 409 CONTRACT_VALUE_EXISTS `{ currentPaisa, suggestedPaisa }` unless `replace: true` (the user confirmed). No contract type yet → 400 CONTRACT_MISSING; no cost (no rooms / rates; labour-only: no labour or covered area) → 400 ESTIMATE_COST_MISSING. Needs projects.project.edit + fields.contract + fields.rates (403 PERMISSION_DENIED); project DRAFT or ACTIVE (409 PROJECT_LOCKED). Audited `project.contract_from_estimate` { costPaisa, marginPercent, marginSource, finishingAllowancePercent, valuePaisa, previousPaisa }. Returns the full project.
+         * @description Sets the contract value (FULL / GREY: BoQ total × (1 + finishing %) × (1 + margin %), nearest Rs 1,000; the finishing allowance only when the BoQ prices no finishing) or, for LABOR_ONLY, the rate per sq ft (BoQ total × (1 + margin %) ÷ covered sq ft, nearest Rs 5). The BoQ total is that of the saved revision `estimateId` (the BoQ page sends the one on screen), else the draft / approved / newest revision, else the live BoQ preview — the same numbers as `contractSuggestion` of GET /estimate. Unknown `estimateId` → 404 ESTIMATE_NOT_FOUND. Omitted percentages = the project override, else the company default (TenantSettings.defaultMarginPercent / defaultFinishingAllowancePercent). A percentage that differs from the company default is stored on the project (it sticks for the next suggestion); one equal to it clears the override. Contract type, billing model, supply rules and stages are unchanged; stage amounts are recomputed. A project that already has a value → 409 CONTRACT_VALUE_EXISTS `{ currentPaisa, suggestedPaisa }` unless `replace: true` (the user confirmed). No contract type yet → 400 CONTRACT_MISSING; no cost (no rooms / rates; labour-only: no labour or covered area) → 400 ESTIMATE_COST_MISSING; rooms under 50 % of the covered area → 400 ROOMS_TOO_FEW. Needs projects.project.edit + fields.contract + fields.rates (403 PERMISSION_DENIED); project DRAFT or ACTIVE (409 PROJECT_LOCKED). Audited `project.contract_from_estimate` { costPaisa, marginPercent, marginSource, finishingAllowancePercent, valuePaisa, previousPaisa }. Returns the full project.
          */
         post: {
             parameters: {
@@ -20164,7 +20188,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR | CONTRACT_MISSING | ESTIMATE_COST_MISSING */
+                /** @description VALIDATION_ERROR | CONTRACT_MISSING | ESTIMATE_COST_MISSING | ROOMS_TOO_FEW */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -20741,7 +20765,7 @@ export interface paths {
         put?: never;
         /**
          * Generate an estimate revision (DRAFT)
-         * @description Saves the current estimate as DRAFT revision n (last + 1): every BoQ line (14 sections, build `stageKey`, trace, wastage, supplier) with the current rulebook (company region → company overrides → project overrides) and price-list rates. Only one DRAFT at a time (409 ESTIMATE_DRAFT_EXISTS `{ estimateId }` — regenerate it instead). Project must be DRAFT or ACTIVE (409 PROJECT_LOCKED). Permission projects.estimate.manage. Audited `estimate.generate`. Money fields (`ratePaisa`, `amountPaisa`, every `*Paisa` total, `perSqftPaisa`) need fields.rates — without it they are left out; `contractTotalPaisa` needs fields.contract; `marginPaisa` / `marginPercent` fields.contract + fields.profit.
+         * @description Saves the current estimate as DRAFT revision n (last + 1): every BoQ line (14 sections, build `stageKey`, trace, wastage, supplier) with the current rulebook (company region → company overrides → project overrides) and price-list rates. Only one DRAFT at a time (409 ESTIMATE_DRAFT_EXISTS `{ estimateId }` — regenerate it instead). Project must be DRAFT or ACTIVE (409 PROJECT_LOCKED). Rooms covering under 50 % of the covered area (overall, or on a floor that has rooms) → 400 ROOMS_TOO_FEW `{ roomsAreaSqft, coveredAreaSqft, percent, floor? }` (no estimate until the remaining rooms / passages are added). Permission projects.estimate.manage. Audited `estimate.generate`. Money fields (`ratePaisa`, `amountPaisa`, every `*Paisa` total, `perSqftPaisa`) need fields.rates — without it they are left out; `contractTotalPaisa` needs fields.contract; `marginPaisa` / `marginPercent` fields.contract + fields.profit.
          */
         post: {
             parameters: {
@@ -20872,7 +20896,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR */
+                /** @description VALIDATION_ERROR | ROOMS_TOO_FEW */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -21109,7 +21133,7 @@ export interface paths {
         put?: never;
         /**
          * Regenerate a DRAFT revision
-         * @description Recomputes a DRAFT from the current project, rulebook and price list (same id and revision; `ratesOutdated` back to false). Line overrides are kept by `lineKey`. APPROVED / SUPERSEDED → 409 ESTIMATE_LOCKED. Permission projects.estimate.manage. Audited `estimate.regenerate`.
+         * @description Recomputes a DRAFT from the current project, rulebook and price list (same id and revision; `ratesOutdated` back to false). Line overrides are kept by `lineKey`. APPROVED / SUPERSEDED → 409 ESTIMATE_LOCKED. Rooms under 50 % of the covered area → 400 ROOMS_TOO_FEW. Permission projects.estimate.manage. Audited `estimate.regenerate`.
          */
         post: {
             parameters: {
@@ -21234,6 +21258,15 @@ export interface paths {
                             success: true;
                             data?: unknown;
                         };
+                    };
+                };
+                /** @description ROOMS_TOO_FEW */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
                 /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */

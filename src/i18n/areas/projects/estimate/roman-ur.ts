@@ -335,6 +335,10 @@ export const strings: Widen<typeof En.strings> = {
   },
   warn: {
     blockingTitle: "Activate karne se pehle theek karein",
+    blockedTitle: "Abhi andaza nahi",
+    blockedBody: "Jab tak kamre covered area ke kam az kam aadhe na hon, kharcha, BoQ aur theke ki raqam nahi dikhayi jati.",
+    ROOMS_TOO_FEW: "Kamre covered area ka sirf {percent}% hain ({coveredAreaSqft} mein se {roomsAreaSqft} sq ft). Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
+    RULEBOOK_RATE_ZERO: "In rates ki qeemat Rs 0 hai, is liye in lines ka koi kharcha nahi lagta: {items}. Assumptions mein rate darj karein.",
     FOOTPRINT_EXCEEDS_PLOT: "Ground footprint ({footprintSqft} sq ft) plot ({plotAreaSqft} sq ft) se bara hai — covered area ya plot size theek karein.",
     STEEL_RATE_GENERIC: "In ka price list rate nahin: {materials} — aam sarye ke rate par lagaya.",
     WALLS_PARTIAL: "{floor}: {rooms} mein se {missing} kamron ki deewarein darj nahin — is manzil ki deewarein kamron ke size se nikaali gayin.",

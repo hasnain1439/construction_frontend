@@ -333,6 +333,10 @@ export const strings: Widen<typeof En.strings> = {
   },
   warn: {
     blockingTitle: "ایکٹیویٹ کرنے سے پہلے درست کریں",
+    blockedTitle: "ابھی تخمینہ نہیں",
+    blockedBody: "جب تک کمرے کورڈ رقبے کے کم از کم آدھے نہ ہوں، خرچہ، مقداروں کی فہرست اور ٹھیکے کی رقم نہیں دکھائی جاتی۔",
+    ROOMS_TOO_FEW: "کمرے کورڈ رقبے کا صرف {percent}% ہیں ({coveredAreaSqft} میں سے {roomsAreaSqft} مربع فٹ)۔ تخمینے پر بھروسہ کرنے سے پہلے باقی کمرے (یا راہداری) درج کریں۔",
+    RULEBOOK_RATE_ZERO: "ان ریٹس کی قیمت 0 روپے ہے، اس لیے ان لائنوں کا کوئی خرچہ نہیں: {items}۔ مفروضات میں ریٹ درج کریں۔",
     FOOTPRINT_EXCEEDS_PLOT: "گراؤنڈ فٹ پرنٹ ({footprintSqft} مربع فٹ) پلاٹ ({plotAreaSqft} مربع فٹ) سے بڑا ہے — کورڈ ایریا یا پلاٹ سائز درست کریں۔",
     STEEL_RATE_GENERIC: "ان کا پرائس لسٹ ریٹ نہیں: {materials} — عام سریے کے ریٹ پر لگایا۔",
     WALLS_PARTIAL: "{floor}: {rooms} میں سے {missing} کمروں کی دیواریں درج نہیں — اس منزل کی دیواریں کمروں کے سائز سے نکالی گئیں۔",
