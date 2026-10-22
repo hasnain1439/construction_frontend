@@ -24,14 +24,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useEnumT, useLanguage, useT } from "@/i18n/useT";
+import { useEnumT, useLanguage, useMessageT, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
 import { OPENING_TYPES, ROOM_TYPES } from "../constants";
 import { formatArea, isWetType, roomCalc } from "../utils/calc";
 import { WALL_SIDES } from "../utils/roof";
 import { RoomWalls, rowsToBody, wallsToRows } from "./RoomWalls";
-import { roomSchema } from "./schemas";
+import { HEIGHT_MAX_FT, HEIGHT_MIN_FT, roomSchema } from "./schemas";
 
 /** Select value for "not placed" (an opening on no particular wall). */
 const ANY_WALL = "ANY";
@@ -50,7 +50,27 @@ const toValues = (room: Room | null, floor: FloorWithRooms): Values => ({
   walls: wallsToRows(room?.walls ?? null),
 });
 
-function NumberCell({ name, label, unit, disabled, decimals = 2 }: { name: string; label: string; unit?: string; disabled?: boolean; decimals?: number }) {
+/** A number cell with its bounds and its own inline message (QA B-27: never just a red border). */
+function NumberCell({
+  name,
+  label,
+  unit,
+  disabled,
+  decimals = 2,
+  min,
+  max,
+  step,
+}: {
+  name: string;
+  label: string;
+  unit?: string;
+  disabled?: boolean;
+  decimals?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  const tm = useMessageT();
   return (
     <Controller
       name={name}
@@ -62,8 +82,12 @@ function NumberCell({ name, label, unit, disabled, decimals = 2 }: { name: strin
           onBlur={field.onBlur}
           unit={unit}
           decimals={decimals}
+          min={min}
+          max={max}
+          step={step}
           disabled={disabled}
           aria-invalid={Boolean(fieldState.error) || undefined}
+          error={fieldState.error?.message ? tm(fieldState.error.message) : undefined}
         />
       )}
     />
@@ -92,7 +116,7 @@ function LiveCalc() {
         {t("projects.mode.openings")} <strong className="text-foreground">{c.openingsAreaSqft > 0 ? `−${formatArea(c.openingsAreaSqft)}` : formatArea(0)}</strong>
       </span>
       <span>
-        {t("projects.mode.netWall")} <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong> {t("projects.unit.sqft")}
+        {t("projects.room.plasterFace")} <strong className="text-primary">{formatArea(c.netWallAreaSqft)}</strong> {t("projects.unit.sqft")}
       </span>
     </p>
   );
@@ -249,15 +273,15 @@ export function RoomCard({
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             {t("projects.room.length")}<span className="text-destructive">*</span>
-            <NumberCell name="lengthFt" label={t("projects.room.length")} unit={t("projects.unit.ft")} disabled={disabled} />
+            <NumberCell name="lengthFt" label={t("projects.room.length")} unit={t("projects.unit.ft")} min={1} max={200} step={0.5} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             {t("projects.room.width")}<span className="text-destructive">*</span>
-            <NumberCell name="widthFt" label={t("projects.room.width")} unit={t("projects.unit.ft")} disabled={disabled} />
+            <NumberCell name="widthFt" label={t("projects.room.width")} unit={t("projects.unit.ft")} min={1} max={200} step={0.5} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             {t("projects.room.height")}<span className="text-destructive">*</span>
-            <NumberCell name="heightFt" label={t("projects.room.height")} unit={t("projects.unit.ft")} disabled={disabled} />
+            <NumberCell name="heightFt" label={t("projects.room.height")} unit={t("projects.unit.ft")} min={HEIGHT_MIN_FT} max={HEIGHT_MAX_FT} step={0.5} disabled={disabled} />
           </label>
           <label className="space-y-1 text-xs font-medium text-muted-foreground">
             {t("projects.room.wetDry")}
@@ -348,7 +372,8 @@ export function RoomCard({
         </div>
 
         <RoomWalls
-          otherRooms={floor.rooms.filter((r) => r.id !== room?.id).map((r) => ({ id: r.id, name: r.name }))}
+          roomId={room?.id ?? null}
+          otherRooms={floor.rooms.filter((r) => r.id !== room?.id).map((r) => ({ id: r.id, name: r.name, lengthFt: r.lengthFt, widthFt: r.widthFt, walls: r.walls }))}
           structure={structure}
           disabled={disabled}
         />

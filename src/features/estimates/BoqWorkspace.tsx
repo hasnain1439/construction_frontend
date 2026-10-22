@@ -28,7 +28,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { EstimateBasisOverride } from "@/features/projects/estimate/ContractFromEstimateCard";
-import { EstimateWarnings } from "@/features/projects/estimate/EstimateView";
+import { EstimateBlockedNotice, EstimateWarnings } from "@/features/projects/estimate/EstimateView";
+import { isEstimateBlocked } from "@/features/projects/estimate/warningText";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useLanguage, useStatusT, useT } from "@/i18n/useT";
@@ -38,6 +39,7 @@ import { formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { BoqTable } from "./BoqTable";
 import { LineOverrideSlideOver } from "./LineOverrideSlideOver";
+import { RateAction, RateEditSlideOver } from "@/features/projects/estimate/RateEditSlideOver";
 import { fmt, hasMargin, hasMoney, iso, pdfLang, rupees, stageText } from "./labels";
 
 const PREVIEW = "preview";
@@ -87,6 +89,8 @@ export function BoqWorkspace({
   const list = revisions.data ?? [];
   const current = selected === PREVIEW ? null : (list.find((r) => r.id === selected) ?? defaultRevision(list));
   const detail = useGetEstimateRevisionQuery(current?.id ?? "", { skip: !current });
+  const readOnly = useReadOnly();
+  const [rateEdit, setRateEdit] = useState<{ line: BoqLine; key: string } | null>(null);
 
   if (revisions.isLoading) return <CardsSkeleton count={2} height="h-32" />;
   if (revisions.error) return <ErrorState error={revisions.error} onRetry={revisions.refetch} />;
@@ -100,6 +104,18 @@ export function BoqWorkspace({
     />
   );
 
+  // QE4: rooms under 50 % of the covered area → no estimate: the reason instead of the numbers
+  const blocked = isEstimateBlocked(live);
+  if (!current && blocked) {
+    return (
+      <div className="space-y-6">
+        {list.length ? bar : null}
+        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, live.boq?.warnings ?? [])} assumptions={live.boq?.assumptions} />
+        <EstimateBlockedNotice />
+      </div>
+    );
+  }
+
   if (!current) {
     const boq = live.boq;
     return (
@@ -108,8 +124,26 @@ export function BoqWorkspace({
         <InlineAlert tone="info" title={t("estimates.boq.previewTitle")}>
           {t("estimates.boq.previewBody")}
         </InlineAlert>
-        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} />
-        {boq ? <BoqBody money={boq} coveredAreaSqft={boq.coveredAreaSqft} ownerLines={countOwner(boq.sections.flatMap((s) => s.lines))} lineCount={boq.sections.reduce((a, s) => a + s.lines.length, 0)} sections={boq.sections} stages={boq.stages} /> : null}
+        <EstimateWarnings project={project} warnings={mergeWarnings(live.warnings, boq?.warnings ?? [])} assumptions={boq?.assumptions} />
+        {boq ? (
+          <BoqBody
+            money={boq}
+            coveredAreaSqft={boq.coveredAreaSqft}
+            ownerLines={countOwner(boq.sections.flatMap((s) => s.lines))}
+            lineCount={boq.sections.reduce((a, s) => a + s.lines.length, 0)}
+            sections={boq.sections}
+            stages={boq.stages}
+            rateAction={(line) => <RateAction line={line} onEdit={(l, key) => setRateEdit({ line: l, key })} />}
+          />
+        ) : null}
+        <RateEditSlideOver
+          projectId={project.id}
+          estimate={live}
+          line={rateEdit?.line ?? null}
+          rateKey={rateEdit?.key ?? null}
+          locked={readOnly || !ESTIMATING_STATUSES.includes(project.status)}
+          onClose={() => setRateEdit(null)}
+        />
         {boq?.totalPaisa && contractCard
           ? contractCard({ estimateId: null, totalPaisa: boq.totalPaisa, revision: null, status: null, coveredAreaSqft: boq.coveredAreaSqft })
           : null}
@@ -121,6 +155,12 @@ export function BoqWorkspace({
   return (
     <div className="space-y-6">
       {bar}
+      {blocked ? (
+        <>
+          <EstimateWarnings project={project} warnings={live.warnings.filter((w) => w.code === "ROOMS_TOO_FEW")} />
+          <EstimateBlockedNotice />
+        </>
+      ) : null}
       {detail.isLoading || (detail.isFetching && detail.data?.id !== current.id) ? (
         <CardsSkeleton count={3} height="h-40" />
       ) : detail.error || !detail.data ? (
@@ -128,7 +168,7 @@ export function BoqWorkspace({
       ) : (
         <>
           <RevisionBody project={project} estimate={detail.data} />
-          {detail.data.totalPaisa && contractCard
+          {detail.data.totalPaisa && contractCard && !blocked
             ? contractCard({
                 estimateId: detail.data.id,
                 totalPaisa: detail.data.totalPaisa,
@@ -186,6 +226,7 @@ function BoqBody({
   sections,
   stages,
   onAdjust,
+  rateAction,
 }: {
   money: BoqMoney;
   coveredAreaSqft: number;
@@ -194,6 +235,7 @@ function BoqBody({
   sections: EstimateDetail["sections"];
   stages: BoqStageTotal[];
   onAdjust?: (line: BoqLine) => void;
+  rateAction?: (line: BoqLine) => ReactNode;
 }) {
   const t = useT();
   const money = hasMoney(m);
@@ -201,7 +243,7 @@ function BoqBody({
     <>
       {!money ? <InlineAlert tone="info">{t("estimates.boq.noMoney")}</InlineAlert> : null}
       <BoqKpis money={m} coveredAreaSqft={coveredAreaSqft} ownerLines={ownerLines} lineCount={lineCount} />
-      <BoqTable sections={sections} totals={m} money={money} onAdjust={onAdjust} />
+      <BoqTable sections={sections} totals={m} money={money} onAdjust={onAdjust} rateAction={money ? rateAction : undefined} />
       {money ? <StageTotals stages={stages} /> : null}
     </>
   );

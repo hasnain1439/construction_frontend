@@ -3,6 +3,7 @@ import type * as En from "./en";
 
 export const strings: Widen<typeof En.strings> = {
   section: {
+    FINISHING_ITEMS: "فنشنگ کا سامان",
     EXCAVATION_EARTHWORK: "کھدائی اور بھرائی",
     CONCRETE: "کنکریٹ (سادہ / سریا دار)",
     STEEL: "سریا",
@@ -56,10 +57,10 @@ export const strings: Widen<typeof En.strings> = {
     sand: "ریت",
     crush: "بجری (کرش)",
     steel: "سریا",
-    steel10: "سریا #3 (10 ملی میٹر)",
-    steel12: "سریا #4 (12 ملی میٹر)",
-    steel16: "سریا #5 (16 ملی میٹر)",
-    steel20: "سریا #6 (20 ملی میٹر)",
+    steel10: "سریا 10 ملی میٹر (3 سوتر)",
+    steel12: "سریا 12 ملی میٹر (4 سوتر)",
+    steel16: "سریا 16 ملی میٹر (5 سوتر)",
+    steel20: "سریا 20 ملی میٹر (6 سوتر)",
     tIron: "ٹی آئرن",
     garder: "گارڈر (آر ایس جے)",
     roofTile: "چھت کی ٹائلیں",
@@ -112,6 +113,10 @@ export const strings: Widen<typeof En.strings> = {
     OWNER: "مالک",
   },
   boq: {
+    percentOfDirect: "براہ راست لاگت ({base}) کا {percent}%",
+    percentOfDirectOverheads: "براہ راست لاگت + اوور ہیڈز ({base}) کا {percent}%",
+    linesMatch: "اوپر کی لائنوں کا جوڑ براہ راست لاگت کے برابر ہے۔",
+    linesDiffer: "اوپر کی لائنوں کا جوڑ {lines} ہے، براہ راست لاگت {direct} ہے۔",
     previewTitle: "براہِ راست جائزہ — ابھی محفوظ نہیں",
     previewBody: "آج کی مقداریں اور ریٹ۔ تخمینہ بنائیں تاکہ یہ نظرثانی کے طور پر محفوظ ہو اور آپ جانچ کر منظور کر سکیں۔",
     generateTitle: "پہلا تخمینہ بنائیں",

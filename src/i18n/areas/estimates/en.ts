@@ -1,6 +1,7 @@
 /** English texts of Step 11 — estimate revisions (BoQ), compare, owner shopping list, rulebook: `t("estimates.…")`. */
 export const strings = {
   section: {
+    FINISHING_ITEMS: "Finishing items",
     EXCAVATION_EARTHWORK: "Excavation & earthwork",
     CONCRETE: "Concrete (PCC / RCC)",
     STEEL: "Steel",
@@ -54,10 +55,10 @@ export const strings = {
     sand: "Sand",
     crush: "Crush",
     steel: "Steel",
-    steel10: "Steel #3 (10 mm)",
-    steel12: "Steel #4 (12 mm)",
-    steel16: "Steel #5 (16 mm)",
-    steel20: "Steel #6 (20 mm)",
+    steel10: "Steel 10 mm (#3)",
+    steel12: "Steel 12 mm (#4)",
+    steel16: "Steel 16 mm (#5)",
+    steel20: "Steel 20 mm (#6)",
     tIron: "T-irons",
     garder: "Girders (RSJ)",
     roofTile: "Roof tiles",
@@ -110,6 +111,10 @@ export const strings = {
     OWNER: "Owner",
   },
   boq: {
+    percentOfDirect: "{percent}% of the direct cost ({base})",
+    percentOfDirectOverheads: "{percent}% of direct cost + overheads ({base})",
+    linesMatch: "The lines above add up to the direct cost.",
+    linesDiffer: "The lines above add up to {lines}, the direct cost is {direct}.",
     previewTitle: "Live preview — not saved yet",
     previewBody: "Today's quantities and rates. Generate an estimate to save them as a revision you can check and approve.",
     generateTitle: "Generate the first estimate",

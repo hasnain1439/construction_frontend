@@ -45,7 +45,7 @@ export const EN_SINGULAR: Partial<Record<TranslationKey, string>> = {
   "projects.estimate.formula.columns": "{count} column × {widthIn}″ × {depthIn}″ × {height} ft",
   "projects.estimate.formula.columnShuttering": "{count} column × 2 × ({widthIn}″ + {depthIn}″) × {height} ft",
   "projects.estimate.formula.lintels": "{count} opening, Σ (width + {bearing} ft) = {length} ft × {widthIn}″ × {depthIn}″",
-  "projects.estimate.formula.bars": "#{bar} ({mm} mm): {count} bar, {length} ft × {kgPerFt} kg/ft",
+  "projects.estimate.formula.bars": "{mm} mm (#{bar}): {count} bar, {length} ft × {kgPerFt} kg/ft",
   "procurement.money.days": "{n} day",
   "projects.estimate.kpi.cementValue": "{n} bag",
   "projects.unit.monthsValue": "{n} month",
@@ -149,7 +149,7 @@ export const ROMAN_SINGULAR: Partial<Record<TranslationKey, string>> = {
   "masterData.categories.addedWithRates": "{name} {n} rate ke saath shamil ho gayi",
   "closeout.handover.openSnags": "{n} kami ki abhi tasdeeq nahi hui",
   "closeout.handover.acceptOpenSnags": "{n} khuli kami ke saath hawale karein (woh list par rahegi)",
-  "projects.estimate.formula.bars": "#{bar} ({mm} mm): {count} sarya, {length} ft × {kgPerFt} kg/ft",
+  "projects.estimate.formula.bars": "{mm} mm (#{bar}): {count} sarya, {length} ft × {kgPerFt} kg/ft",
   "projects.estimate.formula.lintels": "{count} darwaza/khirki, jor (chaurai + {bearing} ft) = {length} ft × {widthIn}″ × {depthIn}″",
 };
 
@@ -207,7 +207,7 @@ export const UR_SINGULAR: Partial<Record<TranslationKey, string>> = {
   "masterData.categories.addedWithRates": "{name} {n} ریٹ کے ساتھ شامل ہو گیا",
   "closeout.handover.openSnags": "{n} خامی کی ابھی تصدیق نہیں ہوئی",
   "closeout.handover.acceptOpenSnags": "{n} کھلی خامی کے ساتھ حوالے کریں (وہ فہرست پر رہے گی)",
-  "projects.estimate.formula.bars": "#{bar} ({mm} ملی میٹر): {count} سریا، {length} فٹ × {kgPerFt} کلو فی فٹ",
+  "projects.estimate.formula.bars": "{mm} ملی میٹر (#{bar}): {count} سریا، {length} فٹ × {kgPerFt} کلو فی فٹ",
   "projects.estimate.formula.columns": "{count} کالم × {widthIn}″ × {depthIn}″ × {height} فٹ",
   "projects.estimate.formula.columnShuttering": "{count} کالم × 2 × ({widthIn}″ + {depthIn}″) × {height} فٹ",
   "projects.foundation.pilesValue": "{count} پائل · {diameter} انچ × {depth} فٹ",

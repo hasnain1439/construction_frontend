@@ -250,7 +250,7 @@ export function ProjectWizard({ projectId, mode, initialTab }: { projectId: stri
         <PageHeader
           title={mode === "new" ? t("projects.wizard.newTitle") : project ? t("projects.wizard.editTitle", { name: project.name }) : t("projects.wizard.editProject")}
           meta={project ? <StatusBadge domain="project" value={project.status} /> : null}
-          description={project ? `${project.code}${project.client ? ` · ${project.client.name}` : ""}` : t("projects.wizard.newDesc")}
+          description={project ? `${project.code}${project.client ? ` · ${project.client.name}` : ""}` : t("projects.wizard.newDesc", { n: visibleSteps.length })}
           breadcrumbs={[
             { label: t("crumb.projects"), href: "/projects" },
             ...(mode === "edit" && project ? [{ label: project.name, href: projectHref(project.id, "/overview") }] : []),

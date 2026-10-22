@@ -46,7 +46,7 @@ export function useFoundationItems(f: ProjectFoundation): InfoItem[] {
         <bdi>
           {t("projects.foundation.rccValue", {
             mix: f.rccMix ?? "—",
-            bar: f.mainBarMm ? t("projects.foundation.barValue", { bar: barName(f.mainBarMm), mm: f.mainBarMm }) : "—",
+            bar: f.mainBarMm ? t("projects.foundation.barValue", { bar: barName(f.mainBarMm), n: barName(f.mainBarMm).slice(1), mm: f.mainBarMm }) : "—",
           })}
         </bdi>
       ),

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import type { z } from "zod";
-import { useUpdatePlotStructureMutation } from "@/api/services/projects.api";
+import { projectsApi, useUpdatePlotStructureMutation } from "@/api/services/projects.api";
 import type { FloorLevel, ProjectDetail } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -19,16 +19,16 @@ import { SelectField } from "@/components/forms/SelectField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useEnumT, useMessageT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { useMe } from "@/store/hooks";
 import { DEFAULT_CEILING, FLOOR_ORDER, PLOT_UNITS, STRUCTURE_TYPES } from "../constants";
 import { formatArea, plotCalc } from "../utils/calc";
-import { foundationToBody, foundationToForm } from "../utils/foundation";
+import { estimateColumnCount, foundationToBody, foundationToForm } from "../utils/foundation";
 import { ROOF_DEFAULTS, roofToBody, roofToForm } from "../utils/roof";
 import { FoundationCard } from "./FoundationCard";
 import { RoofCard } from "./RoofCard";
-import { plotStructureSchema } from "./schemas";
+import { HEIGHT_MAX_FT, HEIGHT_MIN_FT, plotStructureSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
 type Values = z.input<typeof plotStructureSchema>;
@@ -38,6 +38,22 @@ type RoofFormValuesOut = Parameters<typeof roofToBody>[0];
 const ADDABLE: FloorLevel[] = ["FIRST", "SECOND", "THIRD", "MUMTY"];
 const sortFloors = <T extends { level: FloorLevel }>(floors: T[]) =>
   [...floors].sort((a, b) => FLOOR_ORDER.indexOf(a.level) - FLOOR_ORDER.indexOf(b.level));
+
+/**
+ * Columns per floor (QA B-04 / B-22): the API's derived count when an estimate is in the cache (tab 6
+ * loads it), else the web estimate over the floor's share of the covered area (15 ft grid, plot ratio).
+ */
+function useColumnEstimate(projectId: string | null, project: ProjectDetail | null, frontFt: number | null, depthFt: number | null, floorCount: number) {
+  const cached = projectsApi.endpoints.getEstimate.useQueryState(projectId ?? "", { skip: !projectId });
+  return (level: FloorLevel): number | null => {
+    const f = cached.data?.basis.floors.find((x) => x.level === level);
+    const fromApi = f?.columns?.derived ?? (f?.roof?.columnCountAuto ? f.roof.columnCount : null);
+    if (fromApi) return fromApi;
+    const covered = project?.coverage?.coveredAreaSqft ?? null;
+    const footprint = covered && floorCount > 0 ? covered / floorCount : frontFt && depthFt ? frontFt * depthFt : null;
+    return estimateColumnCount(footprint, frontFt, depthFt);
+  };
+}
 
 function toValues(p: ProjectDetail | null, companyMarla: number): Values {
   const floors = sortFloors(
@@ -57,7 +73,15 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
       ? floors.filter((f) => f.level !== "BASEMENT")
       : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND, roof: { ...ROOF_DEFAULTS } }],
     // Pakistani defaults (brick strip footing) until a foundation is saved
-    foundation: foundationToForm(p?.foundation, p?.structure?.structureType ?? null),
+    foundation: foundationToForm(
+      p?.foundation,
+      p?.structure?.structureType ?? "FRAMED",
+      estimateColumnCount(
+        p?.coverage?.coveredAreaSqft ? p.coverage.coveredAreaSqft / Math.max(1, floors.filter((f) => f.level !== "MUMTY").length || 1) : p?.plot?.frontFt && p.plot.depthFt ? p.plot.frontFt * p.plot.depthFt : null,
+        p?.plot?.frontFt,
+        p?.plot?.depthFt,
+      ),
+    ),
   };
 }
 
@@ -76,14 +100,27 @@ function PlotResult() {
         {calc.plotAreaSqft !== null ? t("projects.plot.plotResult", { size: String(plotSize), unit: te("projectPlotUnit", plotUnit), area: formatArea(calc.plotAreaSqft) }) : t("projects.plot.enterPlotSize")}
         {calc.frontageAreaSqft !== null ? t("projects.plot.frontageResult", { front: String(frontFt), depth: String(depthFt), area: formatArea(calc.frontageAreaSqft) }) : null}
       </p>
+      {calc.plotAreaSqft !== null ? (
+        <p className="mt-1 text-xs text-muted-foreground" data-testid="plot-drives">
+          {t("projects.plot.drivesEstimate", { area: formatArea(calc.plotAreaSqft) })}
+        </p>
+      ) : null}
       {calc.plotAreaMismatch ? (
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-warning">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-warning" data-testid="plot-mismatch">
           <TriangleAlert className="size-3.5" aria-hidden />
           {t("projects.plot.plotDiffer")}
         </p>
       ) : null}
     </div>
   );
+}
+
+/** Plot size with its unit (marla / kanal / sq ft) as the suffix. */
+function PlotSizeField({ disabled }: { disabled: boolean }) {
+  const unit = useWatch({ name: "plotUnit" }) as Values["plotUnit"];
+  const t = useT();
+  const te = useEnumT();
+  return <NumberField name="plotSize" label={t("projects.plot.plotSize")} required unit={unit ? te("projectPlotUnit", unit) : undefined} disabled={disabled} />;
 }
 
 function FloorsBuilder({ disabled }: { disabled: boolean }) {
@@ -95,6 +132,7 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
   const next = ADDABLE.find((level) => !floors.some((f) => f.level === level));
   const t = useT();
   const te = useEnumT();
+  const tm = useMessageT();
 
   return (
     <div className="space-y-3">
@@ -124,9 +162,13 @@ function FloorsBuilder({ disabled }: { disabled: boolean }) {
                     onChange={f.onChange}
                     onBlur={f.onBlur}
                     unit={t("projects.unit.ft")}
-                    className="w-32"
+                    className="w-40"
+                    min={HEIGHT_MIN_FT}
+                    max={HEIGHT_MAX_FT}
+                    step={0.5}
                     disabled={disabled}
                     aria-invalid={Boolean(fieldState.error) || undefined}
+                    error={fieldState.error?.message ? tm(fieldState.error.message) : undefined}
                   />
                 )}
               />
@@ -171,7 +213,7 @@ function BasementHeight({ disabled }: { disabled: boolean }) {
 }
 
 /** One "Roof / Lenter" card per floor in the form (the basement's roof is the ground floor's floor slab — not asked). */
-function RoofCards({ project, disabled }: { project: ProjectDetail | null; disabled: boolean }) {
+function RoofCards({ project, disabled, columnsFor }: { project: ProjectDetail | null; disabled: boolean; columnsFor: (level: FloorLevel) => number | null }) {
   const floors = (useWatch({ name: "floors" }) as Values["floors"]) ?? [];
   const structure = useWatch({ name: "structureType" }) as Values["structureType"];
   return (
@@ -183,6 +225,7 @@ function RoofCards({ project, disabled }: { project: ProjectDetail | null; disab
           level={f.level}
           suggestion={project?.floors?.find((x) => x.level === f.level)?.slabSuggestion}
           structure={structure ?? null}
+          derivedColumns={columnsFor(f.level)}
           disabled={disabled}
         />
       ))}
@@ -201,6 +244,8 @@ export function PlotStructureTab() {
   const [pendingForce, setPendingForce] = useState<Output | null>(null);
   const form = useForm<Values, unknown, Output>({ resolver: zodResolver(plotStructureSchema), values: toValues(project, me?.tenant.marlaStandard ?? 225) });
   useReportForm(form);
+  const [frontFt, depthFt, watchedFloors] = useWatch({ control: form.control, name: ["frontFt", "depthFt", "floors"] }) as [number | null, number | null, Values["floors"] | undefined];
+  const columnsFor = useColumnEstimate(projectId, project, frontFt, depthFt, (watchedFloors ?? []).filter((f) => f.level !== "MUMTY").length);
 
   if (!projectId) return null;
 
@@ -259,7 +304,7 @@ export function PlotStructureTab() {
                 disabled={locked}
                 options={PLOT_UNITS.map((value) => ({ value, label: te("projectPlotUnit", value) }))}
               />
-              <NumberField name="plotSize" label={t("projects.plot.plotSize")} required disabled={locked} />
+              <PlotSizeField disabled={locked} />
               <SegmentedField
                 name="marlaStandard"
                 label={t("projects.section.marlaStandard")}
@@ -289,8 +334,8 @@ export function PlotStructureTab() {
             <FloorsBuilder disabled={locked} />
           </div>
         </SectionCard>
-        <FoundationCard disabled={locked} />
-        <RoofCards project={project} disabled={locked} />
+        <FoundationCard disabled={locked} saved={Boolean(project?.foundation)} columnEstimate={columnsFor("GROUND")} />
+        <RoofCards project={project} disabled={locked} columnsFor={columnsFor} />
       </Form>
       <ConfirmDialog
         open={pendingForce !== null}

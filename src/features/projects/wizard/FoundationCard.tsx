@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { FoundationMasonry, FoundationType } from "@/api/types";
 import { SectionCard } from "@/components/common/SectionCard";
+import { TermHints } from "../components/TermHints";
 import { FieldGrid } from "@/components/forms/Form";
 import { NumberField } from "@/components/forms/NumberField";
 import { SegmentedField } from "@/components/forms/SegmentedField";
@@ -17,8 +19,10 @@ import {
   FOOTING_THICKNESS_DEFAULT,
   FOUNDATION_MASONRY,
   FOUNDATION_TYPES,
+  foundationDefaultsFor,
   hasPads,
   isPile,
+  PAD_SIDE_DEFAULT_FT,
   PCC_MIXES,
   RCC_MIXES,
   rccApplies,
@@ -36,15 +40,40 @@ function SubHeading({ children }: { children: string }) {
  * Fields appear by type: strip width; pad count + L × W; pile count, diameter and depth; RCC mix and
  * main steel wherever RCC applies; the soil test note only when a test was done.
  */
-export function FoundationCard({ disabled }: { disabled: boolean }) {
+export function FoundationCard({
+  disabled,
+  saved = false,
+  columnEstimate = null,
+}: {
+  disabled: boolean;
+  /** The project already has a saved foundation (the structure type no longer changes it). */
+  saved?: boolean;
+  /** Columns of the frame (API derived count, else the web estimate) — the pad count it suggests. */
+  columnEstimate?: number | null;
+}) {
   const t = useT();
   const te = useEnumT();
   const { getValues, setValue } = useFormContext();
-  const [type, masonry, soilTestDone] = useWatch({ name: ["foundation.type", "foundation.masonry", "foundation.soilTestDone"] }) as [
+  const [type, masonry, soilTestDone, structure] = useWatch({ name: ["foundation.type", "foundation.masonry", "foundation.soilTestDone", "structureType"] }) as [
     FoundationType,
     FoundationMasonry,
     boolean,
+    string | null,
   ];
+
+  // QA B-04: switching the structure before the foundation is touched brings that structure's footing
+  // (FRAMED → isolated pads, one per column, L = W; LOAD_BEARING → strip). Once the user edits the
+  // card (its values differ from the last default) or a foundation is saved, it stays as it is.
+  const lastStructure = useRef(structure);
+  const lastDefault = useRef<string | null>(saved ? null : JSON.stringify(getValues("foundation")));
+  useEffect(() => {
+    if (lastStructure.current === structure) return;
+    lastStructure.current = structure;
+    if (!structure || lastDefault.current === null || JSON.stringify(getValues("foundation")) !== lastDefault.current) return;
+    const next = foundationDefaultsFor(structure, columnEstimate);
+    setValue("foundation", next, { shouldDirty: true });
+    lastDefault.current = JSON.stringify(getValues("foundation"));
+  }, [structure, columnEstimate, getValues, setValue]);
   const ft = t("projects.unit.ft");
   const inch = t("projects.foundation.inch");
 
@@ -55,10 +84,23 @@ export function FoundationCard({ disabled }: { disabled: boolean }) {
     if (current === null || SUGGESTED_THICKNESS.has(current)) {
       setValue("foundation.footingThicknessIn", FOOTING_THICKNESS_DEFAULT[next as FoundationType], { shouldDirty: true });
     }
+    // Pads: one per column, square (L = W) unless already typed (QA B-04)
+    if (hasPads(next as FoundationType)) {
+      if (getValues("foundation.footingCount") === null && columnEstimate) setValue("foundation.footingCount", columnEstimate, { shouldDirty: true });
+      if (getValues("foundation.footingLengthFt") === null) setValue("foundation.footingLengthFt", getValues("foundation.footingWidthFt") ?? PAD_SIDE_DEFAULT_FT, { shouldDirty: true });
+    }
   };
 
   return (
-    <SectionCard title={t("projects.foundation.title")} description={t("projects.foundation.description")}>
+    <SectionCard
+      title={t("projects.foundation.title")}
+      description={
+        <>
+          {t("projects.foundation.description")}
+          <TermHints terms={["dpc", "bricks"]} />
+        </>
+      }
+    >
       <div className="space-y-6" data-testid="foundation-card">
         <FieldGrid>
           <SelectField
@@ -85,14 +127,23 @@ export function FoundationCard({ disabled }: { disabled: boolean }) {
           </FieldGrid>
           {hasPads(type) ? (
             <FieldGrid columns={3}>
-              <NumberField name="foundation.footingCount" label={t("projects.foundation.footingCount")} required decimals={0} disabled={disabled} />
+              <NumberField
+                name="foundation.footingCount"
+                label={t("projects.foundation.footingCount")}
+                required
+                decimals={0}
+                min={1}
+                unit={t("projects.unit.nos")}
+                hint={columnEstimate ? t("projects.foundation.footingCountHint", { n: columnEstimate }) : undefined}
+                disabled={disabled}
+              />
               <NumberField name="foundation.footingLengthFt" label={t("projects.foundation.footingLength")} required unit={ft} disabled={disabled} />
               <NumberField name="foundation.footingWidthFt" label={t("projects.foundation.footingWidthPad")} required unit={ft} disabled={disabled} />
             </FieldGrid>
           ) : null}
           {isPile(type) ? (
             <FieldGrid columns={3}>
-              <NumberField name="foundation.pileCount" label={t("projects.foundation.pileCount")} required decimals={0} disabled={disabled} />
+              <NumberField name="foundation.pileCount" label={t("projects.foundation.pileCount")} required decimals={0} min={1} unit={t("projects.unit.nos")} disabled={disabled} />
               <NumberField name="foundation.pileDiameterIn" label={t("projects.foundation.pileDiameter")} required unit={inch} disabled={disabled} />
               <NumberField name="foundation.pileDepthFt" label={t("projects.foundation.pileDepth")} required unit={ft} disabled={disabled} />
             </FieldGrid>
@@ -120,7 +171,7 @@ export function FoundationCard({ disabled }: { disabled: boolean }) {
                 label={t("projects.foundation.mainBar")}
                 required
                 disabled={disabled}
-                options={BAR_SIZES.map((b) => ({ value: String(b.mm), label: t("projects.foundation.barValue", { bar: b.bar, mm: b.mm }) }))}
+                options={BAR_SIZES.map((b) => ({ value: String(b.mm), label: t("projects.foundation.barValue", { bar: b.bar, n: b.bar.slice(1), mm: b.mm }) }))}
               />
             </FieldGrid>
           ) : null}

@@ -3,6 +3,7 @@ import type * as En from "./en";
 
 export const strings: Widen<typeof En.strings> = {
   section: {
+    FINISHING_ITEMS: "Finishing ka samaan",
     EXCAVATION_EARTHWORK: "Khudai aur bharai",
     CONCRETE: "Concrete (PCC / RCC)",
     STEEL: "Sariya",
@@ -56,10 +57,10 @@ export const strings: Widen<typeof En.strings> = {
     sand: "Ret",
     crush: "Bajri (crush)",
     steel: "Sariya",
-    steel10: "Sariya #3 (10 mm)",
-    steel12: "Sariya #4 (12 mm)",
-    steel16: "Sariya #5 (16 mm)",
-    steel20: "Sariya #6 (20 mm)",
+    steel10: "Sariya 10 mm (3 sooter)",
+    steel12: "Sariya 12 mm (4 sooter)",
+    steel16: "Sariya 16 mm (5 sooter)",
+    steel20: "Sariya 20 mm (6 sooter)",
     tIron: "T-iron",
     garder: "Garder (RSJ)",
     roofTile: "Chhat ki tiles",
@@ -112,6 +113,10 @@ export const strings: Widen<typeof En.strings> = {
     OWNER: "Maalik",
   },
   boq: {
+    percentOfDirect: "Direct cost ({base}) ka {percent}%",
+    percentOfDirectOverheads: "Direct cost + overheads ({base}) ka {percent}%",
+    linesMatch: "Upar ki lines ka jor direct cost ke barabar hai.",
+    linesDiffer: "Upar ki lines ka jor {lines} hai, direct cost {direct} hai.",
     previewTitle: "Live jaiza — abhi mehfooz nahi",
     previewBody: "Aaj ki miqdar aur rates. Estimate banayein taa ke yeh revision ke tor par mehfooz ho aur aap check kar ke manzoor kar sakein.",
     generateTitle: "Pehla estimate banayein",

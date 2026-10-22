@@ -1,6 +1,7 @@
 "use client";
 
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Lock, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { PercentTotalChip, percentTotal } from "@/components/common/PercentTotalChip";
 import { NumberInput } from "@/components/forms/NumberField";
@@ -28,20 +29,32 @@ export function StageEditor({
   totalPaisa,
   disabled,
   maxRows = 15,
+  retentionLocked = false,
 }: {
   name: string;
   /** Contract total in paisa → shows Rs per stage; omit to hide amounts. */
   totalPaisa?: string | null;
   disabled?: boolean;
   maxRows?: number;
+  /** Project billing (QA B-08): the retention row follows the retention field — its % and the flag are read-only. */
+  retentionLocked?: boolean;
 }) {
   const t = useT();
-  const { control, register, setValue } = useFormContext();
+  const { control, register, setValue, trigger } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
   const rows = (useWatch({ control, name }) as StageRow[] | undefined) ?? [];
   const total = percentTotal(rows.map((r) => r.percent));
   const listError = useFieldError(name);
   const retentionIndex = rows.findIndex((r) => r.isRetention);
+  // QA B-29: a list error ("240% must be 100%", or one from the server) is checked again as soon as the
+  // rows change, so it clears once the stages are fixed.
+  const signature = rows.map((r) => `${r.percent ?? ""}:${r.isRetention ? 1 : 0}`).join("|");
+  const checked = useRef(signature);
+  useEffect(() => {
+    if (checked.current === signature) return;
+    checked.current = signature;
+    if (listError) void trigger(name);
+  }, [signature, listError, trigger, name]);
 
   return (
     <div className="space-y-3">
@@ -57,6 +70,7 @@ export function StageEditor({
         <ul>
           {fields.map((field, index) => {
             const row = rows[index];
+            const lockedRow = retentionLocked && Boolean(row?.isRetention);
             return (
               <li
                 key={field.id}
@@ -80,7 +94,7 @@ export function StageEditor({
                       onBlur={f.onBlur}
                       unit="%"
                       decimals={2}
-                      disabled={disabled}
+                      disabled={disabled || lockedRow}
                     />
                   )}
                 />
@@ -91,10 +105,11 @@ export function StageEditor({
                 ) : (
                   <span className="hidden sm:block" />
                 )}
-                <label className="flex items-center justify-center gap-1.5 text-xs">
+                <label className="flex items-center justify-center gap-1.5 text-xs" title={lockedRow ? t("masterData.stages.retentionFollows") : undefined}>
+                  {lockedRow ? <Lock className="size-3.5 text-muted-foreground" aria-hidden /> : null}
                   <Checkbox
                     checked={Boolean(row?.isRetention)}
-                    disabled={disabled || (retentionIndex !== -1 && retentionIndex !== index)}
+                    disabled={disabled || retentionLocked || (retentionIndex !== -1 && retentionIndex !== index)}
                     onCheckedChange={(checked) => setValue(`${name}.${index}.isRetention`, checked === true, { shouldDirty: true })}
                     aria-label={t("masterData.stages.retentionAria", { n: index + 1 })}
                   />
@@ -103,7 +118,7 @@ export function StageEditor({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  disabled={disabled || fields.length <= 1}
+                  disabled={disabled || fields.length <= 1 || lockedRow}
                   onClick={() => remove(index)}
                   aria-label={t("masterData.stages.removeAria", { n: index + 1 })}
                 >
@@ -127,6 +142,7 @@ export function StageEditor({
         </Button>
         <PercentTotalChip total={total} />
       </div>
+      {retentionLocked && retentionIndex !== -1 ? <p className="text-xs text-muted-foreground">{t("masterData.stages.retentionFollows")}</p> : null}
       {listError ? (
         <p role="alert" className={cn("text-xs font-medium text-destructive")}>
           {listError}

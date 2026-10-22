@@ -53,7 +53,7 @@ describe("FoundationCard (wizard tab 3)", () => {
     expect(field(/^Footing width$/)).toBeNull();
     expect(screen.getByText("RCC mix")).toBeInTheDocument();
     expect(screen.getByText("Main steel bar")).toBeInTheDocument();
-    expect(screen.getAllByText("#4 (12 mm)").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("12 mm (#4)").length).toBeGreaterThan(0);
     expect(field(/^Number of piles/)).toBeNull();
   });
 
@@ -95,7 +95,7 @@ describe("FoundationCard (wizard tab 3)", () => {
     const { unmount } = renderWithStore(<Harness foundation={{ type: "ISOLATED" }} />, { ui: { language: "ur" } });
     expect(screen.getByText("بنیاد")).toBeInTheDocument();
     expect(screen.getByText("کھدائی کی گہرائی", { exact: false })).toBeInTheDocument();
-    expect(screen.getAllByText("#4 (12 ملی میٹر)").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("12 ملی میٹر (4 سوتر)").length).toBeGreaterThan(0);
     unmount();
     renderWithStore(<Harness foundation={{}} />, { ui: { language: "roman-ur" } });
     expect(screen.getByText("Bunyaad (Foundation)")).toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("FoundationSummary", () => {
     const { unmount } = renderWithStore(<FoundationSummary foundation={saved} />);
     expect(screen.getByText("Isolated (column footing)")).toBeInTheDocument();
     expect(screen.getByText("12 × (5 × 5 ft)")).toBeInTheDocument();
-    expect(screen.getByText("1:2:4 · #4 (12 mm)")).toBeInTheDocument();
+    expect(screen.getByText("1:2:4 · 12 mm (#4)")).toBeInTheDocument();
     expect(screen.queryByText("Piles")).toBeNull();
     unmount();
     renderWithStore(<FoundationSummary foundation={null} />);

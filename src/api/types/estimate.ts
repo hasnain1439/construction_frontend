@@ -38,6 +38,22 @@ export type EstimateElement =
   | "foundationMasonry"
   | "dpc"
   | "termite"
+  | "plinthBeam"
+  | "columnStubs"
+  | "backfill"
+  | "cartAway"
+  | "plinthFill"
+  | "boundaryExcavation"
+  | "boundaryPcc"
+  | "boundaryFooting"
+  | "boundaryWall"
+  | "boundaryPillars"
+  | "boundaryCoping"
+  | "boundaryPlaster"
+  | "porchSlab"
+  | "porchBeams"
+  | "porchColumns"
+  | "porchPlaster"
   | "walls"
   | "parapet"
   | "slab"
@@ -73,6 +89,8 @@ export interface EstimateSettings {
   bricksPerCft: number;
   mortarPerCftBrickwork: number;
   masonryMortarMix: MortarMix;
+  /** Mortar below the DPC (QA B-10, default 1:4); absent from an older settings snapshot. */
+  foundationMortarMix?: MortarMix;
   slabThicknessIn: number;
   rccMix: "1:1.5:3" | "1:2:4";
   frameConcretePercent: number;
@@ -95,6 +113,12 @@ export interface EstimateSettings {
   termiteLitrePerSqft: number;
   wastagePercent: number;
   brickWastagePercent: number;
+  /** Per-material wastage (QA B-20); absent from an older API. */
+  cementWastagePercent?: number;
+  sandWastagePercent?: number;
+  steelWastagePercent?: number;
+  /** Lap / hook allowance on bar steel, on top of the steel wastage (QA B-15, default 4 %). */
+  steelLapPercent?: number;
   concreteDryFactor: number;
   mortarDryFactor: number;
   cementBagCft: number;
@@ -172,6 +196,12 @@ export interface EstimateFloorBasis {
   windowsSqft: number;
   wallsMethod?: EstimateMethod;
   roofMethod?: EstimateMethod;
+  /** RCC frame columns of the floor (QA B-22, newer API): the derived count, the one typed (null = auto), the one used. */
+  columns?: { derived: number; entered: number | null; used: number } | null;
+  /** A floor with no rooms, estimated from its share of the covered area (QA B-12). */
+  estimatedFromArea?: boolean;
+  /** Rooms below 85 % of the floor: walls, plaster, lintels, beams and floor tiles × this factor (QA B-13); 1 = none. */
+  coverageScale?: number;
   walls?: {
     partyWallFt: number;
     partyExistingFt: number;
@@ -199,6 +229,9 @@ export type EstimateWarningCode =
   | "COVERED_AREA_ESTIMATED"
   | "FOUNDATION_LENGTH_UNKNOWN"
   | "ROOMS_BELOW_COVERED"
+  | "FOOTPRINT_EXCEEDS_PLOT"
+  // QE4: rooms under 50 % of the covered area → no estimate (blocking; params roomsAreaSqft, coveredAreaSqft, percent)
+  | "ROOMS_TOO_FEW"
   | "RATES_MISSING"
   | "LABOUR_RATES_MISSING"
   | "CONTRACT_VALUE_MISSING"
@@ -216,11 +249,15 @@ export type EstimateWarningCode =
   | "ROOF_NO_WATERPROOFING"
   // BoQ (Step 11)
   | "STEEL_NORM_DEVIATION"
-  | "RCC_NORM_DEVIATION";
+  | "RCC_NORM_DEVIATION"
+  // A contractor lump sum / allowance with a Rs 0 rulebook rate (QA B-07; items = rate keys)
+  | "RULEBOOK_RATE_ZERO";
 
 export interface EstimateWarning {
   code: EstimateWarningCode;
   message: string;
+  /** A hard error (FOOTPRINT_EXCEEDS_PLOT, ROOMS_TOO_FEW): Review blocks activation on the same check. */
+  blocking?: boolean;
   tab?: number;
   params?: Record<string, number>;
   /** The floor it is about (roof / wall warnings). */
@@ -285,6 +322,8 @@ export interface ProjectEstimate {
   boqCost?: BoqCost;
   /** Contract value (labour-only: rate) from this estimate — needs fields.contract + fields.rates; null before a contract type. */
   contractSuggestion?: ContractSuggestion | null;
+  /** QE4: why no estimate is produced (rooms under 50 % of the covered area); null / absent = an estimate. */
+  blockedBy?: "ROOMS_TOO_FEW" | null;
   warnings: EstimateWarning[];
   /** BoQ preview = what POST /projects/:id/estimates would save (Step 11). Absent from an older API. */
   boq?: BoqPreview;
@@ -344,8 +383,10 @@ export interface ContractSuggestion {
   finishingAllowance?: FinishingAllowanceLine | null;
   companyMarginPercent: number;
   companyFinishingAllowancePercent: number;
-  /** null without a cost (or covered area for a rate). */
+  /** null without a cost (or covered area for a rate), or while the estimate is blocked. */
   suggestedPaisa: Paisa | null;
+  /** QE4: set while the estimate is blocked (no suggestion). */
+  blockedBy?: "ROOMS_TOO_FEW" | null;
   /** Contract value (labour-only: rate) already on the project. */
   currentPaisa: Paisa | null;
 }

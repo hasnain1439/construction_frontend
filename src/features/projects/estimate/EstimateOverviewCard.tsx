@@ -11,6 +11,7 @@ import { useT } from "@/i18n/useT";
 import { formatPKRShort } from "@/lib/money";
 import { projectHref } from "@/lib/navigation";
 import { fmt, fmtUp, unitText } from "./labels";
+import { isEstimateBlocked } from "./warningText";
 
 /** Project overview: the estimate's headline numbers and a link to the full BoQ. */
 export function EstimateOverviewCard({ projectId }: { projectId: string }) {
@@ -38,7 +39,8 @@ export function EstimateOverviewCard({ projectId }: { projectId: string }) {
             {
               label: t("projects.estimate.overview.cost"),
               value: data.cost ? formatPKRShort(data.cost.totalPaisa) : "—",
-              hidden: !data.cost,
+              // QE4: no cost while the estimate is blocked (rooms under half of the covered area)
+              hidden: !data.cost || isEstimateBlocked(data),
             },
             {
               label: t("projects.estimate.overview.cement"),

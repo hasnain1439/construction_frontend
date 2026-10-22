@@ -21,6 +21,7 @@ import { FoundationSummary } from "../components/FoundationSummary";
 import { ESTIMATE_STEP, WIZARD_STEPS } from "../constants";
 import { ApplyMarginAction } from "../estimate/ContractFromEstimateCard";
 import { fmt, fmtUp, rupees } from "../estimate/labels";
+import { isEstimateBlocked } from "../estimate/warningText";
 import { formatArea } from "../utils/calc";
 import { useWizard } from "./WizardContext";
 
@@ -167,6 +168,16 @@ function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => 
   const t = useT();
   const { data: e } = useGetEstimateQuery(projectId);
   if (!e) return null;
+  // QE4: no estimate while the rooms cover under half of the covered area (the error list above says why)
+  if (isEstimateBlocked(e)) {
+    return (
+      <SectionCard title={t("projects.review.estimateTitle")} description={t("projects.review.estimateDesc")}>
+        <p className="text-sm text-muted-foreground" data-testid="review-estimate-blocked">
+          {t("projects.estimate.warn.blockedBody")}
+        </p>
+      </SectionCard>
+    );
+  }
   // The BoQ total (same as the BoQ page and the contract suggestion — QA-A-01)
   const c = e.boqCost ?? e.cost;
   const qty = (m: string) => e.materials.find((x) => x.material === m)?.quantity ?? 0;

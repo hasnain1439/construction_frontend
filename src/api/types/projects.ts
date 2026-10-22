@@ -114,6 +114,10 @@ export interface ProjectContract {
   contractTotalPaisa?: Paisa | null;
   retentionPercent: number;
   defectPeriodMonths: number;
+  /** LABOR_ONLY: the labour contract also covers finishing labour (tiles, paint). Absent from an older API = false. */
+  labourScopeIncludesFinishing?: boolean;
+  /** LABOR_ONLY: the labour contract also covers electrical and plumbing labour. Absent from an older API = false. */
+  labourScopeIncludesMep?: boolean;
 }
 
 export interface ProjectPlot {
