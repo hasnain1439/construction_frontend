@@ -28,14 +28,12 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useMessageT, useT } from "@/i18n/useT";
 import { formatPKR, multiplyPaisa } from "@/lib/money";
 import { CONTRACT_TYPES, SUPPLY_CATEGORIES } from "../constants";
-import { defaultTemplateFor, fitStages, runningStages, sameStages, templateStages, validRetention, withRetention, type StageValue } from "./contractStages";
+import { defaultTemplateFor, fitStages, runningStages, sameStages, switchContract, templateStages, validRetention, withRetention, type StageValue, type TypeMemory } from "./contractStages";
 import { contractSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
 type Values = z.input<ReturnType<typeof contractSchema>>;
 type Rule = Values["supplyRules"][number];
-/** What one contract type had before the user switched away (QA B-18): restored on switching back. */
-type TypeMemory = { contractValuePaisa: string | null; ratePerSqftPaisa: string | null; billingModel: Values["billingModel"]; stages: StageValue[] };
 /** Stage labels the form writes itself (running bills, a new retention row). */
 type StageLabels = { running: string; retention: string };
 
@@ -108,25 +106,27 @@ function ContractTypeCards({
   const nextBilling = (type: ContractType): Values["billingModel"] => memory.current[type]?.billingModel ?? (type === "LABOR_ONLY" ? "RUNNING_BILLS" : billing);
 
   const apply = (type: ContractType, billingModel: Values["billingModel"]) => {
-    const from = getValues("contractType") as ContractType;
-    memory.current[from] = {
-      contractValuePaisa: getValues("contractValuePaisa") ?? null,
-      ratePerSqftPaisa: getValues("ratePerSqftPaisa") ?? null,
-      billingModel: getValues("billingModel"),
-      stages: getValues("stages") as StageValue[],
-    };
-    const saved = memory.current[type];
-    const retention = validRetention(getValues("retentionPercent") as number | null) ?? 0;
+    const { values: next, memory: remembered } = switchContract(
+      {
+        contractType: getValues("contractType") as ContractType,
+        contractValuePaisa: getValues("contractValuePaisa") ?? null,
+        ratePerSqftPaisa: getValues("ratePerSqftPaisa") ?? null,
+        billingModel: getValues("billingModel"),
+        stages: getValues("stages") as StageValue[],
+      },
+      type,
+      billingModel,
+      memory.current,
+      { retention: validRetention(getValues("retentionPercent") as number | null) ?? 0, stagesFor, labels },
+    );
+    memory.current = remembered;
     setValue("contractType", type, { shouldDirty: true, shouldValidate: true });
     // A new contract type starts from its preset (locked rows stay as they are).
     setValue("supplyRules", rulesFromPreset(presets.find((p) => p.contractType === type), defaultCategory, getValues("supplyRules")), { shouldDirty: true });
-    setValue("billingModel", billingModel, { shouldDirty: true });
-    if (saved) {
-      setValue("contractValuePaisa", saved.contractValuePaisa, { shouldDirty: true });
-      setValue("ratePerSqftPaisa", saved.ratePerSqftPaisa, { shouldDirty: true });
-    }
-    const stages = saved ? withRetention(saved.stages, retention, labels.retention) : billingModel === "RUNNING_BILLS" ? runningStages(retention, labels.running, labels.retention) : stagesFor(type, retention);
-    setValue("stages", stages, { shouldDirty: true, shouldValidate: true });
+    setValue("billingModel", next.billingModel, { shouldDirty: true });
+    setValue("contractValuePaisa", next.contractValuePaisa, { shouldDirty: true });
+    setValue("ratePerSqftPaisa", next.ratePerSqftPaisa, { shouldDirty: true });
+    setValue("stages", next.stages, { shouldDirty: true, shouldValidate: true });
   };
 
   const billingNote = pendingSwitch && pendingSwitch.billing !== billing ? t("projects.contract.switchBilling", { billing: te("billingModel", pendingSwitch.billing) }) : null;

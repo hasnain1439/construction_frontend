@@ -292,6 +292,19 @@ export interface ProjectCalculations extends AreaTotals {
   plotAreaSqft: number | null;
   frontageAreaSqft: number | null;
   plotAreaMismatch: boolean;
+  /** QE5 (QA NEW-2 / B-04): the engine footprint rule and the column count; absent from an older API. */
+  footprints?: ProjectFootprints;
+}
+
+/** QE5: one footprint rule (covered area shared equally over the full storeys, the mumty its own share). */
+export interface ProjectFootprints {
+  rule: "SHARED_EQUALLY";
+  floors: Array<{ level: FloorLevel; name: string; footprintSqft: number; columns: number | null }>;
+  /** The Coverage tab ground footprint; null without a covered area. */
+  groundFootprintSqft: number | null;
+  /** The plot-tab column hint (15 ft grid); null for LOAD_BEARING. */
+  columnCount: number | null;
+  columnGridFt: number;
 }
 
 /** Fields every role (incl. MUNSHI) receives. */

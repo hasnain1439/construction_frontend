@@ -377,6 +377,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   foundation: {
     footingCountHint: "Har column ke neeche aik: is frame ke liye taqreeban {n}.",
+    footingCountMismatch: "Aap ne {footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka number hi istemal hoga; aam tor par har column ke neeche aik footing hoti hai.",
     title: "Bunyaad (Foundation)",
     description: "Bunyaad ki qisam, size aur material. Qisam ke hisaab se khaane badalte hain.",
     dimensions: "Naap",
@@ -400,6 +401,7 @@ export const strings: Widen<typeof En.strings> = {
     rccMix: "RCC mix",
     mainBar: "Main sarya",
     barValue: "{mm} mm ({n} sooter)",
+    barInch: "{mm} mm ({n} sooter, taqreeban {inch} inch)",
     termite: "Deemak ka spray",
     termiteDesc: "PCC se pehle khaiyon mein deemak maar dawai.",
     dpcMaterial: "DPC ka material",

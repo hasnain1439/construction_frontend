@@ -24,7 +24,8 @@ import { cn } from "@/lib/cn";
 import { useMe } from "@/store/hooks";
 import { DEFAULT_CEILING, FLOOR_ORDER, PLOT_UNITS, STRUCTURE_TYPES } from "../constants";
 import { formatArea, plotCalc } from "../utils/calc";
-import { estimateColumnCount, foundationToBody, foundationToForm } from "../utils/foundation";
+import { foundationToBody, foundationToForm } from "../utils/foundation";
+import { columnCountFor, footprintFloors } from "../utils/footprint";
 import { ROOF_DEFAULTS, roofToBody, roofToForm } from "../utils/roof";
 import { FoundationCard } from "./FoundationCard";
 import { RoofCard } from "./RoofCard";
@@ -41,18 +42,14 @@ const sortFloors = <T extends { level: FloorLevel }>(floors: T[]) =>
 
 /**
  * Columns per floor (QA B-04 / B-22): the API's derived count when an estimate is in the cache (tab 6
- * loads it), else the web estimate over the floor's share of the covered area (15 ft grid, plot ratio).
+ * loads it), else the same rule over the floor's share of the covered area (utils/footprint.ts), so this
+ * hint, the footing-count default and the BoQ show one number.
  */
-function useColumnEstimate(projectId: string | null, project: ProjectDetail | null, frontFt: number | null, depthFt: number | null, floorCount: number) {
+function useColumnEstimate(projectId: string | null, project: ProjectDetail | null, frontFt: number | null, depthFt: number | null, levels: FloorLevel[]) {
   const cached = projectsApi.endpoints.getEstimate.useQueryState(projectId ?? "", { skip: !projectId });
-  return (level: FloorLevel): number | null => {
-    const f = cached.data?.basis.floors.find((x) => x.level === level);
-    const fromApi = f?.columns?.derived ?? (f?.roof?.columnCountAuto ? f.roof.columnCount : null);
-    if (fromApi) return fromApi;
-    const covered = project?.coverage?.coveredAreaSqft ?? null;
-    const footprint = covered && floorCount > 0 ? covered / floorCount : frontFt && depthFt ? frontFt * depthFt : null;
-    return estimateColumnCount(footprint, frontFt, depthFt);
-  };
+  const floors = footprintFloors(project, levels);
+  return (level: FloorLevel): number | null =>
+    columnCountFor({ footprints: project?.calculations?.footprints, estimate: cached.data, floors, coveredAreaSqft: project?.coverage?.coveredAreaSqft, frontFt, depthFt }, level);
 }
 
 function toValues(p: ProjectDetail | null, companyMarla: number): Values {
@@ -76,17 +73,13 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
     foundation: foundationToForm(
       p?.foundation,
       p?.structure?.structureType ?? "FRAMED",
-      estimateColumnCount(
-        p?.coverage?.coveredAreaSqft ? p.coverage.coveredAreaSqft / Math.max(1, floors.filter((f) => f.level !== "MUMTY").length || 1) : p?.plot?.frontFt && p.plot.depthFt ? p.plot.frontFt * p.plot.depthFt : null,
-        p?.plot?.frontFt,
-        p?.plot?.depthFt,
-      ),
+      columnCountFor({ footprints: p?.calculations?.footprints, floors: footprintFloors(p), coveredAreaSqft: p?.coverage?.coveredAreaSqft, frontFt: p?.plot?.frontFt, depthFt: p?.plot?.depthFt }, "GROUND"),
     ),
   };
 }
 
 /** "10 Marla = 2,250 sq ft · 35 × 65 = 2,275 sq ft" with a warning when they disagree. */
-function PlotResult() {
+export function PlotResult() {
   const [plotUnit, plotSize, marlaStandard, frontFt, depthFt] = useWatch({
     name: ["plotUnit", "plotSize", "marlaStandard", "frontFt", "depthFt"],
   }) as [Values["plotUnit"], number | null, string, number | null, number | null];
@@ -244,8 +237,14 @@ export function PlotStructureTab() {
   const [pendingForce, setPendingForce] = useState<Output | null>(null);
   const form = useForm<Values, unknown, Output>({ resolver: zodResolver(plotStructureSchema), values: toValues(project, me?.tenant.marlaStandard ?? 225) });
   useReportForm(form);
-  const [frontFt, depthFt, watchedFloors] = useWatch({ control: form.control, name: ["frontFt", "depthFt", "floors"] }) as [number | null, number | null, Values["floors"] | undefined];
-  const columnsFor = useColumnEstimate(projectId, project, frontFt, depthFt, (watchedFloors ?? []).filter((f) => f.level !== "MUMTY").length);
+  const [frontFt, depthFt, watchedFloors, hasBasement] = useWatch({ control: form.control, name: ["frontFt", "depthFt", "floors", "hasBasement"] }) as [
+    number | null,
+    number | null,
+    Values["floors"] | undefined,
+    boolean | undefined,
+  ];
+  const levels: FloorLevel[] = [...(hasBasement ? (["BASEMENT"] as const) : []), ...(watchedFloors ?? []).map((f) => f.level)];
+  const columnsFor = useColumnEstimate(projectId, project, frontFt, depthFt, levels);
 
   if (!projectId) return null;
 

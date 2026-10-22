@@ -5,7 +5,7 @@
  *   - QA B-35: a contract type starts from its own default template (the one made for that type, else
  *     the company default).
  */
-import type { ContractType, PaymentTemplate } from "@/api/types";
+import type { BillingModel, ContractType, PaymentTemplate } from "@/api/types";
 
 export interface StageValue {
   label: string;
@@ -59,3 +59,42 @@ export const templateStages = (t: PaymentTemplate): StageValue[] => t.stages.map
 
 export const sameStages = (a: StageValue[], b: StageValue[]) =>
   a.length === b.length && a.every((s, i) => s.label === b[i]!.label && s.percent === b[i]!.percent && s.isRetention === b[i]!.isRetention);
+
+/** What one contract type had before the user switched away (QA B-18): restored on switching back. */
+export interface TypeMemory {
+  contractValuePaisa: string | null;
+  ratePerSqftPaisa: string | null;
+  billingModel: BillingModel;
+  stages: StageValue[];
+}
+
+/**
+ * Switching the contract type (QA B-18): what the old type had is remembered; the new type gets back
+ * what it had before, else it KEEPS the contract value and rate on screen (nothing is wiped) and starts
+ * from its own stages (running bills: one running stage + the retention; otherwise its default template).
+ */
+export function switchContract(
+  current: TypeMemory & { contractType: ContractType },
+  to: ContractType,
+  billingModel: BillingModel,
+  memory: Partial<Record<ContractType, TypeMemory>>,
+  ctx: { retention: number; stagesFor: (type: ContractType, retention: number) => StageValue[]; labels: { running: string; retention: string } },
+): { values: TypeMemory; memory: Partial<Record<ContractType, TypeMemory>> } {
+  const { contractType: from, ...had } = current;
+  const next = { ...memory, [from]: had };
+  const saved = memory[to];
+  const stages = saved
+    ? withRetention(saved.stages, ctx.retention, ctx.labels.retention)
+    : billingModel === "RUNNING_BILLS"
+      ? runningStages(ctx.retention, ctx.labels.running, ctx.labels.retention)
+      : ctx.stagesFor(to, ctx.retention);
+  return {
+    values: {
+      contractValuePaisa: saved ? saved.contractValuePaisa : had.contractValuePaisa,
+      ratePerSqftPaisa: saved ? saved.ratePerSqftPaisa : had.ratePerSqftPaisa,
+      billingModel,
+      stages,
+    },
+    memory: next,
+  };
+}

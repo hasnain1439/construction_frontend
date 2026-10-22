@@ -340,6 +340,7 @@ export const strings: Widen<typeof En.strings> = {
     ROOMS_TOO_FEW: "Kamre covered area ka sirf {percent}% hain ({coveredAreaSqft} mein se {roomsAreaSqft} sq ft). Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
     RULEBOOK_RATE_ZERO: "In rates ki qeemat Rs 0 hai, is liye in lines ka koi kharcha nahi lagta: {items}. Assumptions mein rate darj karein.",
     FOOTPRINT_EXCEEDS_PLOT: "Ground footprint ({footprintSqft} sq ft) plot ({plotAreaSqft} sq ft) se bara hai — covered area ya plot size theek karein.",
+    FOOTINGS_COLUMNS_MISMATCH: "{footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka likha number istemal ho raha hai; ise check karein (aam tor par har column ke neeche aik footing).",
     STEEL_RATE_GENERIC: "In ka price list rate nahin: {materials} — aam sarye ke rate par lagaya.",
     WALLS_PARTIAL: "{floor}: {rooms} mein se {missing} kamron ki deewarein darj nahin — is manzil ki deewarein kamron ke size se nikaali gayin.",
     WALLS_UNPAIRED: "{floor}: {sides} sanjhi deewar(ein) doosre kamre se juri nahin — raahdari deewar ginti hui.",
@@ -384,7 +385,7 @@ export const strings: Widen<typeof En.strings> = {
     steel: "Sarya: concrete ka hajam × sarya % × 222 kg fi cft (1 % ≈ 2.22 kg fi cft).",
     walls:
       "Deewarein: kamron ke gheron se deewaron ki lambai (saanjhi deewar ek baar); oonchai = manzil ki chhat; darwaze andar ki, khirkiyan bahar ki deewaron se kam.",
-    wastage: "Har maal par zaya joda jata hai (default 5 %); kaam ki lines (hajam, raqba) par nahin.",
+    wastage: "Har maal par us ka apna zaya joda jata hai (default: cement 2 %, ret aur bajri 5 %, eenten 5 %, sariya 4 % aur jor ke liye 4 %, baqi samaan 5 %); kaam ki lines (hajam, raqba) par nahin.",
   },
   settings: {
     title: "Andazay ki buniyad",
@@ -423,6 +424,10 @@ export const strings: Widen<typeof En.strings> = {
       steelWastagePercent: "Sariye ka zaya",
       siteOverheadPercent: "Site ke kharche",
       siteOverheadPercentHint: "Direct cost ka percent",
+      steelLapPercent: "Sariye ke jor aur hook",
+      steelLapPercentHint: "Sariye ke zaya ke ooper",
+      wastagePercentHint: "Waterproofing, bitumen, deemak ki dawai, pathar, garder, chhat ki tiles",
+      termiteLitrePerSqftHint: "Sab se neechay ki manzil ke footprint ke fi sq ft (200 sq ft ke liye 1 litre)",
       contingencyPercent: "Ghair mutawaqqa kharcha",
       contingencyPercentHint: "Direct cost ka percent; BoQ line mein dikhaya gaya hai kis raqam par laga",
       externalWallThicknessIn: "Bahar ki deewar ki motai",
