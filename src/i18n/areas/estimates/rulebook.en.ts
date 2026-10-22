@@ -54,7 +54,7 @@ export const ruleDesc = {
   mepSewerageGasRsLumpSum: "Main sewer line, manholes, rain-water pipes and gas pipe rough-in for the house.",
   equipmentShutteringRsPerSqft: "Lump sum per sq ft of covered area: shuttering plates / props, mixer, vibrator, scaffolding, water.",
   siteOverheadPercent: "Chowkidar, site office, utilities, transport — % of the direct cost.",
-  contingencyPercent: "% of direct cost + overheads for price changes and unforeseen work.",
+  contingencyPercent: "% of the direct cost (not of direct + overheads) for price changes and unforeseen work.",
   rccCftPerSqftFramed: "RCC concrete per sq ft of covered area for an RCC-frame house (slabs + beams + columns + footings).",
   rccCftPerSqftLoadBearing: "RCC concrete per sq ft of covered area for a load-bearing house (slabs + lintels).",
   steelKgPerSqftFramed: "Steel per sq ft of covered area for an RCC-frame house.",

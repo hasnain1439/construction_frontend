@@ -6,6 +6,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Estimate QA re-check (QE5)
+
+- **Fixed:** the contingency description in the estimate assumptions and the rulebook says it is a % of the direct cost only (not of direct + overheads), in English, Roman Urdu and Urdu (QA B-14).
+
 ### Labour-only scope and sparse projects (QE4)
 
 - **Added:** a labour-only contract (Contract tab) has two options, "Include finishing labour (tiles, paint)" and "Include electrical and plumbing labour"; without them the estimate counts grey-structure labour only and shows the left-out lines as the owner's, with no amount.
