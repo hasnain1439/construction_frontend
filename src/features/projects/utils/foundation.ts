@@ -29,6 +29,10 @@ export const BAR_SIZES: Array<{ mm: BarSizeMm; bar: string }> = [
   { mm: 20, bar: "#6" },
 ];
 export const barName = (mm: number | null | undefined) => BAR_SIZES.find((b) => b.mm === mm)?.bar ?? "";
+/** Nearest inch size of a bar (QA B-32): the English hint says "12 mm (#4, about ½ inch)". */
+export const BAR_INCH: Record<number, string> = { 10: "⅜", 12: "½", 16: "⅝", 20: "¾" };
+/** Variables of the "projects.foundation.barInch" hint for a bar in mm (null when unknown). */
+export const barInchVars = (mm: number | null | undefined) => (mm && BAR_INCH[mm] ? { mm, n: barName(mm).slice(1), inch: BAR_INCH[mm] } : null);
 
 /** Footing thickness the form suggests per type (inches): 9" strip, 12" pads / raft / pile cap. */
 export const FOOTING_THICKNESS_DEFAULT: Record<FoundationType, number> = { STRIP: 9, ISOLATED: 12, COMBINED: 12, RAFT: 12, PILE: 12 };

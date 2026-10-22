@@ -335,6 +335,7 @@ export const strings = {
     ROOMS_TOO_FEW: "Rooms cover only {percent}% of the covered area ({roomsAreaSqft} of {coveredAreaSqft} sq ft). Add the remaining rooms (or passages) before the estimate can be trusted.",
     RULEBOOK_RATE_ZERO: "These rates are Rs 0, so their lines cost nothing: {items}. Set a rate in the assumptions.",
     FOOTPRINT_EXCEEDS_PLOT: "The ground footprint ({footprintSqft} sq ft) is larger than the plot ({plotAreaSqft} sq ft) — fix the covered area or the plot size.",
+    FOOTINGS_COLUMNS_MISMATCH: "{footings} footings are entered, but the frame has {columns} columns. The number you entered is used; check it (usually one footing under each column).",
     STEEL_RATE_GENERIC: "No price-list rate for: {materials} — priced at the general steel rate.",
     WALLS_PARTIAL: "{floor}: {missing} of {rooms} rooms have no walls entered — this floor's walls are worked out from the room sizes.",
     WALLS_UNPAIRED: "{floor}: {sides} shared wall side(s) are not paired with the other room — counted as passage walls.",
@@ -379,7 +380,7 @@ export const strings = {
     steel: "Steel: concrete volume × steel % × 222 kg per cft (1 % ≈ 2.22 kg per cft).",
     walls:
       "Walls: room perimeters give the wall run (shared walls counted once); height = floor ceiling; doors come off internal walls, windows off external walls.",
-    wastage: "Wastage is added to every material (5 % by default); work lines (volumes, areas) have none.",
+    wastage: "Wastage is added to every material, each with its own rate (by default cement 2 %, sand and crush 5 %, bricks 5 %, steel 4 % plus 4 % for laps, other materials 5 %); work lines (volumes, areas) have none.",
   },
   settings: {
     title: "Estimate assumptions",
@@ -418,6 +419,10 @@ export const strings = {
       steelWastagePercent: "Steel wastage",
       siteOverheadPercent: "Site overheads",
       siteOverheadPercentHint: "Percent of the direct cost",
+      steelLapPercent: "Steel laps and hooks",
+      steelLapPercentHint: "Added on top of the steel wastage",
+      wastagePercentHint: "Waterproofing, bitumen, termite chemical, stone, girders, roof tiles",
+      termiteLitrePerSqftHint: "Per sq ft of the lowest-floor footprint (1 litre for 200 sq ft)",
       contingencyPercent: "Contingency",
       contingencyPercentHint: "Percent of the direct cost; the BoQ line shows the base it is worked out on",
       externalWallThicknessIn: "External wall thickness",

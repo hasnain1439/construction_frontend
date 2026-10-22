@@ -230,6 +230,8 @@ export type EstimateWarningCode =
   | "FOUNDATION_LENGTH_UNKNOWN"
   | "ROOMS_BELOW_COVERED"
   | "FOOTPRINT_EXCEEDS_PLOT"
+  // QE5: the footing count typed differs from the frame columns (params footings, columns); the typed number is used
+  | "FOOTINGS_COLUMNS_MISMATCH"
   // QE4: rooms under 50 % of the covered area → no estimate (blocking; params roomsAreaSqft, coveredAreaSqft, percent)
   | "ROOMS_TOO_FEW"
   | "RATES_MISSING"

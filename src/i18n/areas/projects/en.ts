@@ -376,6 +376,7 @@ export const strings = {
   },
   foundation: {
     footingCountHint: "One per column: about {n} for this frame.",
+    footingCountMismatch: "You entered {footings} footings, but the frame has {columns} columns. Your number is used; usually there is one footing under each column.",
     title: "Foundation",
     description: "Type, size and material of the foundation. The fields change with the type.",
     dimensions: "Dimensions",
@@ -399,6 +400,7 @@ export const strings = {
     rccMix: "RCC mix",
     mainBar: "Main steel bar",
     barValue: "{mm} mm (#{n})",
+    barInch: "{mm} mm (#{n}, about {inch} inch)",
     termite: "Termite treatment",
     termiteDesc: "Anti-termite chemical in the trenches before the PCC.",
     dpcMaterial: "DPC material",

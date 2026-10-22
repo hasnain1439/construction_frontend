@@ -338,6 +338,7 @@ export const strings: Widen<typeof En.strings> = {
     ROOMS_TOO_FEW: "کمرے کورڈ رقبے کا صرف {percent}% ہیں ({coveredAreaSqft} میں سے {roomsAreaSqft} مربع فٹ)۔ تخمینے پر بھروسہ کرنے سے پہلے باقی کمرے (یا راہداری) درج کریں۔",
     RULEBOOK_RATE_ZERO: "ان ریٹس کی قیمت 0 روپے ہے، اس لیے ان لائنوں کا کوئی خرچہ نہیں: {items}۔ مفروضات میں ریٹ درج کریں۔",
     FOOTPRINT_EXCEEDS_PLOT: "گراؤنڈ فٹ پرنٹ ({footprintSqft} مربع فٹ) پلاٹ ({plotAreaSqft} مربع فٹ) سے بڑا ہے — کورڈ ایریا یا پلاٹ سائز درست کریں۔",
+    FOOTINGS_COLUMNS_MISMATCH: "{footings} فوٹنگز لکھی ہیں، لیکن فریم میں {columns} کالم ہیں۔ آپ کا لکھا نمبر استعمال ہو رہا ہے؛ اسے چیک کریں (عام طور پر ہر کالم کے نیچے ایک فوٹنگ)۔",
     STEEL_RATE_GENERIC: "ان کا پرائس لسٹ ریٹ نہیں: {materials} — عام سریے کے ریٹ پر لگایا۔",
     WALLS_PARTIAL: "{floor}: {rooms} میں سے {missing} کمروں کی دیواریں درج نہیں — اس منزل کی دیواریں کمروں کے سائز سے نکالی گئیں۔",
     WALLS_UNPAIRED: "{floor}: {sides} سانجھی دیوار(یں) دوسرے کمرے سے جڑی نہیں — راہداری دیوار گنی گئی۔",
@@ -382,7 +383,7 @@ export const strings: Widen<typeof En.strings> = {
     steel: "سریا: کنکریٹ کا حجم × سریا % × 222 kg فی مکعب فٹ (1 % ≈ 2.22 kg فی مکعب فٹ)۔",
     walls:
       "دیواریں: کمروں کے گھیروں سے دیواروں کی لمبائی (سانجھی دیوار ایک بار)؛ اونچائی = منزل کی چھت؛ دروازے اندر کی، کھڑکیاں باہر کی دیواروں سے کم۔",
-    wastage: "ہر مال پر ضیاع جوڑا جاتا ہے (عام طور پر 5 %)؛ کام کی لائنوں (حجم، رقبہ) پر نہیں۔",
+    wastage: "ہر مال پر اس کا اپنا ضیاع جوڑا جاتا ہے (عام طور پر: سیمنٹ 2 %، ریت اور بجری 5 %، اینٹیں 5 %، سریا 4 % اور جوڑوں کے لیے 4 %، باقی سامان 5 %)؛ کام کی لائنوں (حجم، رقبہ) پر نہیں۔",
   },
   settings: {
     title: "تخمینے کی بنیاد",
@@ -420,6 +421,10 @@ export const strings: Widen<typeof En.strings> = {
       steelWastagePercent: "سریے کا ضیاع",
       siteOverheadPercent: "سائٹ کے اخراجات",
       siteOverheadPercentHint: "براہ راست لاگت کا فیصد",
+      steelLapPercent: "سریے کے جوڑ اور ہک",
+      steelLapPercentHint: "سریے کے ضیاع کے اوپر",
+      wastagePercentHint: "واٹر پروفنگ، بٹومن، دیمک کی دوا، پتھر، گارڈر، چھت کی ٹائلیں",
+      termiteLitrePerSqftHint: "سب سے نیچے کی منزل کے فٹ پرنٹ کے فی مربع فٹ (200 مربع فٹ کے لیے 1 لیٹر)",
       contingencyPercent: "غیر متوقع خرچہ",
       contingencyPercentHint: "براہ راست لاگت کا فیصد؛ BoQ لائن میں دکھایا گیا ہے کس رقم پر لگا",
       externalWallThicknessIn: "باہر کی دیوار کی موٹائی",

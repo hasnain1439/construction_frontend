@@ -377,6 +377,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   foundation: {
     footingCountHint: "ہر کالم کے نیچے ایک: اس فریم کے لیے تقریباً {n}۔",
+    footingCountMismatch: "آپ نے {footings} فوٹنگز لکھی ہیں، لیکن فریم میں {columns} کالم ہیں۔ آپ کا نمبر ہی استعمال ہوگا؛ عام طور پر ہر کالم کے نیچے ایک فوٹنگ ہوتی ہے۔",
     title: "بنیاد",
     description: "بنیاد کی قسم، ناپ اور مٹیریل۔ قسم کے حساب سے خانے بدلتے ہیں۔",
     dimensions: "ناپ",
@@ -400,6 +401,7 @@ export const strings: Widen<typeof En.strings> = {
     rccMix: "آر سی سی مکس",
     mainBar: "مین سریا",
     barValue: "{mm} ملی میٹر ({n} سوتر)",
+    barInch: "{mm} ملی میٹر ({n} سوتر، تقریباً {inch} انچ)",
     termite: "دیمک کا علاج",
     termiteDesc: "پی سی سی سے پہلے کھائیوں میں دیمک مار دوا۔",
     dpcMaterial: "ڈی پی سی کا مٹیریل",

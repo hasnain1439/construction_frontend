@@ -66,13 +66,33 @@ export function EstimateTab() {
         const warningList = (
           <EstimateWarnings project={project} warnings={warnings} onGoToTab={{ go: goTo, label: stepLabel }} assumptions={boq?.assumptions} />
         );
+        // QA B-20: the assumptions can be seen and changed even while the estimate is blocked
+        const intro = (
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.wizardIntro")}</p>
+            <Button type="button" variant="outline" onClick={() => setSettingsOpen(true)}>
+              <SlidersHorizontal data-icon="inline-start" />
+              {t("projects.estimate.assumptions")}
+            </Button>
+          </div>
+        );
+        const settingsModal = settingsOpen ? (
+          <EstimateSettingsModal
+            projectId={projectId}
+            estimate={e}
+            canManage={can("projects.estimate.manage")}
+            locked={locked}
+            onClose={() => setSettingsOpen(false)}
+          />
+        ) : null;
         // QE4: rooms under 50 % of the covered area → no estimate: the reason and what to add, no numbers
         if (isEstimateBlocked(e)) {
           return (
             <div className="space-y-6" data-testid="wizard-estimate">
-              <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.wizardIntro")}</p>
+              {intro}
               {warningList}
               <EstimateBlockedNotice />
+              {settingsModal}
             </div>
           );
         }
@@ -87,13 +107,7 @@ export function EstimateTab() {
         );
         return (
           <div className="space-y-6" data-testid="wizard-estimate">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <p className="max-w-3xl text-sm text-muted-foreground">{t("projects.estimate.wizardIntro")}</p>
-              <Button type="button" variant="outline" onClick={() => setSettingsOpen(true)}>
-                <SlidersHorizontal data-icon="inline-start" />
-                {t("projects.estimate.assumptions")}
-              </Button>
-            </div>
+            {intro}
             <EstimateKpis estimate={e} compact />
             {warningList}
             {!money ? <InlineAlert tone="info">{t("projects.estimate.noAccessCost")}</InlineAlert> : null}
@@ -123,15 +137,7 @@ export function EstimateTab() {
             {e.cost && !e.boqCost ? <EstimateCostSummary estimate={e} /> : null}
             <EstimateBasis estimate={e} />
             <RateEditSlideOver projectId={projectId} estimate={e} line={rateEdit?.line ?? null} rateKey={rateEdit?.key ?? null} locked={locked} onClose={() => setRateEdit(null)} />
-            {settingsOpen ? (
-              <EstimateSettingsModal
-                projectId={projectId}
-                estimate={e}
-                canManage={can("projects.estimate.manage")}
-                locked={locked}
-                onClose={() => setSettingsOpen(false)}
-              />
-            ) : null}
+            {settingsModal}
           </div>
         );
       }}

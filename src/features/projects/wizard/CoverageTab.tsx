@@ -15,6 +15,7 @@ import { ToggleField } from "@/components/forms/ToggleField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useT } from "@/i18n/useT";
 import { defaultBoundaryLengthFt, formatArea } from "../utils/calc";
+import { footprintFloors, groundFootprint } from "../utils/footprint";
 import { coverageSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
@@ -59,8 +60,16 @@ function SplitBar({ project }: { project: ProjectDetail | null }) {
   const cached = projectsApi.endpoints.getEstimate.useQueryState(project?.id ?? "", { skip: !project });
   const plotSqft = project?.calculations?.plotAreaSqft ?? null;
   const storeys = Math.max(1, (project?.floors ?? []).filter((f) => STOREYS.includes(f.level)).length);
-  const ground = cached.data?.basis.floors.find((f) => f.level === "GROUND")?.footprintSqft ?? null;
-  const fit = plotFit({ coveredSqft: covered, semiSqft: semi, openSqft: open, plotSqft, storeys, groundFootprintSqft: ground || null });
+  // QA NEW-2: the engine's ground footprint (same rule as utils/footprint.ts); the API's number only while
+  // the covered area on screen is the one it was worked out from
+  const saved = covered !== null && covered === (project?.coverage?.coveredAreaSqft ?? null);
+  const ground = groundFootprint({
+    footprints: saved ? project?.calculations?.footprints : null,
+    estimate: saved ? cached.data : null,
+    floors: footprintFloors(project),
+    coveredAreaSqft: covered,
+  });
+  const fit = plotFit({ coveredSqft: covered, semiSqft: semi, openSqft: open, plotSqft, storeys, groundFootprintSqft: ground });
   const parts = [
     { label: t("projects.coverage.groundFootprint"), value: fit.footprint, className: "bg-primary" },
     { label: t("projects.section.semiCovered"), value: semi ?? 0, className: "bg-amber" },
