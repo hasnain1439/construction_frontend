@@ -1,6 +1,7 @@
 "use client";
 
 import { Calculator, CircleCheck, CircleX, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useGetEstimateQuery, useGetReviewQuery } from "@/api/services/projects.api";
 import type { ProjectReview, ReviewIssue } from "@/api/types";
@@ -34,6 +35,8 @@ function useIssueText() {
     let code = issue.code;
     if (code === "CONTRACT_VALUE_MISSING" && /rate/i.test(issue.message)) code = "CONTRACT_RATE_MISSING";
     if (!(code in projectStrings.issue)) return issue.message;
+    // QA re-check B-26: "No price-list rate for: Emulsion paint, Primer — you supply these, …" → the names
+    if (code === "RATES_MISSING") return t("projects.issue.RATES_MISSING", { items: issue.message.match(/:\s*(.+?)\s+—/)?.[1] ?? "—" });
     const [a = "", b = ""] = issue.message.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
     return t(`projects.issue.${code as IssueCode}` as TranslationKey, { a, b });
   };
@@ -234,6 +237,7 @@ export function ReviewTab() {
   const { projectId, goTo, locked } = useWizard();
   const t = useT();
   const canViewEstimate = useCan("projects.estimate.view");
+  const canPrices = useCan("masterdata.pricelist.view");
   const { data, isLoading, error, refetch } = useGetReviewQuery(projectId ?? "", { skip: !projectId, refetchOnMountOrArgChange: true });
   const hasValueError = Boolean(data?.errors.some((e) => e.code === "CONTRACT_VALUE_MISSING"));
   // The estimate carries the suggested value for the one-click fix next to CONTRACT_VALUE_MISSING.
@@ -261,7 +265,15 @@ export function ReviewTab() {
             issues={data.errors}
             tone="danger"
             onGo={goTo}
-            action={(issue) => (issue.code === "CONTRACT_VALUE_MISSING" && !locked && projectId ? <ApplyMarginAction projectId={projectId} estimate={estimate} /> : null)}
+            action={(issue) =>
+              issue.code === "CONTRACT_VALUE_MISSING" && !locked && projectId ? (
+                <ApplyMarginAction projectId={projectId} estimate={estimate} />
+              ) : issue.code === "RATES_MISSING" && canPrices ? (
+                <Button asChild variant="link" size="sm" className="h-auto p-0">
+                  <Link href="/settings/price-list">{t("projects.estimate.warn.openPriceList")}</Link>
+                </Button>
+              ) : null
+            }
           />
         </SectionCard>
       ) : null}

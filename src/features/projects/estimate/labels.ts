@@ -30,8 +30,13 @@ export function materialText(t: T, material: EstimateMaterial): string {
 
 /** "Roof slab — volume", or the material name for a material line. */
 export function lineText(t: T, line: EstimateLine): string {
-  const element = t(`projects.estimate.element.${line.element}` as TranslationKey);
-  if (line.kind === "MATERIAL" && line.material) return materialText(t, line.material);
+  if (line.kind === "MATERIAL" && line.material && isTranslationKey(`projects.estimate.material.${line.material}`)) {
+    return materialText(t, line.material);
+  }
+  const elementKey = `projects.estimate.element.${line.element}`;
+  // An element or material this app does not know yet: the API's plain-string label (QA re-check NEW-3)
+  if (!isTranslationKey(elementKey) || (line.kind === "MATERIAL" && line.material)) return line.label ?? String(line.material ?? line.element);
+  const element = t(elementKey);
   return line.measure
     ? `${element} — ${t(`projects.estimate.measure.${line.measure}` as TranslationKey)}`
     : element;
@@ -42,8 +47,26 @@ export function formulaText(t: T, formula: EstimateFormula, fallback: string): s
   const key = `projects.estimate.formula.${formula.key}`;
   if (!isTranslationKey(key)) return fallback;
   const vars: TranslationVars = {};
-  for (const [k, v] of Object.entries(formula.params)) vars[k] = typeof v === "number" ? fmt(v) : v;
-  return t(key, vars);
+  // Only numbers and strings are printed: an object (an older API's `floor: { level, name }`) prints
+  // its name, never "[object Object]" (QA re-check NEW-3).
+  for (const [k, v] of Object.entries(formula.params as Record<string, unknown>)) {
+    if (typeof v === "number") vars[k] = fmt(v);
+    else if (typeof v === "string") vars[k] = v;
+    else if (v && typeof v === "object" && typeof (v as { name?: unknown }).name === "string") vars[k] = (v as { name: string }).name;
+  }
+  const text = t(key, vars);
+  // QA re-check NEW-1: a floor whose rooms cover too little of it is scaled up — runs by the square
+  // root of the area factor (LINEAR), areas by the area factor (AREA); the API sends which one.
+  const { coverageScale, scaleKind } = formula.params;
+  if (typeof coverageScale !== "number" || (scaleKind !== "LINEAR" && scaleKind !== "AREA")) return text;
+  return (
+    text +
+    t(`projects.estimate.formulaScale.${scaleKind}`, {
+      scale: fmt(coverageScale),
+      areaScale: vars.areaScale ?? "",
+      roomsPercent: vars.roomsPercent ?? "",
+    })
+  );
 }
 
 /** Paisa → "Rs 62,59,721": estimate amounts are shown to the rupee. */

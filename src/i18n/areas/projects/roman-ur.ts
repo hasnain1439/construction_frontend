@@ -604,6 +604,7 @@ export const strings: Widen<typeof En.strings> = {
     COVERED_AREA_MISSING: "Covered area likhein",
     NO_ROOMS: "Kamre shamil karein",
     ROOMS_TOO_FEW: "Kamre covered area ka sirf {a}% hain. Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
+    RATES_MISSING: "Rate list mein in ka rate nahin: {items}. Yeh samaan aap dete hain, is liye andaza istemal karne se pehle rate list mein rate darj karein.",
     ROOM_AREA_VS_COVERED: "Kamron ka jor {a} sq ft hai jabke covered {b} sq ft — 15% se zyada farq (deewarein aur raaste?)",
     NO_PM: "Koi project manager muqarrar nahi",
     NO_MUNSHI: "Koi munshi muqarrar nahi",

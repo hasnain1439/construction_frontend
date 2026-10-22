@@ -135,6 +135,10 @@ export interface EstimateLine {
   id: string;
   stage: EstimateStage;
   floor: { level: FloorLevel; name: string } | null;
+  /** The floor as a plain string (QA re-check NEW-3); absent from an older API. */
+  floorLevel?: FloorLevel | null;
+  /** Plain English label, e.g. "Ground floor · walls (volume)" (QA re-check NEW-3); absent from an older API. */
+  label?: string;
   element: EstimateElement;
   kind: "WORK" | "MATERIAL";
   measure: EstimateMeasure | null;

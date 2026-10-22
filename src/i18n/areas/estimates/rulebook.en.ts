@@ -23,7 +23,7 @@ export const ruleDesc = {
   externalPlasterMix: "Cement : sand for external faces and parapets (1 : 4).",
   externalPlasterThicknessIn: "External faces (¾″).",
   concreteDryFactor: "Wet → dry volume of concrete (1.54).",
-  mortarDryFactor: "Wet → dry volume of mortar / plaster (1.33).",
+  mortarDryFactor: "Wet → dry volume of mortar / plaster (1.27).",
   cementBagCft: "Volume of one 50 kg bag (1.25 cft).",
   brickWastagePercent: "Breakage of bricks or blocks.",
   cementWastagePercent: "Cement bags.",

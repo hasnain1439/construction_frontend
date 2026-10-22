@@ -25,7 +25,7 @@ export const ruleDesc: Record<keyof typeof EnDesc, string> = {
   externalPlasterMix: "بیرونی دیواروں اور منڈیر کے لیے سیمنٹ : ریت (1 : 4)۔",
   externalPlasterThicknessIn: "بیرونی دیواریں (¾″)۔",
   concreteDryFactor: "کنکریٹ کا گیلا → خشک حجم (1.54)۔",
-  mortarDryFactor: "مسالے / پلستر کا گیلا → خشک حجم (1.33)۔",
+  mortarDryFactor: "مسالے / پلستر کا گیلا → خشک حجم (1.27)۔",
   cementBagCft: "50 kg کی ایک بوری کا حجم (1.25 مکعب فٹ)۔",
   brickWastagePercent: "اینٹوں یا بلاک کی ٹوٹ پھوٹ۔",
   cementWastagePercent: "سیمنٹ کی بوریاں۔",

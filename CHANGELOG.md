@@ -6,6 +6,15 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Estimate QA re-check integration (QE5 + QE6, 22 Oct 2026)
+
+- **Merged:** `p23/qe5` and `p23/qe6`; both sides kept (the only conflict was this file).
+- **Added:** translations for the scaled formulas (`wallsScaled`, `plasterExternalScaled`) and the scale note on a scaled line ("× 2.05 (square root of the area factor …)" for wall runs, "× 1.5 (area factor …)" for areas) in English, Roman Urdu and Urdu.
+- **Fixed:** estimate line names and the floor column use the API's plain `label` / `floorLevel` when the app has no translation; a formula value that is an object prints its name, so "[object Object]" cannot appear.
+- **Added:** the Review tab shows the blocking "No price-list rate for: …" error on tab 2, naming the materials, with an "Open price list" link (QA B-26). The estimate's RATES_MISSING warning now says it blocks the estimate.
+- **Fixed:** "How the estimate is calculated" prints the factors the estimate used (bricks per cft, mortar per cft, dry factors, mix, bag size) instead of the old 0.25 × 1.33; the rulebook text for the mortar dry factor says 1.27.
+- API types (`schema.ts`) regenerated from the merged API. `calculations.footprints` stays hand-typed: the API documents it only in examples, so the generated types have no shape for it.
+
 ### Estimate QA re-check (QE5)
 
 - **Fixed:** the contingency description in the estimate assumptions and the rulebook says it is a % of the direct cost only (not of direct + overheads), in English, Roman Urdu and Urdu (QA B-14).

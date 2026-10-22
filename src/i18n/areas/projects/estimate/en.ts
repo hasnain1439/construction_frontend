@@ -279,6 +279,16 @@ export const strings = {
     waterproofing: "{bags} cement bags × {perBag} kg",
     bitumen: "{area} sq ft × {perSqft} kg",
     termite: "{area} sq ft × {perSqft} litre",
+    wallsScaled:
+      "Rooms cover {roomsPercent} % of the floor: wall run (external {roomExt} ft + internal {roomInt} ft) × {linearScale} (square root of the area factor {areaScale}) = external {ext} ft (at most the footprint perimeter {perimeter} ft) + internal {int} ft; external {ext} ft × {height} ft × {extIn}″ − windows {windows} sq ft; internal {int} ft × {height} ft × {intIn}″ − doors {doors} sq ft",
+    plasterExternalScaled:
+      "Rooms cover {roomsPercent} % of the floor: external run {roomExt} ft × {linearScale} (square root of the area factor), at most the footprint perimeter = {length} ft × ({height} ft + slab {slabIn}″) − windows {windows} sq ft",
+  },
+  /** Appended to a formula whose floor is scaled up because the rooms cover too little of it (`scaleKind`). */
+  formulaScale: {
+    LINEAR:
+      " × {scale} (square root of the area factor {areaScale}: rooms cover {roomsPercent} % of the floor, and wall runs grow with the square root of the area)",
+    AREA: " × {scale} (area factor: rooms cover {roomsPercent} % of the floor)",
   },
   summary: {
     title: "Material summary",
@@ -356,7 +366,7 @@ export const strings = {
     FOUNDATION_LENGTH_UNKNOWN:
       "Foundation wall length is unknown — add rooms or the plot size, or enter it in the assumptions.",
     ROOMS_BELOW_COVERED: "Rooms add up to only {percent}% of the covered area — walls, lintels and plaster are probably under-counted (add passages, stairs, stores …).",
-    RATES_MISSING: "No price-list rate for: {materials}. These lines are left out of the cost.",
+    RATES_MISSING: "No price-list rate for: {materials}. You supply these, so add a rate to the price list before this estimate can be used.",
     LABOUR_RATES_MISSING: "No labour rate for: {items}. Left out of the labour cost.",
     CONTRACT_VALUE_MISSING: "No contract value — the margin can't be worked out.",
     STEEL_NORM_DEVIATION: "Steel works out to {actual} kg per sq ft of covered area, outside the usual {min}–{max} kg — check the structure inputs.",
@@ -374,9 +384,9 @@ export const strings = {
       "Roof entered: slab steel from the actual bars — main and distribution bars per room (count = length × 12 ÷ spacing + 1, plus anchorage), extra top bars — weighed by size (kg per metre = d² ÷ 162); beams and columns from their sizes and bars.",
     title: "How the estimate is calculated",
     concrete:
-      "Concrete: wet volume × 1.54 = dry volume, split by the mix (1:2:4 → cement 1/7, sand 2/7, crush 4/7); cement cft ÷ 1.25 = bags of 50 kg.",
-    mortar: "Brickwork: 13.5 bricks per cft; 0.25 cft wet mortar per cft × 1.33 = dry, split by 1:6.",
-    plaster: "Plaster: area × thickness × 1.33, split by the mix (1:4 → cement 1/5, sand 4/5).",
+      "Concrete: wet volume × {concreteDry} = dry volume, split by the mix (1:2:4 → cement 1/7, sand 2/7, crush 4/7); cement cft ÷ {bagCft} = bags of 50 kg.",
+    mortar: "Brickwork: {bricks} bricks per cft; {mortar} cft wet mortar per cft × {dry} = dry, split by {mix}.",
+    plaster: "Plaster: area × thickness × {dry}, split by the mix (1:4 → cement 1/5, sand 4/5).",
     steel: "Steel: concrete volume × steel % × 222 kg per cft (1 % ≈ 2.22 kg per cft).",
     walls:
       "Walls: room perimeters give the wall run (shared walls counted once); height = floor ceiling; doors come off internal walls, windows off external walls.",

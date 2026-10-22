@@ -284,6 +284,15 @@ export const strings: Widen<typeof En.strings> = {
     waterproofing: "{bags} cement bori × {perBag} kg",
     bitumen: "{area} sq ft × {perSqft} kg",
     termite: "{area} sq ft × {perSqft} litre",
+    wallsScaled:
+      "Kamre manzil ka {roomsPercent} % hain: deewaron ki lambai (bahar {roomExt} ft + andar {roomInt} ft) × {linearScale} (raqbe ke factor {areaScale} ka square root) = bahar {ext} ft (zyada se zyada footprint ka ghera {perimeter} ft) + andar {int} ft; bahar {ext} ft × {height} ft × {extIn}″ − khirkiyan {windows} sq ft; andar {int} ft × {height} ft × {intIn}″ − darwaze {doors} sq ft",
+    plasterExternalScaled:
+      "Kamre manzil ka {roomsPercent} % hain: bahar ka ghera {roomExt} ft × {linearScale} (raqbe ke factor ka square root), zyada se zyada footprint ka ghera = {length} ft × ({height} ft + chhat {slabIn}″) − khirkiyan {windows} sq ft",
+  },
+  formulaScale: {
+    LINEAR:
+      " × {scale} (raqbe ke factor {areaScale} ka square root: kamre manzil ka {roomsPercent} % hain, aur deewaron ki lambai raqbe ke square root ke hisaab se barhti hai)",
+    AREA: " × {scale} (raqbe ka factor: kamre manzil ka {roomsPercent} % hain)",
   },
   summary: {
     title: "Maal ka khulasa",
@@ -361,7 +370,7 @@ export const strings: Widen<typeof En.strings> = {
     FOUNDATION_LENGTH_UNKNOWN:
       "Bunyaad ki deewaron ki lambai maloom nahin — kamre ya plot ka size daalein, ya andazay ki buniyad mein likhein.",
     ROOMS_BELOW_COVERED: "Kamre covered area ka sirf {percent}% hain — deewarein, lintel aur plaster shayad kam gine gaye (rahdari, seerhiyan, store bhi daalein).",
-    RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh kharche mein shamil nahin.",
+    RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh samaan aap dete hain, is liye andaza istemal karne se pehle rate list mein rate darj karein.",
     LABOUR_RATES_MISSING: "In ki mazdoori ka rate nahin: {items}. Mazdoori mein shamil nahin.",
     CONTRACT_VALUE_MISSING: "Theke ki raqam nahin — nafa nahin nikal sakta.",
     STEEL_NORM_DEVIATION: "Sariya covered area ke fi murabba ft {actual} kg ban raha hai, aam had {min}–{max} kg se bahar — dhanche ki maloomat check karein.",
@@ -379,9 +388,9 @@ export const strings: Widen<typeof En.strings> = {
       "Chhat darj ho to: slab ka sarya asal sariyon se — har kamre ke main aur distribution sarye (tadaad = lambai × 12 ÷ faasla + 1, anchorage samait), izafi top sarye — size ke hisaab se wazan (kg fi meter = d² ÷ 162); beams aur columns apne size aur sariyon se.",
     title: "Andaza kaise lagta hai",
     concrete:
-      "Concrete: geela hajam × 1.54 = khushk hajam, mix ke hisaab se (1:2:4 → cement 1/7, ret 2/7, bajri 4/7); cement cft ÷ 1.25 = 50 kg ki boriyan.",
-    mortar: "Chinai: 13.5 eentein fi cft; 0.25 cft geela masala fi cft × 1.33 = khushk, 1:6 mein.",
-    plaster: "Plaster: raqba × motai × 1.33, mix ke hisaab se (1:4 → cement 1/5, ret 4/5).",
+      "Concrete: geela hajam × {concreteDry} = khushk hajam, mix ke hisaab se (1:2:4 → cement 1/7, ret 2/7, bajri 4/7); cement cft ÷ {bagCft} = 50 kg ki boriyan.",
+    mortar: "Chinai: {bricks} eentein fi cft; {mortar} cft geela masala fi cft × {dry} = khushk, {mix} mein.",
+    plaster: "Plaster: raqba × motai × {dry}, mix ke hisaab se (1:4 → cement 1/5, ret 4/5).",
     steel: "Sarya: concrete ka hajam × sarya % × 222 kg fi cft (1 % ≈ 2.22 kg fi cft).",
     walls:
       "Deewarein: kamron ke gheron se deewaron ki lambai (saanjhi deewar ek baar); oonchai = manzil ki chhat; darwaze andar ki, khirkiyan bahar ki deewaron se kam.",

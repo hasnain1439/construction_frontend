@@ -603,6 +603,7 @@ export const strings = {
     COVERED_AREA_MISSING: "Enter the covered area",
     NO_ROOMS: "Add the rooms",
     ROOMS_TOO_FEW: "Rooms cover only {a}% of the covered area. Add the remaining rooms (or passages) before the estimate can be trusted.",
+    RATES_MISSING: "No price-list rate for: {items}. You supply these, so add a rate to the price list before the estimate can be used.",
     ROOM_AREA_VS_COVERED: "Rooms add up to {a} sq ft vs {b} sq ft covered — more than 15% apart (walls and passages?)",
     NO_PM: "No project manager assigned",
     NO_MUNSHI: "No site clerk assigned",

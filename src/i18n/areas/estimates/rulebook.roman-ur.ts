@@ -25,7 +25,7 @@ export const ruleDesc: Record<keyof typeof EnDesc, string> = {
   externalPlasterMix: "Bahar ki deewaron aur mundair ke liye cement : ret (1 : 4).",
   externalPlasterThicknessIn: "Bahar ki deewarein (¾″).",
   concreteDryFactor: "Concrete ka geela → sukha hajm (1.54).",
-  mortarDryFactor: "Masale / plaster ka geela → sukha hajm (1.33).",
+  mortarDryFactor: "Masale / plaster ka geela → sukha hajm (1.27).",
   cementBagCft: "50 kg ki ek bori ka hajm (1.25 cft).",
   brickWastagePercent: "Eenton ya blocks ki toot phoot.",
   cementWastagePercent: "Cement ki boriyan.",
