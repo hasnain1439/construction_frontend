@@ -56,7 +56,7 @@ export const ruleDesc: Record<keyof typeof EnDesc, string> = {
   mepSewerageGasRsLumpSum: "Ghar ki main gutter line, manholes, barish ke paani ke pipe aur gas pipe ka kaam.",
   equipmentShutteringRsPerSqft: "Covered area ke fi sq ft lump sum: shuttering plates / props, mixer, vibrator, paarh, paani.",
   siteOverheadPercent: "Chowkidar, site office, bijli paani, transport — direct kharche ka %.",
-  contingencyPercent: "Qeematon mein tabdeeli aur ghair mutawaqqa kaam ke liye direct kharche + overheads ka %.",
+  contingencyPercent: "Qeematon mein tabdeeli aur ghair mutawaqqa kaam ke liye sirf direct kharche ka % (overheads shamil nahin).",
   rccCftPerSqftFramed: "RCC-frame ghar ke covered area ke fi sq ft RCC concrete (lenter + beam + column + footing).",
   rccCftPerSqftLoadBearing: "Load-bearing ghar ke covered area ke fi sq ft RCC concrete (lenter + lintel).",
   steelKgPerSqftFramed: "RCC-frame ghar ke covered area ke fi sq ft sariya.",
