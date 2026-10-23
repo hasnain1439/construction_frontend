@@ -26,7 +26,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
             <Fragment key={`${crumb.label}-${index}`}>
               <li>
                 {crumb.href && !last ? (
-                  <Link href={crumb.href} className="rounded-sm hover:text-foreground hover:underline">
+                  <Link href={crumb.href} className="hit-area rounded-sm hover:text-foreground hover:underline">
                     {crumb.label}
                   </Link>
                 ) : (

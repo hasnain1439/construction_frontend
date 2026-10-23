@@ -64,8 +64,19 @@ export function FormSection({ title, description, children, className }: { title
   );
 }
 
-/** 1–3 column responsive grid for fields. */
-export function FieldGrid({ children, columns = 2, className }: { children: ReactNode; columns?: 1 | 2 | 3; className?: string }) {
+/**
+ * 1–3 column responsive grid for fields. `fit` sizes the columns by the space the grid really has
+ * (a container query) instead of the screen width — for grids nested in cards (wizard tab 3, QA R-06):
+ * one column below 420 px, two below 640 px, then `columns`.
+ */
+export function FieldGrid({ children, columns = 2, className, fit }: { children: ReactNode; columns?: 1 | 2 | 3; className?: string; fit?: boolean }) {
+  if (fit) {
+    return (
+      <div className="@container">
+        <div className={cn("grid gap-4", columns >= 2 && "@[420px]:grid-cols-2", columns === 3 && "@[640px]:grid-cols-3", className)}>{children}</div>
+      </div>
+    );
+  }
   return (
     <div
       className={cn(

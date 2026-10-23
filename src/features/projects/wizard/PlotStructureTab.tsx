@@ -295,7 +295,7 @@ export function PlotStructureTab() {
       <Form form={form} onSubmit={(v) => send(v, false)} onInvalid={() => toast.error(t("projects.wizard.notSavedFix"))} id={WIZARD_FORM_ID}>
         <SectionCard title={t("projects.section.plot")}>
           <div className="space-y-4">
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <SelectField
                 name="plotUnit"
                 label={t("projects.plot.plotUnit")}
@@ -315,7 +315,7 @@ export function PlotStructureTab() {
                 ]}
               />
             </FieldGrid>
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <NumberField name="frontFt" label={t("projects.plot.front")} required unit={t("projects.unit.ft")} disabled={locked} />
               <NumberField name="depthFt" label={t("projects.plot.depth")} required unit={t("projects.unit.ft")} disabled={locked} />
               <ToggleField name="cornerPlot" label={t("projects.section.cornerPlot")} disabled={locked} className="self-end" />

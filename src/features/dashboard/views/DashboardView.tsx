@@ -135,7 +135,7 @@ function CompanyOverview() {
 
               {money ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  <KpiCard label={t("dashboard.cashWithSiteStaff")} icon={Wallet} value={<MoneyText paisa={k.cashWithSiteStaffPaisa} short />} hint={<Link className="underline-offset-2 hover:underline" href="/finance/cash-floats">{t("dashboard.cashFloatsOverview")}</Link>} />
+                  <KpiCard label={t("dashboard.cashWithSiteStaff")} icon={Wallet} value={<MoneyText paisa={k.cashWithSiteStaffPaisa} short />} hint={<Link className="hit-area underline-offset-2 hover:underline" href="/finance/cash-floats">{t("dashboard.cashFloatsOverview")}</Link>} />
                   <KpiCard
                     label={t("dashboard.ownMoneyInvested")}
                     icon={Wallet}

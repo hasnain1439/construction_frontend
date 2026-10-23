@@ -135,6 +135,8 @@ function Summary({ review }: { review: ProjectReview }) {
         <FoundationSummary foundation={s.foundation} />
       </SectionCard>
       <SectionCard title={t("projects.review.roomsPerFloor")} flush>
+        {/* The card clips its corners (overflow hidden), so the table scrolls in its own box on a phone (QA R-08). */}
+        <div className="overflow-x-auto" data-testid="rooms-per-floor">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase">
             <tr>
@@ -155,6 +157,7 @@ function Summary({ review }: { review: ProjectReview }) {
             ))}
           </tbody>
         </table>
+        </div>
       </SectionCard>
       <SectionCard title={t("projects.review.supplySplit")}>
         <div className="flex flex-wrap gap-2">

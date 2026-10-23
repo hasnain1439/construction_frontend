@@ -338,6 +338,28 @@
   backdrop-filter: blur(18px) saturate(1.15);
 }
 
+/*
+ * Touch hit area (QA R-05): on a touch screen (pointer: coarse) a small control gets an invisible
+ * ::before of at least 40 × 40 px centred on it, so links, sort headers and icon buttons are easy to
+ * tap without looking bigger. Controls that are already absolute / fixed / sticky keep their position.
+ */
+@utility hit-area {
+  @media (pointer: coarse) {
+    &:where(:not(.absolute, .fixed, .sticky)) {
+      position: relative;
+    }
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 40px);
+      height: max(100%, 40px);
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
 /* Login hero photo: a slow drift-and-zoom (Ken Burns); motion-reduce:animate-none turns it off. */
 @theme {
   --animate-ken-burns: ken-burns 18s ease-in-out infinite alternate;

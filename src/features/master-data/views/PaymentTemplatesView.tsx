@@ -202,7 +202,7 @@ export function PaymentTemplatesView() {
                   <li key={`${s.label}-${i}`} className="flex items-center gap-3 text-sm">
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">{i + 1}</span>
                     <span className="flex-1">{s.label}</span>
-                    {s.isRetention ? <StatusBadge tone="warning" label={t("field.retention")} className="h-5 px-2 text-[11px]" /> : null}
+                    {s.isRetention ? <StatusBadge tone="warning" label={t("field.retention")} className="h-5 px-2 text-xs" /> : null}
                     <span className="w-14 text-end font-semibold tabular" dir="ltr">{s.percent}%</span>
                   </li>
                 ))}

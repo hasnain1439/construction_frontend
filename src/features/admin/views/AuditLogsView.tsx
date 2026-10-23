@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollText } from "lucide-react";
+import { LayoutGrid, List, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { useGetAuditLogsQuery } from "@/api/services/admin/auditLogs.api";
 import { useGetTenantsQuery } from "@/api/services/admin/tenants.api";
@@ -10,12 +10,14 @@ import { DateRangePicker } from "@/components/common/DateRangePicker";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { SlideOver } from "@/components/common/SlideOver";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Combobox } from "@/components/forms/ComboboxField";
 import { InfoList } from "@/components/common/InfoList";
 import { useListState } from "@/hooks/useListState";
+import { useListView, type ListView } from "@/hooks/useListView";
 import { formatDateTime } from "@/lib/dates";
 
 const ACTOR_TONE = { USER: "success", PLATFORM_ADMIN: "info", SYSTEM: "neutral" } as const;
@@ -27,6 +29,7 @@ export function AuditLogsView() {
   const { data, isLoading, isFetching, error, refetch } = useGetAuditLogsQuery({ ...filters, ...(search ? { action: search } : {}) } as AuditLogsQuery);
   const tenants = useGetTenantsQuery({ limit: 100 });
   const [selected, setSelected] = useState<AuditLogRow | null>(null);
+  const [view, setView] = useListView();
 
   const columns: Column<AuditLogRow>[] = [
     { id: "when", header: "When", cell: (a) => <span className="whitespace-nowrap">{formatDateTime(a.createdAt)}</span> },
@@ -40,7 +43,22 @@ export function AuditLogsView() {
   return (
     <>
       <PageHeader title="Audit Logs" description="Every sign-in and change, newest first. Secrets are always redacted." breadcrumbs={[{ label: "Audit Logs" }]} />
-      <FilterBar onClear={list.clear} canClear={list.isFiltered}>
+      <FilterBar
+        onClear={list.clear}
+        canClear={list.isFiltered}
+        trailing={
+          <SegmentedControl<ListView>
+            ariaLabel="View"
+            value={view}
+            onChange={setView}
+            size="sm"
+            options={[
+              { value: "cards", label: "Cards", icon: LayoutGrid, iconOnly: true },
+              { value: "table", label: "Table", icon: List, iconOnly: true },
+            ]}
+          />
+        }
+      >
         <SearchInput value={list.search} onChange={list.setSearch} placeholder="Action starts with… e.g. auth. or subscription.payment" />
         <FilterSelect
           label="Actor"
@@ -74,6 +92,7 @@ export function AuditLogsView() {
           rows={data?.items}
           columns={columns}
           getRowId={(a) => a.id}
+          view={view}
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}

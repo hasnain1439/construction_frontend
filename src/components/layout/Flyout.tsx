@@ -93,9 +93,9 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
               >
                 <EllipsisVertical className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="flex-1">{pickLabel(item.label, language)}</span>
-                {!item.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" /> : null}
+                {!item.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-xs" /> : null}
                 {count ? (
-                  <span className="rounded-full bg-sun px-1.5 text-[11px] font-semibold text-charcoal" aria-label={t("common.waiting", { n: count })}>
+                  <span className="rounded-full bg-sun px-1.5 text-xs font-semibold text-charcoal" aria-label={t("common.waiting", { n: count })}>
                     {count}
                   </span>
                 ) : null}

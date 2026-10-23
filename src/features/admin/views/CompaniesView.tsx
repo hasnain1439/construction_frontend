@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Plus } from "lucide-react";
+import { Building2, LayoutGrid, List, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGetAdminPlansQuery } from "@/api/services/admin/plans.api";
 import { useGetTenantsQuery } from "@/api/services/admin/tenants.api";
@@ -9,11 +9,13 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useListState } from "@/hooks/useListState";
+import { useListView, type ListView } from "@/hooks/useListView";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatDate } from "@/lib/dates";
 import { REGION_LABEL } from "@/lib/options";
@@ -28,6 +30,7 @@ export function CompaniesView() {
   const { data, isLoading, isFetching, error, refetch } = useGetTenantsQuery(list.query as TenantsQuery);
   const plans = useGetAdminPlansQuery();
   const [createOpen, setCreateOpen] = useSearchFlag();
+  const [view, setView] = useListView();
 
   const columns: Column<TenantRow>[] = [
     {
@@ -83,7 +86,22 @@ export function CompaniesView() {
           </Button>
         }
       />
-      <FilterBar onClear={list.clear} canClear={list.isFiltered}>
+      <FilterBar
+        onClear={list.clear}
+        canClear={list.isFiltered}
+        trailing={
+          <SegmentedControl<ListView>
+            ariaLabel="View"
+            value={view}
+            onChange={setView}
+            size="sm"
+            options={[
+              { value: "cards", label: "Cards", icon: LayoutGrid, iconOnly: true },
+              { value: "table", label: "Table", icon: List, iconOnly: true },
+            ]}
+          />
+        }
+      >
         <SearchInput value={list.search} onChange={list.setSearch} placeholder="Name, slug or owner phone…" />
         <FilterSelect
           label="Status"
@@ -119,6 +137,7 @@ export function CompaniesView() {
           rows={data?.items}
           columns={columns}
           getRowId={(t) => t.id}
+          view={view}
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}

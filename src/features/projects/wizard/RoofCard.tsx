@@ -134,7 +134,7 @@ export function RoofCard({
         <ToggleField name={field("enabled")} label={t("projects.roof.enabled")} description={t("projects.roof.enabledDesc")} disabled={disabled} />
         {roof.enabled ? (
           <>
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <SelectField
                 name={field("type")}
                 label={t("projects.roof.type")}
@@ -168,17 +168,17 @@ export function RoofCard({
                     ? t(s.minIn < s.suggestedIn ? "projects.roof.suggestRange" : "projects.roof.suggest", { min: s.minIn, n: s.suggestedIn, span: s.spanFt })
                     : t("projects.roof.suggestNoRooms", { n: s.suggestedIn })}
                 </p>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <NumberField name={field("thicknessIn")} label={t("projects.roof.thickness")} required unit={inch} disabled={disabled} />
                   <SelectField name={field("mainBar")} label={t("projects.roof.mainBar")} required disabled={disabled} options={barOptions} hint={barHint("mainBar")} />
                   <NumberField name={field("mainSpacingIn")} label={t("projects.roof.mainSpacing")} required unit={inch} disabled={disabled} />
                 </FieldGrid>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <NumberField name={field("coverIn")} label={t("projects.roof.cover")} unit={inch} disabled={disabled} />
                   <SelectField name={field("distBar")} label={t("projects.roof.distBar")} required disabled={disabled} options={barOptions} hint={barHint("distBar")} />
                   <NumberField name={field("distSpacingIn")} label={t("projects.roof.distSpacing")} required unit={inch} disabled={disabled} />
                 </FieldGrid>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <ToggleField name={field("topBars")} label={t("projects.roof.topBars")} description={t("projects.roof.topBarsDesc")} disabled={disabled} />
                   <NumberField name={field("chajjaLengthFt")} label={t("projects.roof.chajjaLength")} hint={t("projects.roof.chajjaHint")} unit={ft} disabled={disabled} />
                   {roof.chajjaLengthFt ? <NumberField name={field("chajjaWidthFt")} label={t("projects.roof.chajjaWidth")} unit={ft} disabled={disabled} /> : null}
@@ -207,7 +207,7 @@ export function RoofCard({
               <div className="space-y-3" data-testid="roof-tiron">
                 <SubHeading>{t("projects.roof.tIron")}</SubHeading>
                 <Step n={1} title={t("projects.roof.step.structure")} hint={t("projects.roof.step.structureHint")}>
-                  <FieldGrid columns={3}>
+                  <FieldGrid columns={3} fit>
                     <SegmentedField
                       name={field("tIronSystem")}
                       label={t("projects.roof.tIronSystem")}
@@ -230,7 +230,7 @@ export function RoofCard({
                   </FieldGrid>
                 </Step>
                 <Step n={2} title={t("projects.roof.step.tIron")} hint={t("projects.roof.step.tIronHint")}>
-                  <FieldGrid columns={3}>
+                  <FieldGrid columns={3} fit>
                     <SelectField
                       name={field("tIronSection")}
                       label={t("projects.roof.tIronSection")}
@@ -267,12 +267,12 @@ export function RoofCard({
                   />
                 </Step>
                 <Step n={5} title={t("projects.roof.step.earth")} hint={t("projects.roof.step.earthHint")}>
-                  <FieldGrid columns={3}>
+                  <FieldGrid columns={3} fit>
                     <NumberField name={field("earthFillIn")} label={t("projects.roof.earthFill")} unit={inch} disabled={disabled} />
                   </FieldGrid>
                 </Step>
                 <Step n={6} title={t("projects.roof.step.top")} hint={t("projects.roof.step.topHint")}>
-                  <FieldGrid columns={3}>
+                  <FieldGrid columns={3} fit>
                     <SegmentedField
                       name={field("topFinish")}
                       label={t("projects.roof.topFinish")}
@@ -310,7 +310,7 @@ export function RoofCard({
             {roof.type === "PRECAST" || roof.type === "STEEL_DECK" ? (
               <div className="space-y-3">
                 <SubHeading>{t(roof.type === "PRECAST" ? "projects.roof.precast" : "projects.roof.deck")}</SubHeading>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <NumberField
                     name={field(roof.type === "PRECAST" ? "plankAreaSqft" : "deckAreaSqft")}
                     label={t(roof.type === "PRECAST" ? "projects.roof.plankArea" : "projects.roof.deckArea")}
@@ -327,7 +327,7 @@ export function RoofCard({
             {structure === "FRAMED" ? (
               <div className="space-y-3" data-testid="roof-frame">
                 <SubHeading>{t("projects.roof.frame")}</SubHeading>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <NumberField name={field("beamWidthIn")} label={t("projects.roof.beamWidth")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("beamDepthIn")} label={t("projects.roof.beamDepth")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("beamBars")} label={t("projects.roof.beamBars")} required decimals={0} unit={t("projects.unit.bars")} disabled={disabled} />
@@ -336,7 +336,7 @@ export function RoofCard({
                   <NumberField name={field("stirrupSpacingIn")} label={t("projects.roof.stirrupSpacing")} required unit={inch} disabled={disabled} />
                   <NumberField name={field("beamRunFt")} label={t("projects.roof.beamRun")} hint={t("projects.roof.beamRunHint")} unit={ft} disabled={disabled} />
                 </FieldGrid>
-                <FieldGrid columns={3}>
+                <FieldGrid columns={3} fit>
                   <NumberField
                     name={field("columnCount")}
                     label={t("projects.roof.columnCount")}

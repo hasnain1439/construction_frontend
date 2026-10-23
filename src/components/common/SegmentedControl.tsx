@@ -77,7 +77,7 @@ export function SegmentedControl<V extends string>({
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-colors",
+              "hit-area inline-flex items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-colors",
               size === "sm" ? "h-7 px-3 text-xs" : "h-8 px-3.5 text-sm",
               selected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
             )}
