@@ -1,5 +1,6 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { FoundationMasonry, FoundationType } from "@/api/types";
@@ -15,6 +16,7 @@ import { ToggleField } from "@/components/forms/ToggleField";
 import { type TranslationKey, useEnumT, useT } from "@/i18n/useT";
 import {
   BAR_SIZES,
+  barInchVars,
   DPC_MATERIALS,
   FOOTING_THICKNESS_DEFAULT,
   FOUNDATION_MASONRY,
@@ -74,6 +76,25 @@ export function FoundationCard({
     setValue("foundation", next, { shouldDirty: true });
     lastDefault.current = JSON.stringify(getValues("foundation"));
   }, [structure, columnEstimate, getValues, setValue]);
+
+  // QA B-04: isolated pads with no typed count take the column count; a count that is still the last auto value
+  // follows the column count when it changes (e.g. the API's number arrives). A number the user typed stays.
+  const autoCount = useRef<number | null>(saved ? null : (getValues("foundation.footingCount") as number | null));
+  useEffect(() => {
+    if (!columnEstimate || type !== "ISOLATED") return;
+    const current = getValues("foundation.footingCount") as number | null;
+    if (current === null || (!saved && current === autoCount.current)) {
+      if (current !== columnEstimate) {
+        const pristine = lastDefault.current === JSON.stringify(getValues("foundation"));
+        setValue("foundation.footingCount", columnEstimate, { shouldDirty: true });
+        if (pristine) lastDefault.current = JSON.stringify(getValues("foundation"));
+      }
+      autoCount.current = columnEstimate;
+    }
+  }, [columnEstimate, type, saved, getValues, setValue]);
+  const [footingCount, mainBarMm] = useWatch({ name: ["foundation.footingCount", "foundation.mainBarMm"] }) as [number | null, string | null];
+  const mainBarVars = barInchVars(Number(mainBarMm));
+  const countMismatch = type === "ISOLATED" && Boolean(columnEstimate) && Boolean(footingCount) && footingCount !== columnEstimate;
   const ft = t("projects.unit.ft");
   const inch = t("projects.foundation.inch");
 
@@ -116,7 +137,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.dimensions")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <NumberField name="foundation.excavationDepthFt" label={t("projects.foundation.excavationDepth")} required unit={ft} disabled={disabled} />
             <NumberField name="foundation.footingThicknessIn" label={t("projects.foundation.footingThickness")} required unit={inch} disabled={disabled} />
             {type === "STRIP" ? (
@@ -126,7 +147,7 @@ export function FoundationCard({
             <NumberField name="foundation.dpcThicknessIn" label={t("projects.foundation.dpcThickness")} required unit={inch} disabled={disabled} />
           </FieldGrid>
           {hasPads(type) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <NumberField
                 name="foundation.footingCount"
                 label={t("projects.foundation.footingCount")}
@@ -141,8 +162,15 @@ export function FoundationCard({
               <NumberField name="foundation.footingWidthFt" label={t("projects.foundation.footingWidthPad")} required unit={ft} disabled={disabled} />
             </FieldGrid>
           ) : null}
+          {countMismatch ? (
+            // QA B-04: one pad per column is the rule; a different number is used as typed, but said out loud
+            <p className="flex items-center gap-1.5 text-xs text-warning" data-testid="footing-count-mismatch">
+              <TriangleAlert className="size-3.5 shrink-0" aria-hidden />
+              {t("projects.foundation.footingCountMismatch", { footings: footingCount ?? "", columns: columnEstimate ?? "" })}
+            </p>
+          ) : null}
           {isPile(type) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <NumberField name="foundation.pileCount" label={t("projects.foundation.pileCount")} required decimals={0} min={1} unit={t("projects.unit.nos")} disabled={disabled} />
               <NumberField name="foundation.pileDiameterIn" label={t("projects.foundation.pileDiameter")} required unit={inch} disabled={disabled} />
               <NumberField name="foundation.pileDepthFt" label={t("projects.foundation.pileDepth")} required unit={ft} disabled={disabled} />
@@ -152,7 +180,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.material")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <SelectField
               name="foundation.masonry"
               label={t("projects.foundation.masonry")}
@@ -164,7 +192,7 @@ export function FoundationCard({
             <NumberField name="foundation.pccThicknessIn" label={t("projects.foundation.pccThickness")} required unit={inch} disabled={disabled} />
           </FieldGrid>
           {rccApplies(type, masonry) ? (
-            <FieldGrid columns={3}>
+            <FieldGrid columns={3} fit>
               <SegmentedField name="foundation.rccMix" label={t("projects.foundation.rccMix")} required disabled={disabled} options={RCC_MIXES.map((value) => ({ value, label: value }))} />
               <SelectField
                 name="foundation.mainBarMm"
@@ -172,6 +200,7 @@ export function FoundationCard({
                 required
                 disabled={disabled}
                 options={BAR_SIZES.map((b) => ({ value: String(b.mm), label: t("projects.foundation.barValue", { bar: b.bar, n: b.bar.slice(1), mm: b.mm }) }))}
+                hint={mainBarVars ? t("projects.foundation.barInch", mainBarVars) : undefined}
               />
             </FieldGrid>
           ) : null}
@@ -189,7 +218,7 @@ export function FoundationCard({
 
         <div className="space-y-3">
           <SubHeading>{t("projects.foundation.soilSite")}</SubHeading>
-          <FieldGrid columns={3}>
+          <FieldGrid columns={3} fit>
             <SelectField
               name="foundation.soilType"
               label={t("projects.foundation.soilType")}

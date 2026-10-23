@@ -20,7 +20,7 @@ import { formatDate, formatMonth } from "@/lib/dates";
 import { formatPKRShort } from "@/lib/money";
 import { ControlAlertsCard, ControlSetupHints } from "../components/ControlShared";
 
-const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
+const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
 
 /** Spent % and progress % lines on one percent axis; the gap as bars, red where spending runs ahead. */
 function BurnChart({ data }: { data: BurnRate }) {

@@ -376,6 +376,7 @@ export const strings = {
   },
   foundation: {
     footingCountHint: "One per column: about {n} for this frame.",
+    footingCountMismatch: "You entered {footings} footings, but the frame has {columns} columns. Your number is used; usually there is one footing under each column.",
     title: "Foundation",
     description: "Type, size and material of the foundation. The fields change with the type.",
     dimensions: "Dimensions",
@@ -399,6 +400,7 @@ export const strings = {
     rccMix: "RCC mix",
     mainBar: "Main steel bar",
     barValue: "{mm} mm (#{n})",
+    barInch: "{mm} mm (#{n}, about {inch} inch)",
     termite: "Termite treatment",
     termiteDesc: "Anti-termite chemical in the trenches before the PCC.",
     dpcMaterial: "DPC material",
@@ -601,6 +603,7 @@ export const strings = {
     COVERED_AREA_MISSING: "Enter the covered area",
     NO_ROOMS: "Add the rooms",
     ROOMS_TOO_FEW: "Rooms cover only {a}% of the covered area. Add the remaining rooms (or passages) before the estimate can be trusted.",
+    RATES_MISSING: "No price-list rate for: {items}. You supply these, so add a rate to the price list before the estimate can be used.",
     ROOM_AREA_VS_COVERED: "Rooms add up to {a} sq ft vs {b} sq ft covered — more than 15% apart (walls and passages?)",
     NO_PM: "No project manager assigned",
     NO_MUNSHI: "No site clerk assigned",

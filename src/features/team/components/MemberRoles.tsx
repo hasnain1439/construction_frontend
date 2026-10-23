@@ -56,7 +56,7 @@ function RoleCard({
         <span className="block text-sm font-medium">
           <bdi>{roleName(role, language)}</bdi>
           {role.isSystem ? null : (
-            <span className="ms-1.5 rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">
+            <span className="ms-1.5 rounded-full bg-muted px-1.5 text-xs text-muted-foreground">
               {t("roles.custom")}
             </span>
           )}

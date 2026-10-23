@@ -81,7 +81,7 @@ function RailHealth({ collapsed }: { collapsed?: boolean }) {
       ) : (
         <TriangleAlert className="size-6" strokeWidth={1.6} aria-hidden />
       )}
-      {collapsed ? null : <span className="text-[11px] leading-tight font-medium">{label}</span>}
+      {collapsed ? null : <span className="text-xs leading-tight font-medium">{label}</span>}
     </Link>
   );
 }

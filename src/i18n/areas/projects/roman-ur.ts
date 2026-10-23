@@ -377,6 +377,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   foundation: {
     footingCountHint: "Har column ke neeche aik: is frame ke liye taqreeban {n}.",
+    footingCountMismatch: "Aap ne {footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka number hi istemal hoga; aam tor par har column ke neeche aik footing hoti hai.",
     title: "Bunyaad (Foundation)",
     description: "Bunyaad ki qisam, size aur material. Qisam ke hisaab se khaane badalte hain.",
     dimensions: "Naap",
@@ -400,6 +401,7 @@ export const strings: Widen<typeof En.strings> = {
     rccMix: "RCC mix",
     mainBar: "Main sarya",
     barValue: "{mm} mm ({n} sooter)",
+    barInch: "{mm} mm ({n} sooter, taqreeban {inch} inch)",
     termite: "Deemak ka spray",
     termiteDesc: "PCC se pehle khaiyon mein deemak maar dawai.",
     dpcMaterial: "DPC ka material",
@@ -602,6 +604,7 @@ export const strings: Widen<typeof En.strings> = {
     COVERED_AREA_MISSING: "Covered area likhein",
     NO_ROOMS: "Kamre shamil karein",
     ROOMS_TOO_FEW: "Kamre covered area ka sirf {a}% hain. Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
+    RATES_MISSING: "Rate list mein in ka rate nahin: {items}. Yeh samaan aap dete hain, is liye andaza istemal karne se pehle rate list mein rate darj karein.",
     ROOM_AREA_VS_COVERED: "Kamron ka jor {a} sq ft hai jabke covered {b} sq ft — 15% se zyada farq (deewarein aur raaste?)",
     NO_PM: "Koi project manager muqarrar nahi",
     NO_MUNSHI: "Koi munshi muqarrar nahi",

@@ -90,13 +90,15 @@ const NUMBERS: NumSpec[] = [
   { key: "bitumenKgPerSqft", tab: "foundation", unit: "kgPerSqft", min: 0, max: 2 },
   { key: "polytheneLapPercent", tab: "rcc", unit: "pct", min: 0, max: 50 },
   { key: "roofBitumenKgPerSqft", tab: "rcc", unit: "kgPerSqft", min: 0, max: 2 },
-  { key: "termiteLitrePerSqft", tab: "foundation", unit: "litrePerSqft", min: 0, max: 0.1, decimals: 4 },
+  // QA B-19: the value used (0.005 L per sq ft) prints with its 4 decimals in the field, the default and the hint
+  { key: "termiteLitrePerSqft", tab: "foundation", unit: "litrePerSqft", min: 0, max: 0.1, decimals: 4, hint: "projects.estimate.settings.f.termiteLitrePerSqftHint" },
   // Wastage per material (QA B-20)
   { key: "cementWastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
   { key: "sandWastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
   { key: "brickWastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
   { key: "steelWastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
-  { key: "wastagePercent", tab: "factors", unit: "pct", min: 0, max: 25 },
+  { key: "steelLapPercent", tab: "factors", unit: "pct", min: 0, max: 10, hint: "projects.estimate.settings.f.steelLapPercentHint" },
+  { key: "wastagePercent", tab: "factors", unit: "pct", min: 0, max: 25, hint: "projects.estimate.settings.f.wastagePercentHint" },
   // Overheads and contingency, both % of the direct cost (QA B-14)
   { key: "siteOverheadPercent", tab: "factors", unit: "pct", min: 0, max: 12, hint: "projects.estimate.settings.f.siteOverheadPercentHint" },
   { key: "contingencyPercent", tab: "factors", unit: "pct", min: 0, max: 15, hint: "projects.estimate.settings.f.contingencyPercentHint" },
@@ -163,6 +165,8 @@ const same = (a: unknown, b: unknown) => (typeof a === "number" && typeof b === 
 
 const TABS: Tab[] = ["walls", "rcc", "plaster", "foundation", "factors"];
 const FORM_ID = "estimate-settings-form";
+/** Fields of the dialog besides NUMBERS and MIXES. */
+const OTHER_KEYS = ["includeLabour", "labourRatePerSqftPaisa"] as const;
 
 /** Estimate assumptions with their Pakistani defaults, units and a reset. Read-only without projects.estimate.manage. */
 export function EstimateSettingsModal({
@@ -198,9 +202,11 @@ export function EstimateSettingsModal({
     mode: "onBlur",
   });
   const watched = useWatch({ control: form.control }) as Partial<Values>;
-  // QA B-19: "n changed from the defaults" — every key whose value differs from the company value
-  const changed = (Object.keys(defaults) as Array<keyof Values>).filter((k) => {
-    if (watched[k] === undefined) return false;
+  const visible = (n: NumSpec) => ((BOQ_KEYS as string[]).includes(n.key) ? shownBoqKeys.includes(n.key as BoqKey) : n.key in estimate.settings);
+  const shownKeys: Array<keyof Values> = [...NUMBERS.filter(visible).map((n) => n.key), ...(Object.keys(MIXES) as MixKey[]), ...OTHER_KEYS];
+  // QA B-19: "n changed from the defaults" — every field shown whose value differs from the company value
+  const changed = shownKeys.filter((k) => {
+    if (watched[k] === undefined || !(k in defaults)) return false;
     if (defaults[k] === null && (BOQ_KEYS as string[]).includes(k)) return true;
     return !same(watched[k], defaults[k]);
   }).length;
@@ -219,7 +225,8 @@ export function EstimateSettingsModal({
   };
 
   const onSubmit = async (v: Values) => {
-    // The PUT replaces every project value: keep the BoQ-only ones (lump-sum rates …) this dialog does not show
+    // The PUT replaces every project value: keep the BoQ-only ones (lump-sum rates …) this dialog does not
+    // show. The API stores only what differs from the company values.
     const body = { ...projectOverrides(estimate), ...v } as Record<string, unknown>;
     for (const k of BOQ_KEYS) if (!shownBoqKeys.includes(k)) delete body[k];
     const ok = await run(() => save({ projectId, body: body as EstimateSettingsBody }).unwrap(), {
@@ -266,7 +273,6 @@ export function EstimateSettingsModal({
       options={MIXES[key].options.map((value) => ({ value, label: value }))}
     />
   );
-  const visible = (n: NumSpec) => ((BOQ_KEYS as string[]).includes(n.key) ? shownBoqKeys.includes(n.key as BoqKey) : n.key in estimate.settings);
   const tabFields = (tb: Tab) => [
     ...(Object.keys(MIXES) as MixKey[]).filter((m) => MIXES[m].tab === tb).map(mixField),
     ...NUMBERS.filter((n) => n.tab === tb && visible(n)).map(numberField),

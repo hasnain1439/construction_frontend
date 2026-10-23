@@ -22,6 +22,19 @@ import { formatArea } from "../utils/calc";
 import { RoomCard } from "./RoomCard";
 import { useWizard } from "./WizardContext";
 
+/**
+ * The copy button of a floor (QA B-31): an empty floor copies the ground floor's rooms into itself
+ * ("Copy from ground floor"); a floor with rooms copies them to another floor; otherwise nothing to copy.
+ */
+export function copyAction(
+  floor: { id: string; rooms: readonly unknown[] },
+  ground: { id: string; rooms: readonly unknown[] } | null | undefined,
+  floorCount: number,
+): "FROM_GROUND" | "COPY" | "NONE" {
+  if (!floor.rooms.length && ground && ground.id !== floor.id && ground.rooms.length) return "FROM_GROUND";
+  return floor.rooms.length && floorCount >= 2 ? "COPY" : "NONE";
+}
+
 function CopyFloorDialog({
   projectId,
   source,
@@ -154,7 +167,7 @@ export function RoomsTab() {
               setAdding(false);
             }}
           >
-            <TabsList className="h-10!">
+            <TabsList className="h-10! pointer-coarse:h-12!">
               {floors.map((f) => (
                 <TabsTrigger key={f.id} value={f.id} className="px-3">
                   {te("projectFloorLevel", f.level, f.name)}
@@ -169,14 +182,14 @@ export function RoomsTab() {
                 <BrickWall data-icon="inline-start" />
                 {t("projects.rooms.autoWalls")}
               </Button>
-              {!floor.rooms.length && ground && ground.id !== floor.id && ground.rooms.length ? (
+              {copyAction(floor, ground, floors.length) === "FROM_GROUND" ? (
                 // QA B-31: an empty floor copies the ground floor's rooms into itself
                 <Button variant="outline" onClick={() => setCopyFromGround(true)}>
                   <Copy data-icon="inline-start" />
                   {t("projects.rooms.copyFromGround")}
                 </Button>
               ) : (
-                <Button variant="outline" disabled={!floor.rooms.length || floors.length < 2} onClick={() => setCopyOpen(true)}>
+                <Button variant="outline" disabled={copyAction(floor, ground, floors.length) === "NONE"} onClick={() => setCopyOpen(true)}>
                   <Copy data-icon="inline-start" />
                   {t("projects.rooms.copyFloor")}
                 </Button>

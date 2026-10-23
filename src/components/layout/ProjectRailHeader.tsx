@@ -34,7 +34,7 @@ export function ProjectRailHeader({ projectId, collapsed }: { projectId: string;
           <p className="line-clamp-3 text-xs leading-snug font-semibold" title={project.name}>
             {project.name}
           </p>
-          <StatusBadge domain="project" value={project.status} label={te("projectStatus", project.status)} className="h-5 px-2 text-[11px]" />
+          <StatusBadge domain="project" value={project.status} label={te("projectStatus", project.status)} className="h-5 px-2 text-xs" />
           {project.isDemo ? <DemoBadge isDemo className="justify-center" /> : null}
         </div>
       ) : null}

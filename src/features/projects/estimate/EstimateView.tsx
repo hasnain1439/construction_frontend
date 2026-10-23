@@ -8,6 +8,7 @@ import type {
   BoqAssumption,
   EstimateLine,
   EstimateMethod,
+  EstimateSettings,
   EstimateStageBlock,
   EstimateWarning,
   ProjectDetail,
@@ -174,7 +175,7 @@ function EstimateBody({ project, estimate: e, initialRevisionId }: { project: Pr
           )
         }
       />
-      <HowItWorks />
+      <HowItWorks settings={e.settings} />
     </div>
   );
 }
@@ -654,7 +655,11 @@ export function EstimateStageSection({
       id: "floor",
       header: t("projects.estimate.col.floor"),
       cell: (l) =>
-        l.floor ? te("projectFloorLevel", l.floor.level, l.floor.name) : t("projects.estimate.allFloors"),
+        l.floor
+          ? te("projectFloorLevel", l.floor.level, l.floor.name)
+          : l.floorLevel
+            ? te("projectFloorLevel", l.floorLevel, l.floorLevel)
+            : t("projects.estimate.allFloors"),
     },
     {
       id: "qty",
@@ -974,15 +979,24 @@ export function EstimateCostSummary({ estimate: e }: { estimate: ProjectEstimate
   );
 }
 
-function HowItWorks() {
+/** The how-it-works notes print the factors this estimate actually used (not hard-coded defaults). */
+function HowItWorks({ settings }: { settings?: Partial<EstimateSettings> }) {
   const t = useT();
   const keys = ["concrete", "mortar", "plaster", "steel", "walls", "detailedWalls", "detailedRoof", "wastage"] as const;
+  const vars = {
+    concreteDry: fmt(settings?.concreteDryFactor ?? 1.54),
+    bagCft: fmt(settings?.cementBagCft ?? 1.25),
+    bricks: fmt(settings?.bricksPerCft ?? 13.5),
+    mortar: fmt(settings?.mortarPerCftBrickwork ?? 0.3),
+    dry: fmt(settings?.mortarDryFactor ?? 1.27),
+    mix: settings?.masonryMortarMix ?? "1:6",
+  };
   return (
     <SectionCard flush>
       <CollapsibleSection title={t("projects.estimate.how.title")} defaultOpen={false}>
         <ul className="list-disc space-y-1.5 p-4 ps-9 text-sm text-muted-foreground">
           {keys.map((k) => (
-            <li key={k}>{t(`projects.estimate.how.${k}`)}</li>
+            <li key={k}>{t(`projects.estimate.how.${k}`, vars)}</li>
           ))}
         </ul>
       </CollapsibleSection>

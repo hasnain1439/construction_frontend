@@ -63,8 +63,8 @@ export function StageTimeline({ stages, className }: { stages: TimelineStageItem
                 <span className="text-xs">{s.invoiceNumber}</span>
               )
             ) : null}
-            {s.dueDate && s.status !== "PAID" ? <p className="text-[11px] text-muted-foreground">{t("app.components.stages.due", { date: formatDate(s.dueDate) })}</p> : null}
-            {!s.invoiceNumber && s.expectedDate ? <p className="text-[11px] text-muted-foreground">{t("app.components.stages.expected", { date: formatDate(s.expectedDate) })}</p> : null}
+            {s.dueDate && s.status !== "PAID" ? <p className="text-xs text-muted-foreground">{t("app.components.stages.due", { date: formatDate(s.dueDate) })}</p> : null}
+            {!s.invoiceNumber && s.expectedDate ? <p className="text-xs text-muted-foreground">{t("app.components.stages.expected", { date: formatDate(s.expectedDate) })}</p> : null}
           </li>
         );
       })}

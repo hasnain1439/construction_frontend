@@ -135,6 +135,10 @@ export interface EstimateLine {
   id: string;
   stage: EstimateStage;
   floor: { level: FloorLevel; name: string } | null;
+  /** The floor as a plain string (QA re-check NEW-3); absent from an older API. */
+  floorLevel?: FloorLevel | null;
+  /** Plain English label, e.g. "Ground floor · walls (volume)" (QA re-check NEW-3); absent from an older API. */
+  label?: string;
   element: EstimateElement;
   kind: "WORK" | "MATERIAL";
   measure: EstimateMeasure | null;
@@ -230,6 +234,8 @@ export type EstimateWarningCode =
   | "FOUNDATION_LENGTH_UNKNOWN"
   | "ROOMS_BELOW_COVERED"
   | "FOOTPRINT_EXCEEDS_PLOT"
+  // QE5: the footing count typed differs from the frame columns (params footings, columns); the typed number is used
+  | "FOOTINGS_COLUMNS_MISMATCH"
   // QE4: rooms under 50 % of the covered area → no estimate (blocking; params roomsAreaSqft, coveredAreaSqft, percent)
   | "ROOMS_TOO_FEW"
   | "RATES_MISSING"

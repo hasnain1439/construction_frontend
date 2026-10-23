@@ -31,7 +31,7 @@ export function CompanyPicker({
             </span>
             <span className="min-w-0 flex-1 space-y-1">
               <span className="block truncate text-sm font-semibold">{company.name}</span>
-              <StatusBadge tone="info" label={t(`role.${company.role}`)} className="h-5 px-2 text-[11px]" />
+              <StatusBadge tone="info" label={t(`role.${company.role}`)} className="h-5 px-2 text-xs" />
             </span>
             {pendingTenantId === company.tenantId ? (
               <Loader2 className="size-5 animate-spin text-primary" aria-label={t("app.auth.signingIn")} />

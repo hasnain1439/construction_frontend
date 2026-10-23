@@ -15326,7 +15326,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1
@@ -15398,7 +15418,7 @@ export interface paths {
         };
         /**
          * Project details
-         * @description Scoped (others → 404). Client, team, contract, plot, structure, foundation (or null), coverage, supply rules, billing stages, floor summaries, calculations and wizard progress. MUNSHI gets only id, code, name, status, client name, site, dates and team. Financial fields only with `billing.view`.
+         * @description Scoped (others → 404). Client, team, contract, plot, structure, foundation (or null), coverage, supply rules, billing stages, floor summaries, calculations and wizard progress. `calculations.footprints` = the footprint of every floor exactly as the estimate shares the covered area (rule SHARED_EQUALLY: equal over the full storeys, the mumty its rooms × 1.15 or 150 sq ft), `groundFootprintSqft` (the Coverage tab and the plot check) and `columnCount` (RCC frame: the ground floor's columns on the 15 ft grid — the plot-tab hint and the default isolated-footing count; null for load bearing). MUNSHI gets only id, code, name, status, client name, site, dates and team. Financial fields only with `billing.view`.
          */
         get: {
             parameters: {
@@ -15571,7 +15591,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -15715,7 +15755,7 @@ export interface paths {
         };
         /**
          * Review before activation
-         * @description THEKEDAR, PM. `errors` block activation (missing tab fields, stages ≠ 100 %, no GROUND floor, no rooms, contract value / rate missing). `warnings` don’t: plot vs front × depth > 10 %, room area vs covered area > 15 %, no foundation (bunyaad) entered, no PM, no Munshi, end date < 3 months after start. `summary.foundation` is the saved foundation or null.
+         * @description THEKEDAR, PM. `errors` block activation (missing tab fields, stages ≠ 100 %, no GROUND floor, no rooms, contract value / rate missing, ROOMS_TOO_FEW, FOOTPRINT_EXCEEDS_PLOT, and RATES_MISSING on tab 2: a material the contractor supplies has no price-list rate, so the estimate would leave it out — FULL / GREY contracts). `warnings` don’t: plot vs front × depth > 10 %, room area vs covered area > 15 %, no foundation (bunyaad) entered, no PM, no Munshi, end date < 3 months after start. `summary.foundation` is the saved foundation or null.
          */
         get: {
             parameters: {
@@ -16058,7 +16098,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -16340,7 +16400,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -16637,7 +16717,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -16904,7 +17004,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -17215,7 +17335,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -17730,7 +17870,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -18008,7 +18168,27 @@ export interface paths {
                          *           "rooms": 17,
                          *           "totalFloorAreaSqft": 2269,
                          *           "netWallAreaSqft": 8123.5,
-                         *           "wetRooms": 6
+                         *           "wetRooms": 6,
+                         *           "footprints": {
+                         *             "rule": "SHARED_EQUALLY",
+                         *             "floors": [
+                         *               {
+                         *                 "level": "GROUND",
+                         *                 "name": "Ground floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               },
+                         *               {
+                         *                 "level": "FIRST",
+                         *                 "name": "First floor",
+                         *                 "footprintSqft": 1300,
+                         *                 "columns": 15
+                         *               }
+                         *             ],
+                         *             "groundFootprintSqft": 1300,
+                         *             "columnCount": 15,
+                         *             "columnGridFt": 15
+                         *           }
                          *         },
                          *         "wizardCompletedSteps": [
                          *           1,
@@ -19749,19 +19929,21 @@ export interface paths {
          * Grey-structure estimate (BoQ) with cost
          * @description Computed live from the project's plot, structure type, foundation (bunyaad), floors / rooms / openings, the rulebook (platform version of the company region → company values → the project's own settings) and the company price list — nothing is stored but the settings.
          *
-         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 15 sections (each with its plain English `label`) with lines per build stage (`stageKey`), trace, wastage, supplier, `supplyCategory`, `costNature` (MATERIAL / LABOUR / MATERIAL_LABOUR), `labourOnly`, `rateKey` (the rulebook key of a lump-sum rate), rates / amounts (fields.rates), direct cost, overheads (% of direct), contingency (% of direct only), total, cost per sq ft, `check` { visibleLinesPaisa, directCostPaisa, matches } (Direct = Σ visible lines), `parameters` (value + source per rulebook key), `assumptions` (every project-editable rulebook key with labels, unit, value, source, company value and safe range; rupee keys need fields.rates), `warnings` (RATES_MISSING with items + categories, LABOUR_RATES_MISSING, RULEBOOK_RATE_ZERO, STEEL_NORM_DEVIATION { actual, min, max }, RCC_NORM_DEVIATION). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
+         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 15 sections (each with its plain English `label`) with lines per build stage (`stageKey`), trace, wastage, supplier, `supplyCategory`, `costNature` (MATERIAL / LABOUR / MATERIAL_LABOUR), `labourOnly`, `rateKey` (the rulebook key of a lump-sum rate), rates / amounts (fields.rates), direct cost, overheads (% of direct), contingency (% of direct only), total, cost per sq ft, `check` { visibleLinesPaisa, directCostPaisa, matches } (Direct = Σ visible lines), `parameters` (value + source per rulebook key), `assumptions` (every project-editable rulebook key with labels, unit, value, source, company value and safe range; rupee keys need fields.rates), `warnings` (RATES_MISSING with items + categories and `blocking: true` — a material the contractor supplies has no price-list rate; Review shows it as an error, LABOUR_RATES_MISSING, RULEBOOK_RATE_ZERO, STEEL_NORM_DEVIATION { actual, min, max }, RCC_NORM_DEVIATION — RCC above the plinth only: slab, beams, columns, lintels). Baths / a kitchen not entered are assumed for the plumbing rough-in, the FULL allowances and the wall tiles (1 bath per 700 sq ft of a full storey with none entered, 1 kitchen per house without one; the trace says "assumed"). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
          *
-         *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`.
+         *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`, plus `label` (plain English, e.g. "Ground floor · walls (volume)") and `floorLevel` (the floor key, null for the foundation / boundary wall); WORK formula params carry `floor` as a plain string.
          *
          *     **Detailed vs estimated** Every line has `method`: DETAILED when it comes from data the user entered — the floor's roof (`Floor.roof`: RCC slab steel from the actual bars grouped by size as `steel10` / `steel12` / `steel16` / `steel20` kg, beams / columns from their sizes and bars, T-iron roofs bottom to top — garders `garder` (GARDER_T) and T-irons `tIron` in kg, bottom tiles `roofTile` (2 per sq ft per layer + 0.5″ 1:4 joints), `polythene` sheet (area × (1 + overlap %)) or roof `bitumen`, earth (BoQ lump sum), top finish (tiles + 1:4 bed / concrete screed / mud + straw lump sum), no slab or shuttering,`precastPlank` / `steelDeck` + topping + mesh) or every room's four walls (`Room.walls`: brickwork per wall thickness — lines `WALLS.<floor>.walls.t9`, `.t4_5` … — shared walls once, party walls already built and open sides excluded, double walls both leaves; plaster faces by wall type; lintels at the wall's thickness; the foundation run from the ground-floor walls) — else ESTIMATED (the % / perimeter rules). `basis.methods` { walls, roof } = DETAILED / ESTIMATED / MIXED; `basis.floors[]` has `wallsMethod`, `roofMethod`, `walls` (by thickness, bricks) and `roof` (steel by size, bar runs, beam run, columns). Warnings for the new data carry `floor`: ROOF_TOO_THIN, ROOF_SPAN_NEEDS_BEAM, ROOF_MAIN_SPACING_WIDE, ROOF_DIST_SPACING_WIDE, ROOF_TIRON_SPAN_NEEDS_GARDER, ROOF_TIRON_SPACING_WIDE, ROOF_GARDER_SPACING_WIDE, ROOF_NO_WATERPROOFING (tab 3), WALLS_PARTIAL, WALLS_UNPAIRED (tab 5).
          *
-         *     **Costing** Each material is priced from the company price list in the project's quality category for its supply category (cement, bricks, steel, sand & bajri, waterproofing; the company default category otherwise), converted to the rate's unit (kg → ton, nos → thousand, cft → trolley, alt units). No rate → `rateStatus: RATE_MISSING`, left out of every total, warning RATES_MISSING. Steel by size is priced from Steel Grade-60 #3 / #4 / #5 / #6 (a company "Grade-40 #n" material first when a roof is G40); a size without a rate takes the general steel rate (`rateFallback: true`, warning STEEL_RATE_GENERIC). Owner-supplied categories are valued but kept out of the contractor cost (`ownerSuppliedPaisa`). Labour: covered area × `labourRatePerSqftPaisa` when set, else the SUBCONTRACT piece rates BRICK_MASONRY / PLASTER / SHUTTERING / STEEL_FIXING. `cost.marginPercent` = (contract total − estimated cost) ÷ contract total.
+         *     **Costing** Each material is priced from the company price list in the project's quality category for its supply category (cement, bricks, steel, sand & bajri, waterproofing; the company default category otherwise), converted to the rate's unit (kg → ton, nos → thousand, cft → trolley, alt units). No rate → `rateStatus: RATE_MISSING`, left out of every total, warning RATES_MISSING. Steel by size is priced from Steel Grade-60 #3 / #4 / #5 / #6 = 10 / 12 / 16 / 20 mm (Steel Grade-40 #n — platform keys steel_g40_n, or a company "Grade-40 #n" material — first when a roof is G40); a size without a rate takes the general steel rate (`rateFallback: true`, warning STEEL_RATE_GENERIC). Owner-supplied categories are valued but kept out of the contractor cost (`ownerSuppliedPaisa`). Labour: covered area × `labourRatePerSqftPaisa` when set, else the SUBCONTRACT piece rates BRICK_MASONRY / PLASTER / SHUTTERING / STEEL_FIXING. `cost.marginPercent` = (contract total − estimated cost) ÷ contract total.
          *
          *     **Contract value from this estimate** `contractSuggestion` (needs fields.contract + fields.rates; null before the contract type is chosen): the cost is the **BoQ total** (Step 11: direct + site overheads + contingency, contractor scope; also returned as `boqCost`) of the saved revision the BoQ page opens by default (draft, else approved, else newest), else of the live BoQ preview (`basisSource` REVISION / LIVE, `estimateId`, `estimateRevision`, `estimateStatus`). `kind` CONTRACT_VALUE (FULL / GREY) = BoQ total × (1 + finishing %) × (1 + margin %) rounded to the nearest Rs 1,000 — the finishing allowance applies to FULL only, and only when the BoQ prices no finishing (`finishingApplies`; the BoQ normally prices tiles, paint and finishing labour, so finishing is never counted twice; when it applies, `finishingAllowance` is its own labelled line { label "Finishing allowance — no finishing lines in BoQ", reason NO_FINISHING_LINES, method PERCENT_OF_BOQ, percent, basisPaisa, amountPaisa = BoQ total × finishing % (before the margin), calculation }, else null — never both finishing lines and the allowance); RATE_PER_SQFT (LABOR_ONLY, the owner buys the material) = BoQ total × (1 + margin %) ÷ covered sq ft rounded to Rs 5. A LABOR_ONLY BoQ covers grey-structure labour only (earthwork, masonry, RCC, plaster, roof waterproofing labour, the tools + scaffolding share of equipment) unless the project's contract has `labourScopeIncludesFinishing` (tile laying, paint) / `labourScopeIncludesMep` (electrical + plumbing rough-in labour); the lines left out stay as owner lines with no rate or amount. `marginPercent` / `finishingAllowancePercent` come from the project override (`marginSource` / `finishingSource` PROJECT) or the company settings (COMPANY; `companyMarginPercent`, `companyFinishingAllowancePercent`). `basisPaisa` = the cost (labour) used, `suggestedPaisa` (null without a cost / covered area), `currentPaisa` = the value already on the project. Apply it with POST /projects/{id}/contract/from-estimate.
          *
-         *     **Blocked estimate** When the rooms cover under 50 % of the covered area (overall over the floors that have rooms, or on one such floor; a floor with no rooms at all is still estimated from its share), the engine adds the blocking warning ROOMS_TOO_FEW `{ roomsAreaSqft, coveredAreaSqft, percent }` (+ `floor`), `blockedBy` is "ROOMS_TOO_FEW", `boqCost` is left out and `contractSuggestion.suggestedPaisa` is null (`blockedBy` set). Generate, Regenerate and from-estimate answer 400 ROOMS_TOO_FEW; Review blocks activation. 50–85 %: the walls / plaster / lintels / beams are scaled up (`coverageScale`).
+         *     **Blocked estimate** When the rooms cover under 50 % of the covered area (overall over the floors that have rooms, or on one such floor; a floor with no rooms at all is still estimated from its share), the engine adds the blocking warning ROOMS_TOO_FEW `{ roomsAreaSqft, coveredAreaSqft, percent }` (+ `floor`), `blockedBy` is "ROOMS_TOO_FEW", `boqCost` is left out and `contractSuggestion.suggestedPaisa` is null (`blockedBy` set). Generate, Regenerate and from-estimate answer 400 ROOMS_TOO_FEW; Review blocks activation. 50–85 %: the floor is scaled up — area items from the rooms (ceiling plaster, floor tiles) by the area factor `basis.floors[].coverageScale`, runs (walls, wall plaster, lintels, beams, parapet, the foundation run → plinth beam, DPC) by its square root `linearScale`; the external run is at most the footprint perimeter (`externalRunFt` / `internalRunFt`). Scaled formulas carry `params.coverageScale` (the factor applied), `scaleKind` LINEAR / AREA, `areaScale`, `roomsPercent`; scaled walls use the formula key `wallsScaled`, scaled external plaster `plasterExternalScaled`.
          *
-         *     **Visibility** Rates, amounts and `cost` need fields.rates; `contractTotalPaisa` fields.contract; the margin fields.profit + fields.contract. Warnings: NO_FLOORS, NO_ROOMS, FOUNDATION_MISSING, STRUCTURE_TYPE_ASSUMED, COVERED_AREA_ESTIMATED, FOUNDATION_LENGTH_UNKNOWN, ROOMS_BELOW_COVERED, ROOMS_TOO_FEW (blocking), FOOTPRINT_EXCEEDS_PLOT (blocking), RATES_MISSING, LABOUR_RATES_MISSING, CONTRACT_VALUE_MISSING, CONTRACT_INCLUDES_FINISHING. A project with no rooms or foundation answers 200 with warnings.
+         *     **Footprints and footings** The covered area is split equally over the full storeys (the mumty its rooms × 1.15, or 150 sq ft) — the same rule as the project's `calculations.footprints` and the Review plot check. Isolated footings: `basis.footings` { type, columns, typed, used, source TYPED / COLUMNS, lengthFt, widthFt } — without a typed count, one footing per column (`basis.floors[].columns.derived`, 15 ft grid); a typed count that differs from the columns is used, with the warning FOOTINGS_COLUMNS_MISMATCH `{ footings, columns }` (tab 3).
+         *
+         *     **Visibility** Rates, amounts and `cost` need fields.rates; `contractTotalPaisa` fields.contract; the margin fields.profit + fields.contract. Warnings: NO_FLOORS, NO_ROOMS, FOUNDATION_MISSING, STRUCTURE_TYPE_ASSUMED, COVERED_AREA_ESTIMATED, FOUNDATION_LENGTH_UNKNOWN, ROOMS_BELOW_COVERED, ROOMS_TOO_FEW (blocking), FOOTPRINT_EXCEEDS_PLOT (blocking), FOOTINGS_COLUMNS_MISMATCH, RATES_MISSING (blocking), LABOUR_RATES_MISSING, CONTRACT_VALUE_MISSING, CONTRACT_INCLUDES_FINISHING. A project with no rooms or foundation answers 200 with warnings.
          *
          *     Permission projects.estimate.view (THEKEDAR, Administrator, Project Manager, Accountant); out of scope → 404.
          */
@@ -20092,6 +20274,7 @@ export interface paths {
                          *         "warnings": [
                          *           {
                          *             "code": "RATES_MISSING",
+                         *             "blocking": true,
                          *             "message": "No price-list rate for: waterproofing, termite — these lines are left out of the cost",
                          *             "materials": [
                          *               "waterproofing",
@@ -20586,6 +20769,7 @@ export interface paths {
                          *         "warnings": [
                          *           {
                          *             "code": "RATES_MISSING",
+                         *             "blocking": true,
                          *             "message": "No price-list rate for: waterproofing, termite — these lines are left out of the cost",
                          *             "materials": [
                          *               "waterproofing",

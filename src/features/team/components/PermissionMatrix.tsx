@@ -156,21 +156,21 @@ function PermissionCell({
         >
           {label}
           {diff && diff !== "removed" ? (
-            <span className="ms-1.5 rounded-full bg-success-soft px-1.5 text-[11px] text-success">
+            <span className="ms-1.5 rounded-full bg-success-soft px-1.5 text-xs text-success">
               {t(diff === "added" ? "roles.diff.added" : "roles.diff.changed")}
             </span>
           ) : null}
           {fromRole && !diff ? (
-            <span className="ms-1.5 text-[11px] text-muted-foreground">· {t("roles.fromRole")}</span>
+            <span className="ms-1.5 text-xs text-muted-foreground">· {t("roles.fromRole")}</span>
           ) : null}
           {locked && !permission.ownerOnly ? (
-            <span className="ms-1.5 inline-flex items-center gap-0.5 rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">
+            <span className="ms-1.5 inline-flex items-center gap-0.5 rounded-full bg-muted px-1.5 text-xs text-muted-foreground">
               <Lock className="size-3" aria-hidden />
               {t("roles.notYours")}
             </span>
           ) : null}
           {permission.ownerOnly ? (
-            <span className="ms-1.5 inline-flex items-center gap-0.5 rounded-full bg-muted px-1.5 text-[11px] text-muted-foreground">
+            <span className="ms-1.5 inline-flex items-center gap-0.5 rounded-full bg-muted px-1.5 text-xs text-muted-foreground">
               <Lock className="size-3" aria-hidden />
               {t("roles.ownerOnly")}
             </span>
@@ -385,7 +385,7 @@ export function PermissionMatrix({
               <h4 className="flex items-center gap-2 text-sm font-semibold">
                 {name}
                 {changes ? (
-                  <span className="rounded-full bg-warning-soft px-1.5 text-[11px] font-normal text-warning">
+                  <span className="rounded-full bg-warning-soft px-1.5 text-xs font-normal text-warning">
                     {t("roles.changedCount", { n: changes })}
                   </span>
                 ) : null}

@@ -19,7 +19,7 @@ export interface Series {
   curve?: "monotone" | "linear";
 }
 
-const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
+const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
 const tooltipStyle = { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--popover-foreground)", boxShadow: "var(--shadow-card)" };
 
 /** One series → the brand sand; several → the validated categorical order. */
@@ -122,7 +122,7 @@ function MoneyComposed({ data, xKey, series, height = 288, stacked, label, forma
                       if (!value) return null;
                       // Drawn by hand: recharts' own label wraps at the bar's width.
                       return (
-                        <text x={Number(x) + Number(width) / 2} y={Number(y) - 8} textAnchor="middle" className="fill-foreground text-[11px] font-semibold">
+                        <text x={Number(x) + Number(width) / 2} y={Number(y) - 8} textAnchor="middle" className="fill-foreground text-xs font-semibold">
                           {String(value)}
                         </text>
                       );

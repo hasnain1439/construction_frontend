@@ -52,7 +52,7 @@ export function ShareColumns({
                 className="group relative h-full min-w-0 flex-1 overflow-hidden rounded-2xl bg-muted"
                 title={`${share}%`}
               >
-                <span className="tabular absolute inset-x-0 top-2 z-10 text-center text-[11px] font-semibold text-muted-foreground">
+                <span className="tabular absolute inset-x-0 top-2 z-10 text-center text-xs font-semibold text-muted-foreground">
                   {share}%
                 </span>
                 <div

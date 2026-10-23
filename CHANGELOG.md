@@ -6,6 +6,39 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Estimate QA re-check integration (QE5 + QE6, 22 Oct 2026)
+
+- **Merged:** `p23/qe5` and `p23/qe6`; both sides kept (the only conflict was this file).
+- **Added:** translations for the scaled formulas (`wallsScaled`, `plasterExternalScaled`) and the scale note on a scaled line ("× 2.05 (square root of the area factor …)" for wall runs, "× 1.5 (area factor …)" for areas) in English, Roman Urdu and Urdu.
+- **Fixed:** estimate line names and the floor column use the API's plain `label` / `floorLevel` when the app has no translation; a formula value that is an object prints its name, so "[object Object]" cannot appear.
+- **Added:** the Review tab shows the blocking "No price-list rate for: …" error on tab 2, naming the materials, with an "Open price list" link (QA B-26). The estimate's RATES_MISSING warning now says it blocks the estimate.
+- **Fixed:** "How the estimate is calculated" prints the factors the estimate used (bricks per cft, mortar per cft, dry factors, mix, bag size) instead of the old 0.25 × 1.33; the rulebook text for the mortar dry factor says 1.27.
+- API types (`schema.ts`) regenerated from the merged API. `calculations.footprints` stays hand-typed: the API documents it only in examples, so the generated types have no shape for it.
+
+### Estimate QA re-check (QE5)
+
+- **Fixed:** the contingency description in the estimate assumptions and the rulebook says it is a % of the direct cost only (not of direct + overheads), in English, Roman Urdu and Urdu (QA B-14).
+
+### Estimate re-check, web side (QE6)
+
+- **Fixed:** the plot-tab column hint, the footing-count default and the BoQ use one column count: the API count (`calculations.footprints` of the project, else the loaded estimate), else the same 15 ft grid over the same ground footprint (QA B-04). Isolated footings with no typed count take the column count; a typed count that differs is used but explained under the field, and the API warning FOOTINGS_COLUMNS_MISMATCH reads in all three languages.
+- **Fixed:** the Coverage tab shows the same ground footprint as the estimate: the full storeys share the covered area equally after the mumty share (not by room area), the API number (`calculations.footprints.groundFootprintSqft`) when present, else the same rule from one shared util (`utils/footprint.ts`) (QA NEW-2).
+- **Fixed:** the Assumptions dialog shows the termite chemical as used (0.005 litre / sq ft) with its rule in the hint, and "n changed from the defaults" counts only the fields the dialog shows (QA B-19).
+- **Added:** the Assumptions dialog has "Steel laps and hooks" next to the per-material wastage (cement, sand & crush, bricks, steel, other materials), and the how-it-works note lists the rate of each (QA B-20).
+- **Fixed:** the Assumptions button stays on the wizard Estimate tab while the estimate is blocked (rooms too few), so the assumptions can be seen and changed (QA B-20).
+- **Added:** bar size selects show the inch size under the field ("12 mm (#4, about ½ inch)"; Roman Urdu / Urdu with sooter) (QA B-32).
+- Tests for the items the tester could not re-test on a read-only company: contract switch keeps the value, negative input refused, stale stage-total error clears, copy from ground floor, plot mismatch warning, RCC steel footer, grey-structure stages (QA B-18 / 25 / 27 / 29 / 31 / 34 / 35).
+
+### Responsive pass (QA R-01 – R-09, QE7)
+
+- **Fixed:** the project wizard step bar scrolls the active step into view when it opens and on every step change (instantly when the user prefers reduced motion); below 1100 px a compact "Step 6 of 7 · Estimate" header with previous / next arrows sits above it. Translated in English, Roman Urdu and Urdu (R-01).
+- **Changed:** tables keep their first column in place and show a soft shadow at the edge while they scroll sideways; admin Companies and Audit Logs get the Projects Cards / Table toggle and open as cards on a phone (R-02).
+- **Fixed:** on a phone the dashboard lists its projects as cards and the Billed / Spent bars wrap below 480 px; alert titles show up to two lines instead of one (R-03, R-04).
+- **Fixed:** on touch screens buttons, sort headers, breadcrumb links, segmented toggles (Contractor / Owner), selects, switches, checkboxes and tabs have a tap area of at least 40 × 40 px, without looking bigger (R-05).
+- **Fixed:** the Plot & Structure, roof and foundation field grids size their columns by the space they have (one column below 420 px, two below 640 px); payment stage rows put the stage name on its own line on a phone (R-06).
+- **Fixed:** no text under 12 px — badges, stage dates, dense table headers and chart labels moved from 11 px to 12 px (R-07).
+- **Fixed:** the Review tab "Rooms per floor" table scrolls sideways instead of being cut off, and "Who supplies what" shows one two-line card per category on a phone (R-08, R-09).
+
 ### Labour-only scope and sparse projects (QE4)
 
 - **Added:** a labour-only contract (Contract tab) has two options, "Include finishing labour (tiles, paint)" and "Include electrical and plumbing labour"; without them the estimate counts grey-structure labour only and shows the left-out lines as the owner's, with no amount.

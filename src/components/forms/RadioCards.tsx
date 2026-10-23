@@ -84,7 +84,7 @@ export function RadioCardGroup<V extends string>({
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                 {option.title}
                 {option.badge ? (
-                  <span className="rounded-full bg-amber-soft px-2 py-0.5 text-[11px] font-medium text-warning">{option.badge}</span>
+                  <span className="rounded-full bg-amber-soft px-2 py-0.5 text-xs font-medium text-warning">{option.badge}</span>
                 ) : null}
               </span>
               {option.description ? <span className="block text-xs text-muted-foreground">{option.description}</span> : null}

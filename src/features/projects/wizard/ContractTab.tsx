@@ -28,14 +28,12 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useMessageT, useT } from "@/i18n/useT";
 import { formatPKR, multiplyPaisa } from "@/lib/money";
 import { CONTRACT_TYPES, SUPPLY_CATEGORIES } from "../constants";
-import { defaultTemplateFor, fitStages, runningStages, sameStages, templateStages, validRetention, withRetention, type StageValue } from "./contractStages";
+import { defaultTemplateFor, fitStages, runningStages, sameStages, switchContract, templateStages, validRetention, withRetention, type StageValue, type TypeMemory } from "./contractStages";
 import { contractSchema } from "./schemas";
 import { useReportForm, useWizard, WIZARD_FORM_ID } from "./WizardContext";
 
 type Values = z.input<ReturnType<typeof contractSchema>>;
 type Rule = Values["supplyRules"][number];
-/** What one contract type had before the user switched away (QA B-18): restored on switching back. */
-type TypeMemory = { contractValuePaisa: string | null; ratePerSqftPaisa: string | null; billingModel: Values["billingModel"]; stages: StageValue[] };
 /** Stage labels the form writes itself (running bills, a new retention row). */
 type StageLabels = { running: string; retention: string };
 
@@ -108,25 +106,27 @@ function ContractTypeCards({
   const nextBilling = (type: ContractType): Values["billingModel"] => memory.current[type]?.billingModel ?? (type === "LABOR_ONLY" ? "RUNNING_BILLS" : billing);
 
   const apply = (type: ContractType, billingModel: Values["billingModel"]) => {
-    const from = getValues("contractType") as ContractType;
-    memory.current[from] = {
-      contractValuePaisa: getValues("contractValuePaisa") ?? null,
-      ratePerSqftPaisa: getValues("ratePerSqftPaisa") ?? null,
-      billingModel: getValues("billingModel"),
-      stages: getValues("stages") as StageValue[],
-    };
-    const saved = memory.current[type];
-    const retention = validRetention(getValues("retentionPercent") as number | null) ?? 0;
+    const { values: next, memory: remembered } = switchContract(
+      {
+        contractType: getValues("contractType") as ContractType,
+        contractValuePaisa: getValues("contractValuePaisa") ?? null,
+        ratePerSqftPaisa: getValues("ratePerSqftPaisa") ?? null,
+        billingModel: getValues("billingModel"),
+        stages: getValues("stages") as StageValue[],
+      },
+      type,
+      billingModel,
+      memory.current,
+      { retention: validRetention(getValues("retentionPercent") as number | null) ?? 0, stagesFor, labels },
+    );
+    memory.current = remembered;
     setValue("contractType", type, { shouldDirty: true, shouldValidate: true });
     // A new contract type starts from its preset (locked rows stay as they are).
     setValue("supplyRules", rulesFromPreset(presets.find((p) => p.contractType === type), defaultCategory, getValues("supplyRules")), { shouldDirty: true });
-    setValue("billingModel", billingModel, { shouldDirty: true });
-    if (saved) {
-      setValue("contractValuePaisa", saved.contractValuePaisa, { shouldDirty: true });
-      setValue("ratePerSqftPaisa", saved.ratePerSqftPaisa, { shouldDirty: true });
-    }
-    const stages = saved ? withRetention(saved.stages, retention, labels.retention) : billingModel === "RUNNING_BILLS" ? runningStages(retention, labels.running, labels.retention) : stagesFor(type, retention);
-    setValue("stages", stages, { shouldDirty: true, shouldValidate: true });
+    setValue("billingModel", next.billingModel, { shouldDirty: true });
+    setValue("contractValuePaisa", next.contractValuePaisa, { shouldDirty: true });
+    setValue("ratePerSqftPaisa", next.ratePerSqftPaisa, { shouldDirty: true });
+    setValue("stages", next.stages, { shouldDirty: true, shouldValidate: true });
   };
 
   const billingNote = pendingSwitch && pendingSwitch.billing !== billing ? t("projects.contract.switchBilling", { billing: te("billingModel", pendingSwitch.billing) }) : null;
@@ -229,16 +229,18 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
   const te = useEnumT();
   const tm = useMessageT();
   return (
-    <div className="overflow-x-auto rounded-xl border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase">
+    // On a phone each category is a two-line card (name, then supplier + quality) instead of a
+    // sideways-scrolling table (QA R-09); the toggles and selects keep their own accessible names.
+    <div className="overflow-x-auto rounded-xl border" data-testid="supply-rules">
+      <table className="w-full text-sm max-sm:block">
+        <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase max-sm:hidden">
           <tr>
             <th className="px-4 py-2.5 text-start">{t("field.category")}</th>
             <th className="px-4 py-2.5 text-start">{t("projects.section.suppliedBy")}</th>
             <th className="px-4 py-2.5 text-start">{t("projects.section.qualityCategory")}</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="max-sm:block">
           {rules.map((rule, index) => {
             const meta = SUPPLY_CATEGORIES.find((c) => c.key === rule.categoryKey);
             const rowDisabled = disabled || rule.locked;
@@ -246,13 +248,13 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
             const error = errorText ? tm(errorText) : undefined;
             const categoryLabel = meta ? te("projectSupplyCategory", rule.categoryKey) : rule.label;
             return (
-              <tr key={rule.categoryKey} className="border-t">
-                <td className="px-4 py-2.5">
+              <tr key={rule.categoryKey} className="border-t max-sm:flex max-sm:flex-wrap max-sm:items-start max-sm:gap-2 max-sm:px-3 max-sm:py-3 max-sm:first:border-t-0">
+                <td className="px-4 py-2.5 max-sm:w-full max-sm:p-0">
                   <span className="font-medium">{categoryLabel}</span>
-                  {meta?.oftenChanges ? <StatusBadge tone="warning" label={t("projects.contract.oftenChanges")} className="ms-2 h-5 px-2 text-[11px]" /> : null}
+                  {meta?.oftenChanges ? <StatusBadge tone="warning" label={t("projects.contract.oftenChanges")} className="ms-2 h-5 px-2 text-xs" /> : null}
                   {rule.locked ? <Lock className="ms-2 inline size-3.5 text-muted-foreground" aria-label={t("projects.section.locked")} /> : null}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 max-sm:p-0">
                   <SegmentedControl<"CONTRACTOR" | "OWNER">
                     ariaLabel={t("projects.contract.suppliedByAria", { category: categoryLabel })}
                     size="sm"
@@ -271,9 +273,9 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
                     ]}
                   />
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 max-sm:min-w-0 max-sm:flex-1 max-sm:p-0">
                   {rule.suppliedBy === "OWNER" ? (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-muted-foreground max-sm:hidden">—</span>
                   ) : (
                     <div className="space-y-1">
                       <Select
@@ -281,7 +283,7 @@ function SupplyTable({ categories, disabled }: { categories: QualityCategory[]; 
                         disabled={rowDisabled}
                         onValueChange={(v) => setValue(`supplyRules.${index}.qualityCategoryId`, v, { shouldDirty: true, shouldValidate: true })}
                       >
-                        <SelectTrigger size="sm" className="w-48" aria-label={t("projects.contract.qualityAria", { category: categoryLabel })} aria-invalid={Boolean(error) || undefined}>
+                        <SelectTrigger size="sm" className="w-48 max-sm:w-full max-sm:min-w-36" aria-label={t("projects.contract.qualityAria", { category: categoryLabel })} aria-invalid={Boolean(error) || undefined}>
                           <SelectValue placeholder={t("projects.contract.chooseQuality")} />
                         </SelectTrigger>
                         <SelectContent>

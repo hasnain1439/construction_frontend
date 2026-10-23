@@ -284,6 +284,15 @@ export const strings: Widen<typeof En.strings> = {
     waterproofing: "{bags} cement bori × {perBag} kg",
     bitumen: "{area} sq ft × {perSqft} kg",
     termite: "{area} sq ft × {perSqft} litre",
+    wallsScaled:
+      "Kamre manzil ka {roomsPercent} % hain: deewaron ki lambai (bahar {roomExt} ft + andar {roomInt} ft) × {linearScale} (raqbe ke factor {areaScale} ka square root) = bahar {ext} ft (zyada se zyada footprint ka ghera {perimeter} ft) + andar {int} ft; bahar {ext} ft × {height} ft × {extIn}″ − khirkiyan {windows} sq ft; andar {int} ft × {height} ft × {intIn}″ − darwaze {doors} sq ft",
+    plasterExternalScaled:
+      "Kamre manzil ka {roomsPercent} % hain: bahar ka ghera {roomExt} ft × {linearScale} (raqbe ke factor ka square root), zyada se zyada footprint ka ghera = {length} ft × ({height} ft + chhat {slabIn}″) − khirkiyan {windows} sq ft",
+  },
+  formulaScale: {
+    LINEAR:
+      " × {scale} (raqbe ke factor {areaScale} ka square root: kamre manzil ka {roomsPercent} % hain, aur deewaron ki lambai raqbe ke square root ke hisaab se barhti hai)",
+    AREA: " × {scale} (raqbe ka factor: kamre manzil ka {roomsPercent} % hain)",
   },
   summary: {
     title: "Maal ka khulasa",
@@ -340,6 +349,7 @@ export const strings: Widen<typeof En.strings> = {
     ROOMS_TOO_FEW: "Kamre covered area ka sirf {percent}% hain ({coveredAreaSqft} mein se {roomsAreaSqft} sq ft). Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
     RULEBOOK_RATE_ZERO: "In rates ki qeemat Rs 0 hai, is liye in lines ka koi kharcha nahi lagta: {items}. Assumptions mein rate darj karein.",
     FOOTPRINT_EXCEEDS_PLOT: "Ground footprint ({footprintSqft} sq ft) plot ({plotAreaSqft} sq ft) se bara hai — covered area ya plot size theek karein.",
+    FOOTINGS_COLUMNS_MISMATCH: "{footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka likha number istemal ho raha hai; ise check karein (aam tor par har column ke neeche aik footing).",
     STEEL_RATE_GENERIC: "In ka price list rate nahin: {materials} — aam sarye ke rate par lagaya.",
     WALLS_PARTIAL: "{floor}: {rooms} mein se {missing} kamron ki deewarein darj nahin — is manzil ki deewarein kamron ke size se nikaali gayin.",
     WALLS_UNPAIRED: "{floor}: {sides} sanjhi deewar(ein) doosre kamre se juri nahin — raahdari deewar ginti hui.",
@@ -360,7 +370,7 @@ export const strings: Widen<typeof En.strings> = {
     FOUNDATION_LENGTH_UNKNOWN:
       "Bunyaad ki deewaron ki lambai maloom nahin — kamre ya plot ka size daalein, ya andazay ki buniyad mein likhein.",
     ROOMS_BELOW_COVERED: "Kamre covered area ka sirf {percent}% hain — deewarein, lintel aur plaster shayad kam gine gaye (rahdari, seerhiyan, store bhi daalein).",
-    RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh kharche mein shamil nahin.",
+    RATES_MISSING: "Rate list mein in ka rate nahin: {materials}. Yeh samaan aap dete hain, is liye andaza istemal karne se pehle rate list mein rate darj karein.",
     LABOUR_RATES_MISSING: "In ki mazdoori ka rate nahin: {items}. Mazdoori mein shamil nahin.",
     CONTRACT_VALUE_MISSING: "Theke ki raqam nahin — nafa nahin nikal sakta.",
     STEEL_NORM_DEVIATION: "Sariya covered area ke fi murabba ft {actual} kg ban raha hai, aam had {min}–{max} kg se bahar — dhanche ki maloomat check karein.",
@@ -378,13 +388,13 @@ export const strings: Widen<typeof En.strings> = {
       "Chhat darj ho to: slab ka sarya asal sariyon se — har kamre ke main aur distribution sarye (tadaad = lambai × 12 ÷ faasla + 1, anchorage samait), izafi top sarye — size ke hisaab se wazan (kg fi meter = d² ÷ 162); beams aur columns apne size aur sariyon se.",
     title: "Andaza kaise lagta hai",
     concrete:
-      "Concrete: geela hajam × 1.54 = khushk hajam, mix ke hisaab se (1:2:4 → cement 1/7, ret 2/7, bajri 4/7); cement cft ÷ 1.25 = 50 kg ki boriyan.",
-    mortar: "Chinai: 13.5 eentein fi cft; 0.25 cft geela masala fi cft × 1.33 = khushk, 1:6 mein.",
-    plaster: "Plaster: raqba × motai × 1.33, mix ke hisaab se (1:4 → cement 1/5, ret 4/5).",
+      "Concrete: geela hajam × {concreteDry} = khushk hajam, mix ke hisaab se (1:2:4 → cement 1/7, ret 2/7, bajri 4/7); cement cft ÷ {bagCft} = 50 kg ki boriyan.",
+    mortar: "Chinai: {bricks} eentein fi cft; {mortar} cft geela masala fi cft × {dry} = khushk, {mix} mein.",
+    plaster: "Plaster: raqba × motai × {dry}, mix ke hisaab se (1:4 → cement 1/5, ret 4/5).",
     steel: "Sarya: concrete ka hajam × sarya % × 222 kg fi cft (1 % ≈ 2.22 kg fi cft).",
     walls:
       "Deewarein: kamron ke gheron se deewaron ki lambai (saanjhi deewar ek baar); oonchai = manzil ki chhat; darwaze andar ki, khirkiyan bahar ki deewaron se kam.",
-    wastage: "Har maal par zaya joda jata hai (default 5 %); kaam ki lines (hajam, raqba) par nahin.",
+    wastage: "Har maal par us ka apna zaya joda jata hai (default: cement 2 %, ret aur bajri 5 %, eenten 5 %, sariya 4 % aur jor ke liye 4 %, baqi samaan 5 %); kaam ki lines (hajam, raqba) par nahin.",
   },
   settings: {
     title: "Andazay ki buniyad",
@@ -423,6 +433,10 @@ export const strings: Widen<typeof En.strings> = {
       steelWastagePercent: "Sariye ka zaya",
       siteOverheadPercent: "Site ke kharche",
       siteOverheadPercentHint: "Direct cost ka percent",
+      steelLapPercent: "Sariye ke jor aur hook",
+      steelLapPercentHint: "Sariye ke zaya ke ooper",
+      wastagePercentHint: "Waterproofing, bitumen, deemak ki dawai, pathar, garder, chhat ki tiles",
+      termiteLitrePerSqftHint: "Sab se neechay ki manzil ke footprint ke fi sq ft (200 sq ft ke liye 1 litre)",
       contingencyPercent: "Ghair mutawaqqa kharcha",
       contingencyPercentHint: "Direct cost ka percent; BoQ line mein dikhaya gaya hai kis raqam par laga",
       externalWallThicknessIn: "Bahar ki deewar ki motai",

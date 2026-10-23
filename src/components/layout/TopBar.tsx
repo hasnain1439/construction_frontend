@@ -44,7 +44,7 @@ export function SearchTrigger() {
       </TooltipTrigger>
       <TooltipContent>
         {t("shell.searchMenu")}{" "}
-        <kbd className="ms-1 rounded bg-muted px-1.5 text-[11px] text-foreground">
+        <kbd className="ms-1 rounded bg-muted px-1.5 text-xs text-foreground">
           Ctrl K{/* i18n-ignore: key names */}
         </kbd>
       </TooltipContent>
@@ -73,7 +73,7 @@ function CreateMenu() {
             <Link href={action.href} className="flex items-center justify-between gap-2">
               {pickLabel(action.label, language)}
               {!action.available ? (
-                <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-[11px]" />
+                <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-xs" />
               ) : null}
             </Link>
           </DropdownMenuItem>

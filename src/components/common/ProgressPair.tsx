@@ -14,16 +14,16 @@ export function ProgressPair({ billed, spent, className }: { billed: number; spe
   const ahead = spent > billed;
   return (
     <div className={cn("min-w-32 space-y-1", className)} aria-label={t("common.billedSpent", { billed, spent })}>
-      <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-x-2 text-xs max-[480px]:flex-wrap">
         <span className="w-12 text-muted-foreground">{t("common.billed")}</span>
-        <span className="h-1.5 flex-1 rounded-full bg-muted">
+        <span className="h-1.5 min-w-12 flex-1 rounded-full bg-muted">
           <span className="block h-full rounded-full bg-chart-1" style={{ width: `${clamp(billed)}%` }} />
         </span>
         <span className="w-10 text-end tabular">{billed}%</span>
       </div>
-      <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-x-2 text-xs max-[480px]:flex-wrap">
         <span className="w-12 text-muted-foreground">{t("common.spent")}</span>
-        <span className="h-1.5 flex-1 rounded-full bg-muted">
+        <span className="h-1.5 min-w-12 flex-1 rounded-full bg-muted">
           <span className={cn("block h-full rounded-full", ahead ? "bg-warning" : "bg-chart-3")} style={{ width: `${clamp(spent)}%` }} />
         </span>
         <span className="w-10 text-end tabular">{spent}%</span>

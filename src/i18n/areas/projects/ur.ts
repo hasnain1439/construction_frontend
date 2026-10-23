@@ -377,6 +377,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   foundation: {
     footingCountHint: "ہر کالم کے نیچے ایک: اس فریم کے لیے تقریباً {n}۔",
+    footingCountMismatch: "آپ نے {footings} فوٹنگز لکھی ہیں، لیکن فریم میں {columns} کالم ہیں۔ آپ کا نمبر ہی استعمال ہوگا؛ عام طور پر ہر کالم کے نیچے ایک فوٹنگ ہوتی ہے۔",
     title: "بنیاد",
     description: "بنیاد کی قسم، ناپ اور مٹیریل۔ قسم کے حساب سے خانے بدلتے ہیں۔",
     dimensions: "ناپ",
@@ -400,6 +401,7 @@ export const strings: Widen<typeof En.strings> = {
     rccMix: "آر سی سی مکس",
     mainBar: "مین سریا",
     barValue: "{mm} ملی میٹر ({n} سوتر)",
+    barInch: "{mm} ملی میٹر ({n} سوتر، تقریباً {inch} انچ)",
     termite: "دیمک کا علاج",
     termiteDesc: "پی سی سی سے پہلے کھائیوں میں دیمک مار دوا۔",
     dpcMaterial: "ڈی پی سی کا مٹیریل",
@@ -602,6 +604,7 @@ export const strings: Widen<typeof En.strings> = {
     COVERED_AREA_MISSING: "ڈھکا ہوا رقبہ درج کریں",
     NO_ROOMS: "کمرے شامل کریں",
     ROOMS_TOO_FEW: "کمرے کورڈ رقبے کا صرف {a}% ہیں۔ تخمینے پر بھروسہ کرنے سے پہلے باقی کمرے (یا راہداری) درج کریں۔",
+    RATES_MISSING: "ریٹ لسٹ میں ان کا ریٹ نہیں: {items}۔ یہ سامان آپ دیتے ہیں، اس لیے تخمینہ استعمال کرنے سے پہلے ریٹ لسٹ میں ریٹ درج کریں۔",
     ROOM_AREA_VS_COVERED: "کمروں کا مجموعہ {a} مربع فٹ ہے جبکہ ڈھکا ہوا رقبہ {b} مربع فٹ — 15% سے زیادہ فرق (دیواریں اور راستے؟)",
     NO_PM: "کوئی پراجیکٹ مینیجر مقرر نہیں",
     NO_MUNSHI: "کوئی منشی مقرر نہیں",
