@@ -95,6 +95,11 @@ export const ENDPOINTS = {
     status: "/sync/status",
   },
 
+  /** Live "something changed" events (Server-Sent Events) — see lib/liveUpdates.ts. */
+  realtime: {
+    stream: "/realtime/stream",
+  },
+
   /** Step 17 · Closeout: drawings, snags, handover, retention. */
   closeout: {
     drawings: (projectId: string) => `/projects/${id(projectId)}/drawings`,

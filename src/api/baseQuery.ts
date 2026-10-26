@@ -8,6 +8,7 @@ import {
 } from "@reduxjs/toolkit/query/react";
 import { Mutex } from "async-mutex";
 import type { ApiError, PageMeta } from "@/api/types";
+import { CLIENT_ID_HEADER, TAB_ID } from "@/lib/liveUpdates";
 import { normalizeUiLanguage } from "@/store/slices/uiSlice";
 
 /**
@@ -102,6 +103,8 @@ export function createReauthBaseQuery(options: ReauthOptions): ApiBaseQuery {
     prepareHeaders: (headers, { getState }) => {
       const lang = languageHeaderValue(getState());
       if (lang && !headers.has(LANGUAGE_HEADER)) headers.set(LANGUAGE_HEADER, lang);
+      // Live updates skip the echo of this tab's own writes (lib/liveUpdates.ts).
+      headers.set(CLIENT_ID_HEADER, TAB_ID);
       return headers;
     },
     ...(options.fetchFn ? { fetchFn: options.fetchFn } : {}),

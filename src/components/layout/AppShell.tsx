@@ -10,6 +10,7 @@ import { ReadOnlyBanner } from "@/components/common/ReadOnlyBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SessionsDialog } from "@/features/auth/components/SessionsDialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useLiveUpdates } from "@/hooks/useLiveUpdates";
 import { useT } from "@/i18n/useT";
 import { observeSignedIn } from "@/lib/observability/identity";
 import {
@@ -67,6 +68,8 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
   const flyoutFor = useAppSelector((state) => state.ui.flyoutFor);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const { signOut } = useLogout();
+  // Changes by anyone else in the company show up without a reload.
+  useLiveUpdates(Boolean(me));
 
   const status = error && "status" in error ? error.status : undefined;
   useEffect(() => {
