@@ -40,6 +40,34 @@ const SESSION_DEAD_CODES = new Set([
   "REFRESH_TOKEN_REUSED",
 ]);
 
+/** Another tab refreshed this long ago at most → this tab just retries with the new cookie. */
+const RECENT_REFRESH_MS = 10_000;
+
+/**
+ * Tabs share the refresh cookie, and the backend treats two refreshes with the same token as
+ * theft (the whole login ends). So refreshes are serialised across tabs too (Web Lock), and the
+ * tab that refreshed records when, so the others don't rotate the token a second time.
+ */
+function acrossTabs<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  return locks ? (locks.request(name, fn) as Promise<T>) : fn();
+}
+function refreshedElsewhereRecently(key: string): boolean {
+  try {
+    const mark = JSON.parse(localStorage.getItem(key) ?? "null") as { at?: number; tab?: string } | null;
+    return !!mark && mark.tab !== TAB_ID && typeof mark.at === "number" && Date.now() - mark.at < RECENT_REFRESH_MS;
+  } catch {
+    return false;
+  }
+}
+function markRefreshed(key: string) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ at: Date.now(), tab: TAB_ID }));
+  } catch {
+    // storage unavailable (private mode): the lock alone still serialises the refreshes
+  }
+}
+
 /** Waits before each GET retry on a transient failure (2 retries, ~2 s in total). */
 const GET_RETRY_DELAYS_MS = [400, 1200] as const;
 
@@ -160,14 +188,22 @@ export function createReauthBaseQuery(options: ReauthOptions): ApiBaseQuery {
     if (result.error && canRefresh(args, result.error)) {
       const refreshed = await mutex.runExclusive(async () => {
         if (epoch !== startedIn) return { ok: lastRefreshOk, mine: false };
-        const refresh = await raw(
-          { url: options.refreshUrl, method: "POST", body: { client: "web" } },
-          api,
-          extraOptions,
-        );
-        epoch += 1;
-        lastRefreshOk = !refresh.error;
-        return { ok: lastRefreshOk, mine: true };
+        return acrossTabs(`auth-refresh:${options.refreshUrl}`, async () => {
+          const markKey = `auth-refreshed-at:${options.refreshUrl}`;
+          epoch += 1;
+          if (refreshedElsewhereRecently(markKey)) {
+            lastRefreshOk = true;
+            return { ok: true, mine: false };
+          }
+          const refresh = await raw(
+            { url: options.refreshUrl, method: "POST", body: { client: "web" } },
+            api,
+            extraOptions,
+          );
+          lastRefreshOk = !refresh.error;
+          if (lastRefreshOk) markRefreshed(markKey);
+          return { ok: lastRefreshOk, mine: true };
+        });
       });
       if (refreshed.ok) {
         result = await send(args, api, extraOptions);
