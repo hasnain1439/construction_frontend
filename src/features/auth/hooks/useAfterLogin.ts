@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { authApi } from "@/api/services/auth.api";
+import { clearActingTenant } from "@/lib/actingCompany";
 import { languageAfterLogin } from "@/lib/languagePreference";
 import { trackLogin, type LoginMethod } from "@/lib/observability/identity";
 import { safeNext } from "@/lib/session";
@@ -21,6 +22,9 @@ export function useAfterLogin() {
   const store = useAppStore();
   return useCallback(
     async (nextOverride?: string, method: LoginMethod = "password") => {
+      // Signed in as a company user: a platform admin's "working in company X" left in this browser
+      // must not send the company's own pages to /admin/data (proxy.ts) or add X-Act-As-Tenant.
+      clearActingTenant();
       const { data: me } = await dispatch(authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }));
       const language = languageAfterLogin(me, store.getState().ui.language);
       if (language) dispatch(setLanguage(language));
