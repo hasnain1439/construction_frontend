@@ -118,7 +118,9 @@ describe("foundation schema and body", () => {
   });
 
   it("requires the type-specific fields only for their type", () => {
-    expect(errorPaths({ type: "ISOLATED" })).toEqual(expect.arrayContaining(["footingCount", "footingLengthFt"]));
+    // Isolated pads: no count = one per column (review 27 Oct 2026); combined ones need it
+    expect(errorPaths({ type: "ISOLATED", footingLengthFt: null })).toEqual(["footingLengthFt"]);
+    expect(errorPaths({ type: "COMBINED", footingLengthFt: 5 })).toContain("footingCount");
     expect(errorPaths({ type: "PILE" })).toEqual(expect.arrayContaining(["pileCount", "pileDiameterIn", "pileDepthFt"]));
     expect(errorPaths({ type: "RAFT", footingWidthFt: null })).toEqual([]);
     expect(errorPaths({ type: "STRIP", footingWidthFt: null })).toContain("footingWidthFt");

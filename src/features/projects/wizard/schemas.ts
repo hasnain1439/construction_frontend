@@ -267,7 +267,8 @@ export const foundationSchema = z
     check("waterTableDepthFt", "projects.foundation.waterTable", 0, 300, { optional: true });
     if (hasFootingWidth(v.type)) check("footingWidthFt", hasPads(v.type) ? "projects.foundation.footingWidthPad" : "projects.foundation.footingWidth", 1, 20);
     if (hasPads(v.type)) {
-      check("footingCount", "projects.foundation.footingCount", 1, 500, { whole: true });
+      // Isolated pads: empty = one per column (the estimate derives the count from the frame)
+      check("footingCount", "projects.foundation.footingCount", 1, 500, { whole: true, optional: v.type === "ISOLATED" });
       check("footingLengthFt", "projects.foundation.footingLength", 1, 20);
     }
     if (isPile(v.type)) {

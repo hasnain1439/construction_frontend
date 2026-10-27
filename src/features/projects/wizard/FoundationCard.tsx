@@ -64,7 +64,7 @@ export function FoundationCard({
   ];
 
   // QA B-04: switching the structure before the foundation is touched brings that structure's footing
-  // (FRAMED → isolated pads, one per column, L = W; LOAD_BEARING → strip). Once the user edits the
+  // (FRAMED → isolated pads, L = W; LOAD_BEARING → strip). Once the user edits the
   // card (its values differ from the last default) or a foundation is saved, it stays as it is.
   const lastStructure = useRef(structure);
   const lastDefault = useRef<string | null>(saved ? null : JSON.stringify(getValues("foundation")));
@@ -72,26 +72,13 @@ export function FoundationCard({
     if (lastStructure.current === structure) return;
     lastStructure.current = structure;
     if (!structure || lastDefault.current === null || JSON.stringify(getValues("foundation")) !== lastDefault.current) return;
-    const next = foundationDefaultsFor(structure, columnEstimate);
-    setValue("foundation", next, { shouldDirty: true });
+    setValue("foundation", foundationDefaultsFor(structure), { shouldDirty: true });
     lastDefault.current = JSON.stringify(getValues("foundation"));
-  }, [structure, columnEstimate, getValues, setValue]);
+  }, [structure, getValues, setValue]);
 
-  // QA B-04: isolated pads with no typed count take the column count; a count that is still the last auto value
-  // follows the column count when it changes (e.g. the API's number arrives). A number the user typed stays.
-  const autoCount = useRef<number | null>(saved ? null : (getValues("foundation.footingCount") as number | null));
-  useEffect(() => {
-    if (!columnEstimate || type !== "ISOLATED") return;
-    const current = getValues("foundation.footingCount") as number | null;
-    if (current === null || (!saved && current === autoCount.current)) {
-      if (current !== columnEstimate) {
-        const pristine = lastDefault.current === JSON.stringify(getValues("foundation"));
-        setValue("foundation.footingCount", columnEstimate, { shouldDirty: true });
-        if (pristine) lastDefault.current = JSON.stringify(getValues("foundation"));
-      }
-      autoCount.current = columnEstimate;
-    }
-  }, [columnEstimate, type, saved, getValues, setValue]);
+  // Isolated pads are left without a count: empty = one per column, which the estimate takes from the frame
+  // once the floors are known. (Filling in the hint's number early stuck a whole-plot guess — 24 instead of
+  // 20 — as if typed; estimate review 27 Oct 2026.) A number the user types is used as typed.
   const [footingCount, mainBarMm] = useWatch({ name: ["foundation.footingCount", "foundation.mainBarMm"] }) as [number | null, string | null];
   const mainBarVars = barInchVars(Number(mainBarMm));
   const countMismatch = type === "ISOLATED" && Boolean(columnEstimate) && Boolean(footingCount) && footingCount !== columnEstimate;
@@ -105,9 +92,10 @@ export function FoundationCard({
     if (current === null || SUGGESTED_THICKNESS.has(current)) {
       setValue("foundation.footingThicknessIn", FOOTING_THICKNESS_DEFAULT[next as FoundationType], { shouldDirty: true });
     }
-    // Pads: one per column, square (L = W) unless already typed (QA B-04)
+    // Pads: square (L = W) unless already typed (QA B-04); combined footings start from the column count
+    // (each carries several columns, so the user adjusts it); isolated ones stay empty = one per column.
     if (hasPads(next as FoundationType)) {
-      if (getValues("foundation.footingCount") === null && columnEstimate) setValue("foundation.footingCount", columnEstimate, { shouldDirty: true });
+      if (next === "COMBINED" && getValues("foundation.footingCount") === null && columnEstimate) setValue("foundation.footingCount", columnEstimate, { shouldDirty: true });
       if (getValues("foundation.footingLengthFt") === null) setValue("foundation.footingLengthFt", getValues("foundation.footingWidthFt") ?? PAD_SIDE_DEFAULT_FT, { shouldDirty: true });
     }
   };
@@ -151,11 +139,17 @@ export function FoundationCard({
               <NumberField
                 name="foundation.footingCount"
                 label={t("projects.foundation.footingCount")}
-                required
+                required={type !== "ISOLATED"}
                 decimals={0}
                 min={1}
                 unit={t("projects.unit.nos")}
-                hint={columnEstimate ? t("projects.foundation.footingCountHint", { n: columnEstimate }) : undefined}
+                hint={
+                  type === "ISOLATED"
+                    ? t("projects.foundation.footingCountAutoHint", { n: columnEstimate ?? "—" })
+                    : columnEstimate
+                      ? t("projects.foundation.footingCountHint", { n: columnEstimate })
+                      : undefined
+                }
                 disabled={disabled}
               />
               <NumberField name="foundation.footingLengthFt" label={t("projects.foundation.footingLength")} required unit={ft} disabled={disabled} />

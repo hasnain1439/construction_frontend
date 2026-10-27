@@ -135,14 +135,16 @@ describe("QA B-04 — one column count for the plot hint, the footing default an
   }
   const count = () => screen.getByLabelText(/^Number of footings/);
 
-  it("isolated pads with no typed count default to the column count, and follow it while untouched", async () => {
+  it("isolated pads with no typed count stay empty = one per column, and the hint follows the frame", async () => {
+    // Review 27 Oct 2026: filling the hint's number in stuck an early whole-plot guess (24) as if typed; the
+    // estimate takes the count from the frame (20) when it is left empty.
     const { rerender } = renderWithStore(<Harness foundation={{ footingCount: null }} columns={20} />);
-    await waitFor(() => expect(count()).toHaveValue("20"));
-    expect(screen.getByText("One per column: about 20 for this frame.")).toBeInTheDocument();
+    expect(count()).toHaveValue("");
+    expect(screen.getByText("Leave empty: one per column (20 for this frame), and it follows the frame if the floors change.")).toBeInTheDocument();
     expect(screen.queryByTestId("footing-count-mismatch")).toBeNull();
-    // the API's number arrives later: an untouched count follows it
     rerender(<Harness foundation={{ footingCount: null }} columns={22} />);
-    await waitFor(() => expect(count()).toHaveValue("22"));
+    await waitFor(() => expect(screen.getByText("Leave empty: one per column (22 for this frame), and it follows the frame if the floors change.")).toBeInTheDocument());
+    expect(count()).toHaveValue("");
   });
 
   it("a typed count wins but the difference is explained", async () => {
