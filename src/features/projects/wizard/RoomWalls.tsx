@@ -100,6 +100,8 @@ const TYPE_STROKE: Record<WallType, string> = {
   DOUBLE: "text-success",
   OPEN: "text-muted-foreground",
   PASSAGE: "text-muted-foreground",
+  // Our own boundary wall standing as the room's wall (counted once: taken off the boundary wall)
+  BOUNDARY: "text-warning",
 };
 
 /** Plan of the room: a square whose four sides are coloured / dashed by wall type. Not mirrored in RTL (it is a drawing). */

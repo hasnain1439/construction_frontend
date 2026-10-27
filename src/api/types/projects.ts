@@ -405,7 +405,7 @@ export interface SupplyPreset {
 // ─── Floors, rooms, openings ────────────────────────────────────────────────
 
 export type WallSide = "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
-export type WallType = "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+export type WallType = "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE" | "BOUNDARY";
 
 export interface Opening {
   id: Id;

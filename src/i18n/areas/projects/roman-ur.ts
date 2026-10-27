@@ -665,6 +665,6 @@ export const enums: Widen<typeof En.enums> = {
   projectGarderSection: { G6X3: "Garder 6″ × 3″ (5.4 kg/ft)", G8X4: "Garder 8″ × 4″ (8.2 kg/ft)", G4X3: "Garder 4″ × 3″ (purana)", G5X3: "Garder 5″ × 3″ (purana)" },
   projectRoofWaterproofing: { POLYTHENE: "Polythene sheet", BITUMEN: "Bitumen", NONE: "Koi nahin" },
   projectRoofTopFinish: { TILE: "Masale mein tiles", LEEP: "Leep (mitti + bhoosa)", CONC: "Concrete" },
-  projectWallType: { EXTERNAL: "Bahar wali", SHARED: "Kamre ke saath sanjhi", PARTY: "Hamsaye wali", DOUBLE: "Double (khala wali)", OPEN: "Khuli (deewar nahin)", PASSAGE: "Raahdari / seerhi" },
+  projectWallType: { EXTERNAL: "Bahar wali", SHARED: "Kamre ke saath sanjhi", PARTY: "Hamsaye wali", DOUBLE: "Double (khala wali)", OPEN: "Khuli (deewar nahin)", PASSAGE: "Raahdari / seerhi", BOUNDARY: "Boundary wall (plot ka kinara)" },
   projectWallSide: { TOP: "Ooper", RIGHT: "Daayen", BOTTOM: "Neeche", LEFT: "Baayen" },
 };

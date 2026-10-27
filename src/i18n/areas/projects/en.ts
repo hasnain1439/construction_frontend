@@ -664,6 +664,6 @@ export const enums = {
   projectGarderSection: { G6X3: "Girder 6″ × 3″ (5.4 kg/ft)", G8X4: "Girder 8″ × 4″ (8.2 kg/ft)", G4X3: "Girder 4″ × 3″ (old)", G5X3: "Girder 5″ × 3″ (old)" },
   projectRoofWaterproofing: { POLYTHENE: "Polythene sheet", BITUMEN: "Bitumen", NONE: "None" },
   projectRoofTopFinish: { TILE: "Tiles in mortar", LEEP: "Mud + straw plaster", CONC: "Concrete screed" },
-  projectWallType: { EXTERNAL: "External", SHARED: "Shared with a room", PARTY: "Party (neighbour)", DOUBLE: "Double (cavity)", OPEN: "Open (no wall)", PASSAGE: "Passage / stair" },
+  projectWallType: { EXTERNAL: "External", SHARED: "Shared with a room", PARTY: "Party (neighbour)", DOUBLE: "Double (cavity)", OPEN: "Open (no wall)", PASSAGE: "Passage / stair", BOUNDARY: "Boundary wall (plot edge)" },
   projectWallSide: { TOP: "Top", RIGHT: "Right", BOTTOM: "Bottom", LEFT: "Left" },
 } as const;
