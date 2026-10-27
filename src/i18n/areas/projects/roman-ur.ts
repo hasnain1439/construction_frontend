@@ -378,6 +378,7 @@ export const strings: Widen<typeof En.strings> = {
   foundation: {
     footingCountHint: "Har column ke neeche aik: is frame ke liye taqreeban {n}.",
     footingCountAutoHint: "Khaali chhor dein: har column ke neeche aik (is frame ke liye {n}), aur floors badlein to khud badal jayegi.",
+    stoneHint: "Pathar ki chunai price list ke stone rate se lagti hai — Settings → Price list mein daalein, warna estimate ruk jayega. Punjab mein aksar ghar eent ke hote hain.",
     footingCountMismatch: "Aap ne {footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka number hi istemal hoga; aam tor par har column ke neeche aik footing hoti hai.",
     title: "Bunyaad (Foundation)",
     description: "Bunyaad ki qisam, size aur material. Qisam ke hisaab se khaane badalte hain.",
