@@ -131,7 +131,9 @@ export function AppShell({ mode, children }: { mode: "company" | "project"; chil
 
   return (
     // print: only the page content flows onto paper (no top bar, rail, flyout or footer; no inner scroll box).
-    <div className="fixed inset-0 flex flex-col overflow-hidden print:static print:block print:overflow-visible">
+    // overflow-clip, not -hidden: a hidden box can still be scrolled by focus / find-in-page, which slid the
+    // top bar out of view with no way back (QA pass 2, R-10); only <main> scrolls.
+    <div className="fixed inset-0 flex flex-col overflow-clip print:static print:block print:overflow-visible">
       <div className="contents print:hidden">
         <TopBar onSessions={() => setSessionsOpen(true)} onLogout={() => void signOut()} />
       </div>

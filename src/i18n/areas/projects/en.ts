@@ -556,6 +556,7 @@ export const strings = {
     doubleValue: "{outer}″ + {cavity}″ gap + {inner}″",
     diagram: "Walls of {name}",
     pairHint: "On save, the other room's matching wall is set to shared too, so the wall is counted once.",
+    boundaryHint: "This side is your boundary wall: it is built once, as this room's full-height wall, and taken off the boundary wall — once every room on this floor has its walls entered.",
     openingSideAria: "Opening {n} wall",
   },
   review: {

@@ -39,12 +39,10 @@ import { ProjectPageShell } from "../views/ProjectModeViews";
 import { EstimateSettingsModal } from "./EstimateSettingsModal";
 import { BoqWorkspace } from "@/features/estimates/BoqWorkspace";
 import { boqRateUnit, iso } from "@/features/estimates/labels";
-import { fmt, fmtUp, formulaText, lineText, materialText, rupees, unitText } from "./labels";
+import { fmt, fmtUp, formulaText, lineText, materialText, rupees, steelKgOf, unitText } from "./labels";
 
 type T = ReturnType<typeof useT>;
 
-/** Every steel material: the % method's generic steel and the bar sizes of the detailed method. */
-const STEEL_MATERIALS = ["steel", "steel10", "steel12", "steel16", "steel20"] as const;
 const SIZE_BAR: Record<string, number> = { steel10: 3, steel12: 4, steel16: 5, steel20: 6 };
 
 /** "Detailed" (from the walls / roof entered) or "Estimated" (rule of thumb) — on work lines and in the basis. */
@@ -289,7 +287,7 @@ export function EstimateKpis({
 }) {
   const t = useT();
   const qty = (m: string) => e.materials.find((x) => x.material === m)?.quantity ?? 0;
-  const steelKg = STEEL_MATERIALS.reduce((a, m) => a + qty(m), 0);
+  const steelKg = steelKgOf(e.materials);
   const sizes = e.materials
     .filter((m) => SIZE_BAR[m.material])
     .map((m) => t("projects.estimate.kpi.steelSize", { bar: SIZE_BAR[m.material]!, kg: fmtUp(m.quantity) }));

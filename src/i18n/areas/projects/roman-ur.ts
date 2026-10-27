@@ -557,6 +557,7 @@ export const strings: Widen<typeof En.strings> = {
     doubleValue: "{outer}″ + {cavity}″ khala + {inner}″",
     diagram: "{name} ki deewarein",
     pairHint: "Save karne par doosre kamre ki saamne wali deewar bhi sanjhi ho jaye gi, is liye deewar aik dafa ginti hai.",
+    boundaryHint: "Ye side aap ki boundary wall hai: ye is kamre ki poori unchi deewar ke taur par aik dafa banti hai aur boundary wall se kam ho jati hai — jab is floor ke har kamre ki deewarein bhar di jayen.",
     openingSideAria: "Opening {n} ki deewar",
   },
   review: {

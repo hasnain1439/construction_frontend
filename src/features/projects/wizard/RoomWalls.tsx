@@ -305,6 +305,12 @@ export function RoomWalls({
         </div>
       </div>
       {rows.some((r) => r.type === "SHARED") ? <p className="text-xs text-muted-foreground">{t("projects.walls.pairHint")}</p> : null}
+      {rows.some((r) => r.type === "BOUNDARY") ? (
+        // QA pass 2: the boundary wall is shortened only when the floor's walls are worked out side by side
+        <p className="text-xs text-muted-foreground" data-testid="boundary-side-hint">
+          {t("projects.walls.boundaryHint")}
+        </p>
+      ) : null}
       <ConfirmDialog
         open={pendingPair !== null}
         onOpenChange={(o) => (!o ? setPendingPair(null) : undefined)}

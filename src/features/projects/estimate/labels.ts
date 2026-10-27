@@ -78,3 +78,11 @@ export function rupees(paisa: PaisaInput): string {
   const rounded = ((abs + BigInt(50)) / hundred) * hundred;
   return formatPKR(value < BigInt(0) ? -rounded : rounded);
 }
+
+/** Every steel material: the % method's generic steel and the bar sizes of the detailed method. */
+export const STEEL_MATERIALS = ["steel", "steel10", "steel12", "steel16", "steel20"] as const;
+
+/** All steel of an estimate in kg (generic + every bar size) — the overview, Review and Estimate tab show the same number. */
+export function steelKgOf(materials: ReadonlyArray<{ material: string; quantity: number }> | undefined): number {
+  return (materials ?? []).filter((m) => (STEEL_MATERIALS as readonly string[]).includes(m.material)).reduce((a, m) => a + m.quantity, 0);
+}
