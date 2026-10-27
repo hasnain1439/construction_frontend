@@ -133,3 +133,39 @@ describe("DataTable", () => {
     expect(onRowClick).toHaveBeenCalledWith(rows[0]);
   });
 });
+
+describe("DataTable — wide table scrolling sideways", () => {
+  /** jsdom has no layout: pretend the table is 1,200 px wide in a 600 px card. */
+  function wideLayout() {
+    const width = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(1200);
+    const client = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(600);
+    return () => {
+      width.mockRestore();
+      client.mockRestore();
+    };
+  }
+  const withActions: Column<Row>[] = [...columns, { id: "actions", header: "", cell: () => <button type="button">Actions</button> }];
+
+  it("keeps the actions column at the end edge (no scrolling to reach the button)", () => {
+    const restore = wideLayout();
+    try {
+      const { container } = renderWithStore(<DataTable rows={rows.slice(0, 3)} columns={withActions} getRowId={(r) => r.id} empty={{ title: "None" }} />);
+      expect(container.querySelector("[data-sticky-actions]")).not.toBeNull();
+      // The sticky column casts its own shadow; the edge fade would sit on top of the button
+      expect(screen.queryByTestId("scroll-shadow-end")).toBeNull();
+    } finally {
+      restore();
+    }
+  });
+
+  it("without an actions column the end fade still hints at hidden columns", () => {
+    const restore = wideLayout();
+    try {
+      const { container } = renderWithStore(<DataTable rows={rows.slice(0, 3)} columns={columns} getRowId={(r) => r.id} empty={{ title: "None" }} />);
+      expect(container.querySelector("[data-sticky-actions]")).toBeNull();
+      expect(screen.getByTestId("scroll-shadow-end")).toBeInTheDocument();
+    } finally {
+      restore();
+    }
+  });
+});

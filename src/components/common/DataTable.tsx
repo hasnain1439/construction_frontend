@@ -83,6 +83,16 @@ const STICKY_FIRST_COLUMN =
 const SCROLLED_SHADOW =
   "[&_td:first-child]:shadow-[6px_0_6px_-6px_rgb(0_0_0/0.25)] [&_th:first-child]:shadow-[6px_0_6px_-6px_rgb(0_0_0/0.25)] rtl:[&_td:first-child]:shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.25)] rtl:[&_th:first-child]:shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.25)]";
 
+/**
+ * A row's "actions" menu (the last column, ACTIONS_COLUMN) stays at the end edge while the table scrolls
+ * sideways, so the button is always in reach without scrolling to the far end; the columns pass under it.
+ */
+const STICKY_ACTIONS_COLUMN =
+  "[&_tbody_td:last-child]:sticky [&_tbody_td:last-child]:end-0 [&_tbody_td:last-child]:z-[1] [&_tbody_td:last-child]:bg-card [&_thead_th:last-child]:sticky [&_thead_th:last-child]:end-0 [&_thead_th:last-child]:z-[2] [&_thead_th:last-child]:bg-[color-mix(in_oklch,var(--muted)_40%,var(--card))]";
+/** Columns hidden past the end: the sticky actions column casts a shadow over them (instead of the edge fade). */
+const ACTIONS_SHADOW =
+  "[&_td:last-child]:shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.25)] [&_th:last-child]:shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.25)] rtl:[&_td:last-child]:shadow-[6px_0_6px_-6px_rgb(0_0_0/0.25)] rtl:[&_th:last-child]:shadow-[6px_0_6px_-6px_rgb(0_0_0/0.25)]";
+
 type SortDirection = "asc" | "desc";
 
 const alignClass = { left: "text-start", right: "text-end", center: "text-center" } as const;
@@ -186,11 +196,26 @@ export function DataTable<T>({
   }
 
   const edges = useScrollEdges(frameRef, "[data-slot=table-container]", [body === undefined]);
+  const stickyActions = edges.overflow && visibleColumns.length > 1 && visibleColumns[visibleColumns.length - 1]!.id === "actions";
 
   return (
-    <div className={cn("min-w-0 overflow-hidden", maxHeight && [maxHeightClass[maxHeight], scrollClass], edges.overflow && STICKY_FIRST_COLUMN, className)}>
+    <div
+      className={cn(
+        "min-w-0 overflow-hidden",
+        maxHeight && [maxHeightClass[maxHeight], scrollClass],
+        edges.overflow && STICKY_FIRST_COLUMN,
+        stickyActions && STICKY_ACTIONS_COLUMN,
+        className,
+      )}
+    >
       {body ?? (
-        <div ref={frameRef} className={cn("relative", edges.start && SCROLLED_SHADOW)} data-scroll-start={edges.start || undefined} data-scroll-end={edges.end || undefined}>
+        <div
+          ref={frameRef}
+          className={cn("relative", edges.start && SCROLLED_SHADOW, stickyActions && edges.end && ACTIONS_SHADOW)}
+          data-scroll-start={edges.start || undefined}
+          data-scroll-end={edges.end || undefined}
+          data-sticky-actions={stickyActions || undefined}
+        >
         <Table aria-busy={loading || undefined}>
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <TableHeader>
@@ -259,7 +284,7 @@ export function DataTable<T>({
           </TableBody>
         </Table>
           {/* Scroll hint: a soft shadow at the edge that hides columns. */}
-          {edges.end ? (
+          {edges.end && !stickyActions ? (
             <span aria-hidden data-testid="scroll-shadow-end" className="pointer-events-none absolute inset-y-0 end-0 z-[3] w-6 bg-linear-to-l from-foreground/15 to-transparent rtl:bg-linear-to-r" />
           ) : null}
         </div>
