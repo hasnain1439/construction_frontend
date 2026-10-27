@@ -157,7 +157,7 @@ export const strings = {
     stagesTitle: "Cost by build stage",
     stagesDesc: "The schedule plans each stage from these amounts.",
     kpi: {
-      total: "Estimated cost",
+      total: "BoQ cost",
       totalHint: "Direct {direct} + overheads {overhead} + contingency {contingency}",
       perSqft: "Cost per sq ft",
       perSqftHint: "On {area} sq ft covered",

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { SseParser, startLiveUpdates, TAB_ID, toChangeEvent, type ChangeEvent } from "@/lib/liveUpdates";
+import { SseParser, startLiveUpdates, TAB_ID, tagsForResource, toChangeEvent, type ChangeEvent } from "@/lib/liveUpdates";
 
 /** A text/event-stream response whose body is `chunks` (then stays open until aborted). */
 function streamResponse(chunks: string[], signal?: AbortSignal | null) {
@@ -81,5 +81,25 @@ describe("startLiveUpdates", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("tagsForResource — only the screens a change touches refetch (QA pass 2)", () => {
+  it("maps a write to its screens plus the totals every write moves", () => {
+    const coverage = tagsForResource("projects/coverage");
+    expect(coverage).not.toBe("ALL");
+    expect(coverage).toEqual(expect.arrayContaining(["Projects", "ProjectReview", "Dashboard", "Approvals"]));
+    expect(coverage).not.toContain("Invoices");
+
+    expect(tagsForResource("cash-expenses")).toEqual(expect.arrayContaining(["CashEntries", "CashAccounts", "Dashboard"]));
+    expect(tagsForResource("projects/attendance/bulk")).toEqual(expect.arrayContaining(["Attendance", "Settlements"]));
+    expect(tagsForResource("invoices/issue")).toEqual(expect.arrayContaining(["Invoices", "Receivables"]));
+  });
+
+  it("re-reads everything when it does not know the change", () => {
+    expect(tagsForResource("sync/push")).toBe("ALL");
+    expect(tagsForResource("approvals/bulk")).toBe("ALL");
+    expect(tagsForResource("*")).toBe("ALL");
+    expect(tagsForResource("")).toBe("ALL");
   });
 });

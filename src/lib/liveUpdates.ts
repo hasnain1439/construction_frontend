@@ -12,6 +12,7 @@
  * own writes — its mutations already invalidated exactly the right tags.
  */
 import { API_BASE_URL, ENDPOINTS } from "@/api/endpoints";
+import type { CompanyTag } from "@/api/tags";
 
 export const CLIENT_ID_HEADER = "X-Client-Id";
 const LOCK_NAME = "live-updates-stream";
@@ -183,4 +184,60 @@ export function startLiveUpdates(options: LiveUpdatesOptions): () => void {
     abort.abort();
     channel?.close();
   };
+}
+
+// ─── Which screens a change touches ─────────────────────────────────────────
+
+type TagList = readonly CompanyTag[];
+/** Totals and inboxes that most writes move — always re-read. */
+const ALWAYS: TagList = ["Dashboard", "Approvals", "Notifications", "Finance", "Reports", "SyncStatus", "Control", "ControlAlerts", "Projects"];
+const PROJECT: TagList = ["ProjectReview", "Floors", "ProjectEstimate", "Estimates", "OwnerShoppingList", "Schedule", "ScheduleVersions", "ScheduleDelays", "ScheduleQuotas", "Milestones", "Stoppages", "Clients"];
+const SALES: TagList = ["Quotes", "Clients"];
+const STOCK: TagList = ["Stock", "StockLocations", "StockCount", "Usage", "Incoming", "OwnerDelivery", "Dispatch", "Shortage", "Purchase", "PurchaseOrder", "PurchaseReturn", "Suppliers", "SupplierLedger", "SupplierPayment", "SupplierRates", "CashAccounts", "CashEntries"];
+const LABOUR: TagList = ["Workers", "ProjectWorkers", "Subcontracts", "Subcontractors", "Attendance", "Measurements", "Advances", "Settlements", "SubcontractAccounts", "CashAccounts", "CashEntries"];
+const CASH: TagList = ["CashAccounts", "CashEntries", "Topups", "CashCounts", "Purchase", "Stock"];
+const BILLING: TagList = ["Invoices", "ClientPayments", "BillingStages", "BillingProgress", "Receivables", "BillingEvents", "ProjectTax", "Retention"];
+const CLOSEOUT: TagList = ["Drawings", "Snags", "Handover", "Retention", "ChangeOrders", "SiteInstructions", "Invoices", "BillingStages"];
+const EQUIPMENT: TagList = ["Equipment", "EquipmentBalances", "EquipmentMovements", "EquipmentTransfers", "EquipmentRentals", "EquipmentLosses", "EquipmentCharges", "ProjectEquipment", "ShutteringDemand", "EquipmentIdle", "SupplierLedger"];
+const MASTER: TagList = ["MaterialGroups", "Materials", "QualityCategories", "PriceList", "RateHistory", "LaborRates", "WorkerTypes", "PaymentTemplates", "Suppliers", "SupplierRates", "Workers", "Subcontractors", "Rulebook", "Estimates", "ProjectEstimate"];
+const TEAM: TagList = ["Users", "Invitations", "Devices", "Roles", "UserPermissions", "Me"];
+const COMPANY: TagList = ["Company", "CompanySettings", "Holidays", "CompanyAudit", "TaxSettings", "ControlSettings", "Onboarding", "OpeningBalances", "Subscription", "SubscriptionPayments", "Me"];
+
+/** First segment of the write's path (`resource`) → what it changes. Not listed = re-read everything. */
+const BY_SEGMENT: Record<string, TagList> = {
+  clients: SALES, quotes: [...SALES, ...PROJECT],
+  floors: PROJECT, rooms: PROJECT, openings: PROJECT, estimates: PROJECT, milestones: PROJECT, stoppages: PROJECT, rulebook: [...MASTER, ...PROJECT],
+  "stock-locations": STOCK, stores: STOCK, stock: STOCK, "stock-counts": STOCK, purchases: STOCK, "purchase-orders": STOCK, "purchase-returns": STOCK,
+  suppliers: STOCK, "supplier-payments": STOCK, dispatches: STOCK, shortages: STOCK,
+  workers: LABOUR, subcontractors: LABOUR, "project-workers": LABOUR, "subcontract-assignments": LABOUR, "work-measurements": LABOUR, settlements: LABOUR, labor: LABOUR,
+  "worker-types": [...LABOUR, ...MASTER], "labor-rates": [...LABOUR, ...MASTER],
+  "cash-accounts": CASH, "cash-counts": CASH, "cash-expenses": CASH, "cash-floats": CASH, "cash-handovers": CASH, "topup-requests": CASH,
+  invoices: BILLING, payments: BILLING, "billing-stages": BILLING, "billing-progress": BILLING, "billing-events": BILLING, receivables: BILLING,
+  drawings: CLOSEOUT, "drawing-revisions": CLOSEOUT, snags: CLOSEOUT, "change-orders": CLOSEOUT, "site-instructions": CLOSEOUT,
+  equipment: EQUIPMENT, "daily-logs": ["DailyLogs"],
+  "material-groups": MASTER, materials: MASTER, "quality-categories": MASTER, "price-list": MASTER, "payment-templates": MASTER,
+  users: TEAM, invitations: TEAM, devices: TEAM, roles: TEAM, permissions: TEAM,
+  company: COMPANY, tax: [...COMPANY, ...BILLING], control: COMPANY, onboarding: COMPANY, "opening-balances": [...COMPANY, ...STOCK, ...CASH], subscription: COMPANY,
+};
+/** `projects/<part>/…` → what that part of the project changes; any other part (wizard, status, team) = the project itself. */
+const PROJECT_PART: Record<string, TagList> = {
+  stock: STOCK, "material-usage": STOCK, incoming: STOCK, "owner-deliveries": STOCK,
+  labor: LABOUR, attendance: LABOUR, advances: LABOUR, settlements: LABOUR, workers: LABOUR,
+  cashbook: CASH,
+  "billing-stages": BILLING, invoices: BILLING, payments: BILLING, receivables: BILLING, billing: BILLING, tax: BILLING,
+  "daily-logs": ["DailyLogs"],
+  drawings: CLOSEOUT, snags: CLOSEOUT, handover: CLOSEOUT, retention: CLOSEOUT, "change-orders": CLOSEOUT, "site-instructions": CLOSEOUT,
+  equipment: EQUIPMENT,
+};
+
+/**
+ * The cache tags a change in `resource` (the write's path without ids) can touch, or "ALL" when it is not
+ * known (sync pushes, approvals in bulk, imports, "*" after a lost connection) — re-reading everything is
+ * always safe, just slower. Fewer tags = only the screens that changed refetch, so they come back sooner.
+ */
+export function tagsForResource(resource: string): CompanyTag[] | "ALL" {
+  const [first, second] = resource.split("/");
+  if (!first || resource === "*") return "ALL";
+  const part = first === "projects" ? (second && PROJECT_PART[second]) || PROJECT : BY_SEGMENT[first];
+  return part ? [...new Set([...ALWAYS, ...part])] : "ALL";
 }

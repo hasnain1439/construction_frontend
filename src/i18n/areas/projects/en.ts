@@ -377,6 +377,7 @@ export const strings = {
   foundation: {
     footingCountHint: "One per column: about {n} for this frame.",
     footingCountAutoHint: "Leave empty: one per column ({n} for this frame), and it follows the frame if the floors change.",
+    stoneHint: "Stone masonry is priced from the price list's stone rate — add it under Settings → Price list, or the estimate stops. Most Punjab houses use brick.",
     footingCountMismatch: "You entered {footings} footings, but the frame has {columns} columns. Your number is used; usually there is one footing under each column.",
     title: "Foundation",
     description: "Type, size and material of the foundation. The fields change with the type.",

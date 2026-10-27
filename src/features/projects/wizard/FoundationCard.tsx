@@ -179,6 +179,8 @@ export function FoundationCard({
               name="foundation.masonry"
               label={t("projects.foundation.masonry")}
               required
+              // QA pass 2 NEW-10: stone needs its own price-list rate, or the estimate stops with RATES_MISSING
+              hint={masonry === "STONE" ? t("projects.foundation.stoneHint") : undefined}
               disabled={disabled}
               options={FOUNDATION_MASONRY.map((value) => ({ value, label: te("projectFoundationMasonry", value) }))}
             />
