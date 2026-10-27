@@ -342,7 +342,7 @@ export const openingRowSchema = z.object({
 export const wallRowSchema = z
   .object({
     side: z.enum(["TOP", "RIGHT", "BOTTOM", "LEFT"]),
-    type: z.enum(["EXTERNAL", "SHARED", "PARTY", "DOUBLE", "OPEN", "PASSAGE"]),
+    type: z.enum(["EXTERNAL", "SHARED", "PARTY", "DOUBLE", "OPEN", "PASSAGE", "BOUNDARY"]),
     thicknessIn: z.number().nullable(),
     innerLeafIn: z.number().nullable(),
     cavityIn: z.number().nullable(),

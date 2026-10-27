@@ -60,7 +60,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden">
+    // overflow-clip: never scrolled by focus / find-in-page (see AppShell)
+    <div className="fixed inset-0 flex flex-col overflow-clip">
       <header className="relative z-10 flex h-16 items-center justify-between gap-2 bg-transparent px-3 sm:gap-4 sm:px-4 shadow-(--shadow-topbar)">
         <div className="flex items-center gap-2">
           <Button

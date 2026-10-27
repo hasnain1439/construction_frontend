@@ -301,7 +301,7 @@ export function roofWarnings(v: WarningInput, s: SlabSuggestion): RoofWarning[] 
 // ─── Walls ──────────────────────────────────────────────────────────────────
 
 export const WALL_SIDES: WallSide[] = ["TOP", "RIGHT", "BOTTOM", "LEFT"];
-export const WALL_TYPES: WallType[] = ["EXTERNAL", "SHARED", "PARTY", "DOUBLE", "OPEN", "PASSAGE"];
+export const WALL_TYPES: WallType[] = ["EXTERNAL", "SHARED", "PARTY", "DOUBLE", "OPEN", "PASSAGE", "BOUNDARY"];
 /** Thickness choices (brick multiples). */
 export const WALL_THICKNESSES = [4.5, 9, 13.5] as const;
 

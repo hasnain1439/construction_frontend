@@ -1468,7 +1468,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My active sessions / devices */
+        /**
+         * My active sessions / devices
+         * @description The 50 most recently used (logout-all still ends every session).
+         */
         get: {
             parameters: {
                 query?: never;
@@ -17444,7 +17447,7 @@ export interface paths {
          * Tab 3 — plot & structure (floors, foundation)
          * @description Plot in MARLA / KANAL (20 marla) / SQFT with the marla standard (225 or 272.25), front × depth, structure, basement. `floors` are upserted by level (GROUND required; BASEMENT only with `hasBasement`). Removing a floor that has rooms → 409 FLOOR_HAS_ROOMS unless `force: true` (its rooms are deleted).
          *
-         *     `foundation` (bunyaad, optional — omitted = unchanged, `null` = cleared): `type` STRIP / ISOLATED / COMBINED / RAFT / PILE; excavation depth 1–30 ft, footing thickness 3–36 in, plinth above natural ground 0–6 ft, DPC 0.5–6 in, PCC (lean concrete) mix + 2–12 in, masonry BRICK / STONE / RCC_ONLY, termite (deemak) treatment, DPC material, soil type, water table, dewatering, soil test + note, notes. Required by type: `footingWidthFt` for STRIP / ISOLATED / COMBINED; `footingCount` + `footingLengthFt` for ISOLATED / COMBINED; `pileCount`, `pileDiameterIn`, `pileDepthFt` for PILE; `rccMix` + `mainBarMm` (10 / 12 / 16 / 20 = #3–#6) wherever RCC applies (every type except a BRICK / STONE strip footing). Fields that don’t apply are stored as null. The excavation must be at least the PCC + footing thickness deep.
+         *     `foundation` (bunyaad, optional — omitted = unchanged, `null` = cleared): `type` STRIP / ISOLATED / COMBINED / RAFT / PILE; excavation depth 1–30 ft, footing thickness 3–36 in, plinth above natural ground 0–6 ft, DPC 0.5–6 in, PCC (lean concrete) mix + 2–12 in, masonry BRICK / STONE / RCC_ONLY, termite (deemak) treatment, DPC material, soil type, water table, dewatering, soil test + note, notes. Required by type: `footingWidthFt` for STRIP / ISOLATED / COMBINED; `footingLengthFt` for ISOLATED / COMBINED; `footingCount` for COMBINED (ISOLATED without one = one footing per column of the frame); `pileCount`, `pileDiameterIn`, `pileDepthFt` for PILE; `rccMix` + `mainBarMm` (10 / 12 / 16 / 20 = #3–#6) wherever RCC applies (every type except a BRICK / STONE strip footing). Fields that don’t apply are stored as null. The excavation must be at least the PCC + footing thickness deep.
          *
          *     `floors[].roof` (roof / slab — lenter — over that floor, optional — omitted = unchanged, `null` = cleared → the estimate uses the % method): `type` RCC_SLAB (default) / T_IRON_TILE (T-irons (+ garders), tiles, waterproof layer, earth, top finish) / PRECAST / STEEL_DECK; only `type` is required, everything else gets the Pakistani default. RCC: `thicknessIn` 5 (3–12), `concreteMix` 1:2:4 / 1:1.5:3, `steelGrade` G60 / G40, `mainBar` #4 @ `mainSpacingIn` 6″ (along the short span), `distBar` #3 @ `distSpacingIn` 9″ (bars 3–6 = 10 / 12 / 16 / 20 mm; spacing 3–18″), `topBars` true, `coverIn` 0.75, sunshade `chajjaLengthFt` × `chajjaWidthFt` 2. RCC frame (used for FRAMED): beams `beamWidthIn` 9 × `beamDepthIn` 15 (deeper than the slab), `beamBars` 4 × `beamBar` #5, stirrups #3 @ 6″, `beamRunFt` (default the floor’s wall run); columns `columnCount` (default from the footprint), 12 × 12″, 6 #5, ties #3 @ 6″. T-iron (bottom to top, no slab): `tIronSystem` T_ONLY (default; T-irons across the short side) / GARDER_T (+ `garderSection` G6X3 / G8X4, `garderSpacingFt` 8, 4–12), `tIronSection` T3X3 / T4X4 @ `tIronSpacingFt` 1.1 (0.8–6), `bottomTileLayers` 1 / 2, `waterproofing` POLYTHENE / BITUMEN / NONE, `earthFillIn` 5, `topFinish` LEEP / TILE (default) / CONC with `topFinishIn` 1 (CONC 2; 0.5–3). The old fields (`infill`, `screedThicknessIn`, a garder G4X3 / G5X3 / G6X3 as `tIronSection`) are still accepted and mapped. PRECAST / STEEL_DECK: `plankAreaSqft` / `deckAreaSqft` (default the footprint), `toppingIn` 2 / 4, `mesh`. Each floor in the response has `roof` and `slabSuggestion` { spanFt, suggestedIn, minIn, beamAdvised } (largest room short span: ≤ 12 ft → 4.5–5″, 12–15 → 5″, 15–18 → 6″, > 18 → 6–7″ or a beam).
          *
@@ -18581,7 +18584,7 @@ export interface paths {
                             /** @enum {string} */
                             side: "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
                             /** @enum {string} */
-                            type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+                            type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE" | "BOUNDARY";
                             /** @description Wall (or DOUBLE outer leaf) thickness. Default by type: 9″; SHARED 4.5″ (frame) / 9″ (load-bearing); PASSAGE 4.5″ */
                             thicknessIn?: number;
                             /** @description DOUBLE: inner leaf. Default 4.5″ */
@@ -63300,6 +63303,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/realtime/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live updates (Server-Sent Events)
+         * @description Every company user. Stays open and tells the client that something in the company changed, so open screens can re-read it — events carry no data, only the API path of the write without ids (`resource`), and the client re-reads through the normal endpoints. Events: `ready` once (`syncLagMs`: how long a phone waits before pulling a change), then `change` `{ resource, origin, at }` after every successful write of the company by anyone, on any API instance (`resource: "*"` = re-read everything, e.g. after the server lost its database connection). `origin` is the writer's `X-Client-Id` header (8–64 letters, digits, - or _), so a client can skip its own writes. A `: ping` comment every 25 s keeps proxies from closing it; the server ends the stream after about 10 minutes and the client reconnects (refreshing its token first when needed). Own sign-in and notification read state are not announced. 503 REALTIME_DISABLED when REALTIME_ENABLED=false.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description text/event-stream */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example retry: 3000
+                         *
+                         *     event: ready
+                         *     data: {"syncLagMs":30000}
+                         *
+                         *     event: change
+                         *     data: {"resource":"projects/attendance/bulk","origin":"k3J9xQ2mT8vLp4Rw","at":"2026-10-26T07:40:12.512Z"}
+                         *
+                         *     : ping
+                         */
+                        "text/event-stream": unknown;
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description REALTIME_DISABLED */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/overview": {
         parameters: {
             query?: never;
@@ -66540,7 +66620,7 @@ export interface components {
                 /** @enum {string} */
                 side: "TOP" | "RIGHT" | "BOTTOM" | "LEFT";
                 /** @enum {string} */
-                type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE";
+                type: "EXTERNAL" | "SHARED" | "PARTY" | "DOUBLE" | "OPEN" | "PASSAGE" | "BOUNDARY";
                 /** @description Wall (or DOUBLE outer leaf) thickness. Default by type: 9″; SHARED 4.5″ (frame) / 9″ (load-bearing); PASSAGE 4.5″ */
                 thicknessIn?: number;
                 /** @description DOUBLE: inner leaf. Default 4.5″ */

@@ -21,7 +21,7 @@ import { formatPhone } from "@/lib/phone";
 import { FoundationSummary } from "../components/FoundationSummary";
 import { ESTIMATE_STEP, WIZARD_STEPS } from "../constants";
 import { ApplyMarginAction } from "../estimate/ContractFromEstimateCard";
-import { fmt, fmtUp, rupees } from "../estimate/labels";
+import { fmt, fmtUp, rupees, steelKgOf } from "../estimate/labels";
 import { isEstimateBlocked } from "../estimate/warningText";
 import { formatArea } from "../utils/calc";
 import { useWizard } from "./WizardContext";
@@ -227,7 +227,7 @@ function EstimateCard({ projectId, onOpen }: { projectId: string; onOpen: () => 
           </>
         ) : (
           <p className="text-sm">
-            {t("projects.review.estimateQuantities", { cement: fmtUp(qty("cement")), bricks: fmtUp(qty("bricks")), steel: fmt(Math.round(qty("steel") / 10) / 100) })}
+            {t("projects.review.estimateQuantities", { cement: fmtUp(qty("cement")), bricks: fmtUp(qty("bricks")), steel: fmt(Math.round(steelKgOf(e.materials) / 10) / 100) })}
           </p>
         )}
       </div>

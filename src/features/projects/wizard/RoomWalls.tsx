@@ -100,6 +100,8 @@ const TYPE_STROKE: Record<WallType, string> = {
   DOUBLE: "text-success",
   OPEN: "text-muted-foreground",
   PASSAGE: "text-muted-foreground",
+  // Our own boundary wall standing as the room's wall (counted once: taken off the boundary wall)
+  BOUNDARY: "text-warning",
 };
 
 /** Plan of the room: a square whose four sides are coloured / dashed by wall type. Not mirrored in RTL (it is a drawing). */
@@ -303,6 +305,12 @@ export function RoomWalls({
         </div>
       </div>
       {rows.some((r) => r.type === "SHARED") ? <p className="text-xs text-muted-foreground">{t("projects.walls.pairHint")}</p> : null}
+      {rows.some((r) => r.type === "BOUNDARY") ? (
+        // QA pass 2: the boundary wall is shortened only when the floor's walls are worked out side by side
+        <p className="text-xs text-muted-foreground" data-testid="boundary-side-hint">
+          {t("projects.walls.boundaryHint")}
+        </p>
+      ) : null}
       <ConfirmDialog
         open={pendingPair !== null}
         onOpenChange={(o) => (!o ? setPendingPair(null) : undefined)}
