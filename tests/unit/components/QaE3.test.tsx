@@ -66,11 +66,11 @@ describe("QA B-27 — number inputs never drop a minus silently", () => {
 });
 
 describe("QA B-04 / B-22 — footings follow the structure", () => {
-  it("FRAMED → isolated pads (one per column, L = W); LOAD_BEARING → strip", () => {
-    const framed = foundationDefaultsFor("FRAMED", 12);
-    expect(framed).toMatchObject({ type: "ISOLATED", footingCount: 12, footingLengthFt: 4, footingWidthFt: 4 });
-    expect(foundationDefaultsFor("LOAD_BEARING", 12).type).toBe("STRIP");
-    expect(foundationToForm(null, "FRAMED", 9).type).toBe("ISOLATED");
+  it("FRAMED → isolated pads (L = W, no count = one per column); LOAD_BEARING → strip", () => {
+    const framed = foundationDefaultsFor("FRAMED");
+    expect(framed).toMatchObject({ type: "ISOLATED", footingCount: null, footingLengthFt: 4, footingWidthFt: 4 });
+    expect(foundationDefaultsFor("LOAD_BEARING").type).toBe("STRIP");
+    expect(foundationToForm(null, "FRAMED").type).toBe("ISOLATED");
   });
   it("columns on a 15 ft grid over the footprint", () => {
     // 30 × 60 ft: (2 + 1) × (4 + 1) = 15

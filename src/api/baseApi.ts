@@ -3,7 +3,7 @@ import type { FetchArgs } from "@reduxjs/toolkit/query/react";
 import { createReauthBaseQuery, type ApiBaseQuery } from "@/api/baseQuery";
 import { API_BASE_URL, ENDPOINTS } from "@/api/endpoints";
 import { COMPANY_TAGS } from "@/api/tags";
-import { ACT_AS_HEADER, actingTenantId } from "@/lib/actingCompany";
+import { ACT_AS_HEADER, actingTenantId, clearActingTenant } from "@/lib/actingCompany";
 import { redirectToLogin } from "@/lib/session";
 import { sessionExpired } from "@/store/sessionEvents";
 
@@ -33,6 +33,9 @@ const actingQuery = createReauthBaseQuery({
   refreshUrl: ENDPOINTS.adminAuth.refresh,
   noRefreshPaths: [ENDPOINTS.adminAuth.login, ENDPOINTS.adminAuth.refresh, ENDPOINTS.adminAuth.logout],
   onSessionExpired: (api) => {
+    // The admin's login is gone: stop working inside the company too (else proxy.ts keeps sending
+    // company pages to /admin/... while the stale cookies last).
+    clearActingTenant();
     api.dispatch(sessionExpired({ audience: "platform" }));
     redirectToLogin("platform");
   },

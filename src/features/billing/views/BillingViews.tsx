@@ -23,7 +23,7 @@ import {
   useUpdateStageMutation,
 } from "@/api/services/billing.api";
 import { useGetFinanceReceivablesQuery } from "@/api/services/finance.api";
-import type { ClientPayment, Invoice, InvoiceStatus, InvoiceType, ScheduleStage, SharedPdf, UnpaidStageWarning } from "@/api/types";
+import type { ClientPayment, Invoice, InvoiceStatus, InvoiceType, ProjectStatus, ScheduleStage, SharedPdf, UnpaidStageWarning } from "@/api/types";
 import { AgeingBar } from "@/components/common/AgeingBar";
 import { ChequeStatusBadge, InvoiceStatusBadge, PaymentMethodIcon } from "@/components/common/BillingBadges";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -60,6 +60,11 @@ import { ProjectTaxCard } from "@/features/tax/components/ProjectTax";
 import { WhtCertificateSlideOver } from "@/features/tax/components/WhtCertificate";
 
 /** Invoice types in filter order (labels: `te("invoiceType", v)`). */
+/**
+ * Billing goes on after the handover (final stage bills, payments, retention) — the API allows it,
+ * so these pages show no "records are read-only" banner in CLOSEOUT / HANDED_OVER.
+ */
+const BILLING_EDIT_STATUSES: ProjectStatus[] = ["ACTIVE", "CLOSEOUT", "HANDED_OVER"];
 const INVOICE_TYPES: InvoiceType[] = ["STAGE", "RUNNING_BILL", "RECOVERABLE", "RETENTION", "OTHER"];
 const INVOICE_STATUSES: InvoiceStatus[] = ["DRAFT", "ISSUED", "PARTLY_PAID", "PAID", "CANCELLED"];
 
@@ -156,7 +161,7 @@ export function ScheduleView({ projectId }: { projectId: string }) {
     },
   ];
   return (
-    <ProjectPageShell projectId={projectId} crumb={t("billing.schedule.crumb")}>
+    <ProjectPageShell projectId={projectId} crumb={t("billing.schedule.crumb")} editableStatuses={BILLING_EDIT_STATUSES}>
       {(project) => {
         const running = project.contract?.billingModel === "RUNNING_BILLS";
         const schedule = (
@@ -298,6 +303,7 @@ export function InvoicesView({ projectId }: { projectId: string }) {
     <ProjectPageShell
       projectId={projectId}
       crumb={t("billing.invoices.crumb")}
+      editableStatuses={BILLING_EDIT_STATUSES}
       actions={(p) =>
         p.status !== "DRAFT" && canPrepare ? (
           <Button onClick={() => setOpen(true)}>
@@ -401,7 +407,7 @@ export function InvoiceDetailView({ projectId, invoiceId }: { projectId: string;
   const [notes, setNotes] = useState<string | null>(null);
   const inv = q.data;
   return (
-    <ProjectPageShell projectId={projectId} crumb={t("billing.invoices.crumbOne")} title={inv ? (inv.number ?? t("billing.invoices.draftInvoice")) : undefined}>
+    <ProjectPageShell projectId={projectId} crumb={t("billing.invoices.crumbOne")} editableStatuses={BILLING_EDIT_STATUSES} title={inv ? (inv.number ?? t("billing.invoices.draftInvoice")) : undefined}>
       {(project) =>
         !inv ? (
           <CardsSkeleton count={2} height="h-40" />
@@ -695,6 +701,7 @@ export function PaymentsView({ projectId }: { projectId: string }) {
     <ProjectPageShell
       projectId={projectId}
       crumb={t("billing.payments.crumb")}
+      editableStatuses={BILLING_EDIT_STATUSES}
       actions={() =>
         canRecord ? (
           <Button onClick={() => setOpen(true)}>

@@ -70,11 +70,7 @@ function toValues(p: ProjectDetail | null, companyMarla: number): Values {
       ? floors.filter((f) => f.level !== "BASEMENT")
       : [{ level: "GROUND", ceilingHeightFt: DEFAULT_CEILING.GROUND, roof: { ...ROOF_DEFAULTS } }],
     // Pakistani defaults (brick strip footing) until a foundation is saved
-    foundation: foundationToForm(
-      p?.foundation,
-      p?.structure?.structureType ?? "FRAMED",
-      columnCountFor({ footprints: p?.calculations?.footprints, floors: footprintFloors(p), coveredAreaSqft: p?.coverage?.coveredAreaSqft, frontFt: p?.plot?.frontFt, depthFt: p?.plot?.depthFt }, "GROUND"),
-    ),
+    foundation: foundationToForm(p?.foundation, p?.structure?.structureType ?? "FRAMED"),
   };
 }
 

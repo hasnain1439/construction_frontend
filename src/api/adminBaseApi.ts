@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { createReauthBaseQuery } from "@/api/baseQuery";
 import { API_BASE_URL, ENDPOINTS } from "@/api/endpoints";
 import { ADMIN_TAGS } from "@/api/tags";
+import { clearActingTenant } from "@/lib/actingCompany";
 import { redirectToLogin } from "@/lib/session";
 import { sessionExpired } from "@/store/sessionEvents";
 
@@ -13,6 +14,7 @@ export const adminBaseApi = createApi({
     refreshUrl: ENDPOINTS.adminAuth.refresh,
     noRefreshPaths: [ENDPOINTS.adminAuth.login, ENDPOINTS.adminAuth.refresh, ENDPOINTS.adminAuth.logout],
     onSessionExpired: (api) => {
+      clearActingTenant(); // no admin login → no "working in company X" either
       api.dispatch(sessionExpired({ audience: "platform" }));
       redirectToLogin("platform");
     },

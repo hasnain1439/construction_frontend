@@ -121,23 +121,27 @@ export function estimateColumnCount(footprintSqft: number | null | undefined, fr
   return (Math.ceil(a / COLUMN_GRID_FT) + 1) * (Math.ceil(b / COLUMN_GRID_FT) + 1);
 }
 
-/** The foundation a structure type starts from (QA B-04): FRAMED → isolated pads (one per column, L = W), LOAD_BEARING → strip. */
-export function foundationDefaultsFor(structureType: string | null | undefined, columnCount: number | null): FoundationFormValues {
+/**
+ * The foundation a structure type starts from (QA B-04): FRAMED → isolated pads, L = W, with no count — empty means
+ * one per column, which the estimate takes from the frame (a count guessed early from the whole plot used to stick;
+ * estimate review 27 Oct 2026). LOAD_BEARING → strip.
+ */
+export function foundationDefaultsFor(structureType: string | null | undefined): FoundationFormValues {
   if (structureType === "LOAD_BEARING") return { ...FOUNDATION_DEFAULTS };
   return {
     ...FOUNDATION_DEFAULTS,
     type: "ISOLATED",
     footingThicknessIn: FOOTING_THICKNESS_DEFAULT.ISOLATED,
-    footingCount: columnCount,
+    footingCount: null,
     footingLengthFt: PAD_SIDE_DEFAULT_FT,
     footingWidthFt: PAD_SIDE_DEFAULT_FT,
   };
 }
 
 /** Saved foundation → form values (defaults when none is saved yet: strip without a structure type; the wizard passes FRAMED, its default). */
-export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null, columnCount: number | null = null): FoundationFormValues {
+export function foundationToForm(f: ProjectFoundation | null | undefined, structureType?: string | null): FoundationFormValues {
   // An RCC frame stands on column footings (QA-A-21, B-04); a load-bearing house on a strip footing.
-  if (!f) return structureType ? foundationDefaultsFor(structureType, columnCount) : { ...FOUNDATION_DEFAULTS };
+  if (!f) return structureType ? foundationDefaultsFor(structureType) : { ...FOUNDATION_DEFAULTS };
   return {
     type: f.type,
     excavationDepthFt: f.excavationDepthFt,
