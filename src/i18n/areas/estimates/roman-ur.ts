@@ -159,7 +159,7 @@ export const strings: Widen<typeof En.strings> = {
     stagesTitle: "Tameer ke marhalon ka kharcha",
     stagesDesc: "Schedule har marhalay ki mansooba bandi inhi raqamon se karta hai.",
     kpi: {
-      total: "Andaazan kharcha",
+      total: "BoQ ki laagat",
       totalHint: "Seedha {direct} + upar ke {overhead} + ghair mutawaqqa {contingency}",
       perSqft: "Fi murabba ft kharcha",
       perSqftHint: "{area} murabba ft covered par",

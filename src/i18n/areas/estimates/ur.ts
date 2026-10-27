@@ -159,7 +159,7 @@ export const strings: Widen<typeof En.strings> = {
     stagesTitle: "تعمیر کے مرحلوں کا خرچہ",
     stagesDesc: "شیڈول ہر مرحلے کی منصوبہ بندی انہی رقموں سے کرتا ہے۔",
     kpi: {
-      total: "اندازاً خرچہ",
+      total: "بی او کیو کی لاگت",
       totalHint: "براہِ راست {direct} + بالائی {overhead} + غیر متوقع {contingency}",
       perSqft: "فی مربع فٹ خرچہ",
       perSqftHint: "{area} مربع فٹ احاطہ شدہ رقبے پر",

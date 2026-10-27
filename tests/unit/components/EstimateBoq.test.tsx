@@ -124,7 +124,7 @@ describe("Estimate (BoQ) page — revisions", () => {
   it("opens the draft by default with KPIs, margin card and the BoQ", () => {
     renderWithStore(<BoqWorkspace project={PROJECT} live={LIVE} />, { me: meFixture("THEKEDAR") });
     expect(within(screen.getByTestId("revision-bar")).getByText("Draft")).toBeInTheDocument();
-    expect(screen.getByText("Estimated cost")).toBeInTheDocument();
+    expect(screen.getByText("BoQ cost")).toBeInTheDocument();
     expect(screen.getByText("Cost per sq ft")).toBeInTheDocument();
     expect(screen.getByText("Margin vs contract")).toBeInTheDocument();
     expect(screen.getByText("88.48%")).toBeInTheDocument();
@@ -173,7 +173,7 @@ describe("Estimate (BoQ) page — revisions", () => {
     expect(within(table).queryByText("Amount")).toBeNull();
     expect(within(table).getByText("3,702.69")).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Rs\s?\d/);
-    expect(screen.queryByText("Estimated cost")).toBeNull();
+    expect(screen.queryByText("BoQ cost")).toBeNull();
     expect(screen.queryByText("Margin vs contract")).toBeNull();
   });
 
