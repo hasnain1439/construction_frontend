@@ -18,6 +18,7 @@ import * as scheduleEn from "./areas/schedule/en";
 import * as controlEn from "./areas/control/en";
 import * as reportsEn from "./areas/reports/en";
 import * as taxEn from "./areas/tax/en";
+import * as offlineOfficeEn from "./areas/offlineOffice/en";
 /** English UI strings. `roman-ur.ts` must provide the same keys (enforced by its type). */
 export const en = {
   ...sharedEn.strings,
@@ -38,6 +39,7 @@ export const en = {
   control: controlEn.strings,
   reports: reportsEn.strings,
   tax: taxEn.strings,
+  offlineOffice: offlineOfficeEn.strings,
   common: {
     save: "Save",
     saveChanges: "Save changes",
@@ -655,6 +657,7 @@ export const en = {
     ...scheduleEn.enums,
     ...controlEn.enums,
     ...taxEn.enums,
+    ...offlineOfficeEn.enums,
     projectStatus: {
       DRAFT: "Draft",
       ACTIVE: "Active",

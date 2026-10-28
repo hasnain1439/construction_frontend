@@ -103,6 +103,8 @@ export interface TenantDetail {
     defaultLanguage: string;
     kharchaApprovalLimitPaisa: Paisa;
     taxEnabled: boolean;
+    /** The company may run an offline office PC (the platform decides). */
+    offlineOfficeAllowed: boolean;
   } | null;
   subscription: {
     id: Id;

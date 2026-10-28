@@ -247,7 +247,15 @@ export function AlertsList({ alerts }: { alerts: DashboardAlert[] }) {
   return (
     <SectionCard title={t("dashboard.alerts")} actions={<Button asChild variant="ghost" size="sm"><Link href="/dashboard/alerts">{t("dashboard.allNotifications")}</Link></Button>}>
       {alerts.length ? (
-        <ul className="space-y-2" aria-label={t("dashboard.alerts")}>
+        // Fixed height (about four alerts); more scroll inside the card instead of stretching the dashboard.
+        // Focusable so the list scrolls from the keyboard too. `relative`: the rows' sr-only labels are
+        // absolutely positioned — without it they escape the scroll box and stretch the page below the cards.
+        <ul
+          className="relative max-h-[22rem] space-y-2 overflow-y-auto overscroll-contain pe-1 focus-visible:outline-2 focus-visible:outline-ring"
+          aria-label={t("dashboard.alerts")}
+          tabIndex={0}
+          data-testid="dashboard-alerts-list"
+        >
           {alerts.map((a) => {
             const meta = statusMeta("severity", a.severity);
             const Icon = meta.icon;

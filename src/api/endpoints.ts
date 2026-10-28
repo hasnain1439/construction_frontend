@@ -474,6 +474,14 @@ export const ENDPOINTS = {
     book: (name: string, projectId: string) => `/reports/${id(name)}/${id(projectId)}`,
   },
 
+  /** Offline office: office PCs that sync the company's data, and their sync problems. */
+  edge: {
+    devices: "/edge/devices",
+    deviceApprove: (deviceId: string) => `/edge/devices/${id(deviceId)}/approve`,
+    deviceRevoke: (deviceId: string) => `/edge/devices/${id(deviceId)}/revoke`,
+    problems: "/edge/problems",
+  },
+
   /** Step 18 — tax settings, project override, WHT certificate. */
   tax: {
     settings: "/tax/settings",
@@ -488,6 +496,8 @@ export const ENDPOINTS = {
     tenantById: (tenantId: string) => `/admin/tenants/${id(tenantId)}`,
     tenantStatus: (tenantId: string) => `/admin/tenants/${id(tenantId)}/status`,
     tenantPlan: (tenantId: string) => `/admin/tenants/${id(tenantId)}/plan`,
+    /** Allow / stop offline office for a company. */
+    tenantOfflineOffice: (tenantId: string) => `/admin/tenants/${id(tenantId)}/offline-office`,
     /** Read-only look into a company (each look is audited). */
     tenantProjects: (tenantId: string) => `/admin/tenants/${id(tenantId)}/projects`,
     tenantTeam: (tenantId: string) => `/admin/tenants/${id(tenantId)}/team`,

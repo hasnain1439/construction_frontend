@@ -43,6 +43,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"holidays"}], load: () => import("@/app/(company)/settings/holidays/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"labor-rates"}], load: () => import("@/app/(company)/settings/labor-rates/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"materials"}], load: () => import("@/app/(company)/settings/materials/page") },
+  { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"offline-office"}], load: () => import("@/app/(company)/settings/offline-office/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"opening-balances"}], load: () => import("@/app/(company)/settings/opening-balances/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"payment-templates"}], load: () => import("@/app/(company)/settings/payment-templates/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"price-list"}], load: () => import("@/app/(company)/settings/price-list/page") },

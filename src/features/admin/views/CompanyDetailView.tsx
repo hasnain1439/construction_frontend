@@ -1,10 +1,20 @@
 "use client";
 
-import { ArrowLeftRight, CalendarPlus, Lock, PauseCircle, PlayCircle, XCircle } from "lucide-react";
+import {
+  ArrowLeftRight,
+  CalendarPlus,
+  Lock,
+  Monitor,
+  MonitorOff,
+  PauseCircle,
+  PlayCircle,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { useGetAdminPlansQuery } from "@/api/services/admin/plans.api";
 import {
   useGetTenantQuery,
+  useSetTenantOfflineOfficeMutation,
   useSetTenantPlanMutation,
   useSetTenantStatusMutation,
 } from "@/api/services/admin/tenants.api";
@@ -258,9 +268,68 @@ function ChangePlanDialog({
   );
 }
 
+/** Allow / stop offline office (an office PC with a local copy of the company's data). */
+function OfflineOfficeDialog({
+  tenant,
+  open,
+  onClose,
+}: {
+  tenant: TenantDetail;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [setOfflineOffice, { isLoading }] = useSetTenantOfflineOfficeMutation();
+  const run = useMutationToast();
+  const [note, setNote] = useState("");
+  const allowed = Boolean(tenant.settings?.offlineOfficeAllowed);
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      tone={allowed ? "danger" : "default"}
+      title={`${allowed ? "Stop offline office" : "Allow offline office"} — ${tenant.name}`}
+      description={
+        allowed
+          ? "Office PCs of this company stop syncing. Their approvals stay, so allowing it again resumes them."
+          : "The owner or an administrator can then approve office PCs that keep a local copy and work without internet."
+      }
+      confirmLabel={allowed ? "Stop offline office" : "Allow offline office"}
+      loading={isLoading}
+      onConfirm={async () => {
+        const ok = await run(
+          () =>
+            setOfflineOffice({
+              id: tenant.id,
+              body: { allowed: !allowed, ...(note.trim() ? { note: note.trim() } : {}) },
+            }).unwrap(),
+          { success: `${tenant.name}: offline office ${allowed ? "stopped" : "allowed"}` },
+        );
+        if (ok) {
+          setNote("");
+          onClose();
+        }
+      }}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="offline-office-note">Note (optional)</Label>
+        <Textarea
+          id="offline-office-note"
+          rows={2}
+          maxLength={500}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">Saved in the audit log.</p>
+      </div>
+    </ConfirmDialog>
+  );
+}
+
 function CompanyBody({ tenant }: { tenant: TenantDetail }) {
   const [action, setAction] = useState<(typeof ACTIONS)[number] | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
+  const [offlineOpen, setOfflineOpen] = useState(false);
+  const offlineAllowed = Boolean(tenant.settings?.offlineOfficeAllowed);
   const sub = tenant.subscription;
   const visibleActions = ACTIONS.filter((a) => {
     if (tenant.status === "CLOSED") return false;
@@ -423,6 +492,38 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                 ]}
               />
             </SectionCard>
+            <SectionCard
+              title="Offline office"
+              description="An office PC keeps a local copy of the company's data and works without internet."
+            >
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <StatusBadge
+                    tone={offlineAllowed ? "success" : "neutral"}
+                    label={offlineAllowed ? "Allowed" : "Not allowed"}
+                  />
+                  {tenant.status !== "CLOSED" && tenant.settings ? (
+                    <Button
+                      size="sm"
+                      variant={offlineAllowed ? "destructive-soft" : "outline"}
+                      onClick={() => setOfflineOpen(true)}
+                    >
+                      {offlineAllowed ? (
+                        <MonitorOff data-icon="inline-start" />
+                      ) : (
+                        <Monitor data-icon="inline-start" />
+                      )}
+                      {offlineAllowed ? "Stop" : "Allow"}
+                    </Button>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {offlineAllowed
+                    ? "The owner or an administrator approves each office PC under Settings → Offline office."
+                    : "Off: the company can't connect an office PC."}
+                </p>
+              </div>
+            </SectionCard>
           </div>
           <SectionCard title="Timeline" flush>
             <DataTable
@@ -445,7 +546,9 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                     a.actorName ? (
                       <span>
                         {a.actorName}
-                        {a.actorType === "PLATFORM_ADMIN" ? <span className="text-muted-foreground"> · admin</span> : null}
+                        {a.actorType === "PLATFORM_ADMIN" ? (
+                          <span className="text-muted-foreground"> · admin</span>
+                        ) : null}
                       </span>
                     ) : (
                       a.actorType.replace("_", " ").toLowerCase()
@@ -468,6 +571,7 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
       </Tabs>
       <StatusActionDialog tenant={tenant} action={action} onClose={() => setAction(null)} />
       <ChangePlanDialog tenant={tenant} open={planOpen} onClose={() => setPlanOpen(false)} />
+      <OfflineOfficeDialog tenant={tenant} open={offlineOpen} onClose={() => setOfflineOpen(false)} />
     </>
   );
 }
