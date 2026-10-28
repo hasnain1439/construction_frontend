@@ -18,6 +18,7 @@ import * as scheduleUr from "./areas/schedule/ur";
 import * as controlUr from "./areas/control/ur";
 import * as reportsUr from "./areas/reports/ur";
 import * as taxUr from "./areas/tax/ur";
+import * as offlineOfficeUr from "./areas/offlineOffice/ur";
 
 /** Urdu (Nastaliq script, right-to-left) UI strings — same keys as `en.ts`. */
 export const ur: Dictionary = {
@@ -39,6 +40,7 @@ export const ur: Dictionary = {
   control: controlUr.strings,
   reports: reportsUr.strings,
   tax: taxUr.strings,
+  offlineOffice: offlineOfficeUr.strings,
   common: {
     save: "محفوظ کریں",
     saveChanges: "تبدیلیاں محفوظ کریں",
@@ -656,6 +658,7 @@ export const ur: Dictionary = {
     ...scheduleUr.enums,
     ...controlUr.enums,
     ...taxUr.enums,
+    ...offlineOfficeUr.enums,
     projectStatus: {
       DRAFT: "مسودہ",
       ACTIVE: "فعال",

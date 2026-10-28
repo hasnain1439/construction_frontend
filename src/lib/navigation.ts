@@ -631,6 +631,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("company.settings.manage"),
       },
       {
+        id: "settings.offlineOffice",
+        label: L("Offline Office", "Offline daftar", "آف لائن دفتر"),
+        href: "/settings/offline-office",
+        available: true,
+        access: P("company.settings.manage"),
+        keywords: ["offline", "office computer", "internet", "sync", "edge", "installer"],
+      },
+      {
         id: "settings.tax",
         label: L("Tax", "Tax", "ٹیکس"),
         href: "/settings/tax",

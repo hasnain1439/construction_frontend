@@ -10,6 +10,8 @@ import type {
   CreateTenantResult,
   Paginated,
   TenantDetail,
+  TenantOfflineOfficeBody,
+  TenantOfflineOfficeResult,
   TenantPlanBody,
   TenantPlanResult,
   TenantRow,
@@ -61,6 +63,10 @@ export const adminTenantsApi = adminBaseApi.injectEndpoints({
       query: ({ id, body }) => ({ url: ENDPOINTS.admin.tenantPlan(id), method: "PATCH", body }),
       invalidatesTags: (_r, _e, { id }) => [...tenantChanged(id), { type: "AdminPlans", id: LIST }],
     }),
+    setTenantOfflineOffice: build.mutation<TenantOfflineOfficeResult, { id: string; body: TenantOfflineOfficeBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.admin.tenantOfflineOffice(id), method: "PATCH", body }),
+      invalidatesTags: (_r, _e, { id }) => tenantChanged(id),
+    }),
   }),
 });
 
@@ -73,4 +79,5 @@ export const {
   useCreateTenantMutation,
   useSetTenantStatusMutation,
   useSetTenantPlanMutation,
+  useSetTenantOfflineOfficeMutation,
 } = adminTenantsApi;

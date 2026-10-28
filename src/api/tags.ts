@@ -118,6 +118,9 @@ export const COMPANY_TAGS = [
   "Stoppages",
   // Owner decision 2
   "ShareLinks",
+  // Offline office
+  "OfficeDevices",
+  "SyncProblems",
 ] as const;
 
 export const ADMIN_TAGS = [
