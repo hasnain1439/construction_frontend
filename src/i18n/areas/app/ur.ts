@@ -3,7 +3,6 @@ import type * as En from "./en";
 
 export const strings: Widen<typeof En.strings> = {
   auth: {
-    brand: "کنسٹرکشن پلیٹ فارم",
     pitchTitle: "ہر سائٹ ایک ہی اسکرین سے چلائیں۔",
     pointProjects: "پراجیکٹس، کمرے اور ٹھیکے ایک جگہ",
     pointMoney: "روپوں میں رقم، لاکھ / کروڑ کے ساتھ — پیسے پیسے کا حساب",
@@ -52,7 +51,7 @@ export const strings: Widen<typeof En.strings> = {
     askNewLink: "اپنے ٹھیکیدار سے نیا لنک منگوائیں۔",
     goToSignIn: "سائن اِن پر جائیں",
     invitedTitle: "آپ کو دعوت دی گئی ہے",
-    invitedDesc: "آپ کے ٹھیکیدار نے آپ کو کنسٹرکشن پلیٹ فارم پر اپنی کمپنی میں شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
+    invitedDesc: "آپ کے ٹھیکیدار نے آپ کو Keystone پر اپنی کمپنی میں شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
     alreadyHaveAccount: "پہلے سے اکاؤنٹ ہے؟",
     inviteNameHint: "خالی چھوڑ دیں تو ٹھیکیدار کا لکھا ہوا نام رہے گا۔",
     iAmMunshi: "میں منشی ہوں (سائٹ سپروائزر)",
@@ -331,6 +330,8 @@ export const strings: Widen<typeof En.strings> = {
   pages: {
     notFoundTitle: "صفحہ نہیں ملا",
     notFoundBody: "جو صفحہ آپ ڈھونڈ رہے ہیں وہ موجود نہیں یا کہیں اور منتقل ہو گیا ہے۔",
+    backToDashboard: "ڈیش بورڈ پر واپس جائیں",
+    errorBody: "یہ صفحہ نہیں دکھایا جا سکا۔ دوبارہ کوشش کریں، یا ڈیش بورڈ پر واپس جائیں۔",
   },
   time: {
     agoOneSecond: "1 سیکنڈ پہلے",
@@ -360,7 +361,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   // QA area C fixes (Phase 2+3)
   qaFixes: {
-    invitedBy: "{company} نے آپ کو کنسٹرکشن پلیٹ فارم پر شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
+    invitedBy: "{company} نے آپ کو Keystone پر شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
     invitedByAs: "{company} نے آپ کو {role} کے طور پر شامل ہونے کی دعوت دی ہے۔ آگے بڑھنے کے لیے اپنا اکاؤنٹ بنائیں۔",
   },
 };

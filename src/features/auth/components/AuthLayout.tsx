@@ -1,9 +1,10 @@
 "use client";
 
-import { Building2, CalendarCheck, CircleCheck, HardHat, Wallet } from "lucide-react";
+import { CalendarCheck, CircleCheck, HardHat, Wallet } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import building from "@/assets/login-building.jpg";
+import { KeystoneLogo } from "@/components/brand/Keystone";
 import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useT, type TranslationKey } from "@/i18n/useT";
@@ -35,12 +36,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-charcoal/85 via-charcoal/45 to-charcoal/90"
           aria-hidden
         />
-        <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-white/15">
-            <Building2 className="size-6" aria-hidden />
-          </span>
-          <span className="text-lg font-semibold">{t("app.auth.brand")}</span>
-        </div>
+        {/* Keystone on the dark photo: dark-variant mark + white wordmark. */}
+        <KeystoneLogo size={44} tone="dark" className="gap-3 self-start" wordmarkClassName="text-lg text-white" />
         <div className="max-w-md space-y-6">
           <h2 className="text-3xl leading-tight font-semibold">{t("app.auth.pitchTitle")}</h2>
           <ul className="space-y-4">

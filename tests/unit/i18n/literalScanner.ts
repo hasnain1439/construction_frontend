@@ -59,7 +59,7 @@ const NOT_TEXT = new Set(["blur", "empty"]);
 const MESSAGE_CALLS = new Set(["min", "max", "regex", "refine", "length", "email", "nonempty", "gt", "gte", "lt", "lte", "positive", "nonnegative", "int", "url"]);
 
 /** Words allowed as they are in every language (currency, units, abbreviations, brands). */
-export const ALLOWED_WORDS = new Set(["Rs", "PKR", "kg", "OTP", "PDF", "SMS", "CSV", "Excel", "xlsx", "csv", "WhatsApp", "JazzCash", "Easypaisa", "OT", "BoQ", "sqft", "PM", "ID", "e", "g", "x", "h", "m", "a", "p"]);
+export const ALLOWED_WORDS = new Set(["Rs", "PKR", "kg", "OTP", "PDF", "SMS", "CSV", "Excel", "xlsx", "csv", "WhatsApp", "JazzCash", "Easypaisa", "Keystone", "OT", "BoQ", "sqft", "PM", "ID", "e", "g", "x", "h", "m", "a", "p"]);
 
 const LETTERS = /[A-Za-z؀-ۿ]/;
 /** "labor.form.amount", "common.save" — a dictionary key, not text. */

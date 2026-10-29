@@ -12,7 +12,7 @@ const subscribeNothing = () => () => {};
 export function inviteMessage({ name, companyName, roleLabel, url }: { name: string; companyName?: string; roleLabel?: string; url: string }) {
   const who = companyName ? `${companyName} ne` : "Aap ko";
   const as = roleLabel ? ` ${roleLabel} ke taur par` : "";
-  return `Assalam-o-Alaikum ${name}! ${who} aap ko${as} Construction Platform par invite kiya hai. Account banane ke liye ye link kholein (ek dafa chalta hai, 7 din tak): ${url}`;
+  return `Assalam-o-Alaikum ${name}! ${who} aap ko${as} Keystone par invite kiya hai. Account banane ke liye ye link kholein (ek dafa chalta hai, 7 din tak): ${url}`;
 }
 
 /** wa.me wants the number without "+" or spaces. */

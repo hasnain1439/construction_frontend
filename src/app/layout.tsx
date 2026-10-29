@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cabin, Noto_Nastaliq_Urdu } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
@@ -22,8 +22,25 @@ const cabin = Cabin({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Construction Platform", template: "%s · Construction Platform" },
-  description: "Projects, materials, labour and money for Pakistani building contractors.",
+  // Absolute URLs for the OpenGraph image (SITE_URL in production; localhost while developing).
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  applicationName: "Keystone",
+  title: { default: "Keystone", template: "%s · Keystone" },
+  description:
+    "Build on solid numbers — projects, materials, labour and money for Pakistani building contractors.",
+  openGraph: {
+    siteName: "Keystone",
+    title: "Keystone",
+    description: "Build on solid numbers",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F4F2" },
+    { media: "(prefers-color-scheme: dark)", color: "#201F1E" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

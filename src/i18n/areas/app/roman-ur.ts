@@ -3,7 +3,6 @@ import type * as En from "./en";
 
 export const strings: Widen<typeof En.strings> = {
   auth: {
-    brand: "Construction Platform",
     pitchTitle: "Har site ek hi screen se chalayein.",
     pointProjects: "Projects, kamre aur theke ek jagah",
     pointMoney: "PKR mein raqam, lakh / crore ke saath — paise paise ka hisaab",
@@ -52,7 +51,7 @@ export const strings: Widen<typeof En.strings> = {
     askNewLink: "Apne Thekedar se naya link mangwayein.",
     goToSignIn: "Sign in par jayein",
     invitedTitle: "Aap ko daawat di gayi hai",
-    invitedDesc: "Aap ke Thekedar ne aap ko Construction Platform par apni company mein shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
+    invitedDesc: "Aap ke Thekedar ne aap ko Keystone par apni company mein shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
     alreadyHaveAccount: "Pehle se account hai?",
     inviteNameHint: "Khaali chhor dein to Thekedar ka likha hua naam rahega.",
     iAmMunshi: "Main Munshi hoon (site supervisor)",
@@ -331,6 +330,8 @@ export const strings: Widen<typeof En.strings> = {
   pages: {
     notFoundTitle: "Page nahi mila",
     notFoundBody: "Jo page aap dhoond rahe hain woh mojood nahi ya kahin aur chala gaya hai.",
+    backToDashboard: "Dashboard par wapas jayein",
+    errorBody: "Yeh page nahi dikhaya ja saka. Dobara koshish karein, ya dashboard par wapas jayein.",
   },
   time: {
     agoOneSecond: "1 second pehle",
@@ -360,7 +361,7 @@ export const strings: Widen<typeof En.strings> = {
   },
   // QA area C fixes (Phase 2+3)
   qaFixes: {
-    invitedBy: "{company} ne aap ko Construction Platform par shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
+    invitedBy: "{company} ne aap ko Keystone par shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
     invitedByAs: "{company} ne aap ko {role} ke taur par shamil hone ki daawat di hai. Aage barhne ke liye apna account banayein.",
   },
 };

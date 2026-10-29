@@ -10,7 +10,7 @@ import { ur } from "@/i18n/ur";
 import { translate, type TranslationKey } from "@/i18n/useT";
 
 /** Latin words that may stay in Urdu text (brands, units and abbreviations people read as they are). */
-const URDU_ALLOWED_LATIN = ["Rs", "PKR", "kg", "OTP", "PDF", "SMS", "CSV", "Excel", "xlsx", "csv", "WhatsApp", "OT", "BoQ", "IBFT", "NTN", "CNIC", "Ctrl", "K", "MB", "v"];
+const URDU_ALLOWED_LATIN = ["Rs", "PKR", "kg", "OTP", "PDF", "SMS", "CSV", "Excel", "xlsx", "csv", "WhatsApp", "OT", "BoQ", "IBFT", "NTN", "CNIC", "Ctrl", "K", "MB", "v", "Keystone"];
 
 /** Every text of a nested dictionary as "a.b.c" → text. */
 function flatten(node: unknown, prefix = "", out: Record<string, unknown> = {}): Record<string, unknown> {

@@ -3,6 +3,7 @@
 import { ChevronDown, KeyRound, LogOut, Menu, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BRAND_NAME, KeystoneMark, KeystoneWordmark } from "@/components/brand/Keystone";
 import { AvatarName } from "@/components/common/AvatarName";
 import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,7 +22,7 @@ import {
 import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { CREATE_ACTIONS } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
-import { useAppDispatch, useMe } from "@/store/hooks";
+import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { setCommandOpen } from "@/store/slices/uiSlice";
 import { useNavToggle } from "./navDrawer";
 
@@ -135,25 +136,39 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
   );
 }
 
-/** Company logo (or initial) + name, centred in the top bar. */
+/**
+ * Keystone mark + wordmark | company logo (or initial) + name, centred in the top bar. With the
+ * rail collapsed only the mark stays. In Urdu the row mirrors (company | Keystone); the Keystone
+ * lockup itself stays Latin, left-to-right.
+ */
 function CompanyBrand() {
   const me = useMe();
+  const collapsed = useAppSelector((state) => state.ui.railCollapsed);
   if (!me) return null;
   return (
     <Link
       href="/dashboard"
-      className="hidden min-w-0 items-center gap-2.5 rounded-full py-1 ps-1 pe-3 hover:bg-muted md:flex"
+      data-testid="company-brand"
+      data-collapsed={collapsed || undefined}
+      className="flex min-w-0 items-center gap-3 rounded-full py-1 ps-2 pe-3 hover:bg-muted"
     >
-      {me.tenant.logoUrl ? (
-        // Signed, short-lived logo URL from the API.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={me.tenant.logoUrl} alt="" className="size-10 rounded-full border bg-card object-contain" />
-      ) : (
-        <span className="flex size-10 items-center justify-center rounded-full bg-charcoal text-base font-bold text-white dark:bg-primary dark:text-primary-foreground">
-          {me.tenant.name.charAt(0)}
-        </span>
-      )}
-      <span className="hidden max-w-56 truncate text-base font-semibold lg:block">{me.tenant.name}</span>
+      <span dir="ltr" className="flex shrink-0 items-center gap-2">
+        <KeystoneMark size={36} label={collapsed ? BRAND_NAME : undefined} />
+        {collapsed ? null : <KeystoneWordmark className="text-xl max-sm:hidden" />}
+      </span>
+      <span className="h-7 w-px shrink-0 bg-foreground/20 max-md:hidden" aria-hidden />
+      <span className="flex min-w-0 items-center gap-2.5 max-md:hidden">
+        {me.tenant.logoUrl ? (
+          // Signed, short-lived logo URL from the API.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={me.tenant.logoUrl} alt="" className="size-9 rounded-full border bg-card object-contain" />
+        ) : (
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-charcoal text-base font-bold text-white dark:bg-primary dark:text-primary-foreground">
+            {me.tenant.name.charAt(0)}
+          </span>
+        )}
+        <span className="hidden max-w-56 truncate text-base font-semibold lg:block">{me.tenant.name}</span>
+      </span>
     </Link>
   );
 }
