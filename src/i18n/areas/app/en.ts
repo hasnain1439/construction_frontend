@@ -1,7 +1,6 @@
 /** English texts for this area: `strings` become `t("app.…")`, `enums` are extra `useEnumT()` groups. */
 export const strings = {
   auth: {
-    brand: "Construction Platform",
     pitchTitle: "Run every site from one screen.",
     pointProjects: "Projects, rooms and contracts in one place",
     pointMoney: "Money in PKR with lakh / crore — paisa-exact",
@@ -50,7 +49,7 @@ export const strings = {
     askNewLink: "Ask the company owner for a new link.",
     goToSignIn: "Go to sign in",
     invitedTitle: "You're invited",
-    invitedDesc: "The company owner invited you to join their company on Construction Platform. Set up your account to continue.",
+    invitedDesc: "The company owner invited you to join their company on Keystone. Set up your account to continue.",
     alreadyHaveAccount: "Already have an account?",
     inviteNameHint: "Leave empty to keep the name the company owner entered.",
     iAmMunshi: "I'm a site clerk (I work on site)",
@@ -330,6 +329,8 @@ export const strings = {
   pages: {
     notFoundTitle: "Page not found",
     notFoundBody: "The page you're looking for doesn't exist or was moved.",
+    backToDashboard: "Back to dashboard",
+    errorBody: "This page could not be shown. Try again, or go back to the dashboard.",
   },
   time: {
     agoOneSecond: "1 second ago",
@@ -359,7 +360,7 @@ export const strings = {
   },
   // QA area C fixes (Phase 2+3)
   qaFixes: {
-    invitedBy: "{company} invited you to join them on Construction Platform. Set up your account to continue.",
+    invitedBy: "{company} invited you to join them on Keystone. Set up your account to continue.",
     invitedByAs: "{company} invited you to join them as {role}. Set up your account to continue.",
   },
 } as const;

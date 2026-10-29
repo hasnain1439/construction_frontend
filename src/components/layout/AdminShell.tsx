@@ -1,10 +1,11 @@
 "use client";
 
-import { Building, ChevronDown, LogOut, Menu } from "lucide-react";
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { useGetAdminMeQuery } from "@/api/services/admin/auth.api";
+import { BRAND_NAME, KeystoneLogo } from "@/components/brand/Keystone";
 import { AvatarName } from "@/components/common/AvatarName";
 import { CommandSearch } from "@/components/common/CommandSearch";
 import { LanguageMenu } from "@/components/common/LanguageMenu";
@@ -72,14 +73,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
           >
             <Menu />
           </Button>
+          {/* Keystone on a charcoal plate (dark-variant mark) + the sun "Super Admin" pill. */}
           <Link
             href="/admin/overview"
-            className="flex items-center gap-2 rounded-full py-1 pe-3 ps-1 hover:bg-muted"
+            data-testid="admin-brand"
+            aria-label={`${BRAND_NAME} · ${t("shell.superAdmin")}`}
+            className="flex items-center gap-2.5 rounded-full bg-charcoal py-1.5 ps-3 pe-1.5 text-white transition-opacity hover:opacity-90 dark:ring-1 dark:ring-white/10"
           >
-            <span className="flex size-9 items-center justify-center rounded-full bg-charcoal text-white dark:bg-primary dark:text-primary-foreground">
-              <Building className="size-5" aria-hidden />
+            <KeystoneLogo size={30} tone="dark" wordmarkClassName="text-lg text-white max-sm:hidden" />
+            <span className="rounded-full bg-sun px-2.5 py-1 text-xs leading-none font-bold text-charcoal">
+              {t("shell.superAdmin")}
             </span>
-            <span className="text-base font-semibold max-sm:hidden">{t("shell.platformConsole")}</span>
           </Link>
           <SearchTrigger />
         </div>
