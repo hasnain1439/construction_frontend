@@ -42,6 +42,7 @@ export const strings = {
   filter: {
     anyStart: "Started: any time",
     customer: "Customer name, phone or email…",
+    holder: "Holder name…",
     name: "Name…",
     overdue: "Overdue",
     allProjects: "All projects",

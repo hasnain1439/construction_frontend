@@ -39,6 +39,9 @@ export function ReportValue({ type, value }: { type: ReportColumnType; value: Re
   }
 }
 
+/** Report search boxes: one width, so the filter row stays tidy instead of stretching. */
+const SEARCH = "w-full flex-none sm:w-60";
+
 type Row = ReportTable["rows"][number] & { __id: string };
 
 /** Reports whose headers the web translates by column key (`tax.reports.col.<key>`) — QA-B-05. */
@@ -96,8 +99,9 @@ export function ReportView({ name }: { name: ReportName }) {
       <PageHeader title={title} description={t(def.descriptionKey)} breadcrumbs={[{ label: t("crumb.reports") }, { label: title }]} actions={<ExportMenu name={name} filters={params} disabled={!report} />} />
       {def.project || def.dates || shows.length ? (
         <ReportFilterBar value={filters} onChange={onFilters} showProject={def.project} showDates={def.dates} dateLabel={def.dateLabelKey ? t(def.dateLabelKey) : undefined}>
-          {shows.includes("client") ? <SearchInput value={extra.client ?? ""} onChange={(x) => setOne("client", x)} placeholder={t("reports.filter.customer")} /> : null}
-          {shows.includes("search") ? <SearchInput value={extra.search ?? ""} onChange={(x) => setOne("search", x)} placeholder={t("reports.filter.name")} /> : null}
+          {shows.includes("client") ? <SearchInput value={extra.client ?? ""} onChange={(x) => setOne("client", x)} placeholder={t("reports.filter.customer")} className={SEARCH} /> : null}
+          {shows.includes("search") ? <SearchInput value={extra.search ?? ""} onChange={(x) => setOne("search", x)} placeholder={t("reports.filter.name")} className={SEARCH} /> : null}
+          {shows.includes("holder") ? <SearchInput value={extra.holder ?? ""} onChange={(x) => setOne("holder", x)} placeholder={t("reports.filter.holder")} className={SEARCH} /> : null}
           {shows.includes("projectStatus") ? (
             <FilterSelect
               label={t("reports.filter.status")}
@@ -130,7 +134,7 @@ export function ReportView({ name }: { name: ReportName }) {
               ]}
             />
           ) : null}
-          {shows.includes("trade") ? <SearchInput value={extra.trade ?? ""} onChange={(x) => setOne("trade", x)} placeholder={t("reports.filter.trade")} /> : null}
+          {shows.includes("trade") ? <SearchInput value={extra.trade ?? ""} onChange={(x) => setOne("trade", x)} placeholder={t("reports.filter.trade")} className={SEARCH} /> : null}
         </ReportFilterBar>
       ) : null}
       {report?.notes?.length ? (

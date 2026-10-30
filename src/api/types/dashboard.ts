@@ -348,6 +348,8 @@ export interface ReportExtraFilters {
   groupId?: string;
   /** labor-peshgi: name contains */
   search?: string;
+  /** cash-book: holder name contains */
+  holder?: string;
   kind?: "WORKER" | "SUBCONTRACTOR";
   trade?: string;
 }

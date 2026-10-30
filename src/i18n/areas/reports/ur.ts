@@ -44,6 +44,7 @@ export const strings: Widen<typeof En.strings> = {
   filter: {
     anyStart: "شروع: کوئی بھی وقت",
     customer: "گاہک کا نام، فون یا ای میل…",
+    holder: "رکھنے والے کا نام…",
     name: "نام…",
     overdue: "واجب الادا",
     allProjects: "تمام پراجیکٹس",
