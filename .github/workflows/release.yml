@@ -114,3 +114,30 @@ jobs:
           TARGET: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
           TAG: ${{ steps.vars.outputs.tag }}
         run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$TARGET" "'$DEPLOY_PATH/deploy.sh' --web '$TAG' --no-migrate"
+
+  # Live server (AWS Sydney, built from source by deploy/server-setup.sh): after CI passes, send this
+  # commit as a git bundle; the server backs up the database, then pulls, builds, migrates and restarts.
+  # Repository → Settings → Secrets → Actions: AWS_DEPLOY_KEY (keys/github-deploy-key) and
+  # AWS_KNOWN_HOSTS (keys/github-known-hosts.txt). The key may only run keystone-autodeploy.
+  aws:
+    name: Deploy to AWS (live)
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Send the code and update the server
+        env:
+          AWS_DEPLOY_KEY: ${{ secrets.AWS_DEPLOY_KEY }}
+          AWS_KNOWN_HOSTS: ${{ secrets.AWS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$AWS_DEPLOY_KEY" > ~/.ssh/aws_key
+          chmod 600 ~/.ssh/aws_key
+          printf '%s\n' "$AWS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          git checkout -B main
+          git bundle create app.bundle main
+          ssh -i ~/.ssh/aws_key -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 ubuntu@3.25.18.84 web < app.bundle
