@@ -167,7 +167,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
       <PageHeader
         title={munshi ? t("procurement.newPurchase.titleMunshi") : t("procurement.newPurchase.title")}
         description={munshi ? t("procurement.newPurchase.descMunshi") : t("procurement.newPurchase.desc")}
-        breadcrumbs={fixedProjectId ? undefined : [{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchases"), href: "/suppliers-stock/purchases" }, { label: t("procurement.common.new") }]}
+        breadcrumbs={fixedProjectId ? undefined : [{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchases"), href: "/suppliers-stock/purchases" }, { label: t("procurement.common.new") }]}
       />
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">

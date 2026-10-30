@@ -198,7 +198,7 @@ export function SupplierPaymentsView() {
       <PageHeader
         title={t("procurement.money.paymentsTitle")}
         description={t("procurement.money.paymentsDesc")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.supplierPayments") }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.supplierPayments") }]}
         actions={
           canPay ? (
             <Button onClick={() => setOpen(true)}>
@@ -259,7 +259,7 @@ export function SupplierKhataView() {
   ];
   return (
     <>
-      <PageHeader title={t("procurement.money.khataTitle")} description={t("procurement.money.khataDesc")} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.supplierLedger") }]} />
+      <PageHeader title={t("procurement.money.khataTitle")} description={t("procurement.money.khataDesc")} breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.supplierLedger") }]} />
       <SectionCard flush title={data ? <>{t("procurement.money.totalUdhaar")} <MoneyText paisa={total.toString()} /></> : undefined}>
         <DataTable
           rows={data?.items}

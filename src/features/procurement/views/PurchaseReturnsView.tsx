@@ -42,7 +42,7 @@ export function PurchaseReturnsView() {
 
   return (
     <>
-      <PageHeader title={t("procurement.returns.title")} description={t("procurement.returns.desc")} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseReturns") }]} />
+      <PageHeader title={t("procurement.returns.title")} description={t("procurement.returns.desc")} breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchaseReturns") }]} />
       <InlineAlert tone="info">{t("procurement.returns.hint")}</InlineAlert>
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <FilterSelect label={t("field.supplier")} value={list.filters.supplierId} onChange={(v) => list.setFilter("supplierId", v)} options={suppliers.options.map((o) => ({ value: o.value, label: o.label }))} />

@@ -73,7 +73,7 @@ export function StoreStockView() {
       <PageHeader
         title={t("procurement.storeStock.title")}
         description={t("procurement.storeStock.desc")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.storeStock") }]}
+        breadcrumbs={[{ label: t("crumb.stock") }, { label: t("procurement.crumb.storeStock") }]}
         actions={
           owner && store ? (
             <>

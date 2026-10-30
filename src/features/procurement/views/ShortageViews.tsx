@@ -98,7 +98,7 @@ export function ShortagesView() {
   const columns = useShortageColumns(owner ? setResolving : undefined);
   return (
     <>
-      <PageHeader title={t("procurement.common.shortages")} description={t("procurement.shortages.desc")} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.shortages") }]} />
+      <PageHeader title={t("procurement.common.shortages")} description={t("procurement.shortages.desc")} breadcrumbs={[{ label: t("crumb.stock") }, { label: t("procurement.crumb.shortages") }]} />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <FilterSelect
           label={t("field.status")}

@@ -102,7 +102,7 @@ export function SuppliersView() {
       <PageHeader
         title={t("masterData.suppliers.title")}
         description={t("masterData.suppliers.description")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("masterData.suppliers.title") }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("masterData.suppliers.title") }]}
         actions={
           <>
             <ImportButton entity="suppliers" />
