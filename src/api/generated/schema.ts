@@ -1327,6 +1327,12 @@ export interface paths {
                         photoAttachmentId?: string | null;
                         /** @description en | roman | ur (preferred) or the old ENGLISH | ROMAN_URDU | URDU */
                         language?: ("en" | "roman" | "ur") | ("ENGLISH" | "ROMAN_URDU" | "URDU");
+                        /**
+                         * Format: email
+                         * @description New login email; needs currentPassword
+                         * @example khalid@maliksons.pk
+                         */
+                        email?: string;
                         currentPassword?: string;
                         /** @example Thekedar#2026 */
                         newPassword?: string;

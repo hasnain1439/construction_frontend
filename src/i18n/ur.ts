@@ -120,6 +120,7 @@ export const ur: Dictionary = {
     notifications: "اطلاعات",
     noNotifications: "ابھی کوئی اطلاع نہیں",
     sessions: "سیشنز",
+    myAccount: "میرا اکاؤنٹ",
     logout: "لاگ آؤٹ",
     theme: "تھیم",
     light: "روشن",

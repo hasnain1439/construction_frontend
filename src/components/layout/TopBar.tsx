@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, KeyRound, LogOut, Menu, Plus, Search } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Menu, Plus, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BRAND_NAME, KeystoneMark, KeystoneWordmark } from "@/components/brand/Keystone";
@@ -123,6 +123,12 @@ function UserMenu({ onSessions, onLogout }: { onSessions: () => void; onLogout: 
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/account">
+            <UserRound />
+            {t("shell.myAccount")}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onSessions}>
           <KeyRound />
           {t("shell.sessions")}

@@ -2,6 +2,7 @@
 import type { CompanyRoute } from "@/lib/companyRoutes";
 
 export const COMPANY_ROUTES: CompanyRoute[] = [
+  { segments: [{"kind":"static","name":"account"}], load: () => import("@/app/(company)/account/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/dashboard/[...rest]/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"static","name":"alerts"}], load: () => import("@/app/(company)/dashboard/alerts/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"static","name":"approvals"}], load: () => import("@/app/(company)/dashboard/approvals/page") },
