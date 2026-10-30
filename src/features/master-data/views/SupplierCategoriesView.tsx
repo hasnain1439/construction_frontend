@@ -15,11 +15,13 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { SlideOver } from "@/components/common/SlideOver";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
@@ -75,6 +77,11 @@ function ActivityPanel({ category, onClose }: { category: SupplierCategory; onCl
     const d = item.details ?? {};
     if (item.action === "supplier_category.rename") return t("masterData.supplierCategories.renamed2", { from: String(d["from"] ?? ""), to: String(d["to"] ?? "") });
     if (item.action === "supplier_category.merge") return t("masterData.supplierCategories.mergedIn", { from: String(d["from"] ?? ""), n: Number(d["suppliersMoved"] ?? 0) });
+    if (item.action === "supplier_category.delete") {
+      const to = d["movedTo"] ?? d["mergedInto"];
+      return to ? t("masterData.supplierCategories.deletedMoved", { n: Number(d["suppliersMoved"] ?? 0), to: String(to) }) : t("masterData.supplierCategories.deletedItem");
+    }
+    if (item.action === "supplier_category.restore") return t("masterData.supplierCategories.restored");
     return t("masterData.supplierCategories.created");
   };
   return (
@@ -103,6 +110,52 @@ function ActivityPanel({ category, onClose }: { category: SupplierCategory; onCl
   );
 }
 
+/** Delete: a category in use asks where its suppliers go. */
+function DeleteDialog({ category, others, onClose }: { category: SupplierCategory; others: SupplierCategory[]; onClose: () => void }) {
+  const t = useT();
+  const [remove, { isLoading }] = useDeleteSupplierCategoryMutation();
+  const run = useMutationToast();
+  const [moveTo, setMoveTo] = useState("");
+  const inUse = category.supplierCount > 0;
+  return (
+    <ConfirmDialog
+      open
+      onOpenChange={(o) => !o && onClose()}
+      tone="danger"
+      title={t("masterData.common.deleteTitle", { name: category.name })}
+      description={t("masterData.supplierCategories.deleteDesc2")}
+      confirmLabel={t("common.delete")}
+      loading={isLoading}
+      confirmDisabled={inUse && !moveTo}
+      onConfirm={async () => {
+        const ok = await run(() => remove({ id: category.id, ...(inUse ? { moveTo } : {}) }).unwrap(), {
+          success: t("masterData.common.deleted", { name: category.name }),
+        });
+        if (ok) onClose();
+      }}
+    >
+      {inUse ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="move-to-category">{t("masterData.supplierCategories.moveTo")}</Label>
+          <Select value={moveTo} onValueChange={setMoveTo}>
+            <SelectTrigger id="move-to-category" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {others.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">{t("masterData.supplierCategories.moveToHint", { n: category.supplierCount })}</p>
+        </div>
+      ) : null}
+    </ConfirmDialog>
+  );
+}
+
 /** Name over date; an automatic category says so. */
 function WhoWhen({ name, at, fallback }: { name: string | null; at: string | null; fallback: string }) {
   if (!at) return <span className="text-muted-foreground">—</span>;
@@ -114,26 +167,33 @@ function WhoWhen({ name, at, fallback }: { name: string | null; at: string | nul
   );
 }
 
+type Tab = "active" | "deleted";
+
 export function SupplierCategoriesView() {
   const t = useT();
   const readOnly = useReadOnly();
-  const { data, isLoading, isFetching, error, refetch } = useGetSupplierCategoriesQuery();
-  const [remove, { isLoading: removing }] = useDeleteSupplierCategoryMutation();
-  const run = useMutationToast();
+  const [tab, setTab] = useState<Tab>("active");
+  const active = useGetSupplierCategoriesQuery();
+  const deletedQuery = useGetSupplierCategoriesQuery({ deleted: true }, { skip: tab !== "deleted" });
+  const { data, isLoading, isFetching, error, refetch } = tab === "active" ? active : deletedQuery;
   const [editing, setEditing] = useState<SupplierCategory | null>(null);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<SupplierCategory | null>(null);
   const [history, setHistory] = useState<SupplierCategory | null>(null);
 
-  const columns: Column<SupplierCategory>[] = [
-    { id: "name", header: t("masterData.supplierCategories.name"), sortValue: (c) => c.name, cell: (c) => <span className="font-medium">{c.name}</span> },
+  const name: Column<SupplierCategory> = { id: "name", header: t("masterData.supplierCategories.name"), sortValue: (c) => c.name, cell: (c) => <span className="font-medium">{c.name}</span> };
+  const addedBy: Column<SupplierCategory> = {
+    id: "addedBy",
+    header: t("masterData.supplierCategories.addedBy"),
+    sortValue: (c) => c.createdAt,
+    cell: (c) => <WhoWhen name={c.createdBy} at={c.createdAt} fallback={t("masterData.supplierCategories.auto")} />,
+  };
+  const activityAction = (c: SupplierCategory) => ({ label: t("masterData.supplierCategories.activity"), icon: History, onSelect: () => setHistory(c) });
+
+  const activeColumns: Column<SupplierCategory>[] = [
+    name,
     { id: "suppliers", header: t("masterData.supplierCategories.suppliers"), align: "right", sortValue: (c) => c.supplierCount, cell: (c) => <span className="tabular">{c.supplierCount}</span> },
-    {
-      id: "addedBy",
-      header: t("masterData.supplierCategories.addedBy"),
-      sortValue: (c) => c.createdAt,
-      cell: (c) => <WhoWhen name={c.createdBy} at={c.createdAt} fallback={t("masterData.supplierCategories.auto")} />,
-    },
+    addedBy,
     {
       id: "changed",
       header: t("masterData.supplierCategories.lastChanged"),
@@ -146,21 +206,25 @@ export function SupplierCategoriesView() {
         <RowActions
           name={c.name}
           actions={[
-            { label: t("masterData.supplierCategories.activity"), icon: History, onSelect: () => setHistory(c) },
+            activityAction(c),
             { label: t("masterData.supplierCategories.rename"), icon: Pencil, onSelect: () => setEditing(c), hidden: readOnly },
-            {
-              label: t("common.delete"),
-              icon: Trash2,
-              destructive: true,
-              disabled: c.supplierCount > 0,
-              hint: c.supplierCount > 0 ? t("masterData.supplierCategories.inUse") : undefined,
-              onSelect: () => setDeleting(c),
-              hidden: readOnly,
-            },
+            { label: t("common.delete"), icon: Trash2, destructive: true, onSelect: () => setDeleting(c), hidden: readOnly },
           ]}
         />
       ),
     },
+  ];
+
+  const deletedColumns: Column<SupplierCategory>[] = [
+    name,
+    addedBy,
+    {
+      id: "deletedBy",
+      header: t("masterData.supplierCategories.deletedBy"),
+      sortValue: (c) => c.deletedAt ?? "",
+      cell: (c) => <WhoWhen name={c.deletedBy} at={c.deletedAt} fallback="—" />,
+    },
+    { ...ACTIONS_COLUMN, cell: (c) => <RowActions name={c.name} actions={[activityAction(c)]} /> },
   ];
 
   return (
@@ -178,34 +242,43 @@ export function SupplierCategoriesView() {
           )
         }
       />
+      <div className="mb-4">
+        <SegmentedControl<Tab>
+          value={tab}
+          onChange={setTab}
+          ariaLabel={t("masterData.supplierCategories.title")}
+          options={[
+            { value: "active", label: t("masterData.supplierCategories.activeTab") },
+            { value: "deleted", label: t("masterData.supplierCategories.deletedTab") },
+          ]}
+        />
+      </div>
       <SectionCard flush>
         <DataTable
           rows={data}
-          columns={columns}
+          columns={tab === "active" ? activeColumns : deletedColumns}
           getRowId={(c) => c.id}
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          empty={{ title: t("masterData.supplierCategories.emptyTitle"), description: t("masterData.supplierCategories.emptyDesc"), icon: Tags }}
+          empty={
+            tab === "active"
+              ? { title: t("masterData.supplierCategories.emptyTitle"), description: t("masterData.supplierCategories.emptyDesc"), icon: Tags }
+              : { title: t("masterData.supplierCategories.emptyDeleted"), icon: Trash2 }
+          }
         />
       </SectionCard>
       {history ? <ActivityPanel key={history.id} category={history} onClose={() => setHistory(null)} /> : null}
       {adding ? <NameDialog category={null} open onClose={() => setAdding(false)} /> : null}
       {editing ? <NameDialog key={editing.id} category={editing} open onClose={() => setEditing(null)} /> : null}
-      <ConfirmDialog
-        open={Boolean(deleting)}
-        onOpenChange={(o) => !o && setDeleting(null)}
-        tone="danger"
-        title={t("masterData.common.deleteTitle", { name: deleting?.name ?? "" })}
-        description={t("masterData.supplierCategories.deleteDesc")}
-        confirmLabel={t("common.delete")}
-        loading={removing}
-        onConfirm={async () => {
-          if (!deleting) return;
-          const ok = await run(() => remove(deleting.id).unwrap(), { success: t("masterData.common.deleted", { name: deleting.name }) });
-          if (ok) setDeleting(null);
-        }}
-      />
+      {deleting ? (
+        <DeleteDialog
+          key={deleting.id}
+          category={deleting}
+          others={(active.data ?? []).filter((c) => c.id !== deleting.id)}
+          onClose={() => setDeleting(null)}
+        />
+      ) : null}
     </>
   );
 }

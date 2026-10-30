@@ -235,8 +235,9 @@ export const masterDataApi = baseApi.injectEndpoints({
       transformResponse: (data, meta) => toPage<Supplier>(data, meta),
       providesTags: (page) => providesList(page?.items, "Suppliers"),
     }),
-    getSupplierCategories: build.query<SupplierCategory[], void>({
-      query: () => ENDPOINTS.masterData.supplierCategories,
+    /** The list; { deleted: true } = the deleted ones. */
+    getSupplierCategories: build.query<SupplierCategory[], { deleted?: boolean } | void>({
+      query: (q) => ({ url: ENDPOINTS.masterData.supplierCategories, params: q?.deleted ? { deleted: true } : undefined }),
       providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
     }),
     getSupplierCategoryActivity: build.query<SupplierCategoryActivity, string>({
@@ -252,9 +253,10 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: ({ id, name }) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "PATCH", body: { name } }),
       invalidatesTags: ["Suppliers"],
     }),
-    deleteSupplierCategory: build.mutation<{ id: string; deleted: true }, string>({
-      query: (id) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "DELETE" }),
-      invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    /** A category in use needs moveTo: the category its suppliers go to. */
+    deleteSupplierCategory: build.mutation<{ id: string; deleted: true; suppliersMoved: number; movedTo: string | null }, { id: string; moveTo?: string }>({
+      query: ({ id, moveTo }) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "DELETE", params: moveTo ? { moveTo } : undefined }),
+      invalidatesTags: ["Suppliers"],
     }),
     getSupplier: build.query<SupplierDetail, string>({
       query: (id) => ENDPOINTS.masterData.supplierById(id),

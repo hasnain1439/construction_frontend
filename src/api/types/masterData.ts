@@ -338,6 +338,9 @@ export interface SupplierCategory {
   createdBy: string | null;
   updatedAt: string | null;
   updatedBy: string | null;
+  /** Deleted list only (?deleted=true). */
+  deletedAt: string | null;
+  deletedBy: string | null;
 }
 
 export interface SupplierCategoryActivity {
