@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import {
   useCreateMaterialMutation,
@@ -79,6 +79,9 @@ export function MaterialSlideOver({
     values: material ? fromMaterial(material) : empty,
   });
   const unitLocked = material?.source === "PLATFORM";
+  // Flow: group → that group's brands (a brand without groups fits any) → quality → name / unit.
+  const groupId = useWatch({ control: form.control, name: "groupId" });
+  const brandOptions = (brands.data ?? []).filter((b) => !groupId || !b.groups.length || b.groups.some((g) => g.id === groupId)).map((b) => ({ value: b.id, label: b.name }));
 
   const onSubmit = async (values: z.output<typeof materialSchema>) => {
     const altUnits = values.altUnits.map((a) => ({ unit: a.unit, factor: a.factor }));
@@ -139,14 +142,29 @@ export function MaterialSlideOver({
       footer={<FormActions formId={FORM_ID} submitLabel={material ? t("masterData.materials.save") : t("masterData.materials.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
-        <TextField name="name" label={t("field.name")} required placeholder={t("masterData.materials.namePlaceholder")} />
-        <SelectField name="groupId" label={t("masterData.common.group")} required options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
+        <SelectField
+          name="groupId"
+          label={t("masterData.common.group")}
+          required
+          options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))}
+          onValueChange={(next) => {
+            const brandId = form.getValues("brandId");
+            const brand = (brands.data ?? []).find((b) => b.id === brandId);
+            if (brand && brand.groups.length && !brand.groups.some((g) => g.id === next)) form.setValue("brandId", null);
+          }}
+          hint={
+            <Link href="/suppliers-stock/groups" className="text-primary hover:underline">
+              {t("masterData.products.manageGroups")}
+            </Link>
+          }
+        />
         <FieldGrid>
           <SelectField
             name="brandId"
             label={t("masterData.products.brand")}
             noneLabel={t("masterData.products.noBrand")}
-            options={(brands.data ?? []).map((b) => ({ value: b.id, label: b.name }))}
+            options={brandOptions}
+            disabled={!groupId}
             hint={
               <Link href="/suppliers-stock/brands" className="text-primary hover:underline">
                 {t("masterData.products.manageBrands")}
@@ -160,6 +178,7 @@ export function MaterialSlideOver({
             options={(qualities.data ?? []).filter((q) => !q.isArchived).map((q) => ({ value: q.id, label: q.name }))}
           />
         </FieldGrid>
+        <TextField name="name" label={t("field.name")} required placeholder={t("masterData.materials.namePlaceholder")} />
         <FormSection title={t("masterData.materials.units")}>
           {unitLocked ? <InlineAlert tone="info">{t("masterData.materials.unitLocked")}</InlineAlert> : null}
           <FieldGrid>

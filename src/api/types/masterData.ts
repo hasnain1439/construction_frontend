@@ -15,6 +15,10 @@ export interface MaterialGroup {
   name: string;
   section: MaterialSection;
   sortOrder: number;
+  /** The company's own group (the rest are the system's). */
+  isCustom?: boolean;
+  productCount?: number;
+  brandCount?: number;
 }
 
 export interface AltUnit {
@@ -373,6 +377,8 @@ export interface Brand {
   id: Id;
   name: string;
   productCount: number;
+  /** Groups it makes products in (none = any group). */
+  groups: Array<{ id: Id; name: string }>;
   createdAt: string;
   createdBy: string | null;
   updatedAt: string | null;

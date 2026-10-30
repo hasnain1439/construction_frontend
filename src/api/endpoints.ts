@@ -148,6 +148,7 @@ export const ENDPOINTS = {
 
   masterData: {
     materialGroups: "/material-groups",
+    materialGroupById: (groupId: string) => `/material-groups/${id(groupId)}`,
     materials: "/materials",
     materialById: (materialId: string) => `/materials/${id(materialId)}`,
     materialHide: (materialId: string) => `/materials/${id(materialId)}/hide`,

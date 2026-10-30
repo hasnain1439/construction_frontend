@@ -191,6 +191,14 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["brand", "quality", "tiles", "paint", "cement", "material"],
       },
       {
+        id: "stock.groups",
+        label: L("Groups", "Groups", "گروپس"),
+        href: "/suppliers-stock/groups",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["category", "cement", "paint", "glass", "material group"],
+      },
+      {
         id: "stock.brands",
         label: L("Brands", "Brands", "برانڈز"),
         href: "/suppliers-stock/brands",

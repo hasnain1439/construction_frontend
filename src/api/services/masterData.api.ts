@@ -17,6 +17,7 @@ import type {
   LaborRate,
   Material,
   MaterialGroup,
+  MaterialSection,
   MaterialsQuery,
   Paginated,
   PaymentTemplate,
@@ -84,6 +85,18 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: () => ENDPOINTS.masterData.materialGroups,
       providesTags: ["MaterialGroups"],
       keepUnusedDataFor: 600,
+    }),
+    createMaterialGroup: build.mutation<MaterialGroup, { name: string; section: MaterialSection }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.materialGroups, method: "POST", body }),
+      invalidatesTags: ["MaterialGroups"],
+    }),
+    updateMaterialGroup: build.mutation<MaterialGroup, { id: string; name?: string; section?: MaterialSection }>({
+      query: ({ id, ...body }) => ({ url: ENDPOINTS.masterData.materialGroupById(id), method: "PATCH", body }),
+      invalidatesTags: ["MaterialGroups", "Materials"],
+    }),
+    deleteMaterialGroup: build.mutation<{ id: string; deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.masterData.materialGroupById(id), method: "DELETE" }),
+      invalidatesTags: ["MaterialGroups"],
     }),
     getMaterials: build.query<Material[], MaterialsQuery | void>({
       query: (params) => ({ url: ENDPOINTS.masterData.materials, params: cleanParams(params ?? undefined) }),
@@ -269,12 +282,12 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: (id) => ENDPOINTS.masterData.brandActivity(id),
       providesTags: [{ type: "Materials", id: "BRANDS" }],
     }),
-    createBrand: build.mutation<Brand, { name: string }>({
+    createBrand: build.mutation<Brand, { name: string; groupIds?: string[] }>({
       query: (body) => ({ url: ENDPOINTS.masterData.brands, method: "POST", body }),
-      invalidatesTags: [{ type: "Materials", id: "BRANDS" }],
+      invalidatesTags: [{ type: "Materials", id: "BRANDS" }, "MaterialGroups"],
     }),
-    updateBrand: build.mutation<Brand & { mergedFromId?: string }, { id: string; name: string }>({
-      query: ({ id, name }) => ({ url: ENDPOINTS.masterData.brandById(id), method: "PATCH", body: { name } }),
+    updateBrand: build.mutation<Brand & { mergedFromId?: string }, { id: string; name?: string; groupIds?: string[] }>({
+      query: ({ id, ...body }) => ({ url: ENDPOINTS.masterData.brandById(id), method: "PATCH", body }),
       invalidatesTags: ["Materials"],
     }),
     /** A brand on products needs moveTo (another brand) or clear. */
@@ -415,6 +428,9 @@ export const {
   useGetSupplierProductsQuery,
   useSetMaterialSupplierCategoriesMutation,
   useGetBrandsQuery,
+  useCreateMaterialGroupMutation,
+  useUpdateMaterialGroupMutation,
+  useDeleteMaterialGroupMutation,
   useGetBrandActivityQuery,
   useCreateBrandMutation,
   useUpdateBrandMutation,

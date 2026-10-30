@@ -7,6 +7,7 @@ import {
   useDeleteBrandMutation,
   useGetBrandActivityQuery,
   useGetBrandsQuery,
+  useGetMaterialGroupsQuery,
   useUpdateBrandMutation,
 } from "@/api/services/masterData.api";
 import type { Brand } from "@/api/types";
@@ -20,6 +21,7 @@ import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { SlideOver } from "@/components/common/SlideOver";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,14 +43,24 @@ function WhoWhen({ name, at, fallback }: { name: string | null; at: string | nul
   );
 }
 
-/** Add (brand = null) or rename; another brand's name merges the two. */
+/** Add (brand = null) or edit: name and the groups it makes products in; another brand's name merges the two. */
 function NameDialog({ brand, onClose }: { brand: Brand | null; onClose: () => void }) {
   const t = useT();
   const [create, { isLoading: creating }] = useCreateBrandMutation();
   const [update, { isLoading: updating }] = useUpdateBrandMutation();
+  const groups = useGetMaterialGroupsQuery();
   const run = useMutationToast();
   const [name, setName] = useState(brand?.name ?? "");
+  const [groupIds, setGroupIds] = useState(() => new Set(brand?.groups.map((g) => g.id) ?? []));
   const trimmed = name.trim();
+  const groupsChanged = !brand || [...groupIds].sort().join() !== brand.groups.map((g) => g.id).sort().join();
+  const toggle = (id: string, on: boolean) =>
+    setGroupIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
   return (
     <ConfirmDialog
       open
@@ -57,19 +69,31 @@ function NameDialog({ brand, onClose }: { brand: Brand | null; onClose: () => vo
       description={brand ? t("masterData.products.renameBrandHint") : undefined}
       confirmLabel={t("common.save")}
       loading={creating || updating}
-      confirmDisabled={trimmed.length < 2 || trimmed === brand?.name}
+      confirmDisabled={trimmed.length < 2 || (trimmed === brand?.name && !groupsChanged)}
       onConfirm={async () => {
         const result = brand
-          ? await run(() => update({ id: brand.id, name: trimmed }).unwrap(), {
+          ? await run(() => update({ id: brand.id, ...(trimmed !== brand.name ? { name: trimmed } : {}), ...(groupsChanged ? { groupIds: [...groupIds] } : {}) }).unwrap(), {
               success: (r) => (r.mergedFromId ? t("masterData.products.mergedInto", { name: r.name }) : t("masterData.products.brandSaved")),
             })
-          : await run(() => create({ name: trimmed }).unwrap(), { success: t("masterData.common.added", { name: trimmed }) });
+          : await run(() => create({ name: trimmed, groupIds: [...groupIds] }).unwrap(), { success: t("masterData.common.added", { name: trimmed }) });
         if (result) onClose();
       }}
     >
       <div className="space-y-1.5">
         <Label htmlFor="brand-name">{t("masterData.products.brandName")}</Label>
         <Input id="brand-name" value={name} maxLength={60} autoFocus placeholder={t("masterData.products.brandPlaceholder")} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div className="mt-4 space-y-2">
+        <p className="text-sm font-medium">{t("masterData.products.brandGroups")}</p>
+        <p className="text-xs text-muted-foreground">{t("masterData.products.brandGroupsHint")}</p>
+        <div className="grid max-h-56 gap-2 overflow-y-auto sm:grid-cols-2">
+          {(groups.data ?? []).map((g) => (
+            <Label key={g.id} className="flex cursor-pointer items-center gap-2 font-normal">
+              <Checkbox checked={groupIds.has(g.id)} onCheckedChange={(on) => toggle(g.id, on === true)} />
+              {g.name}
+            </Label>
+          ))}
+        </div>
       </div>
     </ConfirmDialog>
   );
@@ -129,6 +153,7 @@ function ActivityPanel({ brand, onClose }: { brand: Brand; onClose: () => void }
     if (action === "brand.rename") return t("masterData.products.actRenamed", { from: String(d["from"] ?? ""), to: String(d["to"] ?? "") });
     if (action === "brand.merge") return t("masterData.products.actMerged", { from: String(d["from"] ?? ""), n });
     if (action === "brand.restore") return t("masterData.products.actRestored");
+    if (action === "brand.groups") return t("masterData.products.actGroups", { to: Array.isArray(d["to"]) ? (d["to"] as unknown[]).join(", ") || "—" : "—" });
     if (action === "brand.delete") {
       const to = d["movedTo"] ?? d["mergedInto"];
       if (to) return t("masterData.products.actDeletedMoved", { n, to: String(to) });
@@ -184,6 +209,11 @@ export function BrandsView() {
 
   const activeColumns: Column<Brand>[] = [
     name,
+    {
+      id: "groups",
+      header: t("masterData.products.groups"),
+      cell: (b) => (b.groups.length ? <span className="text-sm">{b.groups.map((g) => g.name).join(", ")}</span> : <span className="text-sm text-muted-foreground">{t("masterData.products.anyGroup")}</span>),
+    },
     { id: "products", header: t("masterData.products.products"), align: "right", sortValue: (b) => b.productCount, cell: (b) => <span className="tabular">{b.productCount}</span> },
     addedBy,
     { id: "changed", header: t("masterData.supplierCategories.lastChanged"), sortValue: (b) => b.updatedAt ?? "", cell: (b) => <WhoWhen name={b.updatedBy} at={b.updatedAt} fallback="" /> },
@@ -194,7 +224,7 @@ export function BrandsView() {
           name={b.name}
           actions={[
             activity(b),
-            { label: t("masterData.supplierCategories.rename"), icon: Pencil, onSelect: () => setEditing(b), hidden: !canManage },
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(b), hidden: !canManage },
             { label: t("common.delete"), icon: Trash2, destructive: true, onSelect: () => setDeleting(b), hidden: !canManage },
           ]}
         />
