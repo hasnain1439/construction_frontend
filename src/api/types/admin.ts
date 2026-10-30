@@ -391,3 +391,17 @@ export interface CompanyActivity {
     cashWithSiteStaffPaisa: Paisa;
   };
 }
+
+/** PATCH /admin/tenants/:id/owner-account — support fix for the owner's sign-in and the company email. */
+export interface TenantOwnerAccountBody {
+  ownerEmail?: string;
+  ownerPassword?: string;
+  companyEmail?: string | null;
+  note?: string;
+}
+
+export interface TenantOwnerAccountResult {
+  id: string;
+  email: string | null;
+  ownerEmail: string | null;
+}

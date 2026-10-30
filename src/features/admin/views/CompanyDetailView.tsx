@@ -3,6 +3,7 @@
 import {
   ArrowLeftRight,
   CalendarPlus,
+  KeyRound,
   Lock,
   Monitor,
   MonitorOff,
@@ -15,6 +16,7 @@ import { useGetAdminPlansQuery } from "@/api/services/admin/plans.api";
 import {
   useGetTenantQuery,
   useSetTenantOfflineOfficeMutation,
+  useSetTenantOwnerAccountMutation,
   useSetTenantPlanMutation,
   useSetTenantStatusMutation,
 } from "@/api/services/admin/tenants.api";
@@ -32,6 +34,7 @@ import { UsageBar } from "@/components/common/UsageBar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NumberInput } from "@/components/forms/NumberField";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CompanyActivityTab,
@@ -325,10 +328,81 @@ function OfflineOfficeDialog({
   );
 }
 
+/**
+ * Support fix: the owner's login email / password and the company email, when the owner lost the
+ * old mailbox or forgot the password. Only changed fields are sent; a new password signs the owner out.
+ */
+function OwnerAccountDialog({ tenant, open, onClose }: { tenant: TenantDetail; open: boolean; onClose: () => void }) {
+  const [save, { isLoading }] = useSetTenantOwnerAccountMutation();
+  const run = useMutationToast();
+  const [ownerEmail, setOwnerEmail] = useState(tenant.owner?.email ?? "");
+  const [ownerPassword, setOwnerPassword] = useState("");
+  const [companyEmail, setCompanyEmail] = useState(tenant.email ?? "");
+  const [note, setNote] = useState("");
+
+  const body = {
+    ...(tenant.owner && ownerEmail.trim() && ownerEmail.trim().toLowerCase() !== (tenant.owner.email ?? "") ? { ownerEmail: ownerEmail.trim() } : {}),
+    ...(tenant.owner && ownerPassword ? { ownerPassword } : {}),
+    ...(companyEmail.trim() !== (tenant.email ?? "") ? { companyEmail: companyEmail.trim() || null } : {}),
+    ...(note.trim() ? { note: note.trim() } : {}),
+  };
+  const changed = "ownerEmail" in body || "ownerPassword" in body || "companyEmail" in body;
+
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      title={`Owner login & email — ${tenant.name}`}
+      description="For when the owner lost the old email or forgot the password. No current password is needed. A new password signs the owner out on every device."
+      confirmLabel="Save changes"
+      loading={isLoading}
+      confirmDisabled={!changed}
+      onConfirm={async () => {
+        const ok = await run(() => save({ id: tenant.id, body }).unwrap(), { success: `${tenant.name}: owner account updated` });
+        if (ok) {
+          setOwnerPassword("");
+          setNote("");
+          onClose();
+        }
+      }}
+    >
+      <div className="space-y-4">
+        {tenant.owner ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="owner-email">Owner login email</Label>
+              <Input id="owner-email" type="email" autoComplete="off" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="owner-password">New owner password (leave empty to keep)</Label>
+              <Input id="owner-password" type="text" autoComplete="new-password" value={ownerPassword} onChange={(e) => setOwnerPassword(e.target.value)} />
+              <p className="text-xs text-muted-foreground">At least 8 characters with a letter and a number. Give it to the owner and ask them to change it from My account.</p>
+            </div>
+          </>
+        ) : (
+          <InlineAlert tone="warning" title="Invite pending">
+            The owner hasn&apos;t accepted the invitation yet, so there is no login to change. Only the company email can be changed.
+          </InlineAlert>
+        )}
+        <div className="space-y-1.5">
+          <Label htmlFor="company-email">Company email (invoices &amp; documents)</Label>
+          <Input id="company-email" type="email" autoComplete="off" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="owner-account-note">Note (optional)</Label>
+          <Textarea id="owner-account-note" rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
+          <p className="text-xs text-muted-foreground">Saved in the audit log (the password never is).</p>
+        </div>
+      </div>
+    </ConfirmDialog>
+  );
+}
+
 function CompanyBody({ tenant }: { tenant: TenantDetail }) {
   const [action, setAction] = useState<(typeof ACTIONS)[number] | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [offlineOpen, setOfflineOpen] = useState(false);
+  const [ownerOpen, setOwnerOpen] = useState(false);
   const offlineAllowed = Boolean(tenant.settings?.offlineOfficeAllowed);
   const sub = tenant.subscription;
   const visibleActions = ACTIONS.filter((a) => {
@@ -397,7 +471,17 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                 ]}
               />
             </SectionCard>
-            <SectionCard title="Owner">
+            <SectionCard
+              title="Owner"
+              actions={
+                tenant.status !== "CLOSED" ? (
+                  <Button variant="outline" size="sm" onClick={() => setOwnerOpen(true)}>
+                    <KeyRound data-icon="inline-start" />
+                    Login &amp; email
+                  </Button>
+                ) : null
+              }
+            >
               {tenant.owner ? (
                 <InfoList
                   columns={1}
@@ -572,6 +656,7 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
       <StatusActionDialog tenant={tenant} action={action} onClose={() => setAction(null)} />
       <ChangePlanDialog tenant={tenant} open={planOpen} onClose={() => setPlanOpen(false)} />
       <OfflineOfficeDialog tenant={tenant} open={offlineOpen} onClose={() => setOfflineOpen(false)} />
+      {ownerOpen ? <OwnerAccountDialog tenant={tenant} open onClose={() => setOwnerOpen(false)} /> : null}
     </>
   );
 }
