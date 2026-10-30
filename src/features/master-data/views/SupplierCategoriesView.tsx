@@ -1,11 +1,13 @@
 "use client";
 
-import { History, Pencil, Plus, Tags, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { History, Package, Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   useCreateSupplierCategoryMutation,
   useDeleteSupplierCategoryMutation,
+  useGetMaterialsQuery,
   useGetSupplierCategoriesQuery,
+  useSetSupplierCategoryMaterialsMutation,
   useGetSupplierCategoryActivityQuery,
   useUpdateSupplierCategoryMutation,
 } from "@/api/services/masterData.api";
@@ -19,6 +21,7 @@ import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { SlideOver } from "@/components/common/SlideOver";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -82,6 +85,15 @@ function ActivityPanel({ category, onClose }: { category: SupplierCategory; onCl
       return to ? t("masterData.supplierCategories.deletedMoved", { n: Number(d["suppliersMoved"] ?? 0), to: String(to) }) : t("masterData.supplierCategories.deletedItem");
     }
     if (item.action === "supplier_category.restore") return t("masterData.supplierCategories.restored");
+    if (item.action === "supplier_category.materials") {
+      const list = (k: string) => (Array.isArray(d[k]) ? (d[k] as unknown[]).map(String) : []);
+      return [
+        list("added").length ? t("masterData.supplierCategories.productsAdded", { names: list("added").join(", ") }) : null,
+        list("removed").length ? t("masterData.supplierCategories.productsRemoved", { names: list("removed").join(", ") }) : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    }
     return t("masterData.supplierCategories.created");
   };
   return (
@@ -106,6 +118,75 @@ function ActivityPanel({ category, onClose }: { category: SupplierCategory; onCl
           </ol>
         )}
       </QueryState>
+    </SlideOver>
+  );
+}
+
+/** The category's products: tick materials (Settings → Materials), grouped like the materials list. */
+function ProductsPanel({ category, readOnly, onClose }: { category: SupplierCategory; readOnly: boolean; onClose: () => void }) {
+  const t = useT();
+  const { data: materials, isLoading } = useGetMaterialsQuery();
+  const [save, { isLoading: saving }] = useSetSupplierCategoryMaterialsMutation();
+  const run = useMutationToast();
+  const [chosen, setChosen] = useState(() => new Set(category.materials.map((m) => m.id)));
+  const [search, setSearch] = useState("");
+  const groups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const map = new Map<string, Array<{ id: string; name: string; unit: string }>>();
+    for (const m of materials ?? []) {
+      if (q && !m.name.toLowerCase().includes(q) && !m.group.name.toLowerCase().includes(q)) continue;
+      map.set(m.group.name, [...(map.get(m.group.name) ?? []), m]);
+    }
+    return [...map.entries()];
+  }, [materials, search]);
+  const toggle = (id: string, on: boolean) =>
+    setChosen((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  return (
+    <SlideOver
+      open
+      onOpenChange={(o) => !o && onClose()}
+      title={t("masterData.supplierCategories.productsTitle", { name: category.name })}
+      description={t("masterData.supplierCategories.productsHint")}
+      busy={saving}
+      footer={
+        readOnly ? undefined : (
+          <div className="flex w-full items-center justify-between gap-2">
+            <span className="text-sm text-muted-foreground">{t("masterData.supplierCategories.selectedCount", { n: chosen.size })}</span>
+            <Button
+              disabled={saving}
+              onClick={async () => {
+                const ok = await run(() => save({ id: category.id, materialIds: [...chosen] }).unwrap(), { success: t("masterData.supplierCategories.productsSaved") });
+                if (ok) onClose();
+              }}
+            >
+              {t("common.save")}
+            </Button>
+          </div>
+        )
+      }
+    >
+      <div className="space-y-4">
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("masterData.supplierCategories.searchProducts")} />
+        {isLoading ? <p className="text-sm text-muted-foreground">…</p> : null}
+        {groups.map(([group, items]) => (
+          <fieldset key={group} className="space-y-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</legend>
+            {items.map((m) => (
+              <label key={m.id} className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-1 hover:bg-muted/50">
+                <Checkbox checked={chosen.has(m.id)} disabled={readOnly} onCheckedChange={(on) => toggle(m.id, on === true)} />
+                <span className="text-sm">{m.name}</span>
+                <span className="text-xs text-muted-foreground">{m.unit}</span>
+              </label>
+            ))}
+          </fieldset>
+        ))}
+      </div>
     </SlideOver>
   );
 }
@@ -180,6 +261,7 @@ export function SupplierCategoriesView() {
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<SupplierCategory | null>(null);
   const [history, setHistory] = useState<SupplierCategory | null>(null);
+  const [products, setProducts] = useState<SupplierCategory | null>(null);
 
   const name: Column<SupplierCategory> = { id: "name", header: t("masterData.supplierCategories.name"), sortValue: (c) => c.name, cell: (c) => <span className="font-medium">{c.name}</span> };
   const addedBy: Column<SupplierCategory> = {
@@ -192,6 +274,23 @@ export function SupplierCategoriesView() {
 
   const activeColumns: Column<SupplierCategory>[] = [
     name,
+    {
+      id: "products",
+      header: t("masterData.supplierCategories.products"),
+      sortValue: (c) => c.materials.length,
+      cell: (c) =>
+        c.materials.length ? (
+          <span className="text-sm">
+            {c.materials
+              .slice(0, 3)
+              .map((m) => m.name)
+              .join(", ")}
+            {c.materials.length > 3 ? <span className="text-muted-foreground"> {t("masterData.supplierCategories.moreProducts", { n: c.materials.length - 3 })}</span> : null}
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground">{t("masterData.supplierCategories.noProducts")}</span>
+        ),
+    },
     { id: "suppliers", header: t("masterData.supplierCategories.suppliers"), align: "right", sortValue: (c) => c.supplierCount, cell: (c) => <span className="tabular">{c.supplierCount}</span> },
     addedBy,
     {
@@ -206,6 +305,7 @@ export function SupplierCategoriesView() {
         <RowActions
           name={c.name}
           actions={[
+            { label: t("masterData.supplierCategories.products"), icon: Package, onSelect: () => setProducts(c) },
             activityAction(c),
             { label: t("masterData.supplierCategories.rename"), icon: Pencil, onSelect: () => setEditing(c), hidden: readOnly },
             { label: t("common.delete"), icon: Trash2, destructive: true, onSelect: () => setDeleting(c), hidden: readOnly },
@@ -268,6 +368,7 @@ export function SupplierCategoriesView() {
           }
         />
       </SectionCard>
+      {products ? <ProductsPanel key={products.id} category={products} readOnly={readOnly} onClose={() => setProducts(null)} /> : null}
       {history ? <ActivityPanel key={history.id} category={history} onClose={() => setHistory(null)} /> : null}
       {adding ? <NameDialog category={null} open onClose={() => setAdding(false)} /> : null}
       {editing ? <NameDialog key={editing.id} category={editing} open onClose={() => setEditing(null)} /> : null}

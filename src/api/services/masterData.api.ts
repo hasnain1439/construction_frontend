@@ -35,6 +35,7 @@ import type {
   Supplier,
   SupplierCategory,
   SupplierCategoryActivity,
+  SupplierProducts,
   SupplierDetail,
   SupplierRates,
   SuppliersQuery,
@@ -244,6 +245,15 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: (id) => ENDPOINTS.masterData.supplierCategoryActivity(id),
       providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
     }),
+    /** Exactly these materials become the category's products. */
+    setSupplierCategoryMaterials: build.mutation<{ id: string; name: string; materials: SupplierCategory["materials"] }, { id: string; materialIds: string[] }>({
+      query: ({ id, materialIds }) => ({ url: ENDPOINTS.masterData.supplierCategoryMaterials(id), method: "PUT", body: { materialIds } }),
+      invalidatesTags: ["Suppliers"],
+    }),
+    getSupplierProducts: build.query<SupplierProducts, string>({
+      query: (id) => ENDPOINTS.masterData.supplierProducts(id),
+      providesTags: (_r, _e, id) => [{ type: "Suppliers", id }, { type: "Suppliers", id: "CATEGORIES" }],
+    }),
     createSupplierCategory: build.mutation<SupplierCategory, { name: string }>({
       query: (body) => ({ url: ENDPOINTS.masterData.supplierCategories, method: "POST", body }),
       invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
@@ -373,6 +383,8 @@ export const {
   useGetSuppliersQuery,
   useGetSupplierCategoriesQuery,
   useGetSupplierCategoryActivityQuery,
+  useSetSupplierCategoryMaterialsMutation,
+  useGetSupplierProductsQuery,
   useCreateSupplierCategoryMutation,
   useUpdateSupplierCategoryMutation,
   useDeleteSupplierCategoryMutation,

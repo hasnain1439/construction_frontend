@@ -326,6 +326,7 @@ export const strings = {
       nothingFound: "Nothing found",
       searchMaterials: "Search materials…",
       noMaterial: "No material found",
+      supplierSells: "Sold by this supplier",
       chooseMaterial: "Choose material",
       digitN: "Digit {n}",
       verificationCode: "Verification code",

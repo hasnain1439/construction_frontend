@@ -46,6 +46,8 @@ export interface LineItemsEditorProps {
   materialMode?: "pick" | "fixed";
   /** Materials the picker may offer (e.g. in stock, owner-supplied). */
   materialIds?: readonly string[];
+  /** Listed first in the picker (e.g. what the chosen supplier sells). */
+  preferMaterialIds?: readonly string[];
   describeMaterial?: (material: Material) => string | undefined;
   /** Called when a row's material changes (prefill a rate, etc.). */
   onMaterialChange?: (index: number, material: Material | undefined) => void;
@@ -160,6 +162,7 @@ export function LineItemsEditor({
   columns,
   materialMode = "pick",
   materialIds,
+  preferMaterialIds,
   describeMaterial,
   onMaterialChange,
   info,
@@ -260,6 +263,7 @@ export function LineItemsEditor({
                                   onMaterialChange?.(index, material);
                                 }}
                                 onlyIds={materialIds}
+                                preferIds={preferMaterialIds}
                                 excludeIds={chosen}
                                 describe={describeMaterial}
                                 disabled={disabled}

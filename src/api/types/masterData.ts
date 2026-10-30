@@ -341,6 +341,15 @@ export interface SupplierCategory {
   /** Deleted list only (?deleted=true). */
   deletedAt: string | null;
   deletedBy: string | null;
+  /** The products this kind of dealer sells (Settings → Materials). */
+  materials: Array<{ id: Id; name: string; unit: string }>;
+}
+
+/** GET /suppliers/:id/products — its category's products + agreed-rate materials. */
+export interface SupplierProducts {
+  supplierId: Id;
+  category: string;
+  items: Array<{ id: Id; name: string; unit: string; source: "CATEGORY" | "RATE" | "BOTH" }>;
 }
 
 export interface SupplierCategoryActivity {

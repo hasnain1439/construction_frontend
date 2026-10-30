@@ -15,6 +15,8 @@ export interface MaterialPickerProps {
   onlyIds?: readonly string[];
   /** Hide these (already on other lines). */
   excludeIds?: readonly string[];
+  /** Listed first, marked (e.g. what the chosen supplier sells); the rest still follow. */
+  preferIds?: readonly string[];
   /** Extra text under each option, e.g. "In stock: 220 bags". */
   describe?: (material: Material) => string | undefined;
   id?: string;
@@ -26,16 +28,21 @@ export interface MaterialPickerProps {
 }
 
 /** Searchable material list from GET /materials, showing the unit and group. */
-export function MaterialPicker({ value, onChange, onlyIds, excludeIds, describe, placeholder, ...rest }: MaterialPickerProps) {
+export function MaterialPicker({ value, onChange, onlyIds, excludeIds, preferIds, describe, placeholder, ...rest }: MaterialPickerProps) {
   const t = useT();
   const { data: materials, isLoading } = useGetMaterialsQuery();
   const options = useMemo(() => {
     const only = onlyIds ? new Set(onlyIds) : null;
     const exclude = new Set(excludeIds ?? []);
-    return (materials ?? [])
-      .filter((m) => (!only || only.has(m.id)) && (m.id === value || !exclude.has(m.id)))
-      .map((m) => ({ value: m.id, label: m.name, description: describe?.(m) ?? `${m.unit} · ${m.group.name}` }));
-  }, [materials, onlyIds, excludeIds, describe, value]);
+    const prefer = new Set(preferIds ?? []);
+    const rows = (materials ?? []).filter((m) => (!only || only.has(m.id)) && (m.id === value || !exclude.has(m.id)));
+    // Stable: preferred ones first, each part in the list's own order.
+    const ordered = prefer.size ? [...rows.filter((m) => prefer.has(m.id)), ...rows.filter((m) => !prefer.has(m.id))] : rows;
+    return ordered.map((m) => {
+      const base = describe?.(m) ?? `${m.unit} · ${m.group.name}`;
+      return { value: m.id, label: m.name, description: prefer.has(m.id) ? `★ ${t("app.components.forms.supplierSells")} · ${base}` : base };
+    });
+  }, [materials, onlyIds, excludeIds, preferIds, describe, value, t]);
 
   return (
     <Combobox

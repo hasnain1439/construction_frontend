@@ -327,6 +327,7 @@ export const strings: Widen<typeof En.strings> = {
       nothingFound: "کچھ نہیں ملا",
       searchMaterials: "مال تلاش کریں…",
       noMaterial: "کوئی مال نہیں ملا",
+      supplierSells: "یہ سپلائر بیچتا ہے",
       chooseMaterial: "مال منتخب کریں",
       digitN: "ہندسہ {n}",
       verificationCode: "تصدیقی کوڈ",
