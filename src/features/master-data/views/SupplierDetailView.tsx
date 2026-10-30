@@ -209,7 +209,7 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
             title={supplier.name}
             meta={<StatusBadge domain="active" value={supplier.isActive} />}
             breadcrumbs={[
-              { label: t("crumb.suppliersStock") },
+              { label: t("crumb.suppliers") },
               { label: t("masterData.suppliers.title"), href: "/suppliers-stock/suppliers" },
               { label: supplier.name },
             ]}

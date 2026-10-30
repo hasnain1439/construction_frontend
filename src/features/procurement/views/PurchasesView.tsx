@@ -79,7 +79,7 @@ export function PurchasesView() {
       <PageHeader
         title={t("procurement.purchases.title")}
         description={t("procurement.purchases.desc")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchases") }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchases") }]}
         actions={
           canCreate ? (
             <Button asChild>

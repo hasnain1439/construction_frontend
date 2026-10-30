@@ -125,7 +125,7 @@ function PurchaseBody({ purchase }: { purchase: Purchase }) {
     <>
       <PageHeader
         title={purchase.number}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchases"), href: "/suppliers-stock/purchases" }, { label: purchase.number }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchases"), href: "/suppliers-stock/purchases" }, { label: purchase.number }]}
         actions={
           <>
             {canRate && purchase.status === "PENDING_RATE" ? (

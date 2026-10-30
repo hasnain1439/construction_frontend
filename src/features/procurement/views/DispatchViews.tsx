@@ -67,7 +67,7 @@ export function DispatchesView() {
       <PageHeader
         title={t("procurement.dispatch.listTitle")}
         description={t("procurement.dispatch.listDesc")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.dispatches") }]}
+        breadcrumbs={[{ label: t("crumb.stock") }, { label: t("procurement.crumb.dispatches") }]}
         actions={
           owner && store ? (
             <Button onClick={() => setNewOpen(true)}>
@@ -148,7 +148,7 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
     <>
       <PageHeader
         title={dispatch.number}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.dispatches"), href: BASE }, { label: dispatch.number }]}
+        breadcrumbs={[{ label: t("crumb.stock") }, { label: t("procurement.crumb.dispatches"), href: BASE }, { label: dispatch.number }]}
         actions={
           office && dispatch.status === "ON_THE_WAY" ? (
             <Button variant="outline" onClick={() => setCancelOpen(true)}>

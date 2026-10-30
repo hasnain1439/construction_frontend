@@ -72,7 +72,7 @@ export function PurchaseOrdersView() {
       <PageHeader
         title={t("procurement.orders.listTitle")}
         description={t("procurement.orders.listDesc")}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders") }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchaseOrders") }]}
         actions={
           canCreate ? (
             <Button asChild>
@@ -125,7 +125,7 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
     <>
       <PageHeader
         title={order.number}
-        breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, { label: order.number }]}
+        breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, { label: order.number }]}
         actions={
           editable ? (
             <>
@@ -313,7 +313,7 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
 export function PurchaseOrderFormView({ orderId }: { orderId?: string }) {
   const t = useT();
   const query = useGetPurchaseOrderQuery(orderId ?? "", { skip: !orderId });
-  const header = (title: string, crumbs: Array<{ label: string; href?: string }>) => <PageHeader title={title} breadcrumbs={[{ label: t("crumb.suppliersStock") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, ...crumbs]} />;
+  const header = (title: string, crumbs: Array<{ label: string; href?: string }>) => <PageHeader title={title} breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("procurement.crumb.purchaseOrders"), href: BASE }, ...crumbs]} />;
   if (!orderId) {
     return (
       <>
