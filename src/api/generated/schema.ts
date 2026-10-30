@@ -6366,6 +6366,8 @@ export interface paths {
                     groupId?: string;
                     search?: string;
                     supplyCategory?: "GREY_STRUCTURE" | "FINISHING";
+                    brandId?: string;
+                    qualityId?: string;
                     /** @description THEKEDAR / PM only (ignored for MUNSHI) */
                     includeHidden?: "true" | "false";
                 };
@@ -6486,6 +6488,10 @@ export interface paths {
                          * @enum {string}
                          */
                         supplyCategory?: "GREY_STRUCTURE" | "FINISHING";
+                        /** @description A brand of the company (GET /brands) */
+                        brandId?: string | null;
+                        /** @description A quality category (GET /quality-categories) */
+                        qualityId?: string | null;
                     };
                 };
             };
@@ -6699,6 +6705,8 @@ export interface paths {
                         }[];
                         /** @enum {string} */
                         supplyCategory?: "GREY_STRUCTURE" | "FINISHING";
+                        brandId?: string | null;
+                        qualityId?: string | null;
                     };
                 };
             };

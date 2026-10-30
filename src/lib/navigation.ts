@@ -183,6 +183,22 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     items: [
       {
+        id: "stock.products",
+        label: L("Products", "Products", "پروڈکٹس"),
+        href: "/suppliers-stock/products",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["brand", "quality", "tiles", "paint", "cement", "material"],
+      },
+      {
+        id: "stock.brands",
+        label: L("Brands", "Brands", "برانڈز"),
+        href: "/suppliers-stock/brands",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["company", "fauji", "master", "make"],
+      },
+      {
         id: "stock.suppliers",
         label: L("All Suppliers", "Tamam suppliers", "تمام سپلائرز"),
         href: "/suppliers-stock/suppliers",

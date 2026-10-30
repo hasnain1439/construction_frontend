@@ -30,6 +30,9 @@ export interface Material {
   unitDetail: string | null;
   altUnits: AltUnit[];
   supplyCategory: SupplyCategory;
+  /** Products by brand / quality (both optional). */
+  brand: { id: Id; name: string } | null;
+  quality: { id: Id; name: string; code: string } | null;
   source: MaterialSource;
   isHidden: boolean;
 }
@@ -363,4 +366,25 @@ export interface SupplierCategoryActivity {
     by: string;
     details: Record<string, unknown> | null;
   }>;
+}
+
+/** The company's brands (Fauji, Master Tiles, …) for products. */
+export interface Brand {
+  id: Id;
+  name: string;
+  productCount: number;
+  createdAt: string;
+  createdBy: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  deletedAt: string | null;
+  deletedBy: string | null;
+}
+
+export interface BrandActivity {
+  id: Id;
+  name: string;
+  createdAt: string;
+  deletedAt: string | null;
+  items: Array<{ id: Id; action: string; at: string; by: string; details: Record<string, unknown> | null }>;
 }
