@@ -119,6 +119,7 @@ export const en = {
     notifications: "Notifications",
     noNotifications: "No notifications yet",
     sessions: "Sessions",
+    myAccount: "My account",
     logout: "Log out",
     theme: "Theme",
     light: "Light",

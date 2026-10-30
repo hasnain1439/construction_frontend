@@ -2,6 +2,7 @@
 import type { CompanyRoute } from "@/lib/companyRoutes";
 
 export const COMPANY_ROUTES: CompanyRoute[] = [
+  { segments: [{"kind":"static","name":"account"}], load: () => import("@/app/(company)/account/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/dashboard/[...rest]/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"static","name":"alerts"}], load: () => import("@/app/(company)/dashboard/alerts/page") },
   { segments: [{"kind":"static","name":"dashboard"},{"kind":"static","name":"approvals"}], load: () => import("@/app/(company)/dashboard/approvals/page") },
@@ -49,12 +50,16 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"price-list"}], load: () => import("@/app/(company)/settings/price-list/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"rulebook"}], load: () => import("@/app/(company)/settings/rulebook/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"subscription"}], load: () => import("@/app/(company)/settings/subscription/page") },
+  { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"supplier-categories"}], load: () => import("@/app/(company)/settings/supplier-categories/page") },
   { segments: [{"kind":"static","name":"settings"},{"kind":"static","name":"tax"}], load: () => import("@/app/(company)/settings/tax/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/suppliers-stock/[...rest]/page") },
+  { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"brands"}], load: () => import("@/app/(company)/suppliers-stock/brands/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"dispatches"},{"kind":"param","name":"dispatchId"}], load: () => import("@/app/(company)/suppliers-stock/dispatches/[dispatchId]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"dispatches"}], load: () => import("@/app/(company)/suppliers-stock/dispatches/page") },
+  { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"groups"}], load: () => import("@/app/(company)/suppliers-stock/groups/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"ledger"}], load: () => import("@/app/(company)/suppliers-stock/ledger/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"payments"}], load: () => import("@/app/(company)/suppliers-stock/payments/page") },
+  { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"products"}], load: () => import("@/app/(company)/suppliers-stock/products/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"purchase-orders"},{"kind":"param","name":"orderId"},{"kind":"static","name":"edit"}], load: () => import("@/app/(company)/suppliers-stock/purchase-orders/[orderId]/edit/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"purchase-orders"},{"kind":"param","name":"orderId"}], load: () => import("@/app/(company)/suppliers-stock/purchase-orders/[orderId]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"purchase-orders"},{"kind":"static","name":"new"}], load: () => import("@/app/(company)/suppliers-stock/purchase-orders/new/page") },
@@ -67,6 +72,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"store-stock"}], load: () => import("@/app/(company)/suppliers-stock/store-stock/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"suppliers"},{"kind":"param","name":"supplierId"}], load: () => import("@/app/(company)/suppliers-stock/suppliers/[supplierId]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"suppliers"}], load: () => import("@/app/(company)/suppliers-stock/suppliers/page") },
+  { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"units"}], load: () => import("@/app/(company)/suppliers-stock/units/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"devices"}], load: () => import("@/app/(company)/team/devices/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"invitations"}], load: () => import("@/app/(company)/team/invitations/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"members"}], load: () => import("@/app/(company)/team/members/page") },

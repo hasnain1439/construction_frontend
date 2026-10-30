@@ -3,12 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-import { useCreateSupplierMutation, useUpdateSupplierMutation } from "@/api/services/masterData.api";
+import Link from "next/link";
+import { useCreateSupplierMutation, useGetSupplierCategoriesQuery, useUpdateSupplierMutation } from "@/api/services/masterData.api";
+import { useCan } from "@/components/common/PermissionGate";
 import type { Supplier } from "@/api/types";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { PhoneField } from "@/components/forms/PhoneInput";
+import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
@@ -44,6 +47,13 @@ export function SupplierSlideOver({
   const [create, { isLoading: creating }] = useCreateSupplierMutation();
   const [update, { isLoading: updating }] = useUpdateSupplierMutation();
   const run = useMutationToast();
+  const { data: categories } = useGetSupplierCategoriesQuery(undefined, { skip: !open });
+  const canManageCategories = useCan("masterdata.supplier.manage");
+  // The supplier's own category stays choosable even if it was removed from the list meanwhile.
+  const categoryOptions = (categories ?? []).map((c) => ({ value: c.name, label: c.name }));
+  if (supplier?.category && !categoryOptions.some((o) => o.value === supplier.category)) {
+    categoryOptions.unshift({ value: supplier.category, label: supplier.category });
+  }
   const form = useForm<Values, unknown, z.output<typeof supplierSchema>>({ resolver: zodResolver(supplierSchema), values: toValues(supplier) });
 
   const onSubmit = async (v: z.output<typeof supplierSchema>) => {
@@ -95,7 +105,19 @@ export function SupplierSlideOver({
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <TextField name="name" label={t("masterData.suppliers.name")} required placeholder={t("masterData.suppliers.namePlaceholder")} />
         <FieldGrid>
-          <TextField name="category" label={t("field.category")} required placeholder={t("masterData.suppliers.categoryPlaceholder")} />
+          <SelectField
+            name="category"
+            label={t("field.category")}
+            required
+            options={categoryOptions}
+            hint={
+              canManageCategories ? (
+                <Link href="/settings/supplier-categories" className="text-primary hover:underline">
+                  {t("masterData.supplierCategories.manage")}
+                </Link>
+              ) : undefined
+            }
+          />
           <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
         <FieldGrid>

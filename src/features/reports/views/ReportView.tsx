@@ -2,8 +2,11 @@
 
 import { FileBarChart } from "lucide-react";
 import { useState } from "react";
+import { useGetMaterialGroupsQuery } from "@/api/services/masterData.api";
 import { useGetReportQuery } from "@/api/services/reports.api";
-import type { ReportCell, ReportColumnType, ReportName, ReportTable } from "@/api/types";
+import type { ReportCell, ReportColumnType, ReportExtraFilters, ReportName, ReportTable } from "@/api/types";
+import { FilterSelect } from "@/components/common/FilterBar";
+import { SearchInput } from "@/components/common/SearchInput";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -15,7 +18,7 @@ import { isTranslationKey, useStatusT, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import { roundToRupee } from "@/lib/money";
-import { REPORTS } from "../reports.config";
+import { REPORT_EXTRA_FILTERS, REPORTS } from "../reports.config";
 
 /** One table cell by column type (money in rupees, quantities with up to 3 decimals). */
 export function ReportValue({ type, value }: { type: ReportColumnType; value: ReportCell | undefined }) {
@@ -35,6 +38,9 @@ export function ReportValue({ type, value }: { type: ReportColumnType; value: Re
       return <span>{String(value)}</span>;
   }
 }
+
+/** Report search boxes: one width, so the filter row stays tidy instead of stretching. */
+const SEARCH = "w-full flex-none sm:w-60";
 
 type Row = ReportTable["rows"][number] & { __id: string };
 
@@ -62,7 +68,19 @@ export function ReportView({ name }: { name: ReportName }) {
   const header = useReportHeader(name);
   const title = t(def.titleKey);
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
-  const params = reportParams({ projectId: def.project ? filters.projectId : "", from: def.dates ? filters.from : "", to: def.dates ? filters.to : "" });
+  const [extra, setExtra] = useState<ReportExtraFilters>({});
+  const shows = REPORT_EXTRA_FILTERS[name] ?? [];
+  const groups = useGetMaterialGroupsQuery(undefined, { skip: !shows.includes("groupId") });
+  const setOne = <K extends keyof ReportExtraFilters>(key: K, value: string) => setExtra((e) => ({ ...e, [key]: value || undefined }));
+  const params = {
+    ...reportParams({ projectId: def.project ? filters.projectId : "", from: def.dates ? filters.from : "", to: def.dates ? filters.to : "" }),
+    ...Object.fromEntries(Object.entries(extra).filter(([k, val]) => val && shows.includes(k as keyof ReportExtraFilters))),
+  };
+  // "Clear filters" on the bar also clears the report's own filters.
+  const onFilters = (f: ReportFilters) => {
+    setFilters(f);
+    if (!f.projectId && !f.from && !f.to) setExtra({});
+  };
   const q = useGetReportQuery({ name, ...params }, { refetchOnMountOrArgChange: true });
   const report = q.data;
   const columns: Column<Row>[] = (report?.columns ?? []).map((c) => ({
@@ -79,7 +97,46 @@ export function ReportView({ name }: { name: ReportName }) {
   return (
     <div className="space-y-6">
       <PageHeader title={title} description={t(def.descriptionKey)} breadcrumbs={[{ label: t("crumb.reports") }, { label: title }]} actions={<ExportMenu name={name} filters={params} disabled={!report} />} />
-      {def.project || def.dates ? <ReportFilterBar value={filters} onChange={setFilters} showProject={def.project} showDates={def.dates} dateLabel={def.dateLabelKey ? t(def.dateLabelKey) : undefined} /> : null}
+      {def.project || def.dates || shows.length ? (
+        <ReportFilterBar value={filters} onChange={onFilters} showProject={def.project} showDates={def.dates} dateLabel={def.dateLabelKey ? t(def.dateLabelKey) : undefined}>
+          {shows.includes("client") ? <SearchInput value={extra.client ?? ""} onChange={(x) => setOne("client", x)} placeholder={t("reports.filter.customer")} className={SEARCH} /> : null}
+          {shows.includes("search") ? <SearchInput value={extra.search ?? ""} onChange={(x) => setOne("search", x)} placeholder={t("reports.filter.name")} className={SEARCH} /> : null}
+          {shows.includes("holder") ? <SearchInput value={extra.holder ?? ""} onChange={(x) => setOne("holder", x)} placeholder={t("reports.filter.holder")} className={SEARCH} /> : null}
+          {shows.includes("projectStatus") ? (
+            <FilterSelect
+              label={t("reports.filter.status")}
+              value={extra.projectStatus ?? ""}
+              onChange={(x) => setOne("projectStatus", x)}
+              allLabel={t("reports.filter.allStatuses")}
+              options={(["ACTIVE", "CLOSEOUT", "HANDED_OVER", "CLOSED"] as const).map((s) => ({ value: s, label: ts("project", s) }))}
+            />
+          ) : null}
+          {shows.includes("overdueOnly") ? (
+            <FilterSelect
+              label={t("reports.filter.overdue")}
+              value={extra.overdueOnly ?? ""}
+              onChange={(x) => setOne("overdueOnly", x)}
+              allLabel={t("reports.filter.allProjects")}
+              options={[{ value: "true", label: t("reports.filter.overdueOnly") }]}
+            />
+          ) : null}
+          {shows.includes("groupId") ? (
+            <FilterSelect label={t("reports.filter.materialGroup")} value={extra.groupId ?? ""} onChange={(x) => setOne("groupId", x)} options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
+          ) : null}
+          {shows.includes("kind") ? (
+            <FilterSelect
+              label={t("reports.filter.payeeType")}
+              value={extra.kind ?? ""}
+              onChange={(x) => setOne("kind", x)}
+              options={[
+                { value: "WORKER", label: t("reports.filter.workers") },
+                { value: "SUBCONTRACTOR", label: t("reports.filter.subcontractors") },
+              ]}
+            />
+          ) : null}
+          {shows.includes("trade") ? <SearchInput value={extra.trade ?? ""} onChange={(x) => setOne("trade", x)} placeholder={t("reports.filter.trade")} className={SEARCH} /> : null}
+        </ReportFilterBar>
+      ) : null}
       {report?.notes?.length ? (
         <InlineAlert tone="info">
           <ul className="space-y-0.5">

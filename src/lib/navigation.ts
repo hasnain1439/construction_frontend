@@ -183,6 +183,38 @@ export const COMPANY_NAV: NavSection[] = [
     mode: "company",
     items: [
       {
+        id: "stock.products",
+        label: L("Products", "Products", "پروڈکٹس"),
+        href: "/suppliers-stock/products",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["brand", "quality", "tiles", "paint", "cement", "material"],
+      },
+      {
+        id: "stock.groups",
+        label: L("Groups", "Groups", "گروپس"),
+        href: "/suppliers-stock/groups",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["category", "cement", "paint", "glass", "material group"],
+      },
+      {
+        id: "stock.units",
+        label: L("Units", "Units", "یونٹس"),
+        href: "/suppliers-stock/units",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["bag", "kg", "sqft", "measure", "unit"],
+      },
+      {
+        id: "stock.brands",
+        label: L("Brands", "Brands", "برانڈز"),
+        href: "/suppliers-stock/brands",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["company", "fauji", "master", "make"],
+      },
+      {
         id: "stock.suppliers",
         label: L("All Suppliers", "Tamam suppliers", "تمام سپلائرز"),
         href: "/suppliers-stock/suppliers",
@@ -568,6 +600,14 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: P("company.settings.manage"),
         keywords: ["logo", "ntn"],
+      },
+      {
+        id: "settings.supplierCategories",
+        label: L("Supplier Categories", "Supplier categories", "سپلائر کیٹیگریز"),
+        href: "/settings/supplier-categories",
+        available: true,
+        access: P("masterdata.supplier.manage"),
+        keywords: ["category", "cement", "paint", "dealer type"],
       },
       {
         id: "settings.openingBalances",

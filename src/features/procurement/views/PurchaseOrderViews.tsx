@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
-import { useGetSupplierQuery } from "@/api/services/masterData.api";
+import { useGetSupplierProductsQuery, useGetSupplierQuery } from "@/api/services/masterData.api";
 import {
   useCancelPurchaseOrderMutation,
   useCreatePurchaseOrderMutation,
@@ -246,6 +246,7 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
   });
   const [supplierId, deliverTo] = useWatch({ control: form.control, name: ["supplierId", "deliverTo"] });
   const supplier = useGetSupplierQuery(supplierId ?? "", { skip: !supplierId });
+  const sells = useGetSupplierProductsQuery(supplierId ?? "", { skip: !supplierId });
   const agreed = new Map((supplier.data?.rates ?? []).map((r) => [r.material.id, r.ratePaisa]));
 
   const onSubmit = async (v: z.output<typeof purchaseOrderSchema>) => {
@@ -291,6 +292,7 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
         <LineItemsEditor
           name="items"
           emptyRow={emptyLine}
+          preferMaterialIds={sells.data?.items.map((i) => i.id)}
           columns={[
             { key: "orderedQty", label: t("field.quantity"), kind: "quantity", required: true, width: "w-40" },
             { key: "ratePaisa", label: t("field.rate"), kind: "money", required: true, width: "w-40" },

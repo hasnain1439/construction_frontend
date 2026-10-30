@@ -120,6 +120,7 @@ export const romanUr: Dictionary = {
     notifications: "Itla'at",
     noNotifications: "Abhi koi itla nahi",
     sessions: "Sessions",
+    myAccount: "Mera account",
     logout: "Logout",
     theme: "Theme",
     light: "Roshan",

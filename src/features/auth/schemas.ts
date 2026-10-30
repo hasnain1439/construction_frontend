@@ -68,3 +68,18 @@ export const adminLoginSchema = z.object({
   password: z.string().min(1, msg("app.auth.v.passwordRequired")),
   rememberMe: z.boolean(),
 });
+
+/** My account → login email. The current password proves it is really you. */
+export const changeEmailSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email(msg("validation.validEmail"))),
+  currentPassword: z.string().min(1, msg("app.auth.v.passwordRequired")),
+});
+
+/** My account → password. Signs out every other device. */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, msg("app.auth.v.passwordRequired")),
+    newPassword: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, { path: ["confirmPassword"], message: msg("app.auth.v.passwordsMismatch") });

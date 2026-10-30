@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
-import { useGetSupplierQuery } from "@/api/services/masterData.api";
+import { useGetSupplierProductsQuery, useGetSupplierQuery } from "@/api/services/masterData.api";
 import { useCreatePurchaseMutation, useGetPurchaseOrderQuery, useGetPurchaseOrdersQuery } from "@/api/services/procurement.api";
 import type { CreatePurchaseBody, DeliverTo, PaidFrom, PaymentMode, PurchaseOrder } from "@/api/types";
 import { LineItemsEditor, type LineColumn } from "@/components/common/LineItemsEditor";
@@ -86,6 +86,8 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
   });
 
   const supplier = useGetSupplierQuery(supplierId ?? "", { skip: !supplierId });
+  const sells = useGetSupplierProductsQuery(supplierId ?? "", { skip: !supplierId });
+  const sellsIds = useMemo(() => sells.data?.items.map((i) => i.id), [sells.data]);
   const agreed = useMemo(() => new Map((supplier.data?.rates ?? []).map((r) => [r.material.id, r.ratePaisa])), [supplier.data]);
   const orders = useGetPurchaseOrdersQuery({ supplierId: supplierId ?? undefined, limit: 50 }, { skip: !supplierId || munshi });
   const orderOptions = (orders.data?.items ?? [])
@@ -213,6 +215,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
                 name="items"
                 columns={columns}
                 emptyRow={emptyLine}
+                preferMaterialIds={sellsIds}
                 amount={withRates ? { qtyKey: "challanQty", rateKey: "ratePaisa", label: t("field.amount") } : undefined}
                 onMaterialChange={(index, material) => {
                   const rate = material ? agreed.get(material.id) : undefined;

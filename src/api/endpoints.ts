@@ -148,6 +148,7 @@ export const ENDPOINTS = {
 
   masterData: {
     materialGroups: "/material-groups",
+    materialGroupById: (groupId: string) => `/material-groups/${id(groupId)}`,
     materials: "/materials",
     materialById: (materialId: string) => `/materials/${id(materialId)}`,
     materialHide: (materialId: string) => `/materials/${id(materialId)}/hide`,
@@ -174,6 +175,17 @@ export const ENDPOINTS = {
     paymentTemplateById: (templateId: string) => `/payment-templates/${id(templateId)}`,
 
     suppliers: "/suppliers",
+    supplierCategories: "/suppliers/categories",
+    supplierCategoryById: (categoryId: string) => `/suppliers/categories/${id(categoryId)}`,
+    supplierCategoryActivity: (categoryId: string) => `/suppliers/categories/${id(categoryId)}/activity`,
+    supplierCategoryMaterials: (categoryId: string) => `/suppliers/categories/${id(categoryId)}/materials`,
+    supplierProducts: (supplierId: string) => `/suppliers/${id(supplierId)}/products`,
+    materialSupplierCategories: (materialId: string) => `/materials/${id(materialId)}/supplier-categories`,
+    brands: "/brands",
+    units: "/units",
+    unitById: (unitId: string) => `/units/${id(unitId)}`,
+    brandById: (brandId: string) => `/brands/${id(brandId)}`,
+    brandActivity: (brandId: string) => `/brands/${id(brandId)}/activity`,
     supplierById: (supplierId: string) => `/suppliers/${id(supplierId)}`,
     supplierActivate: (supplierId: string) => `/suppliers/${id(supplierId)}/activate`,
     supplierDeactivate: (supplierId: string) => `/suppliers/${id(supplierId)}/deactivate`,
@@ -498,6 +510,7 @@ export const ENDPOINTS = {
     tenantPlan: (tenantId: string) => `/admin/tenants/${id(tenantId)}/plan`,
     /** Allow / stop offline office for a company. */
     tenantOfflineOffice: (tenantId: string) => `/admin/tenants/${id(tenantId)}/offline-office`,
+    tenantOwnerAccount: (tenantId: string) => `/admin/tenants/${id(tenantId)}/owner-account`,
     /** Read-only look into a company (each look is audited). */
     tenantProjects: (tenantId: string) => `/admin/tenants/${id(tenantId)}/projects`,
     tenantTeam: (tenantId: string) => `/admin/tenants/${id(tenantId)}/team`,

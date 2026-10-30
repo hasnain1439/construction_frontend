@@ -15,6 +15,10 @@ export interface MaterialGroup {
   name: string;
   section: MaterialSection;
   sortOrder: number;
+  /** The company's own group (the rest are the system's). */
+  isCustom?: boolean;
+  productCount?: number;
+  brandCount?: number;
 }
 
 export interface AltUnit {
@@ -30,6 +34,9 @@ export interface Material {
   unitDetail: string | null;
   altUnits: AltUnit[];
   supplyCategory: SupplyCategory;
+  /** Products by brand / quality (both optional). */
+  brand: { id: Id; name: string } | null;
+  quality: { id: Id; name: string; code: string } | null;
   source: MaterialSource;
   isHidden: boolean;
 }
@@ -327,3 +334,72 @@ export interface Subcontractor {
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
 export type CreateSubcontractorBody = RequestBody<"/api/v1/subcontractors", "post">;
 export type UpdateSubcontractorBody = RequestBody<"/api/v1/subcontractors/{id}", "patch">;
+
+/** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
+export interface SupplierCategory {
+  id: Id;
+  name: string;
+  supplierCount: number;
+  createdAt: string;
+  /** null = made automatically (existing suppliers, starting list, import). */
+  createdBy: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  /** Deleted list only (?deleted=true). */
+  deletedAt: string | null;
+  deletedBy: string | null;
+  /** The products this kind of dealer sells (Settings → Materials). */
+  materials: Array<{ id: Id; name: string; unit: string }>;
+}
+
+/** GET /suppliers/:id/products — its category's products + agreed-rate materials. */
+export interface SupplierProducts {
+  supplierId: Id;
+  category: string;
+  items: Array<{ id: Id; name: string; unit: string; source: "CATEGORY" | "RATE" | "BOTH" }>;
+}
+
+export interface SupplierCategoryActivity {
+  id: Id;
+  name: string;
+  createdAt: string;
+  items: Array<{
+    id: Id;
+    action: "supplier_category.create" | "supplier_category.rename" | "supplier_category.merge" | (string & {});
+    at: string;
+    by: string;
+    details: Record<string, unknown> | null;
+  }>;
+}
+
+/** The company's brands (Fauji, Master Tiles, …) for products. */
+export interface Brand {
+  id: Id;
+  name: string;
+  productCount: number;
+  /** Groups it makes products in (none = any group). */
+  groups: Array<{ id: Id; name: string }>;
+  createdAt: string;
+  createdBy: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  deletedAt: string | null;
+  deletedBy: string | null;
+}
+
+export interface BrandActivity {
+  id: Id;
+  name: string;
+  createdAt: string;
+  deletedAt: string | null;
+  items: Array<{ id: Id; action: string; at: string; by: string; details: Record<string, unknown> | null }>;
+}
+
+/** The company's units (bag, kg, sqft, …): just names. */
+export interface MeasureUnit {
+  id: Id;
+  name: string;
+  /** Products using it as their unit or another unit. */
+  productCount: number;
+  isDefault: boolean;
+}

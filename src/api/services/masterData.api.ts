@@ -17,6 +17,7 @@ import type {
   LaborRate,
   Material,
   MaterialGroup,
+  MaterialSection,
   MaterialsQuery,
   Paginated,
   PaymentTemplate,
@@ -33,6 +34,12 @@ import type {
   Subcontractor,
   SubcontractorsQuery,
   Supplier,
+  Brand,
+  MeasureUnit,
+  BrandActivity,
+  SupplierCategory,
+  SupplierCategoryActivity,
+  SupplierProducts,
   SupplierDetail,
   SupplierRates,
   SuppliersQuery,
@@ -79,6 +86,18 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: () => ENDPOINTS.masterData.materialGroups,
       providesTags: ["MaterialGroups"],
       keepUnusedDataFor: 600,
+    }),
+    createMaterialGroup: build.mutation<MaterialGroup, { name: string; section: MaterialSection }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.materialGroups, method: "POST", body }),
+      invalidatesTags: ["MaterialGroups"],
+    }),
+    updateMaterialGroup: build.mutation<MaterialGroup, { id: string; name?: string; section?: MaterialSection }>({
+      query: ({ id, ...body }) => ({ url: ENDPOINTS.masterData.materialGroupById(id), method: "PATCH", body }),
+      invalidatesTags: ["MaterialGroups", "Materials"],
+    }),
+    deleteMaterialGroup: build.mutation<{ id: string; deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.masterData.materialGroupById(id), method: "DELETE" }),
+      invalidatesTags: ["MaterialGroups"],
     }),
     getMaterials: build.query<Material[], MaterialsQuery | void>({
       query: (params) => ({ url: ENDPOINTS.masterData.materials, params: cleanParams(params ?? undefined) }),
@@ -233,17 +252,92 @@ export const masterDataApi = baseApi.injectEndpoints({
       transformResponse: (data, meta) => toPage<Supplier>(data, meta),
       providesTags: (page) => providesList(page?.items, "Suppliers"),
     }),
+    /** The list; { deleted: true } = the deleted ones. */
+    getSupplierCategories: build.query<SupplierCategory[], { deleted?: boolean } | void>({
+      query: (q) => ({ url: ENDPOINTS.masterData.supplierCategories, params: q?.deleted ? { deleted: true } : undefined }),
+      providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    getSupplierCategoryActivity: build.query<SupplierCategoryActivity, string>({
+      query: (id) => ENDPOINTS.masterData.supplierCategoryActivity(id),
+      providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    /** Exactly these materials become the category's products. */
+    setSupplierCategoryMaterials: build.mutation<{ id: string; name: string; materials: SupplierCategory["materials"] }, { id: string; materialIds: string[] }>({
+      query: ({ id, materialIds }) => ({ url: ENDPOINTS.masterData.supplierCategoryMaterials(id), method: "PUT", body: { materialIds } }),
+      invalidatesTags: ["Suppliers"],
+    }),
+    getSupplierProducts: build.query<SupplierProducts, string>({
+      query: (id) => ENDPOINTS.masterData.supplierProducts(id),
+      providesTags: (_r, _e, id) => [{ type: "Suppliers", id }, { type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    /** Products screen: which supplier categories sell this material. */
+    setMaterialSupplierCategories: build.mutation<unknown, { id: string; categoryIds: string[] }>({
+      query: ({ id, categoryIds }) => ({ url: ENDPOINTS.masterData.materialSupplierCategories(id), method: "PUT", body: { categoryIds } }),
+      invalidatesTags: ["Suppliers"],
+    }),
+    getUnits: build.query<MeasureUnit[], void>({
+      query: () => ENDPOINTS.masterData.units,
+      providesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
+    createUnit: build.mutation<MeasureUnit, { name: string }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.units, method: "POST", body }),
+      invalidatesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
+    /** Products using it follow the new name. */
+    updateUnit: build.mutation<MeasureUnit, { id: string; name: string }>({
+      query: ({ id, name }) => ({ url: ENDPOINTS.masterData.unitById(id), method: "PATCH", body: { name } }),
+      invalidatesTags: ["Materials"],
+    }),
+    deleteUnit: build.mutation<{ id: string; deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.masterData.unitById(id), method: "DELETE" }),
+      invalidatesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
+    getBrands: build.query<Brand[], { deleted?: boolean } | void>({
+      query: (q) => ({ url: ENDPOINTS.masterData.brands, params: q?.deleted ? { deleted: true } : undefined }),
+      providesTags: [{ type: "Materials", id: "BRANDS" }],
+    }),
+    getBrandActivity: build.query<BrandActivity, string>({
+      query: (id) => ENDPOINTS.masterData.brandActivity(id),
+      providesTags: [{ type: "Materials", id: "BRANDS" }],
+    }),
+    createBrand: build.mutation<Brand, { name: string; groupIds?: string[] }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.brands, method: "POST", body }),
+      invalidatesTags: [{ type: "Materials", id: "BRANDS" }, "MaterialGroups"],
+    }),
+    updateBrand: build.mutation<Brand & { mergedFromId?: string }, { id: string; name?: string; groupIds?: string[] }>({
+      query: ({ id, ...body }) => ({ url: ENDPOINTS.masterData.brandById(id), method: "PATCH", body }),
+      invalidatesTags: ["Materials"],
+    }),
+    /** A brand on products needs moveTo (another brand) or clear. */
+    deleteBrand: build.mutation<{ id: string; deleted: true; productsMoved: number; movedTo: string | null }, { id: string; moveTo?: string; clear?: boolean }>({
+      query: ({ id, moveTo, clear }) => ({ url: ENDPOINTS.masterData.brandById(id), method: "DELETE", params: moveTo ? { moveTo } : clear ? { clear: true } : undefined }),
+      invalidatesTags: ["Materials"],
+    }),
+    createSupplierCategory: build.mutation<SupplierCategory, { name: string }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.supplierCategories, method: "POST", body }),
+      invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    /** Rename or merge: the suppliers' category changes too. */
+    updateSupplierCategory: build.mutation<SupplierCategory & { mergedFromId?: string }, { id: string; name: string }>({
+      query: ({ id, name }) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "PATCH", body: { name } }),
+      invalidatesTags: ["Suppliers"],
+    }),
+    /** A category in use needs moveTo: the category its suppliers go to. */
+    deleteSupplierCategory: build.mutation<{ id: string; deleted: true; suppliersMoved: number; movedTo: string | null }, { id: string; moveTo?: string }>({
+      query: ({ id, moveTo }) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "DELETE", params: moveTo ? { moveTo } : undefined }),
+      invalidatesTags: ["Suppliers"],
+    }),
     getSupplier: build.query<SupplierDetail, string>({
       query: (id) => ENDPOINTS.masterData.supplierById(id),
       providesTags: (_r, _e, id) => [{ type: "Suppliers", id }],
     }),
     createSupplier: build.mutation<Supplier, CreateSupplierBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.suppliers, method: "POST", body }),
-      invalidatesTags: [{ type: "Suppliers", id: LIST }],
+      invalidatesTags: [{ type: "Suppliers", id: LIST }, { type: "Suppliers", id: "CATEGORIES" }],
     }),
     updateSupplier: build.mutation<Supplier, { id: string; body: UpdateSupplierBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.masterData.supplierById(id), method: "PATCH", body }),
-      invalidatesTags: (_r, _e, { id }) => [{ type: "Suppliers", id }, { type: "Suppliers", id: LIST }],
+      invalidatesTags: (_r, _e, { id }) => [{ type: "Suppliers", id }, { type: "Suppliers", id: LIST }, { type: "Suppliers", id: "CATEGORIES" }],
     }),
     setSupplierActive: build.mutation<Supplier, { id: string; active: boolean }>({
       query: ({ id, active }) => ({
@@ -346,6 +440,26 @@ export const {
   useUpdatePaymentTemplateMutation,
   useDeletePaymentTemplateMutation,
   useGetSuppliersQuery,
+  useGetSupplierCategoriesQuery,
+  useGetSupplierCategoryActivityQuery,
+  useSetSupplierCategoryMaterialsMutation,
+  useGetSupplierProductsQuery,
+  useSetMaterialSupplierCategoriesMutation,
+  useGetBrandsQuery,
+  useGetUnitsQuery,
+  useCreateUnitMutation,
+  useUpdateUnitMutation,
+  useDeleteUnitMutation,
+  useCreateMaterialGroupMutation,
+  useUpdateMaterialGroupMutation,
+  useDeleteMaterialGroupMutation,
+  useGetBrandActivityQuery,
+  useCreateBrandMutation,
+  useUpdateBrandMutation,
+  useDeleteBrandMutation,
+  useCreateSupplierCategoryMutation,
+  useUpdateSupplierCategoryMutation,
+  useDeleteSupplierCategoryMutation,
   useGetSupplierQuery,
   useCreateSupplierMutation,
   useUpdateSupplierMutation,

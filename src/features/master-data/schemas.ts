@@ -22,6 +22,8 @@ export const materialSchema = z.object({
     )
     .max(5, msg("masterData.v.upToFiveUnits")),
   supplyCategory: z.enum(["GREY_STRUCTURE", "FINISHING"]),
+  brandId: z.string().nullable(),
+  qualityId: z.string().nullable(),
 });
 
 const categoryCode = z

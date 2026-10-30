@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   useGetMaterialsQuery,
+  useGetSupplierProductsQuery,
   useGetSupplierQuery,
   useGetSupplierRatesQuery,
   useSetSupplierActiveMutation,
@@ -161,6 +162,29 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
   );
 }
 
+/** What the supplier sells: its category's products and its agreed-rate materials. */
+function SupplierProductsCard({ supplierId }: { supplierId: string }) {
+  const t = useT();
+  const { data } = useGetSupplierProductsQuery(supplierId);
+  if (!data) return null;
+  const source = { CATEGORY: t("masterData.suppliers.fromCategory"), RATE: t("masterData.suppliers.fromRate"), BOTH: t("masterData.suppliers.fromBoth") };
+  return (
+    <SectionCard title={t("masterData.suppliers.sells")} description={t("masterData.suppliers.sellsDesc", { category: data.category })}>
+      {data.items.length ? (
+        <ul className="flex flex-wrap gap-2 pb-5">
+          {data.items.map((i) => (
+            <li key={i.id} className="rounded-full border px-3 py-1 text-sm" title={source[i.source]}>
+              {i.name} <span className="text-xs text-muted-foreground">· {i.unit}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="pb-5 text-sm text-muted-foreground">{t("masterData.suppliers.sellsNone")}</p>
+      )}
+    </SectionCard>
+  );
+}
+
 function RateHistory({ supplierId }: { supplierId: string }) {
   const t = useT();
   const { data, isLoading, error, refetch } = useGetSupplierRatesQuery(supplierId);
@@ -259,6 +283,7 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
                   ]}
                 />
               </SectionCard>
+              <SupplierProductsCard supplierId={supplier.id} />
             </TabsContent>
             <TabsContent value="rates" className="space-y-5">
               <AgreedRates supplier={supplier} editable={isOwner} />
