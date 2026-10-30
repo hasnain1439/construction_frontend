@@ -327,3 +327,10 @@ export interface Subcontractor {
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
 export type CreateSubcontractorBody = RequestBody<"/api/v1/subcontractors", "post">;
 export type UpdateSubcontractorBody = RequestBody<"/api/v1/subcontractors/{id}", "patch">;
+
+/** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
+export interface SupplierCategory {
+  id: Id;
+  name: string;
+  supplierCount: number;
+}

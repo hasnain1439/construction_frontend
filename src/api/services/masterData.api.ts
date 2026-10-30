@@ -33,6 +33,7 @@ import type {
   Subcontractor,
   SubcontractorsQuery,
   Supplier,
+  SupplierCategory,
   SupplierDetail,
   SupplierRates,
   SuppliersQuery,
@@ -233,9 +234,22 @@ export const masterDataApi = baseApi.injectEndpoints({
       transformResponse: (data, meta) => toPage<Supplier>(data, meta),
       providesTags: (page) => providesList(page?.items, "Suppliers"),
     }),
-    getSupplierCategories: build.query<string[], void>({
+    getSupplierCategories: build.query<SupplierCategory[], void>({
       query: () => ENDPOINTS.masterData.supplierCategories,
       providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    createSupplierCategory: build.mutation<SupplierCategory, { name: string }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.supplierCategories, method: "POST", body }),
+      invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
+    /** Rename or merge: the suppliers' category changes too. */
+    updateSupplierCategory: build.mutation<SupplierCategory & { mergedFromId?: string }, { id: string; name: string }>({
+      query: ({ id, name }) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "PATCH", body: { name } }),
+      invalidatesTags: ["Suppliers"],
+    }),
+    deleteSupplierCategory: build.mutation<{ id: string; deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.masterData.supplierCategoryById(id), method: "DELETE" }),
+      invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
     }),
     getSupplier: build.query<SupplierDetail, string>({
       query: (id) => ENDPOINTS.masterData.supplierById(id),
@@ -351,6 +365,9 @@ export const {
   useDeletePaymentTemplateMutation,
   useGetSuppliersQuery,
   useGetSupplierCategoriesQuery,
+  useCreateSupplierCategoryMutation,
+  useUpdateSupplierCategoryMutation,
+  useDeleteSupplierCategoryMutation,
   useGetSupplierQuery,
   useCreateSupplierMutation,
   useUpdateSupplierMutation,

@@ -175,6 +175,7 @@ export const ENDPOINTS = {
 
     suppliers: "/suppliers",
     supplierCategories: "/suppliers/categories",
+    supplierCategoryById: (categoryId: string) => `/suppliers/categories/${id(categoryId)}`,
     supplierById: (supplierId: string) => `/suppliers/${id(supplierId)}`,
     supplierActivate: (supplierId: string) => `/suppliers/${id(supplierId)}/activate`,
     supplierDeactivate: (supplierId: string) => `/suppliers/${id(supplierId)}/deactivate`,

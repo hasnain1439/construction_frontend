@@ -122,7 +122,7 @@ export function SuppliersView() {
           label={t("field.category")}
           value={list.filters.category}
           onChange={(v) => list.setFilter("category", v)}
-          options={(categories ?? []).map((c) => ({ value: c, label: c }))}
+          options={(categories ?? []).map((c) => ({ value: c.name, label: c.name }))}
         />
         <FilterSelect
           label={t("field.status")}

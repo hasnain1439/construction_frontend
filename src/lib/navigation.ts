@@ -570,6 +570,14 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["logo", "ntn"],
       },
       {
+        id: "settings.supplierCategories",
+        label: L("Supplier Categories", "Supplier categories", "سپلائر کیٹیگریز"),
+        href: "/settings/supplier-categories",
+        available: true,
+        access: P("masterdata.supplier.manage"),
+        keywords: ["category", "cement", "paint", "dealer type"],
+      },
+      {
         id: "settings.openingBalances",
         label: L("Opening Balances", "Opening balance", "ابتدائی بیلنس"),
         href: "/settings/opening-balances",
