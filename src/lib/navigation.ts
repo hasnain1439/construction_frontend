@@ -199,6 +199,14 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["category", "cement", "paint", "glass", "material group"],
       },
       {
+        id: "stock.units",
+        label: L("Units", "Units", "یونٹس"),
+        href: "/suppliers-stock/units",
+        available: true,
+        access: P("masterdata.material.view"),
+        keywords: ["bag", "kg", "sqft", "measure", "unit"],
+      },
+      {
         id: "stock.brands",
         label: L("Brands", "Brands", "برانڈز"),
         href: "/suppliers-stock/brands",

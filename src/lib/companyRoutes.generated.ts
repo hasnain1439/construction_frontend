@@ -72,6 +72,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"store-stock"}], load: () => import("@/app/(company)/suppliers-stock/store-stock/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"suppliers"},{"kind":"param","name":"supplierId"}], load: () => import("@/app/(company)/suppliers-stock/suppliers/[supplierId]/page") },
   { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"suppliers"}], load: () => import("@/app/(company)/suppliers-stock/suppliers/page") },
+  { segments: [{"kind":"static","name":"suppliers-stock"},{"kind":"static","name":"units"}], load: () => import("@/app/(company)/suppliers-stock/units/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"devices"}], load: () => import("@/app/(company)/team/devices/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"invitations"}], load: () => import("@/app/(company)/team/invitations/page") },
   { segments: [{"kind":"static","name":"team"},{"kind":"static","name":"members"}], load: () => import("@/app/(company)/team/members/page") },

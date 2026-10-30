@@ -11,6 +11,7 @@ import {
   useGetMaterialGroupsQuery,
   useGetQualityCategoriesQuery,
   useGetSupplierCategoriesQuery,
+  useGetUnitsQuery,
   useSetMaterialSupplierCategoriesMutation,
   useUpdateMaterialMutation,
 } from "@/api/services/masterData.api";
@@ -31,6 +32,13 @@ import { materialSchema } from "../schemas";
 import { AltUnitsEditor } from "./AltUnitsEditor";
 
 const FORM_ID = "material-form";
+
+/** The company's units; a product's current unit stays choosable even if it was renamed meanwhile. */
+export function unitOptions(units: Array<{ name: string }> | undefined, current?: string | null) {
+  const options = (units ?? []).map((u) => ({ value: u.name, label: u.name }));
+  if (current && !options.some((o) => o.value === current)) options.unshift({ value: current, label: current });
+  return options;
+}
 type Values = z.input<typeof materialSchema>;
 
 const empty: Values = { name: "", groupId: "", unit: "", unitDetail: "", altUnits: [], supplyCategory: "GREY_STRUCTURE", brandId: null, qualityId: null };
@@ -65,6 +73,7 @@ export function MaterialSlideOver({
   const [create, { isLoading: creating }] = useCreateMaterialMutation();
   const [update, { isLoading: updating }] = useUpdateMaterialMutation();
   const brands = useGetBrandsQuery(undefined, { skip: !open });
+  const units = useGetUnitsQuery(undefined, { skip: !open });
   const qualities = useGetQualityCategoriesQuery(undefined, { skip: !open });
   const canSetCategories = useCan("masterdata.supplier.manage");
   const supplierCategories = useGetSupplierCategoriesQuery(undefined, { skip: !open || !canSetCategories });
@@ -182,7 +191,18 @@ export function MaterialSlideOver({
         <FormSection title={t("masterData.materials.units")}>
           {unitLocked ? <InlineAlert tone="info">{t("masterData.materials.unitLocked")}</InlineAlert> : null}
           <FieldGrid>
-            <TextField name="unit" label={t("field.unit")} required placeholder={t("masterData.materials.unitPlaceholder")} disabled={unitLocked} />
+            <SelectField
+              name="unit"
+              label={t("field.unit")}
+              required
+              disabled={unitLocked}
+              options={unitOptions(units.data, material?.unit)}
+              hint={
+                <Link href="/suppliers-stock/units" className="text-primary hover:underline">
+                  {t("masterData.products.manageUnits")}
+                </Link>
+              }
+            />
             <TextField name="unitDetail" label={t("masterData.materials.unitDetail")} placeholder={t("masterData.materials.unitDetailPlaceholder")} />
           </FieldGrid>
           <AltUnitsEditor />

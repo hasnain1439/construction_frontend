@@ -35,6 +35,7 @@ import type {
   SubcontractorsQuery,
   Supplier,
   Brand,
+  MeasureUnit,
   BrandActivity,
   SupplierCategory,
   SupplierCategoryActivity,
@@ -274,6 +275,23 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: ({ id, categoryIds }) => ({ url: ENDPOINTS.masterData.materialSupplierCategories(id), method: "PUT", body: { categoryIds } }),
       invalidatesTags: ["Suppliers"],
     }),
+    getUnits: build.query<MeasureUnit[], void>({
+      query: () => ENDPOINTS.masterData.units,
+      providesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
+    createUnit: build.mutation<MeasureUnit, { name: string }>({
+      query: (body) => ({ url: ENDPOINTS.masterData.units, method: "POST", body }),
+      invalidatesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
+    /** Products using it follow the new name. */
+    updateUnit: build.mutation<MeasureUnit, { id: string; name: string }>({
+      query: ({ id, name }) => ({ url: ENDPOINTS.masterData.unitById(id), method: "PATCH", body: { name } }),
+      invalidatesTags: ["Materials"],
+    }),
+    deleteUnit: build.mutation<{ id: string; deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.masterData.unitById(id), method: "DELETE" }),
+      invalidatesTags: [{ type: "Materials", id: "UNITS" }],
+    }),
     getBrands: build.query<Brand[], { deleted?: boolean } | void>({
       query: (q) => ({ url: ENDPOINTS.masterData.brands, params: q?.deleted ? { deleted: true } : undefined }),
       providesTags: [{ type: "Materials", id: "BRANDS" }],
@@ -428,6 +446,10 @@ export const {
   useGetSupplierProductsQuery,
   useSetMaterialSupplierCategoriesMutation,
   useGetBrandsQuery,
+  useGetUnitsQuery,
+  useCreateUnitMutation,
+  useUpdateUnitMutation,
+  useDeleteUnitMutation,
   useCreateMaterialGroupMutation,
   useUpdateMaterialGroupMutation,
   useDeleteMaterialGroupMutation,

@@ -182,6 +182,8 @@ export const ENDPOINTS = {
     supplierProducts: (supplierId: string) => `/suppliers/${id(supplierId)}/products`,
     materialSupplierCategories: (materialId: string) => `/materials/${id(materialId)}/supplier-categories`,
     brands: "/brands",
+    units: "/units",
+    unitById: (unitId: string) => `/units/${id(unitId)}`,
     brandById: (brandId: string) => `/brands/${id(brandId)}`,
     brandActivity: (brandId: string) => `/brands/${id(brandId)}/activity`,
     supplierById: (supplierId: string) => `/suppliers/${id(supplierId)}`,

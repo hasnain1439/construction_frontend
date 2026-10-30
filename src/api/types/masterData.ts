@@ -394,3 +394,12 @@ export interface BrandActivity {
   deletedAt: string | null;
   items: Array<{ id: Id; action: string; at: string; by: string; details: Record<string, unknown> | null }>;
 }
+
+/** The company's units (bag, kg, sqft, …): just names. */
+export interface MeasureUnit {
+  id: Id;
+  name: string;
+  /** Products using it as their unit or another unit. */
+  productCount: number;
+  isDefault: boolean;
+}
