@@ -33,6 +33,9 @@ import { useEnumT, useT } from "@/i18n/useT";
 import { formatAltUnits, SUPPLY_CATEGORY_LABEL } from "@/lib/options";
 import { MaterialSlideOver } from "../components/MaterialSlideOver";
 
+/** Every group is its own table: fixed layout + the same column widths keep the columns lined up. */
+const GROUP_TABLE = "[&_table]:table-fixed [&_table]:min-w-[56rem] [&_td]:break-words";
+
 export function MaterialsView() {
   const t = useT();
   const te = useEnumT();
@@ -67,21 +70,23 @@ export function MaterialsView() {
   }, [data]);
 
   const columns: Column<Material>[] = [
-    { id: "name", header: t("field.material"), cell: (m) => <span className="font-medium">{m.name}</span>, sortValue: (m) => m.name },
-    { id: "unit", header: t("field.unit"), cell: (m) => m.unit },
-    { id: "detail", header: t("masterData.materials.unitDetail"), cell: (m) => m.unitDetail ?? <span className="text-muted-foreground">—</span> },
+    { id: "name", headerClassName: "w-[22%]", header: t("field.material"), cell: (m) => <span className="font-medium">{m.name}</span>, sortValue: (m) => m.name },
+    { id: "unit", headerClassName: "w-[8%]", header: t("field.unit"), cell: (m) => m.unit },
+    { id: "detail", headerClassName: "w-[14%]", header: t("masterData.materials.unitDetail"), cell: (m) => m.unitDetail ?? <span className="text-muted-foreground">—</span> },
     {
       id: "alt",
+      headerClassName: "w-[14%]",
       header: t("masterData.altUnits.title"),
       cell: (m) => (m.altUnits.length ? <bdi dir="ltr" className="text-xs">{formatAltUnits(m.unit, m.altUnits)}</bdi> : <span className="text-muted-foreground">—</span>),
     },
-    { id: "category", header: t("masterData.materials.supplyCategory"), cell: (m) => te("supplyCategory", m.supplyCategory) },
+    { id: "category", headerClassName: "w-[12%]", header: t("masterData.materials.supplyCategory"), cell: (m) => te("supplyCategory", m.supplyCategory) },
     {
       id: "source",
+      headerClassName: "w-[10%]",
       header: t("masterData.materials.source"),
       cell: (m) => <StatusBadge tone={m.source === "PLATFORM" ? "neutral" : "info"} label={m.source === "PLATFORM" ? t("masterData.materials.platform") : t("masterData.materials.company")} />,
     },
-    { id: "status", header: t("field.status"), cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
+    { id: "status", headerClassName: "w-[9%]", header: t("field.status"), cell: (m) => <StatusBadge domain="visibility" value={m.isHidden} /> },
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit && !canHide,
@@ -167,7 +172,7 @@ export function MaterialsView() {
           <div aria-busy={isFetching || undefined}>
             {groups.map(([groupId, group]) => (
               <CollapsibleSection key={groupId} title={group.name} count={group.rows.length}>
-                <DataTable rows={group.rows} columns={columns} getRowId={(m) => m.id} clientPageSize={0} empty={{ title: t("masterData.common.empty") }} />
+                <DataTable className={GROUP_TABLE} rows={group.rows} columns={columns} getRowId={(m) => m.id} clientPageSize={0} empty={{ title: t("masterData.common.empty") }} />
               </CollapsibleSection>
             ))}
           </div>
