@@ -5,7 +5,7 @@ import { DemoBadge } from "@/features/onboarding/components/DemoBadge";
 import { Pencil, Plus, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useGetSuppliersQuery, useSetSupplierActiveMutation } from "@/api/services/masterData.api";
+import { useGetSupplierCategoriesQuery, useGetSuppliersQuery, useSetSupplierActiveMutation } from "@/api/services/masterData.api";
 import type { Supplier, SuppliersQuery } from "@/api/types";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
@@ -34,7 +34,8 @@ export function SuppliersView() {
   const canEdit = useCan("masterdata.supplier.edit") && !readOnly;
   const canToggle = useCan("masterdata.supplier.manage") && !readOnly;
   const seesRates = usePermissions().canSee("rates");
-  const list = useListState({ isActive: "" });
+  const list = useListState({ isActive: "", category: "" });
+  const { data: categories } = useGetSupplierCategoriesQuery();
   const { data, isLoading, isFetching, error, refetch } = useGetSuppliersQuery(list.query as SuppliersQuery);
   const [setActive, { isLoading: toggling }] = useSetSupplierActiveMutation();
   const [addOpen, setAddOpen] = useSearchFlag();
@@ -117,6 +118,12 @@ export function SuppliersView() {
       />
       <FilterBar onClear={list.clear} canClear={list.isFiltered}>
         <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("masterData.suppliers.search")} />
+        <FilterSelect
+          label={t("field.category")}
+          value={list.filters.category}
+          onChange={(v) => list.setFilter("category", v)}
+          options={(categories ?? []).map((c) => ({ value: c, label: c }))}
+        />
         <FilterSelect
           label={t("field.status")}
           value={list.filters.isActive}

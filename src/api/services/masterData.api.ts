@@ -233,17 +233,21 @@ export const masterDataApi = baseApi.injectEndpoints({
       transformResponse: (data, meta) => toPage<Supplier>(data, meta),
       providesTags: (page) => providesList(page?.items, "Suppliers"),
     }),
+    getSupplierCategories: build.query<string[], void>({
+      query: () => ENDPOINTS.masterData.supplierCategories,
+      providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
     getSupplier: build.query<SupplierDetail, string>({
       query: (id) => ENDPOINTS.masterData.supplierById(id),
       providesTags: (_r, _e, id) => [{ type: "Suppliers", id }],
     }),
     createSupplier: build.mutation<Supplier, CreateSupplierBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.suppliers, method: "POST", body }),
-      invalidatesTags: [{ type: "Suppliers", id: LIST }],
+      invalidatesTags: [{ type: "Suppliers", id: LIST }, { type: "Suppliers", id: "CATEGORIES" }],
     }),
     updateSupplier: build.mutation<Supplier, { id: string; body: UpdateSupplierBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.masterData.supplierById(id), method: "PATCH", body }),
-      invalidatesTags: (_r, _e, { id }) => [{ type: "Suppliers", id }, { type: "Suppliers", id: LIST }],
+      invalidatesTags: (_r, _e, { id }) => [{ type: "Suppliers", id }, { type: "Suppliers", id: LIST }, { type: "Suppliers", id: "CATEGORIES" }],
     }),
     setSupplierActive: build.mutation<Supplier, { id: string; active: boolean }>({
       query: ({ id, active }) => ({
@@ -346,6 +350,7 @@ export const {
   useUpdatePaymentTemplateMutation,
   useDeletePaymentTemplateMutation,
   useGetSuppliersQuery,
+  useGetSupplierCategoriesQuery,
   useGetSupplierQuery,
   useCreateSupplierMutation,
   useUpdateSupplierMutation,

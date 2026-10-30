@@ -174,6 +174,7 @@ export const ENDPOINTS = {
     paymentTemplateById: (templateId: string) => `/payment-templates/${id(templateId)}`,
 
     suppliers: "/suppliers",
+    supplierCategories: "/suppliers/categories",
     supplierById: (supplierId: string) => `/suppliers/${id(supplierId)}`,
     supplierActivate: (supplierId: string) => `/suppliers/${id(supplierId)}/activate`,
     supplierDeactivate: (supplierId: string) => `/suppliers/${id(supplierId)}/deactivate`,
