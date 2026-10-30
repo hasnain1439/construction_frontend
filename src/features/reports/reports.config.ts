@@ -26,7 +26,7 @@ function step18(name: Step18ReportName, moduleKey: PermissionKey, dates: boolean
 const TAX: AccessRule = { allPermissions: ["tax.view", "fields.amounts"] };
 
 export const REPORTS: Record<ReportName, ReportDef> = {
-  "project-summary": { name: "project-summary", titleKey: "billing.reports.projectSummary", descriptionKey: "billing.reports.projectSummaryDesc", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: false },
+  "project-summary": { name: "project-summary", titleKey: "billing.reports.projectSummary", descriptionKey: "billing.reports.projectSummaryDesc", access: { allPermissions: ["finance.reports.view", "fields.amounts"] }, project: true, dates: true, dateLabelKey: "reports.filter.anyStart" },
   "material-audit": { name: "material-audit", titleKey: "billing.reports.materialAudit", descriptionKey: "billing.reports.materialAuditDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
   "labor-peshgi": { name: "labor-peshgi", titleKey: "billing.reports.laborPeshgi", descriptionKey: "billing.reports.laborPeshgiDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
   "cash-book": { name: "cash-book", titleKey: "billing.reports.cashBook", descriptionKey: "billing.reports.cashBookDesc", access: OFFICE, project: true, dates: true, dateLabelKey: "field.allTime" },
@@ -49,3 +49,13 @@ export const BOOK_REPORTS: readonly Step18ReportName[] = ["delay-analysis", "var
 export const isStep18Report = (name: ReportName): name is Step18ReportName => STEP18_NAMES.includes(name as Step18ReportName);
 
 export const isReportName = (v: string): v is ReportName => v in REPORTS;
+
+/** Which of the reports' own filters each Phase 1 report shows. */
+export const REPORT_EXTRA_FILTERS: Partial<Record<ReportName, ReadonlyArray<"client" | "projectStatus" | "overdueOnly" | "groupId" | "search" | "kind" | "trade">>> = {
+  "project-summary": ["client", "projectStatus"],
+  "material-audit": ["groupId"],
+  "labor-peshgi": ["search", "kind", "trade"],
+  "cash-book": ["client"],
+  "receivables-ageing": ["client", "overdueOnly"],
+  "stock-valuation": [],
+};

@@ -339,7 +339,19 @@ export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" |
 export type ReportBookName = "delay-analysis" | "variance" | "snags";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";
 /** Filters of every report (the Step 18 ones add status / type / category / group; the Phase 1 ones ignore them). */
-export type ReportQuery = QueryParams<"/api/v1/reports/change-orders", "get">;
+/** The Phase 1 reports' own filters (each report uses the ones that apply). */
+export interface ReportExtraFilters {
+  /** Customer name, phone or email contains. */
+  client?: string;
+  projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+  overdueOnly?: "true";
+  groupId?: string;
+  /** labor-peshgi: name contains */
+  search?: string;
+  kind?: "WORKER" | "SUBCONTRACTOR";
+  trade?: string;
+}
+export type ReportQuery = QueryParams<"/api/v1/reports/change-orders", "get"> & ReportExtraFilters;
 export type ReportBookQuery = QueryParams<"/api/v1/reports/snags/{projectId}", "get">;
 export type ReportColumnType = "text" | "money" | "qty" | "int" | "percent" | "date";
 export type ReportCell = string | number | null;
