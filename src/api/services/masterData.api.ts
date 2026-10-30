@@ -34,6 +34,7 @@ import type {
   SubcontractorsQuery,
   Supplier,
   SupplierCategory,
+  SupplierCategoryActivity,
   SupplierDetail,
   SupplierRates,
   SuppliersQuery,
@@ -238,6 +239,10 @@ export const masterDataApi = baseApi.injectEndpoints({
       query: () => ENDPOINTS.masterData.supplierCategories,
       providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
     }),
+    getSupplierCategoryActivity: build.query<SupplierCategoryActivity, string>({
+      query: (id) => ENDPOINTS.masterData.supplierCategoryActivity(id),
+      providesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
+    }),
     createSupplierCategory: build.mutation<SupplierCategory, { name: string }>({
       query: (body) => ({ url: ENDPOINTS.masterData.supplierCategories, method: "POST", body }),
       invalidatesTags: [{ type: "Suppliers", id: "CATEGORIES" }],
@@ -365,6 +370,7 @@ export const {
   useDeletePaymentTemplateMutation,
   useGetSuppliersQuery,
   useGetSupplierCategoriesQuery,
+  useGetSupplierCategoryActivityQuery,
   useCreateSupplierCategoryMutation,
   useUpdateSupplierCategoryMutation,
   useDeleteSupplierCategoryMutation,

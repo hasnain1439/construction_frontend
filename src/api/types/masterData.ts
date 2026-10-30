@@ -333,4 +333,22 @@ export interface SupplierCategory {
   id: Id;
   name: string;
   supplierCount: number;
+  createdAt: string;
+  /** null = made automatically (existing suppliers, starting list, import). */
+  createdBy: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export interface SupplierCategoryActivity {
+  id: Id;
+  name: string;
+  createdAt: string;
+  items: Array<{
+    id: Id;
+    action: "supplier_category.create" | "supplier_category.rename" | "supplier_category.merge" | (string & {});
+    at: string;
+    by: string;
+    details: Record<string, unknown> | null;
+  }>;
 }
