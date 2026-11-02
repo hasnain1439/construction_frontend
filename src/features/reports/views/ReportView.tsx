@@ -74,7 +74,7 @@ export function ReportView({ name }: { name: ReportName }) {
   const setOne = <K extends keyof ReportExtraFilters>(key: K, value: string) => setExtra((e) => ({ ...e, [key]: value || undefined }));
   const params = {
     ...reportParams({ projectId: def.project ? filters.projectId : "", from: def.dates ? filters.from : "", to: def.dates ? filters.to : "" }),
-    ...Object.fromEntries(Object.entries(extra).filter(([k, val]) => val && shows.includes(k as keyof ReportExtraFilters))),
+    ...Object.fromEntries(Object.entries(extra).filter(([k, val]) => val && shows.includes(k as (typeof shows)[number]))),
   };
   // "Clear filters" on the bar also clears the report's own filters.
   const onFilters = (f: ReportFilters) => {
@@ -102,6 +102,19 @@ export function ReportView({ name }: { name: ReportName }) {
           {shows.includes("client") ? <SearchInput value={extra.client ?? ""} onChange={(x) => setOne("client", x)} placeholder={t("reports.filter.customer")} className={SEARCH} /> : null}
           {shows.includes("search") ? <SearchInput value={extra.search ?? ""} onChange={(x) => setOne("search", x)} placeholder={t("reports.filter.name")} className={SEARCH} /> : null}
           {shows.includes("holder") ? <SearchInput value={extra.holder ?? ""} onChange={(x) => setOne("holder", x)} placeholder={t("reports.filter.holder")} className={SEARCH} /> : null}
+          {shows.includes("material") ? <SearchInput value={extra.material ?? ""} onChange={(x) => setOne("material", x)} placeholder={t("reports.filter.material")} className={SEARCH} /> : null}
+          {shows.includes("locationType") ? (
+            <FilterSelect
+              label={t("reports.filter.locationType")}
+              value={extra.locationType ?? ""}
+              onChange={(x) => setOne("locationType", x)}
+              options={[
+                { value: "STORE", label: t("reports.filter.store") },
+                { value: "SITE", label: t("reports.filter.site") },
+                { value: "TRANSIT", label: t("reports.filter.transit") },
+              ]}
+            />
+          ) : null}
           {shows.includes("projectStatus") ? (
             <FilterSelect
               label={t("reports.filter.status")}
