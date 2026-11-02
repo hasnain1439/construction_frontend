@@ -21,6 +21,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"finance"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/finance/[...rest]/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-floats"}], load: () => import("@/app/(company)/finance/cash-floats/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-flow"}], load: () => import("@/app/(company)/finance/cash-flow/page") },
+  { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"office-expenses"}], load: () => import("@/app/(company)/finance/office-expenses/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"profit-loss"},{"kind":"param","name":"projectId"}], load: () => import("@/app/(company)/finance/profit-loss/[projectId]/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"profit-loss"}], load: () => import("@/app/(company)/finance/profit-loss/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"receivables"}], load: () => import("@/app/(company)/finance/receivables/page") },

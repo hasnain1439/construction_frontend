@@ -121,6 +121,9 @@ export const COMPANY_TAGS = [
   // Offline office
   "OfficeDevices",
   "SyncProblems",
+  // Office expenses
+  "OfficeExpenses",
+  "OfficeExpenseCategories",
 ] as const;
 
 export const ADMIN_TAGS = [

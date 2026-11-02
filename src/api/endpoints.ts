@@ -465,6 +465,13 @@ export const ENDPOINTS = {
     cashFloats: "/finance/cash-floats",
   },
 
+  officeExpenses: {
+    list: "/office-expenses",
+    byId: (expenseId: string) => `/office-expenses/${id(expenseId)}`,
+    categories: "/office-expenses/categories",
+    categoryById: (categoryId: string) => `/office-expenses/categories/${id(categoryId)}`,
+  },
+
   /** Step 11 — estimate revisions and the company rulebook. */
   estimates: {
     byId: (estimateId: string) => `/estimates/${id(estimateId)}`,

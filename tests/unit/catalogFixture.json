@@ -1675,6 +1675,38 @@
    "field": false
   },
   {
+   "key": "finance.officeexpense.view",
+   "module": "finance",
+   "resource": "officeexpense",
+   "action": "view",
+   "label": {
+    "en": "View office expenses",
+    "roman": "Office kharcha dekhna",
+    "urdu": "دفتری خرچہ دیکھنا"
+   },
+   "description": "Company running costs not tied to a project: rent, bills, salaries.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.officeexpense.manage",
+   "module": "finance",
+   "resource": "officeexpense",
+   "action": "manage",
+   "label": {
+    "en": "Add office expenses",
+    "roman": "Office kharcha darj karna",
+    "urdu": "دفتری خرچہ درج کرنا"
+   },
+   "description": "Add, change and delete office expenses.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "dashboard.overview.view",
    "module": "dashboard",
    "resource": "overview",
@@ -2786,6 +2818,8 @@
     "finance.pnl.view",
     "finance.reports.view",
     "finance.companyreports.view",
+    "finance.officeexpense.view",
+    "finance.officeexpense.manage",
     "dashboard.overview.view",
     "dashboard.site.view",
     "approvals.inbox.view",
@@ -3062,6 +3096,8 @@
     "billing.payment.create",
     "finance.pnl.view",
     "finance.reports.view",
+    "finance.officeexpense.view",
+    "finance.officeexpense.manage",
     "dashboard.overview.view",
     "approvals.inbox.view",
     "masterdata.supplier.view",
