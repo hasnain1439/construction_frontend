@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
   // `next build` also writes .next/standalone (a minimal server.js + traced node_modules) that the
   // Docker image runs. `next dev` and `next start` are unaffected.
   output: "standalone",
+  // A separate build folder (the Windows desktop app builds next to a running `next dev`, which owns .next).
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   devIndicators: false,
   // `next dev` keeps compiled pages on disk between restarts. On a machine short of memory a
   // killed dev server can leave that cache broken (pages hang or 404 until .next is deleted);
