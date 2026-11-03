@@ -350,6 +350,11 @@ export interface ReportExtraFilters {
   search?: string;
   /** cash-book: holder name contains */
   holder?: string;
+  locationType?: "STORE" | "SITE" | "TRANSIT";
+  /** stock-valuation: material name contains */
+  material?: string;
+  delayState?: "LATE" | "ON_TIME" | "AHEAD";
+  cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
   kind?: "WORKER" | "SUBCONTRACTOR";
   trade?: string;
 }

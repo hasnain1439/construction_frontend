@@ -191,6 +191,8 @@ export const ACCOUNTANT_TEMPLATE: PermissionKey[] = [
   "billing.payment.create",
   "finance.pnl.view",
   "finance.reports.view",
+  "finance.officeexpense.view",
+  "finance.officeexpense.manage",
   "dashboard.overview.view",
   "approvals.inbox.view",
   "masterdata.supplier.view",

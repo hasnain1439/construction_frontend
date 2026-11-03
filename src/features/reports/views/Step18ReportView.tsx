@@ -7,13 +7,14 @@ import { BarChartCard } from "@/components/common/Charts";
 import { ChartCard } from "@/components/common/ChartCard";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { FilterSelect } from "@/components/common/FilterBar";
+import { SearchInput } from "@/components/common/SearchInput";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { KpiCard, KpiGroup } from "@/components/common/KpiCard";
 import { MoneyText } from "@/components/common/MoneyText";
 import { EMPTY_REPORT_FILTERS, ReportFilterBar, reportParams, type ReportFilters } from "@/components/common/ReportFilterBar";
 import { ShareColumns } from "@/components/common/ShareColumns";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useT } from "@/i18n/useT";
+import { useStatusT, useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { canSeeField } from "@/lib/permissions";
 import { useMe } from "@/store/hooks";
@@ -29,8 +30,16 @@ interface Extra {
   type: string;
   category: string;
   group: string;
+  /** delay-analysis */
+  projectStatus: string;
+  client: string;
+  delayState: string;
+  cause: string;
 }
-const EMPTY_EXTRA: Extra = { status: "", type: "", category: "", group: "" };
+const EMPTY_EXTRA: Extra = { status: "", type: "", category: "", group: "", projectStatus: "", client: "", delayState: "", cause: "" };
+const PROJECT_STATUSES = ["ACTIVE", "CLOSEOUT", "HANDED_OVER", "CLOSED"] as const;
+const DELAY_STATES = ["LATE", "ON_TIME", "AHEAD"] as const;
+const CAUSES = ["OWNER", "EXCUSABLE", "CONTRACTOR", "CHANGE_ORDER"] as const;
 
 const num = (v: ReportCell | undefined) => Number(v ?? 0);
 
@@ -173,6 +182,7 @@ function useMoneyHidden(name: Step18ReportName) {
 export function Step18ReportView({ name }: { name: Step18ReportName }) {
   const t = useT();
   const labels = useReportLabels();
+  const ts = useStatusT();
   const def = REPORTS[name];
   const title = t(def.titleKey);
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
@@ -183,6 +193,10 @@ export function Step18ReportView({ name }: { name: Step18ReportName }) {
     ...(name === "change-orders" && extra.type ? { type: extra.type as (typeof CO_TYPES)[number] } : {}),
     ...(name === "equipment-utilisation" && extra.category ? { category: extra.category as (typeof CATEGORIES)[number] } : {}),
     ...(name === "equipment-utilisation" && extra.group ? { group: extra.group as "item" | "category" } : {}),
+    ...(name === "delay-analysis" && extra.projectStatus ? { projectStatus: extra.projectStatus as (typeof PROJECT_STATUSES)[number] } : {}),
+    ...(name === "delay-analysis" && extra.client ? { client: extra.client } : {}),
+    ...(name === "delay-analysis" && extra.delayState ? { delayState: extra.delayState as (typeof DELAY_STATES)[number] } : {}),
+    ...(name === "delay-analysis" && extra.cause ? { cause: extra.cause as (typeof CAUSES)[number] } : {}),
   };
   const q = useGetReportQuery({ name, ...params }, { refetchOnMountOrArgChange: true });
   const report = q.data;
@@ -202,6 +216,20 @@ export function Step18ReportView({ name }: { name: Step18ReportName }) {
           <>
             <FilterSelect label={t("reports.filter.status")} value={extra.status} onChange={(status) => setExtra({ ...extra, status })} allLabel={t("reports.filter.allStatuses")} options={CO_STATUSES.map((v) => ({ value: v, label: labels.value("coStatus", v)! }))} />
             <FilterSelect label={t("reports.filter.type")} value={extra.type} onChange={(type) => setExtra({ ...extra, type })} allLabel={t("reports.filter.allTypes")} options={CO_TYPES.map((v) => ({ value: v, label: labels.value("coType", v)! }))} />
+          </>
+        ) : null}
+        {name === "delay-analysis" ? (
+          <>
+            <SearchInput value={extra.client} onChange={(client) => setExtra({ ...extra, client })} placeholder={t("reports.filter.customer")} className="w-full flex-none sm:w-60" />
+            <FilterSelect
+              label={t("reports.filter.status")}
+              value={extra.projectStatus}
+              onChange={(projectStatus) => setExtra({ ...extra, projectStatus })}
+              allLabel={t("reports.filter.allStatuses")}
+              options={PROJECT_STATUSES.map((v) => ({ value: v, label: ts("project", v) }))}
+            />
+            <FilterSelect label={t("reports.filter.delayState")} value={extra.delayState} onChange={(delayState) => setExtra({ ...extra, delayState })} options={DELAY_STATES.map((v) => ({ value: v, label: t(`reports.filter.delay_${v}`) }))} />
+            <FilterSelect label={t("reports.filter.cause")} value={extra.cause} onChange={(cause) => setExtra({ ...extra, cause })} options={CAUSES.map((v) => ({ value: v, label: t(`reports.filter.cause_${v}`) }))} />
           </>
         ) : null}
         {name === "equipment-utilisation" ? (

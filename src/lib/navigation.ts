@@ -429,6 +429,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("cashbook.float.view"),
         keywords: ["site cash", "kharcha", "munshi"],
       },
+      {
+        id: "finance.officeExpenses",
+        label: L("Office Expenses", "Office kharcha", "دفتری اخراجات"),
+        href: "/finance/office-expenses",
+        available: true,
+        access: P("finance.officeexpense.view"),
+        keywords: ["rent", "bills", "salary", "overhead", "kiraya", "bijli"],
+      },
     ],
   },
   {

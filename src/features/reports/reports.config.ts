@@ -51,11 +51,11 @@ export const isStep18Report = (name: ReportName): name is Step18ReportName => ST
 export const isReportName = (v: string): v is ReportName => v in REPORTS;
 
 /** Which of the reports' own filters each Phase 1 report shows. */
-export const REPORT_EXTRA_FILTERS: Partial<Record<ReportName, ReadonlyArray<"client" | "projectStatus" | "overdueOnly" | "groupId" | "search" | "kind" | "trade" | "holder">>> = {
+export const REPORT_EXTRA_FILTERS: Partial<Record<ReportName, ReadonlyArray<"client" | "projectStatus" | "overdueOnly" | "groupId" | "search" | "kind" | "trade" | "holder" | "locationType" | "material">>> = {
   "project-summary": ["client", "projectStatus"],
   "material-audit": ["groupId"],
   "labor-peshgi": ["search", "kind", "trade"],
   "cash-book": ["holder"],
   "receivables-ageing": ["client", "overdueOnly"],
-  "stock-valuation": [],
+  "stock-valuation": ["locationType", "material", "groupId"],
 };
