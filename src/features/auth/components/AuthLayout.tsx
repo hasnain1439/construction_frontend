@@ -8,6 +8,7 @@ import { KeystoneLogo } from "@/components/brand/Keystone";
 import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useT, type TranslationKey } from "@/i18n/useT";
+import { SIGNUP_ENABLED } from "@/lib/signup";
 
 const POINTS = [
   { icon: HardHat, text: "app.auth.pointProjects" as TranslationKey },
@@ -51,10 +52,12 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             ))}
           </ul>
         </div>
-        <p className="flex items-center gap-2 text-sm text-white/80">
-          <CircleCheck className="size-4" aria-hidden />
-          {t("app.auth.trialNote")}
-        </p>
+        {SIGNUP_ENABLED ? (
+          <p className="flex items-center gap-2 text-sm text-white/80">
+            <CircleCheck className="size-4" aria-hidden />
+            {t("app.auth.trialNote")}
+          </p>
+        ) : null}
         <div className="pointer-events-none absolute -end-24 -bottom-24 -z-10 size-96 rounded-full bg-sun/15 blur-3xl" aria-hidden />
       </aside>
       <main className="flex flex-col">

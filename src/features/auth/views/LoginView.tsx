@@ -9,6 +9,7 @@ import { useT } from "@/i18n/useT";
 import { safeNext } from "@/lib/session";
 import { AuthCard } from "../components/AuthLayout";
 import { OtpRequestForm, PasswordLoginForm } from "../components/LoginForms";
+import { SIGNUP_ENABLED } from "@/lib/signup";
 
 export function LoginView() {
   const t = useT();
@@ -28,12 +29,14 @@ export function LoginView() {
       title={t("app.auth.signIn")}
       description={t("app.auth.signInDesc")}
       footer={
-        <>
-          {t("app.auth.newCompany")}{" "}
-          <Link href="/signup" className="font-medium text-primary hover:underline">
-            {t("app.auth.startTrialLink")}
-          </Link>
-        </>
+        SIGNUP_ENABLED ? (
+          <>
+            {t("app.auth.newCompany")}{" "}
+            <Link href="/signup" className="font-medium text-primary hover:underline">
+              {t("app.auth.startTrialLink")}
+            </Link>
+          </>
+        ) : undefined
       }
     >
       <Tabs value={tab} onValueChange={setTab}>
