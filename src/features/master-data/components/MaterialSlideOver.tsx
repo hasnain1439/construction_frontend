@@ -64,11 +64,14 @@ const fromMaterial = (m: Material): Values => ({
 export function MaterialSlideOver({
   open,
   material,
+  copyOf = null,
   onOpenChange,
 }: {
   open: boolean;
   /** null = add a new material. */
   material: Material | null;
+  /** Add a new product filled in from this one: pick another brand / category and its prices. */
+  copyOf?: Material | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useT();
@@ -90,7 +93,7 @@ export function MaterialSlideOver({
   const run = useMutationToast();
   const form = useForm<Values, unknown, z.output<typeof materialSchema>>({
     resolver: zodResolver(materialSchema),
-    values: material ? fromMaterial(material) : empty,
+    values: material ? fromMaterial(material) : copyOf ? { ...fromMaterial(copyOf), qualityId: null } : empty,
   });
   const unitLocked = material?.source === "PLATFORM";
   // Flow: group → that group's brands (a brand without groups fits any) → quality → name / unit.
@@ -155,8 +158,8 @@ export function MaterialSlideOver({
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      title={material ? t("masterData.common.editTitle", { name: material.name }) : t("masterData.materials.add")}
-      description={material?.source === "PLATFORM" ? t("masterData.materials.platformDesc") : undefined}
+      title={material ? t("masterData.common.editTitle", { name: material.name }) : copyOf ? t("masterData.products.copyTitle", { name: copyOf.name }) : t("masterData.materials.add")}
+      description={material?.source === "PLATFORM" ? t("masterData.materials.platformDesc") : copyOf ? t("masterData.products.copyDesc") : undefined}
       busy={creating || updating || settingCategories}
       footer={<FormActions formId={FORM_ID} submitLabel={material ? t("masterData.materials.save") : t("masterData.materials.add")} loading={creating || updating} onCancel={() => onOpenChange(false)} />}
     >

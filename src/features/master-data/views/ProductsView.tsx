@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Pencil, Plus } from "lucide-react";
+import { Copy, Package, Pencil, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useGetBrandsQuery,
@@ -39,6 +39,8 @@ export function ProductsView() {
   const [filters, setFilters] = useState(NONE);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
+  // A new product started from this one (another brand / category).
+  const [copying, setCopying] = useState<Material | null>(null);
 
   const query = useGetMaterialsQuery({
     ...(search.trim() ? { search: search.trim() } : {}),
@@ -113,7 +115,15 @@ export function ProductsView() {
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit,
-      cell: (m) => <RowActions name={m.name} actions={[{ label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(m) }]} />,
+      cell: (m) => (
+        <RowActions
+          name={m.name}
+          actions={[
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(m) },
+            { label: t("masterData.products.copy"), icon: Copy, onSelect: () => setCopying(m) },
+          ]}
+        />
+      ),
     },
   ];
 
@@ -171,12 +181,14 @@ export function ProductsView() {
         />
       </SectionCard>
       <MaterialSlideOver
-        open={adding || Boolean(editing)}
+        open={adding || Boolean(editing) || Boolean(copying)}
         material={editing}
+        copyOf={copying}
         onOpenChange={(o) => {
           if (!o) {
             setAdding(false);
             setEditing(null);
+            setCopying(null);
           }
         }}
       />

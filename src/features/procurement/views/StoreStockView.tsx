@@ -22,6 +22,7 @@ import { formatPKRShort } from "@/lib/money";
 import { formatQty } from "@/lib/quantity";
 import { NewDispatchSlideOver } from "../components/DispatchSlideOvers";
 import { LowStockLevelsSlideOver, MovementHistorySlideOver, StockCountSlideOver } from "../components/StockSlideOvers";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 export function StoreStockView() {
   const t = useT();
@@ -44,7 +45,7 @@ export function StoreStockView() {
       sortValue: (r) => r.material.name,
       cell: (r) => (
         <div>
-          <p className="font-medium">{r.material.name}</p>
+          <p className="font-medium"><MaterialName material={r.material} /></p>
           <p className="text-xs text-muted-foreground">{r.material.group.name}</p>
         </div>
       ),

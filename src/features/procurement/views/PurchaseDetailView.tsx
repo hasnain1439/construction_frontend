@@ -21,6 +21,7 @@ import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { CorrectionSlideOver, RatesSlideOver, ReturnSlideOver } from "../components/PurchaseActions";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 const FINAL = ["SAVED", "RECEIVED", "RECEIVED_WITH_SHORTAGE"];
 
@@ -28,7 +29,7 @@ function Items({ purchase }: { purchase: Purchase }) {
   const t = useT();
   const unit = (i: PurchaseItem) => i.material.unit;
   const columns: Column<PurchaseItem>[] = [
-    { id: "material", header: t("field.material"), cell: (i) => <span className="font-medium">{i.material.name}</span> },
+    { id: "material", header: t("field.material"), cell: (i) => <MaterialName className="font-medium" material={i.material} /> },
     { id: "challan", header: t("procurement.common.challan"), align: "right", hidden: purchase.blindCount, cell: (i) => formatQty(i.challanQty ?? null, unit(i)) },
     { id: "counted", header: t("field.counted"), align: "right", cell: (i) => formatQty(i.countedQty, unit(i)) },
     { id: "damaged", header: t("field.damaged"), align: "right", cell: (i) => (i.damagedQty ? <span className="text-danger">{formatQty(i.damagedQty, unit(i))}</span> : "—") },
@@ -214,7 +215,7 @@ function PurchaseBody({ purchase }: { purchase: Purchase }) {
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span className="flex items-center gap-2">
                   <StatusBadge domain="shortageKind" value={s.kind} />
-                  {formatQty(s.qty, s.material.unit)} {s.material.name}
+                  {formatQty(s.qty, s.material.unit)} <MaterialName material={s.material} />
                 </span>
                 <span className="flex items-center gap-2">
                   <MoneyText paisa={s.valuePaisa} />

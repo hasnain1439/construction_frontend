@@ -41,6 +41,7 @@ const ERROR_TEXT: Record<PriceImportErrorCode, TranslationKey> = {
   MATERIAL_REQUIRED: "masterData.priceImport.errors.materialRequired",
   UNKNOWN_MATERIAL: "masterData.priceImport.errors.unknownMaterial",
   MATERIAL_HIDDEN: "masterData.priceImport.errors.materialHidden",
+  AMBIGUOUS_MATERIAL: "masterData.priceImport.errors.ambiguousMaterial",
   DUPLICATE_ROW: "masterData.priceImport.errors.duplicateRow",
   NOT_A_NUMBER: "masterData.priceImport.errors.notANumber",
   NEGATIVE_RATE: "masterData.priceImport.errors.negativeRate",

@@ -43,6 +43,7 @@ import { projectHref } from "@/lib/navigation";
 import { formatPhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
 import { OwnerDeliverySlideOver, RecordUsageSlideOver } from "./SiteSlideOvers";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 const editable = (p: ProjectDetail) => p.status === "ACTIVE" || p.status === "CLOSEOUT";
 
@@ -135,7 +136,7 @@ export function IncomingView({ projectId }: { projectId: string }) {
 function Comparison({ rows, onDone }: { rows: ComparisonRow[]; onDone: () => void }) {
   const t = useT();
   const columns: Column<ComparisonRow>[] = [
-    { id: "material", header: t("field.material"), cell: (r) => <span className="font-medium">{r.material.name}</span> },
+    { id: "material", header: t("field.material"), cell: (r) => <MaterialName className="font-medium" material={r.material} /> },
     { id: "sent", header: t("field.sent"), align: "right", cell: (r) => formatQty(r.expectedQty, r.material.unit) },
     { id: "counted", header: t("field.counted"), align: "right", cell: (r) => formatQty(r.countedQty, r.material.unit) },
     { id: "damaged", header: t("field.damaged"), align: "right", cell: (r) => (r.damagedQty ? formatQty(r.damagedQty, r.material.unit) : "—") },
@@ -483,7 +484,7 @@ export function SiteStockView({ projectId }: { projectId: string }) {
   const stock = useGetProjectStockQuery(projectId);
   const seesRates = useCan("fields.rates");
   const columns: Column<SiteStockRow>[] = [
-    { id: "material", header: t("field.material"), sortValue: (r) => r.material.name, cell: (r) => <span className="font-medium">{r.material.name}</span> },
+    { id: "material", header: t("field.material"), sortValue: (r) => r.material.name, cell: (r) => <MaterialName className="font-medium" material={r.material} /> },
     { id: "received", header: t("field.received"), align: "right", cell: (r) => formatQty(r.receivedContractor, r.material.unit) },
     { id: "owner", header: t("cashSite.site.colFromOwner"), align: "right", cell: (r) => (r.receivedOwner ? formatQty(r.receivedOwner, r.material.unit) : "—") },
     { id: "used", header: t("cashSite.site.colUsed"), align: "right", cell: (r) => formatQty(r.used, r.material.unit) },

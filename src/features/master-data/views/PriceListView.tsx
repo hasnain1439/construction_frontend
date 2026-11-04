@@ -45,6 +45,7 @@ import { BulkPercentDialog } from "../components/BulkPercentDialog";
 import { AddCategoryDialog, DuplicateCategoryDialog, RenameCategoryDialog } from "../components/CategoryDialogs";
 import { PriceImportButton } from "../components/PriceExcelImport";
 import { RateHistorySlideOver } from "../components/RateHistorySlideOver";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 interface Draft {
   ratePaisa?: string;
@@ -231,7 +232,7 @@ export function PriceListView() {
       header: t("field.material"),
       cell: (i) => (
         <div className="min-w-0">
-          <p className="font-medium">{i.material.name}</p>
+          <p className="font-medium"><MaterialName material={i.material} /></p>
           <p className="text-xs text-muted-foreground">{i.material.group.name}</p>
         </div>
       ),

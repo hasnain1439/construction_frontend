@@ -5,6 +5,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { useGetMaterialsQuery } from "@/api/services/masterData.api";
 import type { Material } from "@/api/types";
 import { useT } from "@/i18n/useT";
+import { formatPKR } from "@/lib/money";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Combobox } from "./ComboboxField";
 import { FormField, useFieldError, type BaseFieldProps } from "./FormField";
@@ -29,6 +30,20 @@ export interface MaterialPickerProps {
 }
 
 const ALL = "__all__";
+
+type Named = Pick<Material, "id" | "name"> & Partial<Pick<Material, "brand" | "quality">>;
+
+/** "Cement OPC · Fauji · A" — the brand is left out when the name already says it. */
+export function materialLabel(m: Named): string {
+  const brand = m.brand?.name && !m.name.toLowerCase().includes(m.brand.name.toLowerCase()) ? m.brand.name : null;
+  return [m.name, brand, m.quality?.name].filter(Boolean).join(" · ");
+}
+
+/** A material's name with its brand and category (from the materials list), wherever it is shown. */
+export function MaterialName({ material, className }: { material: Named; className?: string }) {
+  const known = useMaterialUnits().get(material.id);
+  return <span className={className}>{materialLabel(known ?? material)}</span>;
+}
 
 /**
  * Searchable material list from GET /materials, showing the quality, unit and group. When products
@@ -55,8 +70,9 @@ export function MaterialPicker({ value, onChange, onlyIds, excludeIds, preferIds
     // Stable: preferred ones first, each part in the list's own order.
     const ordered = prefer.size ? [...rows.filter((m) => prefer.has(m.id)), ...rows.filter((m) => !prefer.has(m.id))] : rows;
     return ordered.map((m) => {
-      const base = (m.quality ? `${m.quality.name} · ` : "") + (describe?.(m) ?? `${m.unit} · ${m.group.name}`);
-      return { value: m.id, label: m.name, description: prefer.has(m.id) ? `★ ${t("app.components.forms.supplierSells")} · ${base}` : base };
+      const price = m.purchasePricePaisa ? `${formatPKR(m.purchasePricePaisa)} / ${m.unit} · ` : "";
+      const base = price + (describe?.(m) ?? `${m.unit} · ${m.group.name}`);
+      return { value: m.id, label: materialLabel(m), description: prefer.has(m.id) ? `★ ${t("app.components.forms.supplierSells")} · ${base}` : base };
     });
   }, [materials, onlyIds, excludeIds, preferIds, describe, value, quality, t]);
 

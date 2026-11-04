@@ -30,6 +30,7 @@ import { formatPhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
 import { NewDispatchSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 const BASE = "/suppliers-stock/dispatches";
 const DISPATCH_STATUSES = ["ON_THE_WAY", "RECEIVED", "RECEIVED_WITH_SHORTAGE", "RECEIVED_WITH_EXCESS", "CANCELLED"] as const;
@@ -119,7 +120,7 @@ export function DispatchItemsTable({ dispatch }: { dispatch: Dispatch }) {
   const t = useT();
   const counted = dispatch.status !== "ON_THE_WAY" && dispatch.status !== "CANCELLED";
   const columns: Column<DispatchItem>[] = [
-    { id: "material", header: t("field.material"), cell: (i) => <span className="font-medium">{i.material.name}</span> },
+    { id: "material", header: t("field.material"), cell: (i) => <MaterialName className="font-medium" material={i.material} /> },
     { id: "sent", header: t("field.sent"), align: "right", hidden: dispatch.blindCount, cell: (i) => formatQty(i.sentQty ?? null, i.material.unit) },
     { id: "received", header: t("field.received"), align: "right", hidden: !counted, cell: (i) => formatQty(i.receivedQty, i.material.unit) },
     { id: "damaged", header: t("field.damaged"), align: "right", hidden: !counted, cell: (i) => (i.damagedQty ? formatQty(i.damagedQty, i.material.unit) : "—") },
@@ -189,7 +190,7 @@ function DispatchBody({ dispatch }: { dispatch: Dispatch }) {
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span className="flex items-center gap-2">
                   <StatusBadge domain="shortageKind" value={s.kind} />
-                  {formatQty(s.qty, s.material.unit)} {s.material.name}
+                  {formatQty(s.qty, s.material.unit)} <MaterialName material={s.material} />
                 </span>
                 <span className="flex items-center gap-2">
                   <MoneyText paisa={s.valuePaisa} />

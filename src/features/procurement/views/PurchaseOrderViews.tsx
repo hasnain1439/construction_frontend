@@ -42,6 +42,7 @@ import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { useSiteProjectOptions, useSupplierOptions } from "../options";
 import { purchaseOrderSchema, type PurchaseOrderValues } from "../schemas";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 const BASE = "/suppliers-stock/purchase-orders";
 const PO_STATUSES = ["OPEN", "PARTLY_RECEIVED", "RECEIVED", "CANCELLED"] as const;
@@ -174,7 +175,7 @@ function OrderBody({ order }: { order: PurchaseOrder }) {
           clientPageSize={0}
           empty={{ title: t("procurement.common.noMaterials") }}
           columns={[
-            { id: "material", header: t("field.material"), cell: (i) => <span className="font-medium">{i.material.name}</span> },
+            { id: "material", header: t("field.material"), cell: (i) => <MaterialName className="font-medium" material={i.material} /> },
             { id: "ordered", header: t("procurement.orders.ordered"), align: "right", cell: (i) => formatQty(i.orderedQty, i.material.unit) },
             { id: "received", header: t("field.received"), align: "right", cell: (i) => formatQty(i.receivedQty, i.material.unit) },
             { id: "pending", header: t("procurement.orders.pending"), align: "right", cell: (i) => (i.pendingQty ? <span className="font-medium text-warning">{formatQty(i.pendingQty, i.material.unit)}</span> : "—") },
