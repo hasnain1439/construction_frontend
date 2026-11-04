@@ -123,6 +123,8 @@ export const ur: Dictionary = {
     myAccount: "میرا اکاؤنٹ",
     logout: "لاگ آؤٹ",
     theme: "تھیم",
+    fullScreen: "پوری اسکرین",
+    exitFullScreen: "پوری اسکرین بند کریں",
     light: "روشن",
     dark: "تاریک",
     system: "سسٹم",

@@ -9,6 +9,7 @@ import { BRAND_NAME, KeystoneLogo } from "@/components/brand/Keystone";
 import { AvatarName } from "@/components/common/AvatarName";
 import { CommandSearch } from "@/components/common/CommandSearch";
 import { LanguageMenu } from "@/components/common/LanguageMenu";
+import { FullscreenToggle } from "@/components/common/FullscreenToggle";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,6 +91,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-1.5">
           <LanguageMenu />
           <ThemeToggle />
+          <FullscreenToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button

@@ -122,6 +122,8 @@ export const en = {
     myAccount: "My account",
     logout: "Log out",
     theme: "Theme",
+    fullScreen: "Full screen",
+    exitFullScreen: "Exit full screen",
     light: "Light",
     dark: "Dark",
     system: "System",
