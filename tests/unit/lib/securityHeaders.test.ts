@@ -39,6 +39,11 @@ describe("security headers", () => {
     expect(securityHeaders({ fileOrigins: [], dev: true }).some((h) => h.key === "Strict-Transport-Security")).toBe(false);
   });
 
+  it("plainHttp (desktop app on the office network) leaves out upgrade-insecure-requests", () => {
+    expect(contentSecurityPolicy({ fileOrigins: [], dev: false, plainHttp: true })).not.toContain("upgrade-insecure-requests");
+    expect(contentSecurityPolicy({ fileOrigins: [], dev: false })).toContain("upgrade-insecure-requests");
+  });
+
   it("originOf keeps only the origin and drops bad values", () => {
     expect(originOf("http://localhost:4000/api/")).toBe("http://localhost:4000");
     expect(originOf("not a url")).toBeNull();

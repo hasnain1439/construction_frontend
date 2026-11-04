@@ -16,6 +16,12 @@ export interface SecurityHeaderOptions {
   /** Origins that serve signed attachment files (the API's public URL). */
   fileOrigins: string[];
   dev: boolean;
+  /**
+   * Served over plain http on purpose (the Windows desktop app on the office network): no
+   * `upgrade-insecure-requests`, which would make browsers fetch scripts / styles over https from a
+   * LAN address (http://192.168.x.x) and break the page. Localhost is exempt either way.
+   */
+  plainHttp?: boolean;
   /** Sentry DSN (NEXT_PUBLIC_SENTRY_DSN): its origin is allowed in connect-src. */
   sentryDsn?: string;
   /** PostHog host (NEXT_PUBLIC_POSTHOG_HOST), only passed when NEXT_PUBLIC_POSTHOG_KEY is set. */
@@ -51,7 +57,7 @@ export function posthogOrigins(host: string | undefined): string[] {
   return cloud ? [origin, `https://${cloud[1]}-assets.i.posthog.com`] : [origin];
 }
 
-export function contentSecurityPolicy({ fileOrigins, dev, sentryDsn, posthogHost }: SecurityHeaderOptions): string {
+export function contentSecurityPolicy({ fileOrigins, dev, plainHttp, sentryDsn, posthogHost }: SecurityHeaderOptions): string {
   const files = [...new Set(fileOrigins)];
   // Error / analytics endpoints — only when configured, so the default policy stays 'self'.
   const telemetry = [sentryIngestOrigin(sentryDsn), ...posthogOrigins(posthogHost)].filter(
@@ -73,7 +79,7 @@ export function contentSecurityPolicy({ fileOrigins, dev, sentryDsn, posthogHost
     "frame-ancestors": ["'none'"],
   };
   const policy = Object.entries(directives).map(([name, values]) => `${name} ${values.join(" ")}`);
-  if (!dev) policy.push("upgrade-insecure-requests");
+  if (!dev && !plainHttp) policy.push("upgrade-insecure-requests");
   return policy.join("; ");
 }
 
