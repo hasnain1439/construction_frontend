@@ -263,6 +263,8 @@ export const strings = {
     receivablesAgeingDesc: "What owners owe, by days since the invoice was issued.",
     stockValuation: "Stock Valuation",
     stockValuationDesc: "Store, sites and transit at weighted-average cost.",
+    materialProfit: "Material Profit",
+    materialProfitDesc: "Per project: material sent to the site, its cost, sale value at your sale price and the profit.",
   },
 } as const;
 

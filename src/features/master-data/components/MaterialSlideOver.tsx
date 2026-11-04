@@ -23,11 +23,13 @@ import { InlineAlert } from "@/components/common/InlineAlert";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form, FormSection } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
+import { MoneyField } from "@/components/forms/MoneyInput";
 import { SegmentedField } from "@/components/forms/SegmentedField";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useT } from "@/i18n/useT";
+import { formatPKR } from "@/lib/money";
 import { materialSchema } from "../schemas";
 import { AltUnitsEditor } from "./AltUnitsEditor";
 
@@ -41,7 +43,7 @@ export function unitOptions(units: Array<{ name: string }> | undefined, current?
 }
 type Values = z.input<typeof materialSchema>;
 
-const empty: Values = { name: "", groupId: "", unit: "", unitDetail: "", altUnits: [], supplyCategory: "GREY_STRUCTURE", brandId: null, qualityId: null };
+const empty: Values = { name: "", groupId: "", unit: "", unitDetail: "", altUnits: [], supplyCategory: "GREY_STRUCTURE", brandId: null, qualityId: null, purchasePricePaisa: null, salePricePaisa: null };
 const fromMaterial = (m: Material): Values => ({
   name: m.name,
   groupId: m.group.id,
@@ -51,6 +53,8 @@ const fromMaterial = (m: Material): Values => ({
   supplyCategory: m.supplyCategory,
   brandId: m.brand?.id ?? null,
   qualityId: m.quality?.id ?? null,
+  purchasePricePaisa: m.purchasePricePaisa ?? null,
+  salePricePaisa: m.salePricePaisa ?? null,
 });
 
 /**
@@ -76,6 +80,7 @@ export function MaterialSlideOver({
   const units = useGetUnitsQuery(undefined, { skip: !open });
   const qualities = useGetQualityCategoriesQuery(undefined, { skip: !open });
   const canSetCategories = useCan("masterdata.supplier.manage");
+  const seesRates = useCan("fields.rates");
   const supplierCategories = useGetSupplierCategoriesQuery(undefined, { skip: !open || !canSetCategories });
   const [setCategories, { isLoading: settingCategories }] = useSetMaterialSupplierCategoriesMutation();
   // The categories that carry this material now (null = untouched, keep as is).
@@ -90,10 +95,13 @@ export function MaterialSlideOver({
   const unitLocked = material?.source === "PLATFORM";
   // Flow: group → that group's brands (a brand without groups fits any) → quality → name / unit.
   const groupId = useWatch({ control: form.control, name: "groupId" });
+  const [purchase, sale] = useWatch({ control: form.control, name: ["purchasePricePaisa", "salePricePaisa"] });
+  const profit = purchase && sale ? BigInt(sale) - BigInt(purchase) : null;
   const brandOptions = (brands.data ?? []).filter((b) => !groupId || !b.groups.length || b.groups.some((g) => g.id === groupId)).map((b) => ({ value: b.id, label: b.name }));
 
   const onSubmit = async (values: z.output<typeof materialSchema>) => {
     const altUnits = values.altUnits.map((a) => ({ unit: a.unit, factor: a.factor }));
+    const prices = seesRates ? { purchasePricePaisa: values.purchasePricePaisa, salePricePaisa: values.salePricePaisa } : {};
     const result = material
       ? await run(
           () =>
@@ -108,6 +116,7 @@ export function MaterialSlideOver({
                 supplyCategory: values.supplyCategory,
                 brandId: values.brandId,
                 qualityId: values.qualityId,
+                ...prices,
               },
             }).unwrap(),
           { success: t("masterData.common.saved", { name: values.name }), setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", UNIT_LOCKED: "unit" } },
@@ -123,6 +132,7 @@ export function MaterialSlideOver({
               supplyCategory: values.supplyCategory,
               ...(values.brandId ? { brandId: values.brandId } : {}),
               ...(values.qualityId ? { qualityId: values.qualityId } : {}),
+              ...prices,
             }).unwrap(),
           { success: t("masterData.common.added", { name: values.name }), setError: form.setError, codeFields: { MATERIAL_EXISTS: "name", INVALID_GROUP: "groupId" } },
         );
@@ -207,6 +217,17 @@ export function MaterialSlideOver({
           </FieldGrid>
           <AltUnitsEditor />
         </FormSection>
+        {seesRates ? (
+          <FormSection title={t("masterData.products.prices")}>
+            <FieldGrid>
+              <MoneyField name="purchasePricePaisa" label={t("masterData.products.purchasePrice")} hint={t("masterData.products.purchasePriceHint")} />
+              <MoneyField name="salePricePaisa" label={t("masterData.products.salePrice")} hint={t("masterData.products.salePriceHint")} />
+            </FieldGrid>
+            {profit !== null ? (
+              <p className={profit < BigInt(0) ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>{t("masterData.products.profitPerUnit", { amount: formatPKR(profit.toString()) })}</p>
+            ) : null}
+          </FormSection>
+        ) : null}
         <SegmentedField
           name="supplyCategory"
           label={t("masterData.materials.supplyCategory")}

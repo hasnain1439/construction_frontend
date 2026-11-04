@@ -39,6 +39,9 @@ export interface Material {
   quality: { id: Id; name: string; code: string } | null;
   source: MaterialSource;
   isHidden: boolean;
+  /** Paisa per unit — only for "See rates" (fields.rates). */
+  purchasePricePaisa?: string | null;
+  salePricePaisa?: string | null;
 }
 
 export type MaterialsQuery = QueryParams<"/api/v1/materials", "get">;

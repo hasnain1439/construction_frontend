@@ -24,6 +24,9 @@ export const materialSchema = z.object({
   supplyCategory: z.enum(["GREY_STRUCTURE", "FINISHING"]),
   brandId: z.string().nullable(),
   qualityId: z.string().nullable(),
+  /** Paisa strings (MoneyField); only sent with "See rates". */
+  purchasePricePaisa: z.string().nullable(),
+  salePricePaisa: z.string().nullable(),
 });
 
 const categoryCode = z

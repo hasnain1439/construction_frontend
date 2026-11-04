@@ -328,6 +328,8 @@ export const strings: Widen<typeof En.strings> = {
       searchMaterials: "مال تلاش کریں…",
       noMaterial: "کوئی مال نہیں ملا",
       supplierSells: "یہ سپلائر بیچتا ہے",
+      category: "کیٹیگری",
+      anyCategory: "تمام کیٹیگریز",
       chooseMaterial: "مال منتخب کریں",
       digitN: "ہندسہ {n}",
       verificationCode: "تصدیقی کوڈ",

@@ -218,7 +218,8 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
                 preferMaterialIds={sellsIds}
                 amount={withRates ? { qtyKey: "challanQty", rateKey: "ratePaisa", label: t("field.amount") } : undefined}
                 onMaterialChange={(index, material) => {
-                  const rate = material ? agreed.get(material.id) : undefined;
+                  // The supplier's agreed rate, else the product's usual purchase price.
+                  const rate = material ? (agreed.get(material.id) ?? material.purchasePricePaisa) : undefined;
                   if (withRates && rate && !form.getValues(`items.${index}.ratePaisa`)) form.setValue(`items.${index}.ratePaisa`, rate);
                 }}
                 info={(row) => (withRates && row.materialId && agreed.has(row.materialId) ? t("procurement.newPurchase.agreedRate") : null)}

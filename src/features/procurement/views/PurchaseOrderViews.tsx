@@ -299,7 +299,8 @@ function OrderForm({ order }: { order?: PurchaseOrder }) {
           ]}
           amount={{ qtyKey: "orderedQty", rateKey: "ratePaisa" }}
           onMaterialChange={(index, material) => {
-            const rate = material ? agreed.get(material.id) : undefined;
+            // The supplier's agreed rate, else the product's usual purchase price.
+            const rate = material ? (agreed.get(material.id) ?? material.purchasePricePaisa) : undefined;
             if (rate && !form.getValues(`items.${index}.ratePaisa`)) form.setValue(`items.${index}.ratePaisa`, rate);
           }}
         />

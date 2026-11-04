@@ -3,7 +3,7 @@ import type { TranslationKey } from "@/i18n/useT";
 import type { AccessRule } from "@/lib/permissions";
 import type { PermissionKey } from "@/lib/permissionKeys";
 
-/** The reports (seven Phase 1 + five Step 18 + two tax): title, who may open them and which filters apply (shared by the page and the view). */
+/** The reports (eight Phase 1 + five Step 18 + two tax): title, who may open them and which filters apply (shared by the page and the view). */
 export interface ReportDef {
   name: ReportName;
   titleKey: TranslationKey;
@@ -33,6 +33,7 @@ export const REPORTS: Record<ReportName, ReportDef> = {
   "supplier-ageing": { name: "supplier-ageing", titleKey: "billing.reports.supplierAgeing", descriptionKey: "billing.reports.supplierAgeingDesc", access: OWNER, project: false, dates: false },
   "receivables-ageing": { name: "receivables-ageing", titleKey: "billing.reports.receivablesAgeing", descriptionKey: "billing.reports.receivablesAgeingDesc", access: OWNER, project: true, dates: false },
   "stock-valuation": { name: "stock-valuation", titleKey: "billing.reports.stockValuation", descriptionKey: "billing.reports.stockValuationDesc", access: OWNER, project: true, dates: false },
+  "material-profit": { name: "material-profit", titleKey: "billing.reports.materialProfit", descriptionKey: "billing.reports.materialProfitDesc", access: OWNER, project: true, dates: true, dateLabelKey: "field.allTime" },
   // Step 18: finance.reports.view + the source module's view key (its project scope)
   "delay-analysis": step18("delay-analysis", "control.view", false),
   variance: step18("variance", "control.view", false),
@@ -58,4 +59,5 @@ export const REPORT_EXTRA_FILTERS: Partial<Record<ReportName, ReadonlyArray<"cli
   "cash-book": ["holder"],
   "receivables-ageing": ["client", "overdueOnly"],
   "stock-valuation": ["locationType", "material", "groupId"],
+  "material-profit": ["material", "groupId"],
 };
