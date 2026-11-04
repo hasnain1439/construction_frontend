@@ -1,11 +1,13 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { Fragment, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { Fragment, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useScrollEdges } from "@/hooks/useScrollEdges";
 import { cn } from "@/lib/cn";
 import { EmptyState, type EmptyStateProps } from "./EmptyState";
+import { RowViewContext } from "./rowView";
+import { SlideOver } from "./SlideOver";
 import { ErrorState } from "./ErrorState";
 import { Pagination } from "./Pagination";
 import { TableSkeleton } from "./TableSkeleton";
@@ -38,6 +40,10 @@ export interface DataTableProps<T> {
   error?: unknown;
   onRetry?: () => void;
   empty: EmptyStateProps;
+  /**
+   * Opens the row's view (e.g. its detail page) — never an edit form: editing lives in the actions menu.
+   * Without it, a table with an actions column opens a read-only details panel of the row's columns.
+   */
   onRowClick?: (row: T) => void;
   /** Server-side pagination; omit for client-side pagination of `rows`. */
   pagination?: ServerPagination;
@@ -129,6 +135,18 @@ export function DataTable<T>({
   const [clientSize, setClientSize] = useState(clientPageSize);
   const visibleColumns = columns.filter((c) => !c.hidden);
   const frameRef = useRef<HTMLDivElement>(null);
+  // Row click = view: the caller's view, else the read-only details panel (tables with an actions column).
+  const [viewing, setViewing] = useState<T | null>(null);
+  const hasActions = visibleColumns.some((c) => c.id === "actions");
+  const openRow = onRowClick ?? (hasActions ? (row: T) => setViewing(row) : undefined);
+  // A click on a control inside the row (button, link, input …) is that control's, not the row's.
+  const clickRow = (event: MouseEvent<HTMLElement>, row: T) => {
+    const control = (event.target as HTMLElement).closest("button, a, input, select, textarea, label, [role=button], [role=checkbox], [role=menuitem]");
+    if (control && event.currentTarget.contains(control) && control !== event.currentTarget) return;
+    openRow?.(row);
+  };
+  const cellOf = (column: Column<T>, row: T) =>
+    column.id === "actions" && openRow ? <RowViewContext.Provider value={() => openRow(row)}>{column.cell(row)}</RowViewContext.Provider> : column.cell(row);
 
   const sorted = useMemo(() => {
     const list = rows ?? [];
@@ -152,9 +170,9 @@ export function DataTable<T>({
   };
 
   const onRowKey = (event: KeyboardEvent<HTMLElement>, row: T) => {
-    if (onRowClick && (event.key === "Enter" || event.key === " ")) {
+    if (openRow && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
-      onRowClick(row);
+      openRow(row);
     }
   };
 
@@ -173,18 +191,18 @@ export function DataTable<T>({
           <li
             key={getRowId(row)}
             data-testid="data-card"
-            onClick={onRowClick ? () => onRowClick(row) : undefined}
-            onKeyDown={onRowClick ? (e) => onRowKey(e, row) : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            className={cn("space-y-2 px-4 py-3 text-sm", onRowClick && "cursor-pointer hover:bg-muted/50", rowClassName?.(row))}
+            onClick={openRow ? (e) => clickRow(e, row) : undefined}
+            onKeyDown={openRow ? (e) => onRowKey(e, row) : undefined}
+            tabIndex={openRow ? 0 : undefined}
+            className={cn("space-y-2 px-4 py-3 text-sm", openRow && "cursor-pointer hover:bg-muted/50", rowClassName?.(row))}
           >
-            {title ? <div className="min-w-0 break-words">{title.cell(row)}</div> : null}
+            {title ? <div className="min-w-0 break-words">{cellOf(title, row)}</div> : null}
             {rest.length ? (
               <dl className="grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1.5">
                 {rest.map((column) => (
                   <Fragment key={column.id}>
                     <dt className="text-xs font-medium text-muted-foreground uppercase">{column.header}</dt>
-                    <dd className="min-w-0 break-words text-end">{column.cell(row)}</dd>
+                    <dd className="min-w-0 break-words text-end">{cellOf(column, row)}</dd>
                   </Fragment>
                 ))}
               </dl>
@@ -266,17 +284,17 @@ export function DataTable<T>({
               <TableRow
                 key={getRowId(row)}
                 data-testid="data-row"
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                onKeyDown={onRowClick ? (e) => onRowKey(e, row) : undefined}
-                tabIndex={onRowClick ? 0 : undefined}
-                className={cn(onRowClick && "cursor-pointer", rowClassName?.(row))}
+                onClick={openRow ? (e) => clickRow(e, row) : undefined}
+                onKeyDown={openRow ? (e) => onRowKey(e, row) : undefined}
+                tabIndex={openRow ? 0 : undefined}
+                className={cn(openRow && "cursor-pointer", rowClassName?.(row))}
               >
                 {visibleColumns.map((column) => (
                   <TableCell
                     key={column.id}
                     className={cn("px-4 py-3", alignClass[column.align ?? "left"], column.className)}
                   >
-                    {column.cell(row)}
+                    {cellOf(column, row)}
                   </TableCell>
                 ))}
               </TableRow>
@@ -298,6 +316,7 @@ export function DataTable<T>({
           onPageSizeChange={pagination.onPageSizeChange}
         />
       ) : null}
+      {!onRowClick && hasActions ? <RowDetails row={viewing} columns={visibleColumns} onClose={() => setViewing(null)} /> : null}
       {clientPaging && sorted.length > clientSize ? (
         <Pagination
           page={page}
@@ -311,5 +330,28 @@ export function DataTable<T>({
         />
       ) : null}
     </div>
+  );
+}
+
+/** Read-only details of one row: every column's header and value; the row's actions at the bottom. */
+function RowDetails<T>({ row, columns, onClose }: { row: T | null; columns: Column<T>[]; onClose: () => void }) {
+  const [title, ...rest] = columns.filter((c) => c.id !== "actions");
+  const actions = columns.find((c) => c.id === "actions");
+  return (
+    <SlideOver open={row !== null} onOpenChange={(open) => !open && onClose()} title={row && title ? title.cell(row) : ""}>
+      {row ? (
+        <div className="space-y-6">
+          <dl className="grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-6 gap-y-3 text-sm">
+            {rest.map((column) => (
+              <Fragment key={column.id}>
+                <dt className="text-xs font-medium text-muted-foreground uppercase">{column.header}</dt>
+                <dd className="min-w-0 break-words">{column.cell(row)}</dd>
+              </Fragment>
+            ))}
+          </dl>
+          {actions ? <div className="flex justify-end border-t pt-4">{actions.cell(row)}</div> : null}
+        </div>
+      ) : null}
+    </SlideOver>
   );
 }

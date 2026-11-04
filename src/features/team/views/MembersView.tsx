@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus, Users } from "lucide-react";
+import { Pencil, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { useGetRolesQuery } from "@/api/services/permissions.api";
 import { useGetUsersQuery } from "@/api/services/team.api";
@@ -9,6 +9,7 @@ import { AvatarName } from "@/components/common/AvatarName";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { FilterBar, FilterSelect } from "@/components/common/FilterBar";
 import { useCan } from "@/components/common/PermissionGate";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SearchInput } from "@/components/common/SearchInput";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -73,6 +74,10 @@ export function MembersView() {
       cell: (u) => <span className="text-muted-foreground">{formatRelative(u.lastActiveAt, t("teamCompany.edit.never"))}</span>,
       sortValue: (u) => u.lastActiveAt ?? "",
     },
+    {
+      ...ACTIONS_COLUMN,
+      cell: (u) => <RowActions name={u.name} actions={[{ label: t("common.edit"), icon: Pencil, hidden: !canManage, onSelect: () => setEditing(u.id) }]} />,
+    },
   ];
 
   return (
@@ -133,7 +138,6 @@ export function MembersView() {
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
-          onRowClick={canManage ? (u) => setEditing(u.id) : undefined}
           empty={{ title: t("teamCompany.members.empty"), description: t("teamCompany.members.emptyDesc"), icon: Users }}
           pagination={
             data

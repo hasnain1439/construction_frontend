@@ -176,7 +176,6 @@ export function ProductsView() {
           loading={query.isLoading || query.isFetching}
           error={query.error}
           onRetry={query.refetch}
-          onRowClick={canEdit ? (m) => setEditing(m) : undefined}
           empty={{ title: t("masterData.products.emptyTitle"), description: t("masterData.products.emptyDesc"), icon: Package }}
         />
       </SectionCard>
