@@ -16,6 +16,8 @@ const FILE_ORIGINS = [originOf(process.env.API_PUBLIC_URL), originOf(API_ORIGIN)
 const SECURITY_HEADERS = securityHeaders({
   fileOrigins: FILE_ORIGINS,
   dev: process.env.NODE_ENV !== "production",
+  // The desktop app's build (plain http on the office network, see securityHeaders.ts).
+  plainHttp: process.env.CSP_PLAIN_HTTP === "1",
   // Observability endpoints are allowed only when configured (see README "Observability").
   sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   posthogHost: process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim()
