@@ -19,8 +19,7 @@ import { formatDate } from "@/lib/dates";
 import { useRelativeTime } from "@/components/common/useRelativeTime";
 import { useAppDispatch, useAppSelector, useMe } from "@/store/hooks";
 import { setCurrentProject } from "@/store/slices/projectSlice";
-
-const lines = (items: SiteDashboard["incoming"][number]["items"]) => items.map((i) => `${i.material.name} ${i.quantity} ${i.material.unit}`).join(" · ");
+import { useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 /**
  * The munshi's landing page (also open to PM / owner): today's hazri, material on the way,
@@ -28,6 +27,8 @@ const lines = (items: SiteDashboard["incoming"][number]["items"]) => items.map((
  */
 export function SiteDashboardView() {
   const t = useT();
+  const label = useMaterialLabel();
+  const lines = (items: SiteDashboard["incoming"][number]["items"]) => items.map((i) => `${label(i.material)} ${i.quantity} ${i.material.unit}`).join(" · ");
   const rel = useRelativeTime();
   const me = useMe();
   const dispatch = useAppDispatch();

@@ -123,6 +123,8 @@ export const romanUr: Dictionary = {
     myAccount: "Mera account",
     logout: "Logout",
     theme: "Theme",
+    fullScreen: "Poori screen",
+    exitFullScreen: "Poori screen band karein",
     light: "Roshan",
     dark: "Andhera",
     system: "System",

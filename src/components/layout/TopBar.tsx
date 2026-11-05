@@ -9,6 +9,7 @@ import { LanguageMenu } from "@/components/common/LanguageMenu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/common/NotificationBell";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { FullscreenToggle } from "@/components/common/FullscreenToggle";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -205,6 +206,7 @@ export function TopBar({
       <div className="flex min-w-0 items-center justify-end gap-1 sm:gap-1.5">
         <LanguageMenu />
         <ThemeToggle />
+        <FullscreenToggle />
         <NotificationBell />
         {rightExtra}
         <UserMenu onSessions={onSessions} onLogout={onLogout} />

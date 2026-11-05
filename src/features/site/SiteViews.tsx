@@ -43,13 +43,14 @@ import { projectHref } from "@/lib/navigation";
 import { formatPhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
 import { OwnerDeliverySlideOver, RecordUsageSlideOver } from "./SiteSlideOvers";
-import { MaterialName } from "@/components/forms/MaterialPicker";
+import { MaterialName, useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 const editable = (p: ProjectDetail) => p.status === "ACTIVE" || p.status === "CLOSEOUT";
 
 // ─── Incoming ───────────────────────────────────────────────────────────────
 
 export function IncomingView({ projectId }: { projectId: string }) {
+  const label = useMaterialLabel();
   const t = useT();
   const incoming = useGetIncomingQuery(projectId);
   return (
@@ -116,7 +117,7 @@ export function IncomingView({ projectId }: { projectId: string }) {
                       {doc.items
                         .map((i) => {
                           const q = "sentQty" in i ? i.sentQty : "challanQty" in i ? i.challanQty : undefined;
-                          return q !== undefined ? `${formatQty(q, i.material.unit)} ${i.material.name}` : i.material.name;
+                          return q !== undefined ? `${formatQty(q, i.material.unit)} ${label(i.material)}` : label(i.material);
                         })
                         .join(", ")}
                     </span>
@@ -193,6 +194,7 @@ function ReceiveForm({
 }
 
 export function ReceiveView({ projectId, kind, docId }: { projectId: string; kind: "dispatch" | "purchase"; docId: string }) {
+  const label = useMaterialLabel();
   const t = useT();
   const dispatch = useGetDispatchQuery(docId, { skip: kind !== "dispatch" });
   const purchase = useGetPurchaseQuery(docId, { skip: kind !== "purchase" });
@@ -214,8 +216,8 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
             const pending = d ? d.status === "ON_THE_WAY" : p!.status === "PENDING_RECEIPT";
             const blind = d ? d.blindCount : p!.blindCount;
             const lines = d
-              ? d.items.map((i) => ({ id: i.material.id, name: i.material.name, unit: i.material.unit, expected: i.sentQty }))
-              : p!.items.map((i) => ({ id: i.material.id, name: i.material.name, unit: i.material.unit, expected: i.challanQty }));
+              ? d.items.map((i) => ({ id: i.material.id, name: label(i.material), unit: i.material.unit, expected: i.sentQty }))
+              : p!.items.map((i) => ({ id: i.material.id, name: label(i.material), unit: i.material.unit, expected: i.challanQty }));
             return (
               <>
                 <DocumentHeader
@@ -296,6 +298,7 @@ export function ReceiveView({ projectId, kind, docId }: { projectId: string; kin
 // ─── Deliveries (history + owner deliveries) ────────────────────────────────
 
 export function DeliveriesView({ projectId }: { projectId: string }) {
+  const label = useMaterialLabel();
   const t = useT();
   // QA-C-02: the page opens with either permission, so each section asks only for what the user may read.
   const canDispatches = useCan("procurement.dispatch.view");
@@ -319,7 +322,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
           from: d.from.type === "STORE" ? null : d.from.name,
           date: d.receivedAt ?? d.dispatchedAt,
           status: <StatusBadge domain="dispatch" value={d.status} />,
-          materials: d.items.map((i) => `${formatQty(i.receivedQty, i.material.unit)} ${i.material.name}`).join(", "),
+          materials: d.items.map((i) => `${formatQty(i.receivedQty, i.material.unit)} ${label(i.material)}`).join(", "),
         })),
       ...(purchases.data?.items ?? [])
         .filter((p) => p.deliverTo === "SITE" && p.status !== "PENDING_RECEIPT")
@@ -334,7 +337,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
         })),
     ];
     return rows.sort((a, b) => b.date.localeCompare(a.date));
-  }, [dispatches.data, purchases.data, projectId]);
+  }, [dispatches.data, purchases.data, projectId, label]);
 
   return (
     <ProjectPageShell
@@ -404,7 +407,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
                 empty={{ title: t("cashSite.site.noOwnerDeliveries"), compact: true }}
                 columns={[
                   { id: "date", header: t("field.date"), cell: (d) => formatDate(d.deliveryDate) },
-                  { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}`).join(", ") },
+                  { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${label(i.material)}`).join(", ") },
                   { id: "note", header: t("field.note"), cell: (d) => d.note ?? "" },
                   { id: "by", header: t("cashSite.site.recordedBy"), cell: (d) => d.createdBy?.name ?? "—" },
                 ]}
@@ -422,6 +425,7 @@ export function DeliveriesView({ projectId }: { projectId: string }) {
 // ─── Usage ──────────────────────────────────────────────────────────────────
 
 export function UsageView({ projectId }: { projectId: string }) {
+  const label = useMaterialLabel();
   const t = useT();
   const usage = useGetUsageQuery({ projectId, limit: 100 });
   const stock = useGetProjectStockQuery(projectId);
@@ -460,7 +464,7 @@ export function UsageView({ projectId }: { projectId: string }) {
                   {entries.map((u) => (
                     <li key={u.id} className="flex flex-wrap items-start justify-between gap-3 px-5 py-3 text-sm">
                       <div className="space-y-1">
-                        <p className="font-medium">{u.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}${i.ownerSupplied ? ` ${ownerTag}` : ""}`).join(", ")}</p>
+                        <p className="font-medium">{u.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${label(i.material)}${i.ownerSupplied ? ` ${ownerTag}` : ""}`).join(", ")}</p>
                         <p className="text-xs text-muted-foreground">{[u.note, u.createdBy?.name].filter(Boolean).join(" · ")}</p>
                       </div>
                       {u.totalValuePaisa !== undefined ? <MoneyText paisa={u.totalValuePaisa} /> : null}
@@ -537,6 +541,7 @@ export function SiteStockView({ projectId }: { projectId: string }) {
 // ─── Stock counts & transfers ───────────────────────────────────────────────
 
 export function CountsView({ projectId }: { projectId: string }) {
+  const label = useMaterialLabel();
   const t = useT();
   const stock = useGetProjectStockQuery(projectId);
   const counts = useGetStockCountsQuery({ projectId, limit: 50 });
@@ -562,7 +567,7 @@ export function CountsView({ projectId }: { projectId: string }) {
           <span className="text-sm">
             {c.items
               .filter((i) => i.difference !== 0)
-              .map((i) => `${i.material.name} ${i.difference > 0 ? "+" : ""}${formatQty(i.difference, i.material.unit)}`)
+              .map((i) => `${label(i.material)} ${i.difference > 0 ? "+" : ""}${formatQty(i.difference, i.material.unit)}`)
               .join(", ")}
           </span>
         ),

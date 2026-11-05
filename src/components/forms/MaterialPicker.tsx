@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { useGetMaterialsQuery } from "@/api/services/masterData.api";
 import type { Material } from "@/api/types";
@@ -125,6 +125,12 @@ export function MaterialPicker({ value, onChange, onlyIds, excludeIds, preferIds
 export function useMaterialUnits(): Map<string, Material> {
   const { data } = useGetMaterialsQuery();
   return useMemo(() => new Map((data ?? []).map((m) => [m.id, m])), [data]);
+}
+
+/** For text built in code ("20 bags Cement OPC · A"): a material's name with its brand and category. */
+export function useMaterialLabel(): (material: Named) => string {
+  const known = useMaterialUnits();
+  return useCallback((material) => materialLabel(known.get(material.id) ?? material), [known]);
 }
 
 /** MaterialPicker bound to a form field holding the material id. */

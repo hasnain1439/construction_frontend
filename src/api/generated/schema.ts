@@ -14541,7 +14541,7 @@ export interface paths {
         };
         /**
          * Materials: download the import template
-         * @description `masterdata.material.create`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `name` (required), `group` (required), `unit` (required), `unitDetail`, `supplyCategory`.
+         * @description `masterdata.material.create`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `name` (required), `group` (required), `unit` (required), `unitDetail`, `brand`, `category`, `purchasePrice`, `salePrice`, `supplyCategory`.
          */
         get: {
             parameters: {
@@ -66813,6 +66813,95 @@ export interface paths {
                 };
                 /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The file of an attachment made on the office PC
+         * @description Body: the bytes (`Content-Type: application/octet-stream`, ≤ 10 MB, exactly the row’s sizeBytes). The Attachment row came with /edge/push and points at the PC’s storage; the cloud stores the file in its own store and points the row there (that change reaches the PC with the next pull). `stored: false` = already in the cloud store.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Stored */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "stored": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | SIZE_MISMATCH | INVALID_STORAGE_KEY */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description ATTACHMENT_NOT_FOUND */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };

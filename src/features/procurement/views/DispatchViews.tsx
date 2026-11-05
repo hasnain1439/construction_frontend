@@ -30,7 +30,7 @@ import { formatPhone } from "@/lib/phone";
 import { formatQty } from "@/lib/quantity";
 import { NewDispatchSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
-import { MaterialName } from "@/components/forms/MaterialPicker";
+import { MaterialName, useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 const BASE = "/suppliers-stock/dispatches";
 const DISPATCH_STATUSES = ["ON_THE_WAY", "RECEIVED", "RECEIVED_WITH_SHORTAGE", "RECEIVED_WITH_EXCESS", "CANCELLED"] as const;
@@ -39,6 +39,7 @@ const DISPATCH_STATUSES = ["ON_THE_WAY", "RECEIVED", "RECEIVED_WITH_SHORTAGE", "
 const place = (t: (key: TranslationKey) => string, l: Dispatch["from"]) => (l.type === "STORE" ? t("field.centralStore") : l.name);
 
 export function DispatchesView() {
+  const label = useMaterialLabel();
   const t = useT();
   const ts = useStatusT();
   const router = useRouter();
@@ -57,7 +58,7 @@ export function DispatchesView() {
     { id: "number", header: t("procurement.common.gatePass"), cell: (d) => <span className="font-medium tabular">{d.number}</span> },
     { id: "date", header: t("field.sent"), cell: (d) => formatDateTime(d.dispatchedAt), sortValue: (d) => d.dispatchedAt },
     { id: "route", header: t("procurement.dispatch.colRoute"), cell: (d) => t("procurement.common.route", { from: place(t, d.from), to: place(t, d.to) }) },
-    { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => (i.sentQty !== undefined ? `${formatQty(i.sentQty, i.material.unit)} ${i.material.name}` : i.material.name)).join(", ") },
+    { id: "items", header: t("field.materials"), cell: (d) => d.items.map((i) => (i.sentQty !== undefined ? `${formatQty(i.sentQty, i.material.unit)} ${label(i.material)}` : label(i.material))).join(", ") },
     { id: "vehicle", header: t("procurement.dispatch.colVehicleDriver"), cell: (d) => [d.vehicleNo, d.driverName].filter(Boolean).join(" · ") || "—" },
     { id: "value", header: t("field.value"), align: "right", cell: (d) => <MoneyText paisa={d.totalValuePaisa} /> },
     { id: "status", header: t("field.status"), cell: (d) => <StatusBadge domain="dispatch" value={d.status} /> },

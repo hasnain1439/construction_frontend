@@ -36,6 +36,7 @@ import { projectHref } from "@/lib/navigation";
 import { useMilestoneName } from "@/features/schedule/labels";
 import { builderTotals } from "./calc";
 import { SignedMoney } from "./shared";
+import { MaterialName, useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 export interface BuilderLine {
   key: string;
@@ -101,6 +102,7 @@ function BuilderWithRates({ projectId, initial }: { projectId: string; initial?:
 /** The mini BoQ form: items with rates, markup, days, affected milestones, proof; live totals. */
 export function ChangeOrderBuilder({ projectId, options, initial }: { projectId: string; options: ChangeOrderRateOptions; initial?: ChangeOrderDetail }) {
   const t = useT();
+  const label = useMaterialLabel();
   const milestoneName = useMilestoneName();
   const router = useRouter();
   const { canSee } = usePermissions();
@@ -237,7 +239,7 @@ export function ChangeOrderBuilder({ projectId, options, initial }: { projectId:
                     value={l.materialId ?? undefined}
                     onValueChange={(id) => {
                       const m = material(id);
-                      patch(l.key, { materialId: id, description: m?.name ?? "", unit: m?.unit ?? "", ratePaisa: m?.ratePaisa ?? null, rateTouched: false });
+                      patch(l.key, { materialId: id, description: m ? label({ id: m.materialId, name: m.name }) : "", unit: m?.unit ?? "", ratePaisa: m?.ratePaisa ?? null, rateTouched: false });
                     }}
                   >
                     <SelectTrigger className="w-full" aria-label={t("changeOrders.builder.material")}>
@@ -246,7 +248,7 @@ export function ChangeOrderBuilder({ projectId, options, initial }: { projectId:
                     <SelectContent>
                       {options.materials.map((m) => (
                         <SelectItem key={m.materialId} value={m.materialId}>
-                          {m.name}
+                          <MaterialName material={{ id: m.materialId, name: m.name }} />
                         </SelectItem>
                       ))}
                     </SelectContent>

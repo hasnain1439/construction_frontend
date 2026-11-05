@@ -33,7 +33,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
-import { MaterialName } from "@/components/forms/MaterialPicker";
+import { MaterialName, materialLabel } from "@/components/forms/MaterialPicker";
 
 interface RateRow {
   materialId: string;
@@ -73,7 +73,7 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
   const changed = rows.filter((r) => r.ratePaisa && r.ratePaisa !== r.original);
   const options = (materials.data ?? [])
     .filter((m) => !rows.some((r) => r.materialId === m.id))
-    .map((m) => ({ value: m.id, label: m.name, description: t("masterData.suppliers.perUnit", { group: m.group.name, unit: m.unit }) }));
+    .map((m) => ({ value: m.id, label: materialLabel(m), description: t("masterData.suppliers.perUnit", { group: m.group.name, unit: m.unit }) }));
 
   const addRow = (materialId: string | null) => {
     const material = materials.data?.find((m) => m.id === materialId);
@@ -110,7 +110,7 @@ function AgreedRates({ supplier, editable }: { supplier: SupplierDetail; editabl
         clientPageSize={0}
         empty={{ title: t("masterData.suppliers.noAgreedRates"), description: editable ? t("masterData.suppliers.noAgreedRatesDesc") : undefined }}
         columns={[
-          { id: "material", header: t("field.material"), cell: (r) => <span className="font-medium">{r.name}</span>, sortValue: (r) => r.name },
+          { id: "material", header: t("field.material"), cell: (r) => <MaterialName className="font-medium" material={{ id: r.materialId, name: r.name }} />, sortValue: (r) => r.name },
           { id: "unit", header: t("field.unit"), cell: (r) => r.unit },
           {
             id: "rate",

@@ -32,6 +32,7 @@ import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { useEnumT, useT } from "@/i18n/useT";
 import { formatAltUnits, SUPPLY_CATEGORY_LABEL } from "@/lib/options";
 import { MaterialSlideOver } from "../components/MaterialSlideOver";
+import { materialLabel } from "@/components/forms/MaterialPicker";
 
 /** Every group is its own table: fixed layout + the same column widths keep the columns lined up. */
 const GROUP_TABLE = "[&_table]:table-fixed [&_table]:min-w-[56rem] [&_td]:break-words";
@@ -70,7 +71,7 @@ export function MaterialsView() {
   }, [data]);
 
   const columns: Column<Material>[] = [
-    { id: "name", headerClassName: "w-[22%]", header: t("field.material"), cell: (m) => <span className="font-medium">{m.name}</span>, sortValue: (m) => m.name },
+    { id: "name", headerClassName: "w-[22%]", header: t("field.material"), cell: (m) => <span className="font-medium">{materialLabel(m)}</span>, sortValue: (m) => m.name },
     { id: "unit", headerClassName: "w-[8%]", header: t("field.unit"), cell: (m) => m.unit },
     { id: "detail", headerClassName: "w-[14%]", header: t("masterData.materials.unitDetail"), cell: (m) => m.unitDetail ?? <span className="text-muted-foreground">—</span> },
     {

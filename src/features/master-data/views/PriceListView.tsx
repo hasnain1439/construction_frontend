@@ -45,7 +45,7 @@ import { BulkPercentDialog } from "../components/BulkPercentDialog";
 import { AddCategoryDialog, DuplicateCategoryDialog, RenameCategoryDialog } from "../components/CategoryDialogs";
 import { PriceImportButton } from "../components/PriceExcelImport";
 import { RateHistorySlideOver } from "../components/RateHistorySlideOver";
-import { MaterialName } from "@/components/forms/MaterialPicker";
+import { MaterialName, useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 interface Draft {
   ratePaisa?: string;
@@ -139,6 +139,7 @@ function CategoryTabs({
 }
 
 export function PriceListView() {
+  const label = useMaterialLabel();
   const t = useT();
   const te = useEnumT();
   const readOnly = useReadOnly();
@@ -206,8 +207,9 @@ export function PriceListView() {
       return !(d.ratePaisa ?? item?.ratePaisa);
     });
     if (missingRate) {
-      const name = items.find((i) => i.material.id === missingRate[0])?.material.name;
-      toast.error(t("masterData.priceList.missingRate", { name: name ?? "" }));
+      const missing = items.find((i) => i.material.id === missingRate[0])?.material;
+      const name = missing ? label(missing) : "";
+      toast.error(t("masterData.priceList.missingRate", { name }));
       return;
     }
     const rates = Object.entries(drafts).map(([materialId, d]) => {
