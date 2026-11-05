@@ -37,6 +37,7 @@ import { msg } from "@/i18n/message";
 import { useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate, todayPK } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
+import { materialLabel } from "@/components/forms/MaterialPicker";
 
 const KINDS: OpeningKind[] = ["SUPPLIER_UDHAAR", "CASH_IN_HAND", "STORE_STOCK", "WORKER_PESHGI"];
 const kindLabel = (k: OpeningKind) => `opening.kind${k}` as TranslationKey;
@@ -130,7 +131,7 @@ function useItemOptions(kind: OpeningKind, locked: Set<string>, open: boolean) {
       return {
         loading: materials.isFetching,
         options: free(
-          (materials.data ?? []).map((m) => ({ value: m.id, label: m.name, description: m.unit })),
+          (materials.data ?? []).map((m) => ({ value: m.id, label: materialLabel(m), description: m.unit })),
         ),
       };
     case "WORKER_PESHGI":

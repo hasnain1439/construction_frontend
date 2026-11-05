@@ -29,6 +29,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
 import { formatDateTime } from "@/lib/dates";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 /** Add (category = null) or rename one category; a name that matches another category merges the two. */
 function NameDialog({ category, open, onClose }: { category: SupplierCategory | null; open: boolean; onClose: () => void }) {
@@ -180,7 +181,7 @@ function ProductsPanel({ category, readOnly, onClose }: { category: SupplierCate
             {items.map((m) => (
               <label key={m.id} className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-1 hover:bg-muted/50">
                 <Checkbox checked={chosen.has(m.id)} disabled={readOnly} onCheckedChange={(on) => toggle(m.id, on === true)} />
-                <span className="text-sm">{m.name}</span>
+                <MaterialName className="text-sm" material={m} />
                 <span className="text-xs text-muted-foreground">{m.unit}</span>
               </label>
             ))}

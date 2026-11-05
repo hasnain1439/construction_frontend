@@ -42,7 +42,7 @@ import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { useSiteProjectOptions, useSupplierOptions } from "../options";
 import { purchaseOrderSchema, type PurchaseOrderValues } from "../schemas";
-import { MaterialName } from "@/components/forms/MaterialPicker";
+import { MaterialName, useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 const BASE = "/suppliers-stock/purchase-orders";
 const PO_STATUSES = ["OPEN", "PARTLY_RECEIVED", "RECEIVED", "CANCELLED"] as const;
@@ -51,6 +51,7 @@ const destination = (t: (key: TranslationKey) => string, po: Pick<PurchaseOrder,
   po.deliverTo === "STORE" ? t("field.centralStore") : (po.project?.name ?? po.location.name);
 
 export function PurchaseOrdersView() {
+  const label = useMaterialLabel();
   const t = useT();
   const ts = useStatusT();
   const router = useRouter();
@@ -64,7 +65,7 @@ export function PurchaseOrdersView() {
     { id: "supplier", header: t("field.supplier"), cell: (o) => o.supplier.name },
     { id: "to", header: t("procurement.common.deliverTo"), cell: (o) => destination(t, o) },
     { id: "expected", header: t("field.expected"), cell: (o) => formatDate(o.expectedDate), sortValue: (o) => o.expectedDate ?? "" },
-    { id: "items", header: t("field.materials"), cell: (o) => o.items.map((i) => i.material.name).join(", ") },
+    { id: "items", header: t("field.materials"), cell: (o) => o.items.map((i) => label(i.material)).join(", ") },
     { id: "total", header: t("field.value"), align: "right", cell: (o) => <MoneyText paisa={o.totalPaisa} /> },
     { id: "status", header: t("field.status"), cell: (o) => <StatusBadge domain="purchaseOrder" value={o.status} /> },
   ];

@@ -15,8 +15,10 @@ import { useT } from "@/i18n/useT";
 import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { useSupplierOptions } from "../options";
+import { useMaterialLabel } from "@/components/forms/MaterialPicker";
 
 export function PurchaseReturnsView() {
+  const label = useMaterialLabel();
   const t = useT();
   const suppliers = useSupplierOptions();
   const list = useListState({ supplierId: "" });
@@ -35,7 +37,7 @@ export function PurchaseReturnsView() {
         </Link>
       ),
     },
-    { id: "items", header: t("field.materials"), cell: (r) => r.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${i.material.name}`).join(", ") },
+    { id: "items", header: t("field.materials"), cell: (r) => r.items.map((i) => `${formatQty(i.qty, i.material.unit)} ${label(i.material)}`).join(", ") },
     { id: "reason", header: t("field.reason"), cell: (r) => <span className="text-muted-foreground">{r.reason}</span> },
     { id: "total", header: t("procurement.returns.colCredited"), align: "right", cell: (r) => <MoneyText paisa={r.totalPaisa} /> },
   ];
