@@ -28,6 +28,7 @@ const ENTITY: Record<ImportEntity, { label: TranslationKey; permission: Permissi
   subcontractors: { label: "imports.entitySubcontractors", permission: "masterdata.subcontractor.create" },
   suppliers: { label: "imports.entitySuppliers", permission: "masterdata.supplier.create" },
   materials: { label: "imports.entityMaterials", permission: "masterdata.material.create" },
+  brands: { label: "imports.entityBrands", permission: "masterdata.material.create" },
   clients: { label: "imports.entityClients", permission: "clients.client.create" },
   "opening-stock": { label: "imports.entityOpeningStock", permission: "company.opening.manage" },
   "opening-udhaar": { label: "imports.entityOpeningUdhaar", permission: "company.opening.manage" },

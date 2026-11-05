@@ -594,6 +594,7 @@ export const en = {
     entitySubcontractors: "sub-contractors",
     entitySuppliers: "suppliers",
     entityMaterials: "materials",
+    entityBrands: "brands",
     entityClients: "clients",
     entityOpeningStock: "opening store stock",
     entityOpeningUdhaar: "opening supplier balances",

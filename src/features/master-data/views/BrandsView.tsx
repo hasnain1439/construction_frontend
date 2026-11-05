@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
@@ -246,10 +247,13 @@ export function BrandsView() {
         breadcrumbs={[{ label: t("crumb.suppliers") }, { label: t("masterData.products.brandsTitle") }]}
         actions={
           canAdd ? (
-            <Button onClick={() => setAdding(true)}>
-              <Plus data-icon="inline-start" />
-              {t("masterData.products.addBrand")}
-            </Button>
+            <>
+              <ImportButton entity="brands" />
+              <Button onClick={() => setAdding(true)}>
+                <Plus data-icon="inline-start" />
+                {t("masterData.products.addBrand")}
+              </Button>
+            </>
           ) : null
         }
       />

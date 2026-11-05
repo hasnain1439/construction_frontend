@@ -14853,6 +14853,327 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/brands/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Brands: download the import template
+         * @description `masterdata.material.create`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `name` (required), `groups`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Excel template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/brands/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Brands: preview an import
+         * @description `masterdata.material.create`. Parses the file and checks every row with the create endpoint’s own rules (Zod schema + name must be new — in the company and in the file). **Writes nothing.** Headers are matched by key or by any of the three labels; unknown columns are listed in `unknownColumns`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rows with their errors */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "workers",
+                         *         "fileName": "workers.xlsx",
+                         *         "columns": [
+                         *           {
+                         *             "key": "name",
+                         *             "label": "Name",
+                         *             "labelRoman": "Naam",
+                         *             "labelUrdu": "نام",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "type",
+                         *             "label": "Worker type",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "phone",
+                         *             "label": "Phone",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "dailyRate",
+                         *             "label": "Daily rate (Rs)",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "notes",
+                         *             "label": "Notes",
+                         *             "required": false
+                         *           }
+                         *         ],
+                         *         "unknownColumns": [],
+                         *         "skippedExampleRows": 1,
+                         *         "totalRows": 2,
+                         *         "validRows": 1,
+                         *         "invalidRows": 1,
+                         *         "rows": [
+                         *           {
+                         *             "rowNumber": 3,
+                         *             "values": {
+                         *               "name": "Riaz",
+                         *               "type": "MAZDOOR",
+                         *               "phone": "03001112233",
+                         *               "dailyRate": "",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [],
+                         *             "valid": true
+                         *           },
+                         *           {
+                         *             "rowNumber": 4,
+                         *             "values": {
+                         *               "name": "A",
+                         *               "type": "PLUMBER",
+                         *               "phone": "12345",
+                         *               "dailyRate": "abc",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [
+                         *               {
+                         *                 "column": "dailyRate",
+                         *                 "message": "Enter the amount in rupees, e.g. 1600"
+                         *               },
+                         *               {
+                         *                 "column": "name",
+                         *                 "message": "Name is too short"
+                         *               }
+                         *             ],
+                         *             "valid": false
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/brands/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Brands: import
+         * @description `masterdata.material.create`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.brands`. Master data has no plan limits.
+         */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description true = import only the valid rows (default: all-or-nothing) */
+                    skipInvalid?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Imported */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "brands",
+                         *         "fileName": "brands.xlsx",
+                         *         "created": 12,
+                         *         "skipped": 0,
+                         *         "ids": [
+                         *           "0199a8c0-0000-7000-8000-0000000000c1"
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD | IMPORT_HAS_ERRORS | NOTHING_TO_IMPORT | VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description IMPORT_CONFLICT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/clients/template": {
         parameters: {
             query?: never;

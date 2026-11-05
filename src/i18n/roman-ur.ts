@@ -595,6 +595,7 @@ export const romanUr: Dictionary = {
     entitySubcontractors: "thekedar (sub)",
     entitySuppliers: "suppliers",
     entityMaterials: "materials",
+    entityBrands: "brands",
     entityClients: "clients",
     entityOpeningStock: "store ka shuruaati stock",
     entityOpeningUdhaar: "supplier ka purana udhaar",

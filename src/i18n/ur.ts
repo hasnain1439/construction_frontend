@@ -595,6 +595,7 @@ export const ur: Dictionary = {
     entitySubcontractors: "ذیلی ٹھیکیدار",
     entitySuppliers: "سپلائرز",
     entityMaterials: "میٹیریل",
+    entityBrands: "برانڈز",
     entityClients: "کلائنٹس",
     entityOpeningStock: "اسٹور کا ابتدائی اسٹاک",
     entityOpeningUdhaar: "سپلائر کا پرانا ادھار",
