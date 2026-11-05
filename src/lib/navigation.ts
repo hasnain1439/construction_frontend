@@ -494,6 +494,13 @@ export const COMPANY_NAV: NavSection[] = [
         available: true,
         access: ALL("finance.reports.view", "finance.companyreports.view"),
       },
+      {
+        id: "reports.materialProfit",
+        label: L("Material Profit", "Maal ka Munafa", "مال کا منافع"),
+        href: "/reports/material-profit",
+        available: true,
+        access: ALL("finance.reports.view", "finance.companyreports.view"),
+      },
       // Step 18 · reports on schedule / control / change orders / equipment / closeout (+ the module view key)
       {
         id: "reports.delay",

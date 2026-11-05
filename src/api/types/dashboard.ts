@@ -334,7 +334,7 @@ export interface CashFloatsOverview {
 export type Step18ReportName = "delay-analysis" | "variance" | "change-orders" | "equipment-utilisation" | "snags";
 /** Step 18 tax reports (tax.view + fields.amounts). */
 export type TaxReportName = "wht-summary" | "tax-invoice-register";
-export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | Step18ReportName | TaxReportName;
+export type ReportName = "project-summary" | "material-audit" | "labor-peshgi" | "cash-book" | "supplier-ageing" | "receivables-ageing" | "stock-valuation" | "material-profit" | Step18ReportName | TaxReportName;
 /** Per-project report books (GET /reports/<name>/:projectId). */
 export type ReportBookName = "delay-analysis" | "variance" | "snags";
 export type ReportFormat = "json" | "csv" | "xlsx" | "pdf";
@@ -351,7 +351,7 @@ export interface ReportExtraFilters {
   /** cash-book: holder name contains */
   holder?: string;
   locationType?: "STORE" | "SITE" | "TRANSIT";
-  /** stock-valuation: material name contains */
+  /** stock-valuation / material-profit: material name contains */
   material?: string;
   delayState?: "LATE" | "ON_TIME" | "AHEAD";
   cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";

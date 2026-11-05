@@ -558,7 +558,7 @@ describe("Schedule — stoppage days", () => {
     });
     expect(screen.getAllByText("Smog ban").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Pending").length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: /Actions for/ })).toHaveLength(1); // only the PENDING row
+    expect(screen.getAllByRole("button", { name: /Actions for/ })).toHaveLength(2); // every row has View; approve / reject only on the PENDING one
     unmount();
     renderWithStore(<StoppagesBoard projectId="p1" data={data} canApprove={false} />, {
       me: meFixture("MUNSHI"),

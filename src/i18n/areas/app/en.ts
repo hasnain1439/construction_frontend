@@ -327,6 +327,8 @@ export const strings = {
       searchMaterials: "Search materials…",
       noMaterial: "No material found",
       supplierSells: "Sold by this supplier",
+      category: "Category",
+      anyCategory: "All categories",
       chooseMaterial: "Choose material",
       digitN: "Digit {n}",
       verificationCode: "Verification code",

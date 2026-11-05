@@ -255,6 +255,8 @@ export const strings: Widen<typeof En.strings> = {
     receivablesAgeingDesc: "Malikan ke zimme raqam, invoice jari hone se ab tak ke dinon ke hisaab se.",
     stockValuation: "Stock ki Qeemat",
     stockValuationDesc: "Store, sites aur raste ka maal, average qeemat par.",
+    materialProfit: "Maal ka Munafa",
+    materialProfitDesc: "Har project: site ko diya gaya maal, us ka kharcha, sale rate par qeemat aur munafa.",
   },
 };
 

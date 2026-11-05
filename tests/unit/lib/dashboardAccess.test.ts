@@ -23,6 +23,7 @@ describe("Step 9 navigation", () => {
       "/reports/supplier-ageing",
       "/reports/receivables-ageing",
       "/reports/stock-valuation",
+      "/reports/material-profit",
       "/reports/delay-analysis",
       "/reports/variance",
       "/reports/change-orders",

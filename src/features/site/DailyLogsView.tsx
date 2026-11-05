@@ -21,6 +21,7 @@ import { useEnumT, useT } from "@/i18n/useT";
 import { formatDate, formatDateTime, todayPK } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { addDays } from "@/lib/weeks";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 /** Icon shown before each site condition; the label is `enum.siteCondition.*`. */
 export const CONDITION_ICON: Record<SiteCondition, string> = {
@@ -210,7 +211,7 @@ function DaySummarySlideOver({ logId, onClose }: { logId: string | null; onClose
               <ul className="divide-y rounded-lg border text-sm">
                 {d.summary.usage.map((u) => (
                   <li key={u.material.id} className="flex justify-between px-3 py-2">
-                    <span>{u.material.name}</span>
+                    <MaterialName material={u.material} />
                     <span className="tabular font-medium">{formatQty(u.quantity, u.material.unit)}</span>
                   </li>
                 ))}

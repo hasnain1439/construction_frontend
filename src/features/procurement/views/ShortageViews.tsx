@@ -20,6 +20,7 @@ import { formatDate } from "@/lib/dates";
 import { formatQty } from "@/lib/quantity";
 import { ResolveShortageSlideOver } from "../components/DispatchSlideOvers";
 import { useSiteProjectOptions } from "../options";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 const SHORTAGE_STATUSES = ["OPEN", "RESOLVED"] as const;
 const SHORTAGE_KINDS = ["DISPATCH_SHORT", "DAMAGED", "EXCESS", "SUPPLIER_SHORT"] as const;
@@ -36,7 +37,7 @@ function useShortageColumns(onResolve?: (s: Shortage) => void): Column<Shortage>
       cell: (s) => (
         <div>
           <p className="font-medium">
-            {formatQty(s.qty, s.material.unit)} {s.material.name}
+            {formatQty(s.qty, s.material.unit)} <MaterialName material={s.material} />
           </p>
           {s.note ? <p className="line-clamp-1 text-xs text-muted-foreground">{s.note}</p> : null}
         </div>

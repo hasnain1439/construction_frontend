@@ -33,6 +33,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 interface RateRow {
   materialId: string;
@@ -200,7 +201,7 @@ function RateHistory({ supplierId }: { supplierId: string }) {
         empty={{ title: t("masterData.suppliers.noRateChanges"), icon: History }}
         columns={[
           { id: "date", header: t("field.date"), cell: (h) => formatDateTime(h.effectiveFrom), sortValue: (h) => h.effectiveFrom },
-          { id: "material", header: t("field.material"), cell: (h) => h.material.name, sortValue: (h) => h.material.name },
+          { id: "material", header: t("field.material"), cell: (h) => <MaterialName material={h.material} />, sortValue: (h) => h.material.name },
           { id: "rate", header: t("field.rate"), align: "right", cell: (h) => <MoneyText paisa={h.ratePaisa} /> },
           { id: "by", header: t("masterData.common.changedBy"), cell: (h) => h.changedBy?.name ?? "—" },
         ]}

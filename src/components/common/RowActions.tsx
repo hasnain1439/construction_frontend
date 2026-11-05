@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronDown, type LucideIcon } from "lucide-react";
+import { ChevronDown, Eye, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { Fragment, useRef, useState, type SyntheticEvent } from "react";
+import { Fragment, useContext, useRef, useState, type SyntheticEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { isRtl, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
+import { RowViewContext } from "./rowView";
 
 export interface RowAction {
   label: string;
@@ -73,7 +74,11 @@ export function RowActions({ actions, name, label, className }: RowActionsProps)
   const language = useLanguage();
   const [confirming, setConfirming] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const visible = actions.filter((a) => !a.hidden);
+  // Inside a DataTable row: "View" first (unless the row already has one).
+  const onView = useContext(RowViewContext);
+  const viewLabel = t("common.view");
+  const all = onView && !actions.some((a) => a.label === viewLabel) ? [{ label: viewLabel, icon: Eye, onSelect: onView }, ...actions] : actions;
+  const visible = all.filter((a) => !a.hidden);
   if (!visible.length) return null;
   const confirmAction = confirming ? visible.find((a) => a.label === confirming && a.confirm) : undefined;
   const triggerLabel = label ?? (name ? t("common.rowActionsFor", { name }) : t("common.actions"));

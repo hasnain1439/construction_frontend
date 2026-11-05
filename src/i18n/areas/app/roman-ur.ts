@@ -328,6 +328,8 @@ export const strings: Widen<typeof En.strings> = {
       searchMaterials: "Maal talash karein…",
       noMaterial: "Koi maal nahi mila",
       supplierSells: "Yeh supplier bechta hai",
+      category: "Category",
+      anyCategory: "Sab categories",
       chooseMaterial: "Maal chunein",
       digitN: "Hindsa {n}",
       verificationCode: "Tasdeeqi code",

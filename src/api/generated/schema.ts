@@ -268,6 +268,15 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
+                /** @description SIGNUP_DISABLED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 /** @description PHONE_TAKEN */
                 409: {
                     headers: {
@@ -6283,7 +6292,7 @@ export interface paths {
         };
         /**
          * Material groups
-         * @description All roles. The 12 fixed groups (Cement … Paint) with their section (CIVIL / FINISHING).
+         * @description All roles. The platform's groups (Cement … Paint) then the company's own (isCustom), with their section (CIVIL / FINISHING) and how many products / brands each has.
          */
         get: {
             parameters: {
@@ -6342,11 +6351,285 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Add a company group
+         * @description The company's own group (e.g. Glass & Aluminium), after the platform ones. Unique ignoring case among all groups it sees.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MaterialGroupInput"];
+                };
+            };
+            responses: {
+                /** @description Group */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *         "code": "CUSTOM_0199A8C0",
+                         *         "name": "Glass & Aluminium",
+                         *         "section": "FINISHING",
+                         *         "sortOrder": 1000,
+                         *         "isCustom": true,
+                         *         "productCount": 0,
+                         *         "brandCount": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/material-groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a company group
+         * @description Own groups without products only (move them to another group first).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Group id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description PLATFORM_GROUP */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description GROUP_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename a company group
+         * @description Own groups only (PLATFORM_GROUP for the system ones).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Group id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MaterialGroupUpdate"];
+                };
+            };
+            responses: {
+                /** @description Group */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000f1",
+                         *         "code": "CUSTOM_0199A8C0",
+                         *         "name": "Glass",
+                         *         "section": "FINISHING",
+                         *         "sortOrder": 1000,
+                         *         "isCustom": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | PLATFORM_GROUP */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/api/v1/materials": {
@@ -6488,10 +6771,26 @@ export interface paths {
                          * @enum {string}
                          */
                         supplyCategory?: "GREY_STRUCTURE" | "FINISHING";
-                        /** @description A brand of the company (GET /brands) */
+                        /**
+                         * Format: uuid
+                         * @description A brand of the company (GET /brands)
+                         */
                         brandId?: string | null;
-                        /** @description A quality category (GET /quality-categories) */
+                        /**
+                         * Format: uuid
+                         * @description A quality category (GET /quality-categories)
+                         */
                         qualityId?: string | null;
+                        /**
+                         * @description Usual purchase price of one unit (paisa); needs fields.rates
+                         * @example 128000
+                         */
+                        purchasePricePaisa?: string | number | null;
+                        /**
+                         * @description Sale price of one unit to the site / client (paisa); needs fields.rates
+                         * @example 140000
+                         */
+                        salePricePaisa?: string | number | null;
                     };
                 };
             };
@@ -6573,6 +6872,908 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Units
+         * @description The company's units (A–Z): bag, kg, sqft, … — just names, with how many products use each (as their unit or another unit). New companies start with the defaults.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Units */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "bag",
+                         *           "productCount": 12,
+                         *           "isDefault": true
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a unit
+         * @description Unique ignoring case. A product saved with a unit that is not on the list (import, API) adds it too.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UnitInput"];
+                };
+            };
+            responses: {
+                /** @description Unit */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "name": "packet",
+                         *         "productCount": 0,
+                         *         "isDefault": false
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNIT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/units/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a unit
+         * @description Only a unit no product uses.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Unit id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNIT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNIT_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename a unit
+         * @description The products using it (as their unit or another unit) follow.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Unit id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UnitInput"];
+                };
+            };
+            responses: {
+                /** @description Unit */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "name": "bag",
+                         *         "productCount": 12,
+                         *         "isDefault": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNIT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNIT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Brands
+         * @description The company's brands (A–Z) with how many products (materials) carry each and who added / changed it; ?deleted=true lists the deleted ones with who deleted them.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description true = the deleted brands */
+                    deleted?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Brands */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000b1",
+                         *           "name": "Fauji Cement",
+                         *           "productCount": 2,
+                         *           "groups": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000f2",
+                         *               "name": "Cement"
+                         *             }
+                         *           ],
+                         *           "createdAt": "2026-10-30T07:00:00.000Z",
+                         *           "createdBy": "Khalid Malik",
+                         *           "updatedAt": null,
+                         *           "updatedBy": null,
+                         *           "deletedAt": null,
+                         *           "deletedBy": null
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a brand
+         * @description Unique ignoring case; the name of a deleted brand brings it back.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BrandInput"];
+                };
+            };
+            responses: {
+                /** @description Brand */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000b1",
+                         *         "name": "Fauji Cement",
+                         *         "productCount": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/brands/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a brand
+         * @description Soft delete (?deleted=true shows who / when). A brand on products needs ?moveTo=<brand id> or ?clear=true (products keep no brand).
+         */
+        delete: {
+            parameters: {
+                query?: {
+                    /** @description Brand its products move to */
+                    moveTo?: string;
+                    /** @description true = leave its products without a brand */
+                    clear?: "true" | "false";
+                };
+                header?: never;
+                path: {
+                    /** @description Brand id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000b1",
+                         *         "deleted": true,
+                         *         "productsMoved": 2,
+                         *         "movedTo": "Bestway Cement"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | MOVE_TO_SAME_BRAND */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename (or merge) a brand, or set its groups
+         * @description groupIds = the groups it makes products in (exactly these; audited as brand.groups). Renaming to another brand's name merges the two: its products and groups move there and this one is deleted (response has mergedFromId).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Brand id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BrandUpdate"];
+                };
+            };
+            responses: {
+                /** @description Brand */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000b1",
+                         *         "name": "Fauji Cement Company",
+                         *         "productCount": 2
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_GROUP */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/brands/{id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Brand activity
+         * @description Added, renamed, merged, deleted — newest first, from the audit log.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Brand id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Activity */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000b1",
+                         *         "name": "Fauji Cement",
+                         *         "createdAt": "2026-10-30T07:00:00.000Z",
+                         *         "deletedAt": null,
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000a2",
+                         *             "action": "brand.create",
+                         *             "at": "2026-10-30T07:00:00.000Z",
+                         *             "by": "Khalid Malik",
+                         *             "details": {
+                         *               "name": "Fauji Cement"
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description BRAND_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{id}/supplier-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set which supplier categories sell a material
+         * @description Products screen: exactly these supplier categories carry this material (needs masterdata.supplier.manage). Each category that gains or loses it is audited as supplier_category.materials.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Material id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MaterialSupplierCategoriesInput"];
+                };
+            };
+            responses: {
+                /** @description Material categories */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "material": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *           "name": "OPC Cement",
+                         *           "unit": "bag"
+                         *         },
+                         *         "categories": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *             "name": "Cement"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description MATERIAL_NOT_FOUND | SUPPLIER_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6705,8 +7906,20 @@ export interface paths {
                         }[];
                         /** @enum {string} */
                         supplyCategory?: "GREY_STRUCTURE" | "FINISHING";
+                        /** Format: uuid */
                         brandId?: string | null;
+                        /** Format: uuid */
                         qualityId?: string | null;
+                        /**
+                         * @description Usual purchase price of one unit (paisa); needs fields.rates
+                         * @example 128000
+                         */
+                        purchasePricePaisa?: string | number | null;
+                        /**
+                         * @description Sale price of one unit to the site / client (paisa); needs fields.rates
+                         * @example 140000
+                         */
+                        salePricePaisa?: string | number | null;
                     };
                 };
             };
@@ -9400,6 +10613,663 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Supplier categories
+         * @description The company's list (Settings → Supplier categories), A–Z, with how many suppliers use each: the choices in the supplier form and the list filter (?category=). New companies start with Cement, Steel, Bricks, ….
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description true = the deleted categories (who deleted them, when) */
+                    deleted?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Categories */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *           "name": "Cement",
+                         *           "supplierCount": 3,
+                         *           "createdAt": "2026-10-30T07:00:00.000Z",
+                         *           "createdBy": "Khalid Malik",
+                         *           "updatedAt": "2026-10-30T09:15:00.000Z",
+                         *           "updatedBy": "Khalid Malik",
+                         *           "deletedAt": null,
+                         *           "deletedBy": null,
+                         *           "materials": [
+                         *             {
+                         *               "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *               "name": "OPC Cement",
+                         *               "unit": "bag"
+                         *             }
+                         *           ]
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a supplier category
+         * @description Needs masterdata.supplier.manage. Names are unique ignoring case. A supplier saved with a category that is not in the list (import, mobile app) adds it too.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SupplierCategoryInput"];
+                };
+            };
+            responses: {
+                /** @description Category */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *         "name": "Paint",
+                         *         "supplierCount": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/categories/{id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Supplier category activity
+         * @description Who added it, renamed it or merged another category into it, newest first (from the audit log). On the list, createdBy is null for categories made automatically (existing suppliers, starting list, import).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Category id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Activity */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *         "name": "Cement",
+                         *         "createdAt": "2026-10-30T07:00:00.000Z",
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000a1",
+                         *             "action": "supplier_category.merge",
+                         *             "at": "2026-10-30T09:15:00.000Z",
+                         *             "by": "Khalid Malik",
+                         *             "details": {
+                         *               "from": "Cements",
+                         *               "into": "Cement",
+                         *               "suppliersMoved": 2
+                         *             }
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a supplier category
+         * @description Moves it to the deleted list (?deleted=true shows who deleted it and when). A category in use needs ?moveTo=<category id>: its suppliers move there. Adding the name again brings it back.
+         */
+        delete: {
+            parameters: {
+                query?: {
+                    /** @description Category its suppliers move to (needed when it is in use) */
+                    moveTo?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Category id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *         "deleted": true,
+                         *         "suppliersMoved": 3,
+                         *         "movedTo": "Cement"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | MOVE_TO_SAME_CATEGORY */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename (or merge) a supplier category
+         * @description Its suppliers move with it. Renaming to another category's name merges the two (e.g. "Cements" → "Cement"): the response is the category that remains, with mergedFromId.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Category id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SupplierCategoryInput"];
+                };
+            };
+            responses: {
+                /** @description Category */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *         "name": "Cement",
+                         *         "supplierCount": 3
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/suppliers/categories/{id}/materials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set a supplier category's products
+         * @description Exactly these materials (Settings → Materials) become the products this kind of dealer sells; audited as supplier_category.materials (added / removed names). Suppliers of the category list them first in purchases.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Category id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SupplierCategoryMaterialsInput"];
+                };
+            };
+            responses: {
+                /** @description Category products */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000000c1",
+                         *         "name": "Cement",
+                         *         "materials": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "name": "OPC Cement",
+                         *             "unit": "bag"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | MATERIAL_NOT_FOUND */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What a supplier sells
+         * @description Its category's products plus the materials it has agreed rates for (source CATEGORY / RATE / BOTH). The purchase form lists these first.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Supplier id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Products */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "supplierId": "0199a8c0-0000-7000-8000-0000000000e1",
+                         *         "category": "Cement",
+                         *         "items": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000000d1",
+                         *             "name": "OPC Cement",
+                         *             "unit": "bag",
+                         *             "source": "BOTH"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description SUPPLIER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -17678,7 +19548,7 @@ export interface paths {
                             /** @example 1.5 */
                             dpcThicknessIn: number;
                             /** @description ISOLATED / COMBINED */
-                            footingCount?: number;
+                            footingCount?: number | null;
                             /** @description Pad L (ISOLATED / COMBINED) */
                             footingLengthFt?: number;
                             /** @description PILE */
@@ -19946,7 +21816,7 @@ export interface paths {
          * Grey-structure estimate (BoQ) with cost
          * @description Computed live from the project's plot, structure type, foundation (bunyaad), floors / rooms / openings, the rulebook (platform version of the company region → company values → the project's own settings) and the company price list — nothing is stored but the settings.
          *
-         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 15 sections (each with its plain English `label`) with lines per build stage (`stageKey`), trace, wastage, supplier, `supplyCategory`, `costNature` (MATERIAL / LABOUR / MATERIAL_LABOUR), `labourOnly`, `rateKey` (the rulebook key of a lump-sum rate), rates / amounts (fields.rates), direct cost, overheads (% of direct), contingency (% of direct only), total, cost per sq ft, `check` { visibleLinesPaisa, directCostPaisa, matches } (Direct = Σ visible lines), `parameters` (value + source per rulebook key), `assumptions` (every project-editable rulebook key with labels, unit, value, source, company value and safe range; rupee keys need fields.rates), `warnings` (RATES_MISSING with items + categories and `blocking: true` — a material the contractor supplies has no price-list rate; Review shows it as an error, LABOUR_RATES_MISSING, RULEBOOK_RATE_ZERO, STEEL_NORM_DEVIATION { actual, min, max }, RCC_NORM_DEVIATION — RCC above the plinth only: slab, beams, columns, lintels). Baths / a kitchen not entered are assumed for the plumbing rough-in, the FULL allowances and the wall tiles (1 bath per 700 sq ft of a full storey with none entered, 1 kitchen per house without one; the trace says "assumed"). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
+         *     **BoQ preview** `boq` = exactly what POST /projects/{id}/estimates would save: 15 sections (each with its plain English `label`) with lines per build stage (`stageKey`), trace, wastage, supplier, `supplyCategory`, `costNature` (MATERIAL / LABOUR / MATERIAL_LABOUR), `labourOnly`, `rateKey` (the rulebook key of a lump-sum rate), rates / amounts (fields.rates), direct cost, overheads (% of direct), contingency (% of direct only), total, cost per sq ft, `check` { visibleLinesPaisa, directCostPaisa, matches } (Direct = Σ visible lines), `parameters` (value + source per rulebook key), `assumptions` (every project-editable rulebook key with labels, unit, value, source, company value and safe range; rupee keys need fields.rates), `warnings` (RATES_MISSING with items + categories and `blocking: true` — a material the contractor supplies has no price-list rate; Review shows it as an error, LABOUR_RATES_MISSING, RULEBOOK_RATE_ZERO, STEEL_NORM_DEVIATION { actual, min, max }, CEMENT_NORM_DEVIATION { actual, min, max } (grey-structure cement bags with wastage per sq ft of covered area), RCC_NORM_DEVIATION — RCC above the plinth only: slab, beams, columns, lintels). Baths / a kitchen not entered are assumed for the plumbing rough-in, the FULL allowances and the wall tiles (1 bath per 700 sq ft of a full storey with none entered, 1 kitchen per house without one; the trace says "assumed"). The fields below (grey-structure stages, materials, labour, cost) are unchanged.
          *
          *     **Stages** FOUNDATION (excavation, PCC, RCC footing / raft / piles, brick or stone foundation walls to plinth, DPC + waterproofing compound or bitumen, termite), WALLS (brickwork per floor + roof parapet), RCC (roof slab per floor, beams + columns for an RCC frame, lintels, shuttering), PLASTER (room faces, ceilings, external faces, parapet). Each line: `kind` WORK (volume / area / shuttering) or MATERIAL, `netQuantity`, `wastagePercent`, `quantity` (to order), `unit`, `formula` { key, params } and `formulaText`, plus `label` (plain English, e.g. "Ground floor · walls (volume)") and `floorLevel` (the floor key, null for the foundation / boundary wall); WORK formula params carry `floor` as a plain string.
          *
@@ -46108,6 +47978,748 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/office-expenses/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Office expense categories
+         * @description The company’s own list, A–Z (deleted ones left out). Every company starts with Rent, Electricity gas & water, Salaries, … Other. `expenseCount` = expenses in it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Categories */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *           "name": "Rent",
+                         *           "expenseCount": 4,
+                         *           "createdBy": null,
+                         *           "createdAt": "2026-11-01T09:00:00.000Z",
+                         *           "updatedBy": null,
+                         *           "updatedAt": "2026-11-01T09:00:00.000Z"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a category
+         * @description One live category per name (ignoring case).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Category */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *         "name": "Generator diesel"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CATEGORY_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/office-expenses/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a category
+         * @description Always allowed: it leaves the picker; expenses already in it keep showing its name.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description OfficeExpenseCategory id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description OFFICE_EXPENSE_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename a category
+         * @description Its expenses show the new name.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description OfficeExpenseCategory id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Category */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *         "name": "Office rent"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description OFFICE_EXPENSE_CATEGORY_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description CATEGORY_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/office-expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Office expenses
+         * @description Company running costs not tied to a project (rent, bills, salaries). Newest first. `meta.totalPaisa` sums every match (not just this page); `meta.byCategory` splits it per category, largest first.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    from?: string;
+                    to?: string;
+                    categoryId?: string;
+                    paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                    /** @description Description or paid to */
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Office expenses */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000e0001",
+                         *           "date": "2026-11-01",
+                         *           "category": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *             "name": "Rent"
+                         *           },
+                         *           "amountPaisa": "8500000",
+                         *           "paidVia": "BANK",
+                         *           "paidTo": "Ch. Aslam",
+                         *           "description": "Office rent, November",
+                         *           "attachmentId": null,
+                         *           "createdBy": {
+                         *             "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *             "name": "Khalid Malik"
+                         *           },
+                         *           "createdAt": "2026-11-01T09:00:00.000Z",
+                         *           "updatedBy": null,
+                         *           "updatedAt": "2026-11-01T09:00:00.000Z"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1,
+                         *         "totalPaisa": "8500000",
+                         *         "byCategory": [
+                         *           {
+                         *             "categoryId": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *             "name": "Rent",
+                         *             "totalPaisa": "8500000"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an office expense
+         * @description Not dated in the future. A bill photo can be attached (upload it first as RECEIPT or DOCUMENT).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description The day it was paid (not in the future)
+                         * @example 2026-12-25
+                         */
+                        date: string;
+                        /**
+                         * Format: uuid
+                         * @description One of the company’s office expense categories
+                         */
+                        categoryId: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa: string | number;
+                        /** @enum {string} */
+                        paidVia: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        /** @example Landlord — Ch. Aslam */
+                        paidTo?: string;
+                        /** @example Office rent, November */
+                        description: string;
+                        /**
+                         * Format: uuid
+                         * @description Bill / receipt photo (upload with kind RECEIPT or DOCUMENT)
+                         */
+                        attachmentId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Office expense */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000e0001",
+                         *         "date": "2026-11-01",
+                         *         "category": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *           "name": "Rent"
+                         *         },
+                         *         "amountPaisa": "8500000",
+                         *         "paidVia": "BANK",
+                         *         "paidTo": "Ch. Aslam",
+                         *         "description": "Office rent, November",
+                         *         "attachmentId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-11-01T09:00:00.000Z",
+                         *         "updatedBy": null,
+                         *         "updatedAt": "2026-11-01T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE | INVALID_CATEGORY | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/office-expenses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an office expense
+         * @description Leaves the list and the totals; who deleted it and when stay in the audit log.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description OfficeExpense id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description OFFICE_EXPENSE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change an office expense
+         * @description Only the fields sent change; `paidTo` / `attachmentId` null clears them. Who changed it is kept (`updatedBy`).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description OfficeExpense id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example 2026-12-25 */
+                        date?: string;
+                        /** Format: uuid */
+                        categoryId?: string;
+                        /**
+                         * @description Paisa as a string (2500000 = Rs 25,000)
+                         * @example 2500000
+                         */
+                        amountPaisa?: string | number;
+                        /** @enum {string} */
+                        paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidTo?: string | null;
+                        description?: string;
+                        /** Format: uuid */
+                        attachmentId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Office expense */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000e0001",
+                         *         "date": "2026-11-01",
+                         *         "category": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000e0c01",
+                         *           "name": "Rent"
+                         *         },
+                         *         "amountPaisa": "9000000",
+                         *         "paidVia": "BANK",
+                         *         "paidTo": "Ch. Aslam",
+                         *         "description": "Office rent, November",
+                         *         "attachmentId": null,
+                         *         "createdBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "createdAt": "2026-11-01T09:00:00.000Z",
+                         *         "updatedBy": {
+                         *           "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *           "name": "Khalid Malik"
+                         *         },
+                         *         "updatedAt": "2026-11-01T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | FUTURE_DATE | INVALID_CATEGORY | INVALID_ATTACHMENT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description OFFICE_EXPENSE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/projects/{id}/billing-stages": {
         parameters: {
             query?: never;
@@ -52505,6 +55117,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -52639,6 +55275,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -52773,6 +55433,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -52907,6 +55591,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53041,6 +55749,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53152,6 +55884,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53286,6 +56042,30 @@ export interface paths {
                     to?: string;
                     /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
                     lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53305,6 +56085,164 @@ export interface paths {
                          *       "data": {
                          *         "name": "stock-valuation",
                          *         "title": "Stock valuation",
+                         *         "subtitle": "All projects · Up to 6 Oct 2026",
+                         *         "generatedAt": "2026-10-06T05:00:00.000Z",
+                         *         "filters": {
+                         *           "projectId": null,
+                         *           "from": null,
+                         *           "to": null
+                         *         },
+                         *         "columns": [
+                         *           {
+                         *             "key": "project",
+                         *             "label": "Project",
+                         *             "type": "text"
+                         *           },
+                         *           {
+                         *             "key": "value",
+                         *             "label": "Value",
+                         *             "type": "money"
+                         *           }
+                         *         ],
+                         *         "rows": [
+                         *           {
+                         *             "project": "MSB-2026-012",
+                         *             "value": "79890724"
+                         *           }
+                         *         ],
+                         *         "totals": {
+                         *           "project": null,
+                         *           "value": "79890724"
+                         *         }
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PROJECT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PDF_UNAVAILABLE */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/material-profit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Material profit
+         * @description THEKEDAR (finance.companyreports.view). Per project and product: contractor material that reached the site in the period (purchases, receipts from the store, returns, corrections, less material sent away; owner-supplied left out), its cost from the stock ledger (`avgCost`, `cost`), the product’s sale price (`salePrice`, Products), `saleValue` = quantity × sale price, `profit` = sale value − cost, `marginPercent`. A product without a sale price has blank sale / profit and stays out of those totals. Filters: projectId, groupId, material, from / to, client, projectStatus. `format=json` (default) returns the table: `columns` (key, label, type text / money / qty / int / percent / date), `rows`, `totals`. `csv` / `xlsx` / `pdf` (letterhead) are stored as a REPORT attachment and answer `{ attachmentId, fileName, format, mimeType, sizeBytes, url, downloadUrl, expiresAt }` — signed links named after the file (`url` previews, `downloadUrl` saves; QA-B-15: `<report>[-<project code>]-<yyyy-mm-dd>.<ext>`), never the raw file. JSON free text (subtitle, notes, reason cells) follows `X-Lang`, else English. Money is paisa in JSON and rupees in files. Files are in `lang` (en / roman / ur; default the signed-in user’s language): title, headers, Total and status / type / unit cells; Urdu PDFs are right-to-left with an embedded Nastaliq font.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description json for the screen; csv / xlsx / pdf return a signed download link */
+                    format?: "json" | "csv" | "xlsx" | "pdf";
+                    projectId?: string;
+                    from?: string;
+                    to?: string;
+                    /** @description Language of csv / xlsx / pdf titles, headers and labels (default: your language). JSON is not translated. */
+                    lang?: "en" | "roman" | "ur";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Report table (json) or a signed link (csv / xlsx / pdf) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "name": "material-profit",
+                         *         "title": "Material profit",
                          *         "subtitle": "All projects · Up to 6 Oct 2026",
                          *         "generatedAt": "2026-10-06T05:00:00.000Z",
                          *         "filters": {
@@ -53428,6 +56366,30 @@ export interface paths {
                     category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
                     /** @description equipment-utilisation only: one row per item (default) or per category */
                     group?: "item" | "category";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53570,6 +56532,30 @@ export interface paths {
                     category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
                     /** @description equipment-utilisation only: one row per item (default) or per category */
                     group?: "item" | "category";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53712,6 +56698,30 @@ export interface paths {
                     category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
                     /** @description equipment-utilisation only: one row per item (default) or per category */
                     group?: "item" | "category";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53854,6 +56864,30 @@ export interface paths {
                     category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
                     /** @description equipment-utilisation only: one row per item (default) or per category */
                     group?: "item" | "category";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -53996,6 +57030,30 @@ export interface paths {
                     category?: "SHUTTERING_PLATE" | "PROP" | "SCAFFOLDING" | "MIXER" | "VIBRATOR" | "GENERATOR" | "PUMP" | "TOOL" | "OTHER";
                     /** @description equipment-utilisation only: one row per item (default) or per category */
                     group?: "item" | "category";
+                    /** @description project-summary, cash-book, receivables-ageing, …: customer name, phone or email contains */
+                    client?: string;
+                    /** @description Project status */
+                    projectStatus?: "ACTIVE" | "CLOSEOUT" | "HANDED_OVER" | "CLOSED";
+                    /** @description receivables-ageing: only projects with an overdue amount */
+                    overdueOnly?: boolean;
+                    /** @description material-audit / stock-valuation / material-profit: one material group */
+                    groupId?: string;
+                    /** @description labor-peshgi: worker / sub-contractor name contains */
+                    search?: string;
+                    /** @description cash-book: cash holder name contains */
+                    holder?: string;
+                    /** @description stock-valuation: store, sites or in transit */
+                    locationType?: "STORE" | "SITE" | "TRANSIT";
+                    /** @description stock-valuation: material name contains */
+                    material?: string;
+                    /** @description delay-analysis: late (calendar days late > 0), on time, or ahead */
+                    delayState?: "LATE" | "ON_TIME" | "AHEAD";
+                    /** @description delay-analysis: projects with delay days of this kind */
+                    cause?: "OWNER" | "EXCUSABLE" | "CONTRACTOR" | "CHANGE_ORDER";
+                    /** @description labor-peshgi: workers or sub-contractors */
+                    kind?: "WORKER" | "SUBCONTRACTOR";
+                    /** @description labor-peshgi: trade contains (mistri, mazdoor, electrician, …) */
+                    trade?: string;
                 };
                 header?: never;
                 path?: never;
@@ -63394,6 +66452,712 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/edge/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * May this company run an offline office PC — tables and the start cursor
+         * @description Owner / administrator (company.settings.manage). `allowed: false` until the platform turns on offlineOfficeAllowed. The tables an office PC copies: every company table (scope COMPANY, row-level security) except login secrets, sessions, devices, codes, invitations and delivery logs, plus the platform tables it needs (scope GLOBAL: plans, catalogue, rulebook, holidays), each with its primary-key columns. Take `cursor` BEFORE downloading the snapshot, then pull from it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "allowed": true,
+                         *         "cursor": "18342",
+                         *         "syncLagMs": 30000,
+                         *         "tables": [
+                         *           {
+                         *             "name": "Project",
+                         *             "scope": "COMPANY",
+                         *             "pk": [
+                         *               "id"
+                         *             ]
+                         *           },
+                         *           {
+                         *             "name": "UserProjectAccess",
+                         *             "scope": "COMPANY",
+                         *             "pk": [
+                         *               "userId",
+                         *               "projectId"
+                         *             ]
+                         *           },
+                         *           {
+                         *             "name": "Plan",
+                         *             "scope": "GLOBAL",
+                         *             "pk": [
+                         *               "id"
+                         *             ]
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of a table (primary-key order)
+         * @description Rows are PostgreSQL JSON text (to_jsonb) — insert them with jsonb_populate_record, so money and quantities stay exact. `next` = the last row’s primary key: pass it as `after` for the next page; null = done.
+         */
+        get: {
+            parameters: {
+                query: {
+                    table: string;
+                    after?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Page */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "table": "Project",
+                         *         "rows": [
+                         *           "{\"id\": \"0199a8c0-0000-7000-8000-000000000301\", \"code\": \"MSB-2026-012\", \"…\": \"…\"}"
+                         *         ],
+                         *         "next": "{\"id\": \"0199a8c0-0000-7000-8000-000000000301\"}"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | UNKNOWN_TABLE | INVALID_CURSOR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Changes after a cursor
+         * @description Oldest first, at most `limit` change-log entries; several changes of a row collapse into its current state (UPSERT with `row`) or DELETE. Changes younger than syncLagMs are held back (transactions commit out of order). `hasMore`: call again at once. `resetRequired`: the log before the cursor was pruned — download a new snapshot.
+         */
+        get: {
+            parameters: {
+                query: {
+                    cursor: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Changes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "cursor": "18355",
+                         *         "hasMore": false,
+                         *         "resetRequired": false,
+                         *         "changes": [
+                         *           {
+                         *             "seq": "18350",
+                         *             "table": "Client",
+                         *             "op": "UPSERT",
+                         *             "pk": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000a01"
+                         *             },
+                         *             "row": "{\"id\": \"…\", \"name\": \"…\"}"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_CURSOR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Entries made on the office PC while offline
+         * @description Oldest first, one per row: the row now (UPSERT, PostgreSQL JSON text) or DELETE, and `base` = md5 of the row as the PC last had it from the cloud (null = made on the PC). Applied only when the cloud row is still `base` (or already equal); otherwise CONFLICT — the cloud keeps its version and returns it as `current` for the PC to take. ERROR (e.g. a duplicate number, another company’s row) also returns `current`. One result per change, same order; each change is independent. Phones get applied changes through their normal sync.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        changes: {
+                            table: string;
+                            /** @enum {string} */
+                            op: "UPSERT" | "DELETE";
+                            pk: {
+                                [key: string]: unknown;
+                            };
+                            row?: string;
+                            base: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Results */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "results": [
+                         *           {
+                         *             "status": "APPLIED"
+                         *           },
+                         *           {
+                         *             "status": "CONFLICT",
+                         *             "current": "{\"id\": \"…\", \"name\": \"Cloud Name\"}"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED | OFFLINE_OFFICE_NOT_ALLOWED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Office PCs that asked to sync
+         * @description Owner / administrator. A PC appears after its first GET /edge/status and syncs only once approved. `allowed` = the platform turned offline office on for this company.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Office PCs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "allowed": true,
+                         *         "devices": [
+                         *           {
+                         *             "id": "0199a8c0-0000-7000-8000-00000000d001",
+                         *             "model": "Office PC (offline sync)",
+                         *             "platform": "WEB",
+                         *             "userName": "Khalid Malik",
+                         *             "requestedAt": "2026-10-28T09:00:00.000Z",
+                         *             "approvedAt": null,
+                         *             "lastSyncAt": null
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/devices/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve an office PC
+         * @description From now on this PC may download and send the company data (audited).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000d001",
+                         *         "approvedAt": "2026-10-28T09:05:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DEVICE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/devices/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take an office PC’s approval back
+         * @description Its next sync is refused (OFFICE_PC_NOT_APPROVED); its local copy stays on the PC (audited).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revoked */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-00000000d001",
+                         *         "approvedAt": null
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description DEVICE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/edge/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * This office PC’s sync problems
+         * @description Only on an office PC server (OFFICE_MODE): entries the cloud did not take — CONFLICT (changed in the cloud meanwhile; the cloud version was kept) or ERROR — with the office and cloud versions. In the cloud: officeMode false, empty list.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Problems */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "officeMode": true,
+                         *         "problems": [
+                         *           {
+                         *             "id": "3",
+                         *             "tableName": "Project",
+                         *             "pk": {
+                         *               "id": "0199a8c0-0000-7000-8000-000000000301"
+                         *             },
+                         *             "status": "CONFLICT",
+                         *             "code": null,
+                         *             "message": null,
+                         *             "officeRow": {
+                         *               "name": "Office name"
+                         *             },
+                         *             "cloudRow": {
+                         *               "name": "Cloud name"
+                         *             },
+                         *             "at": "2026-10-28T10:00:00.000Z"
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | PERMISSION_DENIED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/overview": {
         parameters: {
             query?: never;
@@ -64243,6 +68007,228 @@ export interface paths {
                     };
                 };
                 /** @description VALIDATION_ERROR | INVALID_PLAN | SAME_PLAN | DOWNGRADE_USERS_OVER_LIMIT | KEEP_PROJECTS_REQUIRED | TOO_MANY_PROJECTS | INVALID_PROJECT */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TENANT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/admin/tenants/{id}/owner-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change the owner's login email / password and the company's email
+         * @description Support fix when the owner lost the old mailbox or forgot the password: no current password needed. A new password signs the owner out everywhere. Audited as admin.owner_account_changed (emails old → new; the password is never logged). NO_OWNER: the owner has not accepted the invitation yet.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Company id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: email
+                         * @description Shown on invoices and documents; null clears it
+                         * @example khalid@maliksons.pk
+                         */
+                        companyEmail?: string | null;
+                        /**
+                         * Format: email
+                         * @description The owner's login email
+                         * @example khalid@maliksons.pk
+                         */
+                        ownerEmail?: string;
+                        /**
+                         * @description New password for the owner; signs the owner out everywhere
+                         * @example Thekedar#2026
+                         */
+                        ownerPassword?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Emails */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "email": "info@maliksons.pk",
+                         *         "ownerEmail": "khalid.malik@gmail.com"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | NO_OWNER */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description TENANT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description EMAIL_TAKEN */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/admin/tenants/{id}/offline-office": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Allow (or stop) an offline office PC for a company
+         * @description Sets TenantSettings.offlineOfficeAllowed (audited). The company owner then approves each office PC (Settings → Offline office); stopping it refuses every /edge call at once.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Company id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        allowed: boolean;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Setting */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-000000000001",
+                         *         "offlineOfficeAllowed": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -66628,6 +70614,44 @@ export interface components {
          * @enum {string}
          */
         ShareRefType: "QUOTE" | "ESTIMATE" | "SHOPPING_LIST" | "CHANGE_ORDER" | "INVOICE" | "RECEIPT" | "STATEMENT" | "HANDOVER";
+        MaterialGroupInput: {
+            /** @example Glass & Aluminium */
+            name: string;
+            /**
+             * @description CIVIL = grey structure, FINISHING = finishing
+             * @enum {string}
+             */
+            section: "CIVIL" | "FINISHING";
+        };
+        MaterialGroupUpdate: {
+            name?: string;
+            /** @enum {string} */
+            section?: "CIVIL" | "FINISHING";
+        };
+        UnitInput: {
+            /** @example packet */
+            name: string;
+        };
+        BrandInput: {
+            /** @example Fauji Cement */
+            name: string;
+            /** @description Groups it makes products in; omitted on rename = unchanged */
+            groupIds?: string[];
+        };
+        BrandUpdate: {
+            name?: string;
+            groupIds?: string[];
+        };
+        MaterialSupplierCategoriesInput: {
+            categoryIds: string[];
+        };
+        SupplierCategoryInput: {
+            /** @example Paint */
+            name: string;
+        };
+        SupplierCategoryMaterialsInput: {
+            materialIds: string[];
+        };
         SetRoomWalls: {
             /** @description The four sides, or null to clear (the estimate goes back to the perimeter method for this floor) */
             walls: {
@@ -67097,6 +71121,26 @@ export interface components {
              * @example 2
              */
             steelKgPerSqftLoadBearingMax?: number;
+            /**
+             * @description Cement per sq ft, frame (lowest) (bags / sq ft). Rulebook v1: 0.4
+             * @example 0.4
+             */
+            cementBagsPerSqftFramedMin?: number;
+            /**
+             * @description Cement per sq ft, frame (highest) (bags / sq ft). Rulebook v1: 0.55
+             * @example 0.55
+             */
+            cementBagsPerSqftFramedMax?: number;
+            /**
+             * @description Cement per sq ft, load bearing (lowest) (bags / sq ft). Rulebook v1: 0.35
+             * @example 0.35
+             */
+            cementBagsPerSqftLoadBearingMin?: number;
+            /**
+             * @description Cement per sq ft, load bearing (highest) (bags / sq ft). Rulebook v1: 0.5
+             * @example 0.5
+             */
+            cementBagsPerSqftLoadBearingMax?: number;
         };
         GenerateEstimateInput: {
             /**

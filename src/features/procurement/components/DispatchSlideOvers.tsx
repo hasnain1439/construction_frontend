@@ -28,6 +28,7 @@ import { formatQty } from "@/lib/quantity";
 import { applyLineError } from "../lineErrors";
 import { useSiteProjectOptions } from "../options";
 import { dispatchSchema, resolveSchema, type DispatchValues, type ResolveValues } from "../schemas";
+import { MaterialName } from "@/components/forms/MaterialPicker";
 
 export interface AvailableStock {
   materialId: string;
@@ -193,7 +194,7 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
       title={t("procurement.resolve.title")}
       description={
         <>
-          {formatQty(shortage.qty, shortage.material.unit)} {shortage.material.name} · {shortage.dispatch?.number ?? shortage.purchase?.number}
+          {formatQty(shortage.qty, shortage.material.unit)} <MaterialName material={shortage.material} /> · {shortage.dispatch?.number ?? shortage.purchase?.number}
         </>
       }
       busy={isLoading}

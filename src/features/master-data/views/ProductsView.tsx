@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Pencil, Plus } from "lucide-react";
+import { Copy, Package, Pencil, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   useGetBrandsQuery,
@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
+import { formatPKR } from "@/lib/money";
 import { MaterialSlideOver } from "../components/MaterialSlideOver";
 
 const NONE = { groupId: "", brandId: "", qualityId: "", categoryId: "" };
@@ -38,6 +39,8 @@ export function ProductsView() {
   const [filters, setFilters] = useState(NONE);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
+  // A new product started from this one (another brand / category).
+  const [copying, setCopying] = useState<Material | null>(null);
 
   const query = useGetMaterialsQuery({
     ...(search.trim() ? { search: search.trim() } : {}),
@@ -64,6 +67,11 @@ export function ProductsView() {
   const setFilter = (key: keyof typeof NONE, value: string) => setFilters((f) => ({ ...f, [key]: value }));
 
   const muted = (text: string) => <span className="text-muted-foreground">{text}</span>;
+  const seesRates = useCan("fields.rates");
+  const price = (paisa: string | null | undefined) => (paisa ? Number(paisa) : null);
+  const money = (paisa: string | null | undefined) => (paisa ? formatPKR(paisa) : muted("—"));
+  /** Sale − purchase price of one unit (paisa); null until both are set. */
+  const profitOf = (m: Material) => (m.purchasePricePaisa && m.salePricePaisa ? Number(m.salePricePaisa) - Number(m.purchasePricePaisa) : null);
   const columns: Column<Material>[] = [
     {
       id: "name",
@@ -82,6 +90,19 @@ export function ProductsView() {
     { id: "brand", header: t("masterData.products.brand"), sortValue: (m) => m.brand?.name ?? "", cell: (m) => m.brand?.name ?? muted("—") },
     { id: "quality", header: t("masterData.products.quality"), sortValue: (m) => m.quality?.name ?? "", cell: (m) => m.quality?.name ?? muted("—") },
     { id: "group", header: t("masterData.common.group"), sortValue: (m) => m.group.name, cell: (m) => m.group.name },
+    { id: "purchase", header: t("masterData.products.purchasePrice"), align: "right", hidden: !seesRates, sortValue: (m) => price(m.purchasePricePaisa), cell: (m) => money(m.purchasePricePaisa) },
+    { id: "sale", header: t("masterData.products.salePrice"), align: "right", hidden: !seesRates, sortValue: (m) => price(m.salePricePaisa), cell: (m) => money(m.salePricePaisa) },
+    {
+      id: "profit",
+      header: t("masterData.products.profit"),
+      align: "right",
+      hidden: !seesRates,
+      sortValue: (m) => profitOf(m),
+      cell: (m) => {
+        const p = profitOf(m);
+        return p === null ? muted("—") : <span className={p < 0 ? "text-destructive" : undefined}>{formatPKR(String(p))}</span>;
+      },
+    },
     {
       id: "soldBy",
       header: t("masterData.products.soldBy"),
@@ -94,7 +115,15 @@ export function ProductsView() {
     {
       ...ACTIONS_COLUMN,
       hidden: !canEdit,
-      cell: (m) => <RowActions name={m.name} actions={[{ label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(m) }]} />,
+      cell: (m) => (
+        <RowActions
+          name={m.name}
+          actions={[
+            { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(m) },
+            { label: t("masterData.products.copy"), icon: Copy, onSelect: () => setCopying(m) },
+          ]}
+        />
+      ),
     },
   ];
 
@@ -147,17 +176,18 @@ export function ProductsView() {
           loading={query.isLoading || query.isFetching}
           error={query.error}
           onRetry={query.refetch}
-          onRowClick={canEdit ? (m) => setEditing(m) : undefined}
           empty={{ title: t("masterData.products.emptyTitle"), description: t("masterData.products.emptyDesc"), icon: Package }}
         />
       </SectionCard>
       <MaterialSlideOver
-        open={adding || Boolean(editing)}
+        open={adding || Boolean(editing) || Boolean(copying)}
         material={editing}
+        copyOf={copying}
         onOpenChange={(o) => {
           if (!o) {
             setAdding(false);
             setEditing(null);
+            setCopying(null);
           }
         }}
       />

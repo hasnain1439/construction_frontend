@@ -255,6 +255,8 @@ export const strings: Widen<typeof En.strings> = {
     receivablesAgeingDesc: "مالکان کے ذمے رقم، انوائس جاری ہونے سے اب تک کے دنوں کے حساب سے۔",
     stockValuation: "اسٹاک کی قیمت",
     stockValuationDesc: "اسٹور، سائٹس اور راستے کا مال، اوسط قیمت پر۔",
+    materialProfit: "مال کا منافع",
+    materialProfitDesc: "ہر پراجیکٹ: سائٹ کو دیا گیا مال، اس کا خرچہ، سیل ریٹ پر قیمت اور منافع۔",
   },
 };
 
