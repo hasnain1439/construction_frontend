@@ -47,7 +47,7 @@ const PLATFORM_GROUPS: Array<{ id: string; itemIds: string[]; label?: Label; ico
   { id: "admin.g.overview", itemIds: ["admin.overview"] },
   {
     id: "admin.g.companies",
-    itemIds: ["admin.companies", "admin.payments", "admin.plans"],
+    itemIds: ["admin.companies", "admin.payments", "admin.paymentAccounts", "admin.plans"],
     label: { en: "Companies", ur: "Companies", urdu: "کمپنیاں" },
     icon: Building2,
   },

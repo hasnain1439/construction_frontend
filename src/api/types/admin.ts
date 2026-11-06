@@ -172,6 +172,25 @@ export interface TenantPlanResult {
 
 // ─── Payments ───────────────────────────────────────────────────────────────
 
+/** The platform account a company paid into, as it was at that moment. */
+export type PaidTo = { name: string; accountNumber: string | null } | null;
+
+export interface AdminPaymentAccount {
+  id: Id;
+  name: string;
+  method: PaymentMethod;
+  accountTitle: string;
+  accountNumber: string;
+  iban: string | null;
+  note: string | null;
+  isActive: boolean;
+  createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
+}
+
+export type CreatePaymentAccountBody = RequestBody<"/api/v1/admin/payment-accounts", "post">;
+export type UpdatePaymentAccountBody = RequestBody<"/api/v1/admin/payment-accounts/{id}", "patch">;
+
 export interface AdminPaymentRow {
   id: Id;
   tenant: NamedRef;
@@ -179,6 +198,7 @@ export interface AdminPaymentRow {
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
   method: PaymentMethod;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   submittedAt: IsoDateTime;
@@ -195,6 +215,7 @@ export interface AdminPaymentDetail {
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
   method: PaymentMethod;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   status: PaymentStatus;

@@ -6,6 +6,12 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Platform payment accounts (6 Nov 2026)
+
+- **Added:** platform admin → Payment Accounts: add, edit, close and reopen the bank and wallet accounts companies pay their subscription into.
+- **Changed:** Upload payment slip shows those accounts with title, number and IBAN (copy buttons). The company picks where it sent the money, and the method comes from the account. With no accounts added, the form asks for the method as before.
+- **Added:** "Paid to" on the admin's payments list and review, and the account name in the company's payment history.
+
 ### Estimate QA re-check integration (QE5 + QE6, 22 Oct 2026)
 
 - **Merged:** `p23/qe5` and `p23/qe6`; both sides kept (the only conflict was this file).

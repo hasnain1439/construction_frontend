@@ -81,6 +81,7 @@ export type RevokeDeviceResult = ResponseData<"/api/v1/devices/{id}", "delete">;
 export type SubscriptionDetail = Schemas["SubscriptionDetail"];
 export type Plan = Schemas["Plan"];
 export type PlanOption = Schemas["PlanOption"];
+export type PaymentAccount = Schemas["PaymentAccount"];
 export type SubscriptionPayment = Schemas["SubscriptionPayment"];
 export type PaymentMethod = SubscriptionPayment["method"];
 export type PaymentStatus = SubscriptionPayment["status"];

@@ -25,6 +25,7 @@ import {
   Gauge,
   Handshake,
   HardHat,
+  Landmark,
   LayoutDashboard,
   LayoutGrid,
   Layers,
@@ -1190,6 +1191,14 @@ export const ADMIN_NAV: AdminNavItem[] = [
     available: true,
     icon: CreditCard,
     badge: "pendingPayments",
+  },
+  {
+    id: "admin.paymentAccounts",
+    label: L("Payment Accounts", "Payment accounts", "ادائیگی کے اکاؤنٹس"),
+    href: "/admin/payment-accounts",
+    available: true,
+    icon: Landmark,
+    keywords: ["bank", "jazzcash", "easypaisa", "renew", "subscription", "slip"],
   },
   {
     id: "admin.plans",

@@ -5,6 +5,7 @@ import { cleanParams, toPage } from "@/api/transform";
 import type {
   ChangePlanBody,
   Paginated,
+  PaymentAccount,
   PaymentsQuery,
   PlanChange,
   PlanOption,
@@ -22,6 +23,10 @@ export const subscriptionApi = baseApi.injectEndpoints({
     getPlans: build.query<PlanOption[], void>({
       query: () => ENDPOINTS.subscription.plans,
       providesTags: ["SubscriptionPlans"],
+    }),
+    getPaymentAccounts: build.query<PaymentAccount[], void>({
+      query: () => ENDPOINTS.subscription.paymentAccounts,
+      providesTags: ["SubscriptionPaymentAccounts"],
     }),
     getPayments: build.query<Paginated<SubscriptionPayment>, PaymentsQuery | void>({
       query: (params) => ({ url: ENDPOINTS.subscription.payments, params: cleanParams(params ?? undefined) }),
@@ -46,6 +51,7 @@ export const subscriptionApi = baseApi.injectEndpoints({
 export const {
   useGetSubscriptionQuery,
   useGetPlansQuery,
+  useGetPaymentAccountsQuery,
   useGetPaymentsQuery,
   useSubmitPaymentMutation,
   useChangePlanMutation,

@@ -5377,6 +5377,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subscription/payment-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where to send the money
+         * @description THEKEDAR only. The open accounts the platform admin has added. An empty list means the slip form asks for the method instead. **Works while READ_ONLY.**
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["PaymentAccount"][];
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subscription/payments": {
         parameters: {
             query?: never;
@@ -5451,11 +5512,11 @@ export interface paths {
         put?: never;
         /**
          * Submit a payment slip for review
-         * @description 1. Pay by JazzCash / Easypaisa / Raast / bank transfer.
+         * @description 1. Pay into one of the accounts from `GET /subscription/payment-accounts` (JazzCash / Easypaisa / Raast / bank transfer).
          *     2. Upload the slip: `POST /attachments` with `kind: PAYMENT_SLIP` (allowed even when the company is read-only).
          *     3. Submit it here. A platform admin reviews it; approval extends the period (and applies a pending upgrade).
          *
-         *     Rules: amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
+         *     Rules: `paymentAccountId` is required while any account is listed, and sets the method; `method` is for when none is · amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
          */
         post: {
             parameters: {
@@ -5473,10 +5534,16 @@ export interface paths {
                          */
                         planId?: string;
                         /**
+                         * Format: uuid
+                         * @description The account from GET /subscription/payment-accounts the money was sent to. Required while any account is listed; sets the method
+                         */
+                        paymentAccountId?: string;
+                        /**
+                         * @description Only when no payment account is listed
                          * @example EASYPAISA
                          * @enum {string}
                          */
-                        method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                        method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
                         /**
                          * @description Trimmed and upper-cased; must be unique
                          * @example EP2610030117
@@ -5514,7 +5581,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR | AMOUNT_MISMATCH | INVALID_PLAN | PLAN_REQUIRED | PAID_ON_IN_FUTURE | PAID_ON_TOO_OLD */
+                /** @description VALIDATION_ERROR | AMOUNT_MISMATCH | INVALID_PLAN | PLAN_REQUIRED | PAID_ON_IN_FUTURE | PAID_ON_TOO_OLD | PAYMENT_ACCOUNT_REQUIRED | PAYMENT_ACCOUNT_NOT_AVAILABLE */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -70315,6 +70382,260 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/payment-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts companies pay into (open first, then closed) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an account companies can pay into
+         * @description Open accounts appear on the company's upload-slip form at once. The same method and number can be added once.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example HBL */
+                        name: string;
+                        /**
+                         * @description How companies pay into it. IBFT = bank transfer
+                         * @enum {string}
+                         */
+                        method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                        accountTitle: string;
+                        accountNumber: string;
+                        /** @default null */
+                        iban?: string | null;
+                        /**
+                         * @description Shown to the company next to the account
+                         * @default null
+                         */
+                        note?: string | null;
+                        /** @default true */
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payment-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change or close an account
+         * @description A closed account (`isActive: false`) is no longer offered. Payments already made keep the name and number they were sent to, also after an edit.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Payment account id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example HBL */
+                        name?: string;
+                        /**
+                         * @description How companies pay into it. IBFT = bank transfer
+                         * @enum {string}
+                         */
+                        method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                        accountTitle?: string;
+                        accountNumber?: string;
+                        iban?: string | null;
+                        /** @description Shown to the company next to the account */
+                        note?: string | null;
+                        /** @description false closes it: no longer offered; payments already made keep its details */
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/admin/plans": {
         parameters: {
             query?: never;
@@ -72185,6 +72506,21 @@ export interface components {
             features: string[];
             current: boolean;
         };
+        PaymentAccount: {
+            /** Format: uuid */
+            id: string;
+            /** @example HBL */
+            name: string;
+            /**
+             * @example EASYPAISA
+             * @enum {string}
+             */
+            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+            accountTitle: string;
+            accountNumber: string;
+            iban: string | null;
+            note: string | null;
+        };
         SubscriptionPayment: {
             /** Format: uuid */
             id: string;
@@ -72201,6 +72537,10 @@ export interface components {
              * @enum {string}
              */
             method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+            paidTo: {
+                name: string;
+                accountNumber: string | null;
+            } | null;
             transactionId: string;
             /** @example 2026-10-03 */
             paidOn: string;

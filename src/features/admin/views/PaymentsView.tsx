@@ -8,7 +8,7 @@ import {
   useGetAdminPaymentsQuery,
   useRejectPaymentMutation,
 } from "@/api/services/admin/payments.api";
-import type { AdminPaymentDetail, AdminPaymentRow, AdminPaymentsQuery } from "@/api/types";
+import type { AdminPaymentDetail, AdminPaymentRow, AdminPaymentsQuery, PaidTo } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -31,6 +31,8 @@ import { cn } from "@/lib/cn";
 import { formatDate, formatDateTime, formatRelative } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
 import { PAYMENT_METHOD_LABEL, PAYMENT_METHOD_OPTIONS } from "@/lib/options";
+
+const paidToText = (paidTo: PaidTo) => (paidTo ? [paidTo.name, paidTo.accountNumber].filter(Boolean).join(" · ") : "—");
 
 function SlipPreview({ slip }: { slip: AdminPaymentDetail["slip"] }) {
   const [zoom, setZoom] = useState(false);
@@ -99,6 +101,7 @@ function ReviewBody({ payment, onDone }: { payment: AdminPaymentDetail; onDone: 
             ),
           },
           { label: "Method", value: PAYMENT_METHOD_LABEL[payment.method] ?? payment.method },
+          { label: "Paid to", value: paidToText(payment.paidTo) },
           { label: "Transaction ID", value: <span className="font-mono">{payment.transactionId}</span> },
           { label: "Paid on", value: formatDate(payment.paidOn) },
           { label: "Submitted", value: formatDateTime(payment.submittedAt) },
@@ -215,6 +218,7 @@ export function PaymentsView() {
       ),
     },
     { id: "method", header: "Method", cell: (p) => PAYMENT_METHOD_LABEL[p.method] ?? p.method },
+    { id: "paidTo", header: "Paid to", cell: (p) => paidToText(p.paidTo) },
     { id: "txn", header: "Transaction ID", cell: (p) => <span className="font-mono text-xs">{p.transactionId}</span> },
     { id: "submitted", header: "Submitted", cell: (p) => <span title={formatDateTime(p.submittedAt)}>{formatRelative(p.submittedAt)}</span>, sortValue: (p) => p.submittedAt },
     { id: "status", header: "Status", cell: (p) => <StatusBadge domain="payment" value={p.status} /> },

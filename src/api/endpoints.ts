@@ -142,6 +142,7 @@ export const ENDPOINTS = {
   subscription: {
     current: "/subscription",
     plans: "/subscription/plans",
+    paymentAccounts: "/subscription/payment-accounts",
     payments: "/subscription/payments",
     changePlan: "/subscription/change-plan",
   },
@@ -534,6 +535,8 @@ export const ENDPOINTS = {
     paymentById: (paymentId: string) => `/admin/payments/${id(paymentId)}`,
     paymentApprove: (paymentId: string) => `/admin/payments/${id(paymentId)}/approve`,
     paymentReject: (paymentId: string) => `/admin/payments/${id(paymentId)}/reject`,
+    paymentAccounts: "/admin/payment-accounts",
+    paymentAccountById: (accountId: string) => `/admin/payment-accounts/${id(accountId)}`,
     plans: "/admin/plans",
     planById: (planId: string) => `/admin/plans/${id(planId)}`,
     holidays: "/admin/holidays",
