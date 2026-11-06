@@ -126,6 +126,7 @@ export const COMPANY_TAGS = [
   "OfficeExpenseCategories",
   // Company accounts
   "CompanyAccounts",
+  "CompanyAccountGroups",
 ] as const;
 
 export const ADMIN_TAGS = [

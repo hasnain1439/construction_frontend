@@ -5,41 +5,38 @@ import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import {
   useCreateCompanyAccountMutation,
+  useGetCompanyAccountGroupsQuery,
   useUpdateCompanyAccountMutation,
 } from "@/api/services/companyAccounts.api";
-import type { CompanyAccount, CompanyAccountType } from "@/api/types";
+import type { CompanyAccount } from "@/api/types";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
-import {
-  COMPANY_ACCOUNT_TYPES,
-  companyAccountSchema,
-  type CompanyAccountValues,
-} from "@/features/finance/schemas";
+import { companyAccountSchema, type CompanyAccountValues } from "@/features/finance/schemas";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useT } from "@/i18n/useT";
 
 /**
- * Add (account = null) or change one account. A wallet or bank needs its title and number; the group
+ * Add (account = null) or change one account. The chosen group says which details it needs; the group
  * cannot change later. Mount it only while open, so the form starts fresh.
  */
 export function CompanyAccountSlideOver({
   account,
-  type = "CASH",
+  groupId,
   onClose,
   onSaved,
 }: {
   account: CompanyAccount | null;
   /** The group a new account starts in. */
-  type?: CompanyAccountType;
+  groupId?: string | null;
   onClose: () => void;
   onSaved?: (account: CompanyAccount) => void;
 }) {
   const t = useT();
-  const te = useEnumT();
+  const groups = useGetCompanyAccountGroupsQuery();
   const [create, { isLoading: creating }] = useCreateCompanyAccountMutation();
   const [update, { isLoading: updating }] = useUpdateCompanyAccountMutation();
   const run = useMutationToast();
@@ -47,7 +44,7 @@ export function CompanyAccountSlideOver({
   const form = useForm<CompanyAccountValues, unknown, z.output<typeof companyAccountSchema>>({
     resolver: zodResolver(companyAccountSchema),
     defaultValues: {
-      type: account?.type ?? type,
+      groupId: account?.group.id ?? groupId ?? null,
       name: account?.name ?? "",
       accountTitle: account?.accountTitle ?? "",
       accountNumber: account?.accountNumber ?? "",
@@ -56,14 +53,27 @@ export function CompanyAccountSlideOver({
       note: account?.note ?? "",
     },
   });
-  const chosen = useWatch({ control: form.control, name: "type" });
-  const cash = chosen === "CASH";
-  const bank = chosen === "BANK";
+  const chosen = useWatch({ control: form.control, name: "groupId" });
+  const type = account?.group.type ?? groups.data?.find((g) => g.id === chosen)?.type;
+  const cash = type === "CASH";
+  const bank = type === "BANK";
 
   const onSubmit = async (v: z.output<typeof companyAccountSchema>) => {
+    if (!cash && v.accountTitle.length < 2) {
+      form.setError("accountTitle", { message: t("cashSite.accounts.enterTitle") });
+      return;
+    }
+    if (!cash && v.accountNumber.length < 4) {
+      form.setError("accountNumber", { message: t("cashSite.accounts.enterNumber") });
+      return;
+    }
     const feedback = {
       setError: form.setError,
-      codeFields: { COMPANY_ACCOUNT_EXISTS: "name", COMPANY_ACCOUNT_DETAILS_REQUIRED: "accountNumber" },
+      codeFields: {
+        COMPANY_ACCOUNT_EXISTS: "name",
+        COMPANY_ACCOUNT_DETAILS_REQUIRED: "accountNumber",
+        INVALID_COMPANY_ACCOUNT_GROUP: "groupId",
+      },
     };
     const saved = account
       ? await run(
@@ -84,7 +94,7 @@ export function CompanyAccountSlideOver({
       : await run(
           () =>
             create({
-              type: v.type,
+              groupId: v.groupId,
               name: v.name,
               ...(v.accountTitle ? { accountTitle: v.accountTitle } : {}),
               ...(v.accountNumber ? { accountNumber: v.accountNumber } : {}),
@@ -117,12 +127,12 @@ export function CompanyAccountSlideOver({
     >
       <Form form={form} onSubmit={onSubmit} id="company-account-form">
         <SelectField
-          name="type"
+          name="groupId"
           label={t("cashSite.accounts.group")}
           required
           disabled={Boolean(account)}
           hint={account ? t("cashSite.accounts.groupFixed") : undefined}
-          options={COMPANY_ACCOUNT_TYPES.map((value) => ({ value, label: te("companyAccountType", value) }))}
+          options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))}
         />
         <TextField
           name="name"

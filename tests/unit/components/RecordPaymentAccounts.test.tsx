@@ -1,12 +1,16 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CompanyAccount } from "@/api/types";
+import type { CompanyAccount, CompanyAccountGroup } from "@/api/types";
 import { RecordPaymentSlideOver } from "@/features/billing/components/BillingSlideOvers";
 import { meFixture } from "../fixtures";
 import { renderWithStore } from "../render";
 
-const api = vi.hoisted(() => ({ accounts: [] as CompanyAccount[], record: vi.fn() }));
+const api = vi.hoisted(() => ({
+  groups: [] as CompanyAccountGroup[],
+  accounts: [] as CompanyAccount[],
+  record: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -15,6 +19,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/api/services/companyAccounts.api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/api/services/companyAccounts.api")>()),
+  useGetCompanyAccountGroupsQuery: () => ({ data: api.groups, isLoading: false }),
   useGetCompanyAccountsQuery: () => ({ data: api.accounts, isLoading: false }),
 }));
 vi.mock("@/api/services/tax.api", async (importOriginal) => ({
@@ -27,14 +32,19 @@ vi.mock("@/api/services/billing.api", async (importOriginal) => ({
   useRecordPaymentMutation: () => [api.record, { isLoading: false }],
 }));
 
+const BANK: CompanyAccountGroup = { id: "g-bank", name: "Bank", type: "BANK", accountCount: 2 };
+const CASH: CompanyAccountGroup = { id: "g-cash", name: "Cash", type: "CASH", accountCount: 1 };
+const ONLINE: CompanyAccountGroup = { id: "g-online", name: "Online", type: "WALLET", accountCount: 0 };
+const CARD: CompanyAccountGroup = { id: "g-card", name: "Credit card", type: "BANK", accountCount: 1 };
+
 const account = (
   id: string,
-  type: CompanyAccount["type"],
+  group: CompanyAccountGroup,
   name: string,
   accountNumber: string | null = null,
 ): CompanyAccount => ({
   id,
-  type,
+  group: { id: group.id, name: group.name, type: group.type },
   name,
   accountTitle: accountNumber ? "Malik & Sons" : null,
   accountNumber,
@@ -62,35 +72,47 @@ const optionsOf = async (label: RegExp) => {
   return names;
 };
 
-describe("Payment form: group, then its accounts", () => {
+describe("Payment form: the company's groups, then their accounts", () => {
   beforeEach(() => {
     api.record.mockReset();
+    api.groups = [BANK, CASH, CARD, ONLINE];
     api.accounts = [
-      account("c1", "CASH", "Office cash"),
-      account("w1", "WALLET", "JazzCash", "03001112222"),
-      account("w2", "WALLET", "Easypaisa", "03003334444"),
-      account("b1", "BANK", "HBL", "0123456789"),
+      account("b1", BANK, "HBL", "0123456789"),
+      account("b2", BANK, "MCB", "9988776655"),
+      account("c1", CASH, "Office cash"),
+      account("v1", CARD, "Visa", "4111222233"),
     ];
   });
 
-  it("shows only the accounts of the chosen group, and fills in an only account", async () => {
+  it("offers the company's own groups and only the accounts of the chosen one", async () => {
     open();
-    await waitFor(() =>
-      expect(screen.getByRole("combobox", { name: /^Account/ })).toHaveTextContent("HBL · 0123456789"),
-    );
-    await choose(/^Method/, /^Online wallet$/);
-    expect(await optionsOf(/^Account/)).toEqual(["JazzCash · 03001112222", "Easypaisa · 03003334444"]);
-    await choose(/^Method/, /^Cash$/);
+    expect(await optionsOf(/^Payment group/)).toEqual(["Bank", "Cash", "Credit card", "Online"]);
+    expect(await optionsOf(/^Account/)).toEqual(["HBL · 0123456789", "MCB · 9988776655"]);
+    await choose(/^Payment group/, /^Cash$/);
+    // An only account fills in by itself; cash has no transfer / cheque choice.
     await waitFor(() =>
       expect(screen.getByRole("combobox", { name: /^Account/ })).toHaveTextContent("Office cash"),
     );
+    expect(screen.queryByRole("combobox", { name: /^Method/ })).not.toBeInTheDocument();
+    await choose(/^Payment group/, /^Credit card$/);
+    await waitFor(() =>
+      expect(screen.getByRole("combobox", { name: /^Account/ })).toHaveTextContent("Visa · 4111222233"),
+    );
+    expect(await optionsOf(/^Method/)).toEqual(["Bank transfer", "Cheque"]);
+  });
+
+  it("coming back to a bank-type group keeps a method, and asks for the account", async () => {
+    open();
+    await choose(/^Payment group/, /^Cash$/);
+    await choose(/^Payment group/, /^Bank$/);
+    await waitFor(() => expect(screen.getByRole("combobox", { name: /^Method/ })).toHaveTextContent("Bank transfer"));
+    expect(screen.getByRole("combobox", { name: /^Account/ })).not.toHaveTextContent("Office cash");
   });
 
   it("a group with no account says so and offers to add one", async () => {
-    api.accounts = [account("c1", "CASH", "Office cash")];
     open();
-    await choose(/^Method/, /^Online wallet$/);
-    expect(await screen.findByText("No Online wallet account yet")).toBeInTheDocument();
+    await choose(/^Payment group/, /^Online$/);
+    expect(await screen.findByText("No Online account yet")).toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: /^Account/ })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add account" })).toBeInTheDocument();
   });

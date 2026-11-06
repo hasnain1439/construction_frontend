@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import {
@@ -17,7 +17,7 @@ import {
   useRecordPaymentMutation,
 } from "@/api/services/billing.api";
 import { useGetChangeOrdersQuery } from "@/api/services/changeOrders.api";
-import { useGetCompanyAccountsQuery } from "@/api/services/companyAccounts.api";
+import { useGetCompanyAccountGroupsQuery, useGetCompanyAccountsQuery } from "@/api/services/companyAccounts.api";
 import { useGetProjectTaxQuery } from "@/api/services/tax.api";
 import type { ClientPaymentMethod, CompanyAccountType, ScheduleStage, UnpaidStageWarning } from "@/api/types";
 import { AllocationEditor, type AllocatableInvoice } from "@/components/common/AllocationEditor";
@@ -355,14 +355,15 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 
 // ─── Record payment ─────────────────────────────────────────────────────────
 
-/** What the payment form offers: a group, then that group's accounts. Bank transfers and cheques share Bank. */
-const PAYMENT_GROUPS = ["CASH", "WALLET", "BANK_TRANSFER", "CHEQUE"] as const;
+/** A group's type decides the method; only a bank-type group asks which of its two. */
+const BANK_METHODS: readonly ClientPaymentMethod[] = ["BANK_TRANSFER", "CHEQUE"];
 const ACCOUNT_TYPE_OF: Record<ClientPaymentMethod, CompanyAccountType> = { CASH: "CASH", WALLET: "WALLET", JAZZCASH: "WALLET", EASYPAISA: "WALLET", RAAST: "WALLET", BANK_TRANSFER: "BANK", CHEQUE: "BANK" };
 
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const t = useT();
   const te = useEnumT();
   const canAddAccount = useCan("finance.account.manage");
+  const groups = useGetCompanyAccountGroupsQuery(undefined, { skip: !open });
   const accounts = useGetCompanyAccountsQuery({ active: true }, { skip: !open });
   const [addingAccount, setAddingAccount] = useState(false);
   // Step 18: WHT only when tax is on for this project (company setting or project override).
@@ -374,11 +375,34 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
   const [touched, setTouched] = useState(false);
   const form = useForm<PaymentValues, unknown, z.output<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
-    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", companyAccountId: null, bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
+    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", groupId: null, companyAccountId: null, bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
   });
   const [method, amount, wht, whtRate] = useWatch({ control: form.control, name: ["method", "amountPaisa", "whtDeductedPaisa", "whtRatePercent"] });
-  const accountType = ACCOUNT_TYPE_OF[method];
-  const inGroup = useMemo(() => (accounts.data ?? []).filter((a) => a.type === accountType), [accounts.data, accountType]);
+  const groupId = useWatch({ control: form.control, name: "groupId" });
+  const group = groups.data?.find((g) => g.id === groupId);
+  const accountType = group?.type ?? ACCOUNT_TYPE_OF[method];
+  const inGroup = useMemo(() => (accounts.data ?? []).filter((a) => a.group.id === groupId), [accounts.data, groupId]);
+  // The method and account follow the group in the same update: a select that mounts or changes
+  // options while its value is not one of them clears the field.
+  const pickGroup = useCallback(
+    (id: string | null) => {
+      const next = groups.data?.find((g) => g.id === id);
+      if (!next) return;
+      const current = form.getValues("method");
+      if (next.type !== "BANK") form.setValue("method", next.type);
+      else if (!BANK_METHODS.includes(current)) form.setValue("method", "BANK_TRANSFER");
+      const options = (accounts.data ?? []).filter((a) => a.group.id === next.id);
+      form.setValue("companyAccountId", options.length === 1 ? options[0]!.id : null);
+    },
+    [groups.data, accounts.data, form],
+  );
+  // Opens on the first bank-type group, as the form always has.
+  useEffect(() => {
+    if (form.getValues("groupId") || !groups.data?.length) return;
+    const first = (groups.data.find((g) => g.type === "BANK") ?? groups.data[0]!).id;
+    form.setValue("groupId", first);
+    pickGroup(first);
+  }, [groups.data, form, pickGroup]);
   const accountId = useWatch({ control: form.control, name: "companyAccountId" });
   const chosenAccount = inGroup.find((a) => a.id === accountId);
   // The group changed (or the list did): keep a choice that still fits, and fill in an only account.
@@ -461,7 +485,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             <DateField name="receivedOn" label={t("billing.forms.receivedOn")} required max={todayPK()} />
           </FieldGrid>
           <FieldGrid>
-            <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.filter((m) => (PAYMENT_GROUPS as readonly string[]).includes(m.value)).map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} />
+            <SelectField name="groupId" label={t("cashSite.accounts.paymentGroup")} required onValueChange={pickGroup} options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
             {inGroup.length ? (
               <SelectField name="companyAccountId" label={t("cashSite.accounts.account")} required options={inGroup.map((a) => ({ value: a.id, label: a.accountNumber ? `${a.name} · ${a.accountNumber}` : a.name }))} />
             ) : null}
@@ -471,10 +495,10 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
               {[chosenAccount.accountTitle, chosenAccount.iban, chosenAccount.branch].filter(Boolean).join(" · ")}
             </p>
           ) : null}
-          {accounts.data && !inGroup.length ? (
+          {accounts.data && group && !inGroup.length ? (
             <InlineAlert
               tone="warning"
-              title={t("cashSite.accounts.noneInGroup", { group: te("companyAccountType", accountType) })}
+              title={t("cashSite.accounts.noneInGroup", { group: group?.name ?? "" })}
               action={
                 canAddAccount ? (
                   <Button type="button" variant="outline" size="sm" onClick={() => setAddingAccount(true)}>
@@ -486,9 +510,10 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
               {t("cashSite.accounts.noneInGroupDesc")}
             </InlineAlert>
           ) : null}
+          {accountType === "BANK" ? <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.filter((m) => BANK_METHODS.includes(m.value)).map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} /> : null}
           {accountType === "CASH" ? null : (
             <FieldGrid>
-              {accountType === "BANK" ? <TextField name="bankName" label={t("field.bank")} placeholder={t("billing.forms.bankPh")} /> : null}
+              {accountType === "BANK" ? <TextField name="bankName" label={t("cashSite.accounts.customerBank")} placeholder={t("billing.forms.bankPh")} /> : null}
               <TextField name="reference" label={t("field.reference")} placeholder={t("billing.forms.referencePh")} />
             </FieldGrid>
           )}
@@ -539,7 +564,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
         </Form>
       </SlideOver>
       {/* Beside the form, not in it: a submit inside would bubble to the payment form through React. */}
-      {addingAccount ? <CompanyAccountSlideOver account={null} type={accountType} onClose={() => setAddingAccount(false)} onSaved={(a) => form.setValue("companyAccountId", a.id)} /> : null}
+      {addingAccount ? <CompanyAccountSlideOver account={null} groupId={groupId} onClose={() => setAddingAccount(false)} onSaved={(a) => form.setValue("companyAccountId", a.id)} /> : null}
     </>
   );
 }

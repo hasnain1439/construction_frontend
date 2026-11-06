@@ -1,14 +1,23 @@
 /**
- * Company accounts: where the company receives money, in three fixed groups. Hand-written from the
- * API docs (companyAccounts.docs.ts), like the other modules in this folder.
+ * Company accounts: where the company receives money. The company makes its own payment groups
+ * (Bank, Cash, Online …) and its own accounts in each. Hand-written from the API docs
+ * (companyAccounts.docs.ts), like the other modules in this folder.
  */
 import type { Id, IsoDateTime } from "./common";
 
+/** How a group behaves: which details its accounts need, and the payment method it records. */
 export type CompanyAccountType = "CASH" | "WALLET" | "BANK";
+
+export interface CompanyAccountGroup {
+  id: Id;
+  name: string;
+  type: CompanyAccountType;
+  accountCount: number;
+}
 
 export interface CompanyAccount {
   id: Id;
-  type: CompanyAccountType;
+  group: { id: Id; name: string; type: CompanyAccountType };
   name: string;
   accountTitle: string | null;
   accountNumber: string | null;
@@ -23,13 +32,13 @@ export interface CompanyAccount {
 }
 
 export interface CompanyAccountsQuery {
-  type?: CompanyAccountType;
+  groupId?: Id;
   active?: boolean;
 }
 
-/** WALLET and BANK need `accountTitle` and `accountNumber`. */
+/** In a BANK or WALLET group it needs `accountTitle` and `accountNumber`. */
 export interface CompanyAccountBody {
-  type: CompanyAccountType;
+  groupId: Id;
   name: string;
   accountTitle?: string;
   accountNumber?: string;

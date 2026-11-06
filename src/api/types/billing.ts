@@ -4,7 +4,6 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
-import type { CompanyAccountType } from "./companyAccounts";
 import type { TaxAuthority } from "./tax";
 
 export type StageStatus = "UPCOMING" | "READY" | "INVOICED" | "PARTLY_PAID" | "PAID";
@@ -140,7 +139,7 @@ export interface ClientPayment {
   whtCertificate: { number: string | null; date: IsoDate | null; attachmentId: Id | null } | null;
   method: ClientPaymentMethod;
   /** The company account it came into; older payments have none. */
-  companyAccount: { id: Id; name: string; type: CompanyAccountType } | null;
+  companyAccount: { id: Id; name: string; group: { id: Id; name: string } } | null;
   bankName: string | null;
   reference: string | null;
   chequeNo: string | null;

@@ -13,22 +13,19 @@ export const PAID_VIA_VALUES = [
 
 export const COMPANY_ACCOUNT_TYPES = ["CASH", "WALLET", "BANK"] as const satisfies readonly CompanyAccountType[];
 
-/** Add / change one company account: a wallet or bank needs its title and number. */
-export const companyAccountSchema = z
-  .object({
-    type: z.enum(COMPANY_ACCOUNT_TYPES),
-    name: requiredText("cashSite.accounts.name", 2, 60),
-    accountTitle: z.string().trim().max(100),
-    accountNumber: z.string().trim().max(40),
-    iban: z.string().trim().max(40),
-    branch: z.string().trim().max(100),
-    note: z.string().trim().max(300),
-  })
-  .superRefine((v, ctx) => {
-    if (v.type === "CASH") return;
-    if (v.accountTitle.length < 2) ctx.addIssue({ code: "custom", path: ["accountTitle"], message: msg("cashSite.accounts.enterTitle") });
-    if (v.accountNumber.length < 4) ctx.addIssue({ code: "custom", path: ["accountNumber"], message: msg("cashSite.accounts.enterNumber") });
-  });
+/** Add / change one company account. Which details it needs follows from the chosen group's type. */
+export const companyAccountSchema = z.object({
+  groupId: z
+    .string()
+    .nullable()
+    .refine((v): v is string => Boolean(v), msg("cashSite.accounts.chooseGroup")),
+  name: requiredText("cashSite.accounts.name", 2, 60),
+  accountTitle: z.string().trim().max(100),
+  accountNumber: z.string().trim().max(40),
+  iban: z.string().trim().max(40),
+  branch: z.string().trim().max(100),
+  note: z.string().trim().max(300),
+});
 export type CompanyAccountValues = z.input<typeof companyAccountSchema>;
 
 /** Add / change one office expense. Amount is paisa (MoneyField); the receipt is an optional upload. */
