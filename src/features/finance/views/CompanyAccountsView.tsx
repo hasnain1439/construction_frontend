@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { CompanyAccountGroupsSlideOver } from "@/features/finance/components/CompanyAccountGroupsSlideOver";
 import { CompanyAccountSlideOver } from "@/features/finance/components/CompanyAccountSlideOver";
+import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
@@ -148,6 +149,7 @@ export function CompanyAccountsView() {
                 <Layers data-icon="inline-start" />
                 {t("cashSite.accounts.manageGroups")}
               </Button>
+              <ImportButton entity="company-accounts" />
               <Button onClick={() => setAdding(true)}>
                 <Plus data-icon="inline-start" />
                 {t("cashSite.accounts.add")}

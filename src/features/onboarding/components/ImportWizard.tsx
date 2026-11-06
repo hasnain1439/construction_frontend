@@ -30,6 +30,7 @@ const ENTITY: Record<ImportEntity, { label: TranslationKey; permission: Permissi
   materials: { label: "imports.entityMaterials", permission: "masterdata.material.create" },
   brands: { label: "imports.entityBrands", permission: "masterdata.material.create" },
   clients: { label: "imports.entityClients", permission: "clients.client.create" },
+  "company-accounts": { label: "imports.entityAccounts", permission: "finance.account.manage" },
   "opening-stock": { label: "imports.entityOpeningStock", permission: "company.opening.manage" },
   "opening-udhaar": { label: "imports.entityOpeningUdhaar", permission: "company.opening.manage" },
   "opening-cash": { label: "imports.entityOpeningCash", permission: "company.opening.manage" },

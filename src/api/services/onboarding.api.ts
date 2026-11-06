@@ -21,7 +21,7 @@ const ENTITY_TAG = {
   suppliers: "Suppliers",
   materials: "Materials",
   clients: "Clients",
-} as const satisfies Record<Exclude<ImportEntity, OpeningImportEntity | "brands">, string>;
+} as const satisfies Record<Exclude<ImportEntity, OpeningImportEntity | "brands" | "company-accounts">, string>;
 
 const isOpeningImport = (entity: ImportEntity): entity is OpeningImportEntity => entity.startsWith("opening-");
 
@@ -123,7 +123,9 @@ export const onboardingApi = baseApi.injectEndpoints({
           ? [...OPENING_TAGS, "Onboarding"]
           : entity === "brands"
             ? [{ type: "Materials", id: "BRANDS" }, "Onboarding"]
-            : [{ type: ENTITY_TAG[entity], id: LIST }, "Onboarding"],
+            : entity === "company-accounts"
+              ? [{ type: "CompanyAccounts", id: LIST }, { type: "CompanyAccountGroups", id: LIST }, "Onboarding"]
+              : [{ type: ENTITY_TAG[entity], id: LIST }, "Onboarding"],
     }),
 
     getOpeningBalances: build.query<OpeningBalance[], { kind?: OpeningKind } | void>({

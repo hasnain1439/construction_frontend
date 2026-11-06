@@ -596,6 +596,7 @@ export const en = {
     entityMaterials: "materials",
     entityBrands: "brands",
     entityClients: "clients",
+    entityAccounts: "accounts",
     entityOpeningStock: "opening store stock",
     entityOpeningUdhaar: "opening supplier balances",
     entityOpeningCash: "opening cash in hand",
