@@ -21,3 +21,4 @@ export * from "./control";
 export * from "./tax";
 export * from "./edge";
 export * from "./officeExpenses";
+export * from "./companyAccounts";

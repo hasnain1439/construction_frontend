@@ -124,6 +124,8 @@ export const COMPANY_TAGS = [
   // Office expenses
   "OfficeExpenses",
   "OfficeExpenseCategories",
+  // Company accounts
+  "CompanyAccounts",
 ] as const;
 
 export const ADMIN_TAGS = [

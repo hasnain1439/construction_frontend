@@ -67,7 +67,8 @@ export const paymentSchema = z
   .object({
     receivedOn: z.string().min(1, msg("validation.dateRequired")),
     amountPaisa: positive("field.amount"),
-    method: z.enum(["CASH", "BANK_TRANSFER", "CHEQUE", "JAZZCASH", "EASYPAISA", "RAAST"]),
+    method: z.enum(["CASH", "WALLET", "BANK_TRANSFER", "CHEQUE", "JAZZCASH", "EASYPAISA", "RAAST"]),
+    companyAccountId: z.string().nullable(),
     bankName: z.string().trim().max(60),
     reference: z.string().trim().max(60),
     chequeNo: z.string().trim().max(30),

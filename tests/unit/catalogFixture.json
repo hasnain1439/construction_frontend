@@ -1707,6 +1707,38 @@
    "field": false
   },
   {
+   "key": "finance.account.view",
+   "module": "finance",
+   "resource": "account",
+   "action": "view",
+   "label": {
+    "en": "View company accounts",
+    "roman": "Company accounts dekhna",
+    "urdu": "کمپنی اکاؤنٹس دیکھنا"
+   },
+   "description": "The cash, wallet and bank accounts the company receives money in, with their numbers.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.account.manage",
+   "module": "finance",
+   "resource": "account",
+   "action": "manage",
+   "label": {
+    "en": "Manage company accounts",
+    "roman": "Company accounts sambhalna",
+    "urdu": "کمپنی اکاؤنٹس سنبھالنا"
+   },
+   "description": "Add, change, switch off and delete company accounts.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "dashboard.overview.view",
    "module": "dashboard",
    "resource": "overview",
@@ -2820,6 +2852,8 @@
     "finance.companyreports.view",
     "finance.officeexpense.view",
     "finance.officeexpense.manage",
+    "finance.account.view",
+    "finance.account.manage",
     "dashboard.overview.view",
     "dashboard.site.view",
     "approvals.inbox.view",
@@ -3098,6 +3132,8 @@
     "finance.reports.view",
     "finance.officeexpense.view",
     "finance.officeexpense.manage",
+    "finance.account.view",
+    "finance.account.manage",
     "dashboard.overview.view",
     "approvals.inbox.view",
     "masterdata.supplier.view",

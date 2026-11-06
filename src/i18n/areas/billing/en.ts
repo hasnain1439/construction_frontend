@@ -270,6 +270,7 @@ export const strings = {
 
 export const enums = {
   invoiceType: { STAGE: "Stage", RUNNING_BILL: "Running bill", RECOVERABLE: "Recoverable", RETENTION: "Retention", OTHER: "Other" },
-  clientPaymentMethod: { BANK_TRANSFER: "Bank transfer", CHEQUE: "Cheque", CASH: "Cash", RAAST: "Raast", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  clientPaymentMethod: { BANK_TRANSFER: "Bank transfer", CHEQUE: "Cheque", CASH: "Cash", RAAST: "Raast", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
+  companyAccountType: { CASH: "Cash", WALLET: "Online wallet", BANK: "Bank" },
   pnlBucket: { MATERIALS: "Materials", LABOR_WAGES: "Labour", SUBCONTRACT: "Sub-contract", SITE_OVERHEAD: "Site overhead", EQUIPMENT: "Equipment", LOSSES: "Losses" },
 } as const;

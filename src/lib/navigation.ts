@@ -437,6 +437,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("finance.officeexpense.view"),
         keywords: ["rent", "bills", "salary", "overhead", "kiraya", "bijli"],
       },
+      {
+        id: "finance.accounts",
+        label: L("Accounts", "Accounts", "اکاؤنٹس"),
+        href: "/finance/accounts",
+        available: true,
+        access: P("finance.account.view"),
+        keywords: ["bank", "wallet", "jazzcash", "easypaisa", "office cash", "account number"],
+      },
     ],
   },
   {

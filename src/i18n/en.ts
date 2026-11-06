@@ -678,6 +678,7 @@ export const en = {
       JAZZCASH: "JazzCash",
       EASYPAISA: "Easypaisa",
       RAAST: "Raast",
+      WALLET: "Online wallet",
     },
     severity: {
       CRITICAL: "Critical",

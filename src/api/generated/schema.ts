@@ -49041,6 +49041,390 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/company-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Company accounts
+         * @description Where the company receives money, by group (CASH, WALLET, BANK), then A–Z. Also open to whoever records payments: the payment form picks from this list.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    type?: "CASH" | "WALLET" | "BANK";
+                    /** @description true: only the ones on the payment form */
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *           "type": "WALLET",
+                         *           "name": "JazzCash",
+                         *           "accountTitle": "Malik & Sons Builders",
+                         *           "accountNumber": "03001234567",
+                         *           "iban": null,
+                         *           "branch": null,
+                         *           "note": null,
+                         *           "isActive": true,
+                         *           "paymentCount": 3,
+                         *           "createdAt": "2026-11-06T09:00:00.000Z",
+                         *           "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an account
+         * @description WALLET and BANK need `accountTitle` and `accountNumber`. One account per group + name + number (ignoring case).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description The group: CASH, WALLET (online wallet) or BANK. It cannot change later.
+                         * @enum {string}
+                         */
+                        type: "CASH" | "WALLET" | "BANK";
+                        /** @example JazzCash */
+                        name: string;
+                        /** @description Name on the account. Required for WALLET and BANK. */
+                        accountTitle?: string;
+                        /** @description Account or mobile number. Required for WALLET and BANK. */
+                        accountNumber?: string;
+                        iban?: string;
+                        branch?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *         "type": "WALLET",
+                         *         "name": "JazzCash",
+                         *         "accountTitle": "Malik & Sons Builders",
+                         *         "accountNumber": "03001234567",
+                         *         "iban": null,
+                         *         "branch": null,
+                         *         "note": null,
+                         *         "isActive": true,
+                         *         "paymentCount": 3,
+                         *         "createdAt": "2026-11-06T09:00:00.000Z",
+                         *         "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an account
+         * @description Only an account no payment came into; otherwise switch it off.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change an account
+         * @description Only the fields sent change; null clears an optional one. `isActive: false` takes it off the payment form and its payments stay. The group cannot change.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        accountTitle?: string | null;
+                        accountNumber?: string | null;
+                        iban?: string | null;
+                        branch?: string | null;
+                        note?: string | null;
+                        /** @description false takes it off the payment form; its payments stay */
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *         "type": "WALLET",
+                         *         "name": "JazzCash",
+                         *         "accountTitle": "Malik & Sons Builders",
+                         *         "accountNumber": "03001234567",
+                         *         "iban": null,
+                         *         "branch": null,
+                         *         "note": null,
+                         *         "isActive": false,
+                         *         "paymentCount": 3,
+                         *         "createdAt": "2026-11-06T09:00:00.000Z",
+                         *         "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | COMPANY_ACCOUNT_DETAILS_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/projects/{id}/billing-stages": {
         parameters: {
             query?: never;
@@ -51121,7 +51505,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     status?: "CLEARED" | "PENDING" | "BOUNCED";
-                    method?: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST";
+                    method?: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST" | "WALLET";
                 };
                 header?: never;
                 path: {
@@ -51263,7 +51647,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST";
+                        method: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account it came into; must be switched on and in the group of `method` (CASH → Cash, WALLET → Online wallet, BANK_TRANSFER / CHEQUE → Bank)
+                         */
+                        companyAccountId?: string;
                         bankName?: string;
                         reference?: string;
                         chequeNo?: string;

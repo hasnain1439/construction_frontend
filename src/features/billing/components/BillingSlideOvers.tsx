@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import {
@@ -17,8 +17,9 @@ import {
   useRecordPaymentMutation,
 } from "@/api/services/billing.api";
 import { useGetChangeOrdersQuery } from "@/api/services/changeOrders.api";
+import { useGetCompanyAccountsQuery } from "@/api/services/companyAccounts.api";
 import { useGetProjectTaxQuery } from "@/api/services/tax.api";
-import type { ScheduleStage, UnpaidStageWarning } from "@/api/types";
+import type { ClientPaymentMethod, CompanyAccountType, ScheduleStage, UnpaidStageWarning } from "@/api/types";
 import { AllocationEditor, type AllocatableInvoice } from "@/components/common/AllocationEditor";
 import { PAYMENT_METHODS } from "@/components/common/BillingBadges";
 import { InlineAlert } from "@/components/common/InlineAlert";
@@ -38,6 +39,7 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
+import { CompanyAccountSlideOver } from "@/features/finance/components/CompanyAccountSlideOver";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
@@ -353,9 +355,16 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 
 // ─── Record payment ─────────────────────────────────────────────────────────
 
+/** What the payment form offers: a group, then that group's accounts. Bank transfers and cheques share Bank. */
+const PAYMENT_GROUPS = ["CASH", "WALLET", "BANK_TRANSFER", "CHEQUE"] as const;
+const ACCOUNT_TYPE_OF: Record<ClientPaymentMethod, CompanyAccountType> = { CASH: "CASH", WALLET: "WALLET", JAZZCASH: "WALLET", EASYPAISA: "WALLET", RAAST: "WALLET", BANK_TRANSFER: "BANK", CHEQUE: "BANK" };
+
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const t = useT();
   const te = useEnumT();
+  const canAddAccount = useCan("finance.account.manage");
+  const accounts = useGetCompanyAccountsQuery({ active: true }, { skip: !open });
+  const [addingAccount, setAddingAccount] = useState(false);
   // Step 18: WHT only when tax is on for this project (company setting or project override).
   const projectTax = useGetProjectTaxQuery(projectId);
   const invoices = useGetInvoicesQuery({ projectId, limit: 100 });
@@ -365,9 +374,19 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
   const [touched, setTouched] = useState(false);
   const form = useForm<PaymentValues, unknown, z.output<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
-    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
+    values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", companyAccountId: null, bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
   });
   const [method, amount, wht, whtRate] = useWatch({ control: form.control, name: ["method", "amountPaisa", "whtDeductedPaisa", "whtRatePercent"] });
+  const accountType = ACCOUNT_TYPE_OF[method];
+  const inGroup = useMemo(() => (accounts.data ?? []).filter((a) => a.type === accountType), [accounts.data, accountType]);
+  const accountId = useWatch({ control: form.control, name: "companyAccountId" });
+  const chosenAccount = inGroup.find((a) => a.id === accountId);
+  // The group changed (or the list did): keep a choice that still fits, and fill in an only account.
+  useEffect(() => {
+    const current = form.getValues("companyAccountId");
+    if (current && inGroup.some((a) => a.id === current)) return;
+    form.setValue("companyAccountId", inGroup.length === 1 ? inGroup[0]!.id : null);
+  }, [inGroup, form]);
   const taxOn = projectTax.data?.effective.taxOn ?? false;
   const defaultWht = projectTax.data?.company.whtDefaultRatePercent ?? 0;
   // Rate without an amount → the backend works the WHT out (r % of cash + WHT); shown here the same way.
@@ -386,6 +405,10 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
   const total = sumPaisa([amount ?? "0", whtPaisa]);
 
   const onSubmit = async (v: z.output<typeof paymentSchema>) => {
+    if (inGroup.length && !v.companyAccountId) {
+      form.setError("companyAccountId", { message: t("cashSite.accounts.chooseAccount") });
+      return;
+    }
     const allocations = touched
       ? Object.entries(alloc)
           .filter(([, a]) => a && Number(a) > 0)
@@ -399,8 +422,9 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             receivedOn: v.receivedOn,
             amountPaisa: v.amountPaisa,
             method: v.method,
-            ...(v.bankName ? { bankName: v.bankName } : {}),
-            ...(v.reference ? { reference: v.reference } : {}),
+            ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
+            ...(accountType === "BANK" && v.bankName ? { bankName: v.bankName } : {}),
+            ...(accountType !== "CASH" && v.reference ? { reference: v.reference } : {}),
             ...(v.method === "CHEQUE" ? { chequeNo: v.chequeNo, ...(v.chequeDate ? { chequeDate: v.chequeDate } : {}) } : {}),
             ...(taxOn && v.whtDeductedPaisa ? { whtDeductedPaisa: v.whtDeductedPaisa } : {}),
             ...(taxOn && v.whtRatePercent ? { whtRatePercent: v.whtRatePercent } : {}),
@@ -415,76 +439,107 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
       {
         success: (p) => t(p.status === "PENDING" ? "billing.forms.paymentSavedPending" : "billing.forms.paymentSaved", { number: p.number }),
         setError: form.setError,
-        codeFields: { FUTURE_DATE: "receivedOn", WHT_NOT_ENABLED: "whtDeductedPaisa", WHT_RATE_MISMATCH: "whtRatePercent", WHT_TOO_HIGH: "whtDeductedPaisa", WHT_CERTIFICATE_WITHOUT_WHT: "whtCertificateNo" },
+        codeFields: { INVALID_COMPANY_ACCOUNT: "companyAccountId", COMPANY_ACCOUNT_MISMATCH: "companyAccountId", FUTURE_DATE: "receivedOn", WHT_NOT_ENABLED: "whtDeductedPaisa", WHT_RATE_MISMATCH: "whtRatePercent", WHT_TOO_HIGH: "whtDeductedPaisa", WHT_CERTIFICATE_WITHOUT_WHT: "whtCertificateNo" },
       },
     );
     if (ok) onOpenChange(false);
   };
   return (
-    <SlideOver
-      open={open}
-      onOpenChange={onOpenChange}
-      size="lg"
-      title={t("action.recordPayment")}
-      description={t("billing.forms.recordPaymentDesc")}
-      busy={isLoading}
-      footer={<FormActions formId="payment-form" submitLabel={t("billing.forms.savePayment")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
-    >
-      <Form form={form} onSubmit={onSubmit} id="payment-form">
-        <FieldGrid>
-          <MoneyField name="amountPaisa" label={t("field.amount")} required />
-          <DateField name="receivedOn" label={t("billing.forms.receivedOn")} required max={todayPK()} />
-        </FieldGrid>
-        <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} />
-        <FieldGrid>
-          <TextField name="bankName" label={t("field.bank")} placeholder={t("billing.forms.bankPh")} />
-          <TextField name="reference" label={t("field.reference")} placeholder={t("billing.forms.referencePh")} />
-        </FieldGrid>
-        {method === "CHEQUE" ? (
+    <>
+      <SlideOver
+        open={open}
+        onOpenChange={onOpenChange}
+        size="lg"
+        title={t("action.recordPayment")}
+        description={t("billing.forms.recordPaymentDesc")}
+        busy={isLoading}
+        footer={<FormActions formId="payment-form" submitLabel={t("billing.forms.savePayment")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      >
+        <Form form={form} onSubmit={onSubmit} id="payment-form">
           <FieldGrid>
-            <TextField name="chequeNo" label={t("billing.forms.chequeNo")} required />
-            <DateField name="chequeDate" label={t("billing.forms.chequeDate")} />
+            <MoneyField name="amountPaisa" label={t("field.amount")} required />
+            <DateField name="receivedOn" label={t("billing.forms.receivedOn")} required max={todayPK()} />
           </FieldGrid>
-        ) : null}
-        {taxOn ? (
-          <div className="space-y-3 rounded-lg border p-3" data-testid="wht-fields">
-            <FieldGrid>
-              <MoneyField name="whtDeductedPaisa" label={t("billing.forms.wht")} hint={t("billing.forms.whtHint")} />
-              <div className="space-y-1">
-                <NumberField name="whtRatePercent" label={t("tax.payment.whtRate")} hint={t("tax.payment.whtRateHint")} unit="%" decimals={2} />
-                {defaultWht > 0 && whtRate !== defaultWht ? (
-                  <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => form.setValue("whtRatePercent", defaultWht, { shouldDirty: true })}>
-                    {t("tax.payment.useDefault", { rate: defaultWht })}
-                  </Button>
-                ) : null}
-              </div>
-            </FieldGrid>
-            {whtWorkedOut ? (
-              <p className="text-sm" data-testid="wht-worked-out">
-                {t("tax.payment.whtWorkedOut", { amount: formatPKR(whtWorkedOut), gross: formatPKR(total) })}
-              </p>
+          <FieldGrid>
+            <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.filter((m) => (PAYMENT_GROUPS as readonly string[]).includes(m.value)).map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} />
+            {inGroup.length ? (
+              <SelectField name="companyAccountId" label={t("cashSite.accounts.account")} required options={inGroup.map((a) => ({ value: a.id, label: a.accountNumber ? `${a.name} · ${a.accountNumber}` : a.name }))} />
             ) : null}
+          </FieldGrid>
+          {chosenAccount?.accountTitle ? (
+            <p className="text-sm text-muted-foreground" data-testid="payment-account-details">
+              {[chosenAccount.accountTitle, chosenAccount.iban, chosenAccount.branch].filter(Boolean).join(" · ")}
+            </p>
+          ) : null}
+          {accounts.data && !inGroup.length ? (
+            <InlineAlert
+              tone="warning"
+              title={t("cashSite.accounts.noneInGroup", { group: te("companyAccountType", accountType) })}
+              action={
+                canAddAccount ? (
+                  <Button type="button" variant="outline" size="sm" onClick={() => setAddingAccount(true)}>
+                    {t("cashSite.accounts.add")}
+                  </Button>
+                ) : undefined
+              }
+            >
+              {t("cashSite.accounts.noneInGroupDesc")}
+            </InlineAlert>
+          ) : null}
+          {accountType === "CASH" ? null : (
             <FieldGrid>
-              <TextField name="whtCertificateNo" label={t("tax.payment.certNo")} maxLength={40} />
-              <DateField name="whtCertificateDate" label={t("tax.payment.certDate")} max={todayPK()} />
+              {accountType === "BANK" ? <TextField name="bankName" label={t("field.bank")} placeholder={t("billing.forms.bankPh")} /> : null}
+              <TextField name="reference" label={t("field.reference")} placeholder={t("billing.forms.referencePh")} />
             </FieldGrid>
-            <AttachmentField name="whtCertificate" label={t("tax.payment.certFile")} kind="DOCUMENT" />
-            <p className="text-xs text-muted-foreground">{t("tax.payment.certLater")}</p>
-          </div>
-        ) : null}
-        <AttachmentField name="slip" label={t("billing.forms.slipOptional")} kind="PAYMENT_SLIP" />
-        <AllocationEditor
-          invoices={open_}
-          totalPaisa={total}
-          value={touched ? alloc : {}}
-          onChange={(v) => {
-            setTouched(true);
-            setAlloc(v);
-          }}
-        />
-        {!touched ? <p className="text-xs text-muted-foreground">{t("billing.forms.autoSettleHint")}</p> : null}
-        <TextareaField name="note" label={t("field.note")} rows={2} />
-      </Form>
-    </SlideOver>
+          )}
+          {method === "CHEQUE" ? (
+            <FieldGrid>
+              <TextField name="chequeNo" label={t("billing.forms.chequeNo")} required />
+              <DateField name="chequeDate" label={t("billing.forms.chequeDate")} />
+            </FieldGrid>
+          ) : null}
+          {taxOn ? (
+            <div className="space-y-3 rounded-lg border p-3" data-testid="wht-fields">
+              <FieldGrid>
+                <MoneyField name="whtDeductedPaisa" label={t("billing.forms.wht")} hint={t("billing.forms.whtHint")} />
+                <div className="space-y-1">
+                  <NumberField name="whtRatePercent" label={t("tax.payment.whtRate")} hint={t("tax.payment.whtRateHint")} unit="%" decimals={2} />
+                  {defaultWht > 0 && whtRate !== defaultWht ? (
+                    <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => form.setValue("whtRatePercent", defaultWht, { shouldDirty: true })}>
+                      {t("tax.payment.useDefault", { rate: defaultWht })}
+                    </Button>
+                  ) : null}
+                </div>
+              </FieldGrid>
+              {whtWorkedOut ? (
+                <p className="text-sm" data-testid="wht-worked-out">
+                  {t("tax.payment.whtWorkedOut", { amount: formatPKR(whtWorkedOut), gross: formatPKR(total) })}
+                </p>
+              ) : null}
+              <FieldGrid>
+                <TextField name="whtCertificateNo" label={t("tax.payment.certNo")} maxLength={40} />
+                <DateField name="whtCertificateDate" label={t("tax.payment.certDate")} max={todayPK()} />
+              </FieldGrid>
+              <AttachmentField name="whtCertificate" label={t("tax.payment.certFile")} kind="DOCUMENT" />
+              <p className="text-xs text-muted-foreground">{t("tax.payment.certLater")}</p>
+            </div>
+          ) : null}
+          <AttachmentField name="slip" label={t("billing.forms.slipOptional")} kind="PAYMENT_SLIP" />
+          <AllocationEditor
+            invoices={open_}
+            totalPaisa={total}
+            value={touched ? alloc : {}}
+            onChange={(v) => {
+              setTouched(true);
+              setAlloc(v);
+            }}
+          />
+          {!touched ? <p className="text-xs text-muted-foreground">{t("billing.forms.autoSettleHint")}</p> : null}
+          <TextareaField name="note" label={t("field.note")} rows={2} />
+        </Form>
+      </SlideOver>
+      {/* Beside the form, not in it: a submit inside would bubble to the payment form through React. */}
+      {addingAccount ? <CompanyAccountSlideOver account={null} type={accountType} onClose={() => setAddingAccount(false)} onSaved={(a) => form.setValue("companyAccountId", a.id)} /> : null}
+    </>
   );
 }

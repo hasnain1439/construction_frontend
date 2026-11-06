@@ -679,6 +679,7 @@ export const romanUr: Dictionary = {
       JAZZCASH: "JazzCash",
       EASYPAISA: "Easypaisa",
       RAAST: "Raast",
+      WALLET: "Online wallet",
     },
     severity: {
       CRITICAL: "Sangeen",

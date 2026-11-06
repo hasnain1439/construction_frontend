@@ -679,6 +679,7 @@ export const ur: Dictionary = {
       JAZZCASH: "جاز کیش",
       EASYPAISA: "ایزی پیسہ",
       RAAST: "راست",
+      WALLET: "آن لائن والیٹ",
     },
     severity: {
       CRITICAL: "سنگین",

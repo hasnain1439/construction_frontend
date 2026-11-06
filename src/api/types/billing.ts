@@ -4,12 +4,13 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
+import type { CompanyAccountType } from "./companyAccounts";
 import type { TaxAuthority } from "./tax";
 
 export type StageStatus = "UPCOMING" | "READY" | "INVOICED" | "PARTLY_PAID" | "PAID";
 export type InvoiceType = "STAGE" | "RUNNING_BILL" | "RECOVERABLE" | "RETENTION" | "OTHER";
 export type InvoiceStatus = "DRAFT" | "ISSUED" | "PARTLY_PAID" | "PAID" | "CANCELLED";
-export type ClientPaymentMethod = "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST";
+export type ClientPaymentMethod = "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST" | "WALLET";
 export type ClientPaymentStatus = "CLEARED" | "PENDING" | "BOUNCED";
 
 export interface StageInvoiceRef {
@@ -138,6 +139,8 @@ export interface ClientPayment {
   whtRatePercent: number | null;
   whtCertificate: { number: string | null; date: IsoDate | null; attachmentId: Id | null } | null;
   method: ClientPaymentMethod;
+  /** The company account it came into; older payments have none. */
+  companyAccount: { id: Id; name: string; type: CompanyAccountType } | null;
   bankName: string | null;
   reference: string | null;
   chequeNo: string | null;

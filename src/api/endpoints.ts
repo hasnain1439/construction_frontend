@@ -465,6 +465,11 @@ export const ENDPOINTS = {
     cashFloats: "/finance/cash-floats",
   },
 
+  companyAccounts: {
+    list: "/company-accounts",
+    byId: (accountId: string) => `/company-accounts/${id(accountId)}`,
+  },
+
   officeExpenses: {
     list: "/office-expenses",
     byId: (expenseId: string) => `/office-expenses/${id(expenseId)}`,
