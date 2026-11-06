@@ -175,8 +175,15 @@ export interface TenantPlanResult {
 /** The platform account a company paid into, as it was at that moment. */
 export type PaidTo = { name: string; accountNumber: string | null } | null;
 
+export interface AdminPaymentGroup {
+  id: Id;
+  name: string;
+  accountCount: number;
+}
+
 export interface AdminPaymentAccount {
   id: Id;
+  group: { id: Id; name: string };
   name: string;
   method: PaymentMethod;
   accountTitle: string;

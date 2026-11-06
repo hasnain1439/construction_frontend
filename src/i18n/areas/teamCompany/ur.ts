@@ -250,6 +250,8 @@ export const strings: Widen<typeof En.strings> = {
     submit: "جانچ کے لیے بھیجیں",
     plan: "پلان",
     planOption: "{name} — {price} / ماہ",
+    paidToGroup: "ادائیگی کا گروپ",
+    chooseGroup: "گروپ چنیں",
     paidTo: "رقم اس اکاؤنٹ میں بھیجیں",
     choosePaidTo: "اکاؤنٹ چنیں",
     accountTitle: "اکاؤنٹ کا عنوان",

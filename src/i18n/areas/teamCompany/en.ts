@@ -248,6 +248,8 @@ export const strings = {
     submit: "Submit for review",
     plan: "Plan",
     planOption: "{name} — {price} / month",
+    paidToGroup: "Payment group",
+    chooseGroup: "Choose a group",
     paidTo: "Send the money to",
     choosePaidTo: "Choose an account",
     accountTitle: "Account title",

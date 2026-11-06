@@ -250,6 +250,8 @@ export const strings: Widen<typeof En.strings> = {
     submit: "Jaanch ke liye bhejein",
     plan: "Plan",
     planOption: "{name} — {price} / mahina",
+    paidToGroup: "Payment group",
+    chooseGroup: "Group chunein",
     paidTo: "Paisa is account mein bhejein",
     choosePaidTo: "Account chunein",
     accountTitle: "Account ka naam (title)",

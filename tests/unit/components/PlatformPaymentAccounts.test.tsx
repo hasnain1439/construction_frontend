@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({
 const api = vi.hoisted(() => ({
   accounts: [] as unknown[],
   adminAccounts: [] as unknown[],
+  groups: [] as unknown[],
   submit: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -26,6 +27,10 @@ vi.mock("@/api/services/subscription.api", () => ({
   useSubmitPaymentMutation: () => [api.submit, { isLoading: false }],
 }));
 vi.mock("@/api/services/admin/paymentAccounts.api", () => ({
+  useGetAdminPaymentGroupsQuery: () => ({ data: api.groups, isLoading: false, isFetching: false, isSuccess: true }),
+  useCreatePaymentGroupMutation: () => [vi.fn(), { isLoading: false }],
+  useRenamePaymentGroupMutation: () => [vi.fn(), { isLoading: false }],
+  useDeletePaymentGroupMutation: () => [vi.fn(), { isLoading: false }],
   useGetAdminPaymentAccountsQuery: () => ({ data: api.adminAccounts, isLoading: false, isFetching: false }),
   useCreatePaymentAccountMutation: () => [api.create, { isLoading: false }],
   useUpdatePaymentAccountMutation: () => [api.update, { isLoading: false }],
@@ -39,8 +44,11 @@ vi.mock("@/components/common/FileUpload", () => ({
 }));
 
 const PLANS = [{ id: "p1", code: "PROFESSIONAL", name: "Professional", pricePaisa: "950000" }] as unknown as PlanOption[];
-const HBL: PaymentAccount = { id: "a1", name: "HBL", method: "IBFT", accountTitle: "Keystone", accountNumber: "00000000000001", iban: "PK00HABB0000000000000001", note: "Same day please" };
-const JAZZ: PaymentAccount = { id: "a2", name: "JazzCash", method: "JAZZCASH", accountTitle: "Keystone", accountNumber: "03000000001", iban: null, note: null };
+const BANK = { id: "g1", name: "Bank" };
+const WALLET = { id: "g2", name: "Online wallet" };
+const HBL: PaymentAccount = { id: "a1", group: BANK, name: "HBL", method: "IBFT", accountTitle: "Keystone", accountNumber: "00000000000001", iban: "PK00HABB0000000000000001", note: "Same day please" };
+const MCB: PaymentAccount = { id: "a3", group: BANK, name: "MCB", method: "IBFT", accountTitle: "Keystone", accountNumber: "00000000000002", iban: null, note: null };
+const JAZZ: PaymentAccount = { id: "a2", group: WALLET, name: "JazzCash", method: "JAZZCASH", accountTitle: "Keystone", accountNumber: "03000000001", iban: null, note: null };
 
 const openForm = () => renderWithStore(<UploadSlipSlideOver open onOpenChange={vi.fn()} plans={PLANS} defaultPlanId="p1" />);
 const fillRest = async () => {
@@ -52,6 +60,7 @@ const send = () => userEvent.click(screen.getByRole("button", { name: "Submit fo
 beforeEach(() => {
   api.accounts = [];
   api.adminAccounts = [];
+  api.groups = [{ ...BANK, accountCount: 1 }, { ...WALLET, accountCount: 0 }];
   for (const fn of [api.submit, api.create, api.update]) {
     fn.mockReset();
     fn.mockReturnValue({ unwrap: async () => ({}) });
@@ -90,8 +99,23 @@ describe("slip form", () => {
     expect(api.submit.mock.calls[0]![0]).not.toHaveProperty("method");
   });
 
+  it("a group shows only its own accounts, and changing it clears or fills the account", async () => {
+    api.accounts = [HBL, MCB, JAZZ];
+    openForm();
+    await userEvent.click(screen.getByRole("combobox", { name: /Payment group/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Bank" }));
+    await userEvent.click(screen.getByRole("combobox", { name: /Send the money to/ }));
+    expect((await screen.findAllByRole("option")).map((o) => o.textContent)).toEqual([expect.stringContaining("HBL"), expect.stringContaining("MCB")]);
+    await userEvent.click(await screen.findByRole("option", { name: /MCB/ }));
+    expect(await screen.findByTestId("payment-account-details")).toHaveTextContent("00000000000002");
+
+    await userEvent.click(screen.getByRole("combobox", { name: /Payment group/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Online wallet" }));
+    expect(await screen.findByTestId("payment-account-details")).toHaveTextContent("03000000001");
+  });
+
   it("with several accounts one must be picked before it sends", async () => {
-    api.accounts = [HBL, JAZZ];
+    api.accounts = [HBL, MCB];
     openForm();
     expect(screen.queryByTestId("payment-account-details")).toBeNull();
     await fillRest();
@@ -100,11 +124,12 @@ describe("slip form", () => {
     expect(api.submit).not.toHaveBeenCalled();
 
     await userEvent.click(screen.getByRole("combobox", { name: /Send the money to/ }));
-    await userEvent.click(await screen.findByRole("option", { name: /JazzCash/ }));
-    expect(await screen.findByTestId("payment-account-details")).toHaveTextContent("03000000001");
+    await userEvent.click(await screen.findByRole("option", { name: /MCB/ }));
+    expect(await screen.findByTestId("payment-account-details")).toHaveTextContent("00000000000002");
     await send();
     await waitFor(() => expect(api.submit).toHaveBeenCalled());
-    expect(api.submit.mock.calls[0]![0]).toMatchObject({ paymentAccountId: "a2" });
+    expect(api.submit.mock.calls[0]![0]).toMatchObject({ paymentAccountId: "a3" });
+    expect(api.submit.mock.calls[0]![0]).not.toHaveProperty("paymentGroupId");
   });
 
   it("copies the number", async () => {
@@ -129,12 +154,24 @@ describe("admin screen", () => {
     expect(screen.getByText("No accounts yet")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Add account" }));
     const form = await screen.findByRole("dialog");
+    await userEvent.click(within(form).getByRole("combobox", { name: /Payment group/ }));
+    await userEvent.click(await screen.findByRole("option", { name: "Bank" }));
     await userEvent.type(within(form).getByRole("textbox", { name: /^Name/ }), "MCB");
     await userEvent.type(within(form).getByRole("textbox", { name: /Account title/ }), "Keystone");
     await userEvent.type(within(form).getByRole("textbox", { name: /Account number/ }), "00000000000002");
     await userEvent.click(within(form).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(api.create).toHaveBeenCalled());
-    expect(api.create.mock.calls[0]![0]).toEqual({ name: "MCB", method: "IBFT", accountTitle: "Keystone", accountNumber: "00000000000002", iban: null, note: null, isActive: true });
+    expect(api.create.mock.calls[0]![0]).toEqual({ groupId: "g1", name: "MCB", method: "IBFT", accountTitle: "Keystone", accountNumber: "00000000000002", iban: null, note: null, isActive: true });
+  });
+
+  it("has a tab per group that filters the list, and Manage groups", async () => {
+    api.adminAccounts = [row, { ...row, id: "a2", group: WALLET, name: "JazzCash" }];
+    renderWithStore(<PaymentAccountsView />);
+    expect(screen.getByRole("button", { name: "Manage groups" })).toBeInTheDocument();
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    await userEvent.click(screen.getByRole("radio", { name: "Online wallet" }));
+    expect(screen.getAllByRole("row")).toHaveLength(2);
+    expect(screen.queryByText("HBL")).toBeNull();
   });
 
   it("closes an account only after confirming", async () => {

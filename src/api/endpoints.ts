@@ -535,6 +535,8 @@ export const ENDPOINTS = {
     paymentById: (paymentId: string) => `/admin/payments/${id(paymentId)}`,
     paymentApprove: (paymentId: string) => `/admin/payments/${id(paymentId)}/approve`,
     paymentReject: (paymentId: string) => `/admin/payments/${id(paymentId)}/reject`,
+    paymentGroups: "/admin/payment-accounts/groups",
+    paymentGroupById: (groupId: string) => `/admin/payment-accounts/groups/${id(groupId)}`,
     paymentAccounts: "/admin/payment-accounts",
     paymentAccountById: (accountId: string) => `/admin/payment-accounts/${id(accountId)}`,
     plans: "/admin/plans",

@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Landmark, Pencil, Plus, Power } from "lucide-react";
+import { Landmark, Layers, Pencil, Plus, Power } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import {
   useCreatePaymentAccountMutation,
   useGetAdminPaymentAccountsQuery,
+  useGetAdminPaymentGroupsQuery,
   useUpdatePaymentAccountMutation,
 } from "@/api/services/admin/paymentAccounts.api";
 import type { AdminPaymentAccount } from "@/api/types";
@@ -15,6 +16,7 @@ import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { SlideOver } from "@/components/common/SlideOver";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { FieldGrid, Form } from "@/components/forms/Form";
@@ -27,12 +29,15 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { PAYMENT_METHOD_LABEL, PAYMENT_METHOD_OPTIONS } from "@/lib/options";
+import { PaymentGroupsSlideOver } from "../components/PaymentGroupsSlideOver";
 import { paymentAccountSchema } from "../schemas";
 
 const FORM_ID = "payment-account-form";
+const ALL = "all";
 type Values = z.input<typeof paymentAccountSchema>;
 
-const toValues = (a: AdminPaymentAccount | null): Values => ({
+const toValues = (a: AdminPaymentAccount | null, groupId: string | null): Values => ({
+  groupId: a?.group.id ?? groupId ?? "",
   name: a?.name ?? "",
   method: a?.method ?? "IBFT",
   accountTitle: a?.accountTitle ?? "",
@@ -43,15 +48,16 @@ const toValues = (a: AdminPaymentAccount | null): Values => ({
 });
 
 /** Add (account = null) or change an account. Mounted only while open, so the form starts fresh. */
-function PaymentAccountSlideOver({ account, onClose }: { account: AdminPaymentAccount | null; onClose: () => void }) {
+function PaymentAccountSlideOver({ account, groupId, onClose }: { account: AdminPaymentAccount | null; groupId: string | null; onClose: () => void }) {
+  const groups = useGetAdminPaymentGroupsQuery();
   const [create, { isLoading: creating }] = useCreatePaymentAccountMutation();
   const [update, { isLoading: updating }] = useUpdatePaymentAccountMutation();
   const run = useMutationToast();
-  const form = useForm<Values, unknown, z.output<typeof paymentAccountSchema>>({ resolver: zodResolver(paymentAccountSchema), defaultValues: toValues(account) });
+  const form = useForm<Values, unknown, z.output<typeof paymentAccountSchema>>({ resolver: zodResolver(paymentAccountSchema), defaultValues: toValues(account, groupId) });
 
   const onSubmit = async (v: z.output<typeof paymentAccountSchema>) => {
     const body = { ...v, iban: v.iban || null, note: v.note || null };
-    const options = { success: `${v.name} saved`, setError: form.setError, codeFields: { PAYMENT_ACCOUNT_EXISTS: "accountNumber" } };
+    const options = { success: `${v.name} saved`, setError: form.setError, codeFields: { PAYMENT_ACCOUNT_EXISTS: "accountNumber", PAYMENT_GROUP_NOT_FOUND: "groupId" } };
     const result = account ? await run(() => update({ id: account.id, body }).unwrap(), options) : await run(() => create(body).unwrap(), options);
     if (result) onClose();
   };
@@ -66,6 +72,7 @@ function PaymentAccountSlideOver({ account, onClose }: { account: AdminPaymentAc
       footer={<FormActions formId={FORM_ID} submitLabel="Save" loading={creating || updating} onCancel={onClose} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
+        <SelectField name="groupId" label="Payment group" required placeholder="Choose a group" options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
         <FieldGrid>
           <TextField name="name" label="Name" required placeholder="HBL" />
           <SelectField name="method" label="Companies pay by" required options={[...PAYMENT_METHOD_OPTIONS]} />
@@ -84,6 +91,11 @@ function PaymentAccountSlideOver({ account, onClose }: { account: AdminPaymentAc
 
 export function PaymentAccountsView() {
   const { data, isLoading, isFetching, error, refetch } = useGetAdminPaymentAccountsQuery();
+  const groups = useGetAdminPaymentGroupsQuery();
+  const [picked, setPicked] = useState(ALL);
+  const [managing, setManaging] = useState(false);
+  // A group deleted while it was picked falls back to All.
+  const tab = groups.data?.some((g) => g.id === picked) ? picked : ALL;
   const [update, { isLoading: saving }] = useUpdatePaymentAccountMutation();
   const run = useMutationToast();
   const [editing, setEditing] = useState<AdminPaymentAccount | "new" | null>(null);
@@ -93,6 +105,7 @@ export function PaymentAccountsView() {
 
   const columns: Column<AdminPaymentAccount>[] = [
     { id: "name", header: "Name", cell: (a) => <span className="font-medium">{a.name}</span>, sortValue: (a) => a.name },
+    { id: "group", header: "Group", cell: (a) => a.group.name, sortValue: (a) => a.group.name },
     { id: "method", header: "Companies pay by", cell: (a) => PAYMENT_METHOD_LABEL[a.method] ?? a.method },
     { id: "title", header: "Account title", cell: (a) => a.accountTitle },
     { id: "number", header: "Account number", cell: (a) => <span className="font-mono text-xs">{a.accountNumber}</span> },
@@ -119,15 +132,29 @@ export function PaymentAccountsView() {
         description="Where companies send their subscription money."
         breadcrumbs={[{ label: "Payment Accounts" }]}
         actions={
-          <Button onClick={() => setEditing("new")}>
-            <Plus data-icon="inline-start" />
-            Add account
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setManaging(true)}>
+              <Layers data-icon="inline-start" />
+              Manage groups
+            </Button>
+            <Button onClick={() => setEditing("new")}>
+              <Plus data-icon="inline-start" />
+              Add account
+            </Button>
+          </>
         }
       />
+      <div className="mb-4 overflow-x-auto">
+        <SegmentedControl<string>
+          value={tab}
+          onChange={setPicked}
+          ariaLabel="Payment group"
+          options={[{ value: ALL, label: "All" }, ...(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))]}
+        />
+      </div>
       <SectionCard flush>
         <DataTable
-          rows={data}
+          rows={tab === ALL ? data : data?.filter((a) => a.group.id === tab)}
           columns={columns}
           getRowId={(a) => a.id}
           loading={isLoading || isFetching}
@@ -137,7 +164,8 @@ export function PaymentAccountsView() {
           empty={{ title: "No accounts yet", description: "Until you add one, companies only choose a method on their slip form and see no account details.", icon: Landmark }}
         />
       </SectionCard>
-      {editing ? <PaymentAccountSlideOver account={editing === "new" ? null : editing} onClose={() => setEditing(null)} /> : null}
+      {managing ? <PaymentGroupsSlideOver onClose={() => setManaging(false)} /> : null}
+      {editing ? <PaymentAccountSlideOver account={editing === "new" ? null : editing} groupId={tab === ALL ? null : tab} onClose={() => setEditing(null)} /> : null}
       <ConfirmDialog
         open={Boolean(closing)}
         onOpenChange={(o) => !o && setClosing(null)}

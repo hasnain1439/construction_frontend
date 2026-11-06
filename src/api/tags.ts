@@ -138,6 +138,7 @@ export const ADMIN_TAGS = [
   "AdminPayments",
   "AdminPlans",
   "AdminPaymentAccounts",
+  "AdminPaymentGroups",
   "AdminHolidays",
   "AuditLogs",
   "ActAsSessions",

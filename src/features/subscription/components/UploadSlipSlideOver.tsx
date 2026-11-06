@@ -94,20 +94,42 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Which of the platform's accounts the money goes to, with the details to send it. */
+/** The groups that have an open account, in the order the API lists them. */
+const groupsOf = (accounts: PaymentAccount[]) => [...new Map(accounts.map((a) => [a.group.id, a.group])).values()];
+/** The group's account when it has just one: nothing left to choose. */
+const onlyAccountIn = (accounts: PaymentAccount[], groupId: string | null) => {
+  const inGroup = accounts.filter((a) => a.group.id === groupId);
+  return inGroup.length === 1 ? inGroup[0]!.id : null;
+};
+
+/** Which of the platform's accounts the money goes to: group, then account, with the details to send it. */
 function PaidToField({ accounts }: { accounts: PaymentAccount[] }) {
   const t = useT();
   const te = useEnumT();
+  const { setValue } = useFormContext<Values>();
+  const groupId = useWatch({ name: "paymentGroupId" }) as string | null;
   const id = useWatch({ name: "paymentAccountId" }) as string | null;
   const account = accounts.find((a) => a.id === id);
   return (
     <>
       <SelectField
+        name="paymentGroupId"
+        label={t("teamCompany.slip.paidToGroup")}
+        required
+        placeholder={t("teamCompany.slip.chooseGroup")}
+        options={groupsOf(accounts).map((g) => ({ value: g.id, label: g.name }))}
+        // In the same update as the group: the account list changes with it.
+        onValueChange={(g) => setValue("paymentAccountId", onlyAccountIn(accounts, g), { shouldDirty: true })}
+      />
+      {/* A new list starts fresh: a select whose options change under its value clears the field. */}
+      <SelectField
+        key={groupId}
         name="paymentAccountId"
         label={t("teamCompany.slip.paidTo")}
         required
+        disabled={!groupId}
         placeholder={t("teamCompany.slip.choosePaidTo")}
-        options={accounts.map((a) => ({ value: a.id, label: `${a.name} · ${te("walletMethod", a.method)}` }))}
+        options={accounts.filter((a) => a.group.id === groupId).map((a) => ({ value: a.id, label: `${a.name} · ${te("walletMethod", a.method)}` }))}
       />
       {account ? (
         <div className="space-y-2 rounded-xl border p-3" data-testid="payment-account-details">
@@ -141,14 +163,16 @@ export function UploadSlipSlideOver({
   const [submit, { isLoading }] = useSubmitPaymentMutation();
   const { data: accounts, isLoading: loadingAccounts, error: accountsError, refetch } = useGetPaymentAccountsQuery(undefined, { skip: !open });
   const hasAccounts = Boolean(accounts?.length);
+  const onlyGroup = accounts && groupsOf(accounts).length === 1 ? accounts[0]!.group.id : null;
   const run = useMutationToast();
   const priceOf = (id: string) => plans.find((p) => p.id === id)?.pricePaisa ?? null;
   const form = useForm<Values, unknown, z.output<typeof paymentSlipSchema>>({
     resolver: zodResolver(paymentSlipSchema),
     values: {
       planId: defaultPlanId,
-      // One account leaves nothing to choose.
-      paymentAccountId: accounts?.length === 1 ? accounts[0]!.id : null,
+      // One group or one account leaves nothing to choose.
+      paymentGroupId: onlyGroup,
+      paymentAccountId: accounts ? onlyAccountIn(accounts, onlyGroup) : null,
       method: "EASYPAISA",
       transactionId: "",
       amountPaisa: priceOf(defaultPlanId),
