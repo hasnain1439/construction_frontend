@@ -74,6 +74,8 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
       paymentMode: "UDHAAR",
       paidNowPaisa: null,
       paidFrom: null,
+      groupId: null,
+      companyAccountId: null,
       challan: null,
       bill: null,
       note: "",
@@ -137,7 +139,7 @@ export function NewPurchaseView({ fixedProjectId, backHref = "/suppliers-stock/p
         ? {
             paymentMode: v.paymentMode as PaymentMode,
             ...(v.paymentMode === "PARTIAL" && v.paidNowPaisa ? { paidNowPaisa: v.paidNowPaisa } : {}),
-            ...(v.paymentMode !== "UDHAAR" && v.paidFrom ? { paidFrom: v.paidFrom as PaidFrom } : {}),
+            ...(v.paymentMode !== "UDHAAR" && v.paidFrom ? { paidFrom: v.paidFrom as PaidFrom, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}),
           }
         : {}),
       items: v.items.map((l) => ({

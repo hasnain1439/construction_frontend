@@ -282,7 +282,7 @@ export const strings = {
 } as const;
 
 export const enums = {
-  laborPaidFrom: { SITE_CASH: "Site cash", OFFICE_CASH: "Office cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  laborPaidFrom: { SITE_CASH: "Site cash", OFFICE_CASH: "Office cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
   laborRateType: {
     PER_SQFT: "Per sq ft",
     PER_TON: "Per ton",
@@ -292,7 +292,7 @@ export const enums = {
     LUMPSUM: "Lump sum",
   },
   laborRateUnit: { sqft: "sq ft", ton: "ton", brick: "brick", rft: "running ft", cft: "cu ft" },
-  laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
   laborCashEntry: {
     FLOAT_IN: "Float received",
     EXPENSE: "Site expense",

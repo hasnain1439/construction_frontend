@@ -142,6 +142,7 @@ export const ENDPOINTS = {
   subscription: {
     current: "/subscription",
     plans: "/subscription/plans",
+    paymentAccounts: "/subscription/payment-accounts",
     payments: "/subscription/payments",
     changePlan: "/subscription/change-plan",
   },
@@ -465,6 +466,14 @@ export const ENDPOINTS = {
     cashFloats: "/finance/cash-floats",
   },
 
+  companyAccounts: {
+    list: "/company-accounts",
+    byId: (accountId: string) => `/company-accounts/${id(accountId)}`,
+    entries: (accountId: string) => `/company-accounts/${id(accountId)}/entries`,
+    groups: "/company-accounts/groups",
+    groupById: (groupId: string) => `/company-accounts/groups/${id(groupId)}`,
+  },
+
   officeExpenses: {
     list: "/office-expenses",
     byId: (expenseId: string) => `/office-expenses/${id(expenseId)}`,
@@ -499,6 +508,7 @@ export const ENDPOINTS = {
     deviceApprove: (deviceId: string) => `/edge/devices/${id(deviceId)}/approve`,
     deviceRevoke: (deviceId: string) => `/edge/devices/${id(deviceId)}/revoke`,
     problems: "/edge/problems",
+    syncStatus: "/edge/sync-status",
   },
 
   /** Step 18 — tax settings, project override, WHT certificate. */
@@ -526,6 +536,10 @@ export const ENDPOINTS = {
     paymentById: (paymentId: string) => `/admin/payments/${id(paymentId)}`,
     paymentApprove: (paymentId: string) => `/admin/payments/${id(paymentId)}/approve`,
     paymentReject: (paymentId: string) => `/admin/payments/${id(paymentId)}/reject`,
+    paymentGroups: "/admin/payment-accounts/groups",
+    paymentGroupById: (groupId: string) => `/admin/payment-accounts/groups/${id(groupId)}`,
+    paymentAccounts: "/admin/payment-accounts",
+    paymentAccountById: (accountId: string) => `/admin/payment-accounts/${id(accountId)}`,
     plans: "/admin/plans",
     planById: (planId: string) => `/admin/plans/${id(planId)}`,
     holidays: "/admin/holidays",

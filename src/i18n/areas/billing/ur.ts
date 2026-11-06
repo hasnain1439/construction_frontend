@@ -262,6 +262,7 @@ export const strings: Widen<typeof En.strings> = {
 
 export const enums: Widen<typeof En.enums> = {
   invoiceType: { STAGE: "مرحلہ", RUNNING_BILL: "رننگ بل", RECOVERABLE: "قابلِ وصول", RETENTION: "روکی گئی رقم", OTHER: "دیگر" },
-  clientPaymentMethod: { BANK_TRANSFER: "بینک ٹرانسفر", CHEQUE: "چیک", CASH: "نقد", RAAST: "راست", JAZZCASH: "جاز کیش", EASYPAISA: "ایزی پیسہ" },
+  clientPaymentMethod: { BANK_TRANSFER: "بینک ٹرانسفر", CHEQUE: "چیک", CASH: "نقد", RAAST: "راست", JAZZCASH: "جاز کیش", EASYPAISA: "ایزی پیسہ", WALLET: "آن لائن والیٹ" },
+  companyAccountType: { CASH: "نقد", WALLET: "آن لائن", BANK: "بینک" },
   pnlBucket: { MATERIALS: "مال", LABOR_WAGES: "مزدوری", SUBCONTRACT: "ٹھیکہ", SITE_OVERHEAD: "سائٹ کے اخراجات", EQUIPMENT: "مشینری", LOSSES: "نقصان" },
 };

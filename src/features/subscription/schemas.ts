@@ -5,6 +5,9 @@ import { datePlusDays, todayPK } from "@/lib/dates";
 export const paymentSlipSchema = z
   .object({
     planId: z.string().min(1, msg("teamCompany.v.choosePlan")),
+    /** Chosen while the platform lists accounts: group first, then the account, which decides the method. */
+    paymentGroupId: z.string().nullable(),
+    paymentAccountId: z.string().nullable(),
     method: z.enum(["JAZZCASH", "EASYPAISA", "RAAST", "IBFT"], { error: msg("teamCompany.v.chooseMethod") }),
     transactionId: z
       .string()

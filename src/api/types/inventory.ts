@@ -186,7 +186,7 @@ export type UpdatePurchaseOrderBody = RequestBody<"/api/v1/purchase-orders/{id}"
 
 export type PurchaseStatus = "SAVED" | "PENDING_RATE" | "PENDING_RECEIPT" | "RECEIVED" | "RECEIVED_WITH_SHORTAGE";
 export type PaymentMode = "UDHAAR" | "CASH" | "PARTIAL";
-export type PaidFrom = "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+export type PaidFrom = "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH" | "WALLET";
 export type ShortageKind = "DISPATCH_SHORT" | "DAMAGED" | "EXCESS" | "SUPPLIER_SHORT";
 export type Resolution = "SEND_REMAINING" | "RETURN_TO_STORE" | "ACCEPT_LOSS" | "RECOVER_FROM_DRIVER" | "SUPPLIER_CREDIT";
 
@@ -320,7 +320,7 @@ export interface ComparisonRow {
 // ─── Supplier ledger + payments ─────────────────────────────────────────────
 
 export type LedgerType = "OPENING" | "PURCHASE" | "RETURN" | "PAYMENT" | "PAYMENT_REVERSAL" | "ADJUSTMENT";
-export type SupplierPaymentMethod = "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+export type SupplierPaymentMethod = "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "WALLET";
 export type SupplierPaymentStatus = "CLEARED" | "PENDING" | "BOUNCED";
 
 export interface LedgerEntry {

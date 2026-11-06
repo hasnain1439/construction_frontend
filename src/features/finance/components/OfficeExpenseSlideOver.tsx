@@ -16,6 +16,7 @@ import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyField } from "@/components/forms/MoneyInput";
 import { SelectField } from "@/components/forms/SelectField";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { TextField } from "@/components/forms/TextField";
 import { PAID_VIA_VALUES, officeExpenseSchema, type OfficeExpenseValues } from "@/features/finance/schemas";
 import { useMutationToast } from "@/hooks/useMutationToast";
@@ -32,6 +33,8 @@ export function useOfficeExpenseOptions() {
     methods: PAID_VIA_VALUES.map((value) => ({ value, label: te("cashFloatMethod", value) })),
   };
 }
+
+const HOW_PAID: HowPaid = { name: "paidVia", CASH: "CASH", WALLET: "WALLET", BANK: "BANK" };
 
 /** Add (expense = null) or change one office expense. Mount it only while open, so the form starts fresh. */
 export function OfficeExpenseSlideOver({
@@ -60,6 +63,8 @@ export function OfficeExpenseSlideOver({
           categoryId: expense.category.id,
           amountPaisa: expense.amountPaisa,
           paidVia: expense.paidVia,
+          groupId: null,
+          companyAccountId: expense.companyAccountId,
           paidTo: expense.paidTo ?? "",
           description: expense.description,
           receipt: expense.attachmentId
@@ -76,13 +81,17 @@ export function OfficeExpenseSlideOver({
           categoryId: null,
           amountPaisa: null,
           paidVia: "CASH",
+          groupId: null,
+          companyAccountId: null,
           paidTo: "",
           description: "",
           receipt: null,
         },
   });
 
+  const checkAccount = useCompanyAccountCheck(form);
   const onSubmit = async (v: z.output<typeof officeExpenseSchema>) => {
+    if (!checkAccount(v)) return;
     const paidTo = v.paidTo.trim();
     const feedback = {
       setError: form.setError,
@@ -103,6 +112,7 @@ export function OfficeExpenseSlideOver({
                 ...(v.categoryId !== expense.category.id ? { categoryId: v.categoryId } : {}),
                 amountPaisa: v.amountPaisa,
                 paidVia: v.paidVia,
+                companyAccountId: v.companyAccountId,
                 paidTo: paidTo || null,
                 description: v.description,
                 attachmentId: v.receipt?.id ?? null,
@@ -117,6 +127,7 @@ export function OfficeExpenseSlideOver({
               categoryId: v.categoryId,
               amountPaisa: v.amountPaisa,
               paidVia: v.paidVia,
+              ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
               description: v.description,
               ...(paidTo ? { paidTo } : {}),
               ...(v.receipt ? { attachmentId: v.receipt.id } : {}),
@@ -156,13 +167,8 @@ export function OfficeExpenseSlideOver({
         </FieldGrid>
         <FieldGrid>
           <MoneyField name="amountPaisa" label={t("field.amount")} required />
-          <SelectField
-            name="paidVia"
-            label={t("cashSite.office.paidVia")}
-            required
-            options={options.methods}
-          />
         </FieldGrid>
+        <CompanyAccountField how={HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         <TextField
           name="description"
           label={t("cashSite.office.whatFor")}

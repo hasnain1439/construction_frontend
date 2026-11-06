@@ -44,6 +44,22 @@ export const createCompanySchema = z
     else if (v.paidOn < datePlusDays(-30)) ctx.addIssue({ code: "custom", path: ["paidOn"], message: "Within the last 30 days" });
   });
 
+export const paymentAccountSchema = z.object({
+  groupId: z.string().min(1, "Choose a group"),
+  name: requiredText("Name", 2, 60),
+  accountTitle: requiredText("Account title", 2, 100),
+  accountNumber: z
+    .string()
+    .trim()
+    .regex(/^[0-9A-Za-z][0-9A-Za-z +-]{3,39}$/, "4–40 letters or digits"),
+  iban: z
+    .string()
+    .transform((v) => v.replace(/\s+/g, "").toUpperCase())
+    .refine((v) => v === "" || /^[A-Z]{2}[0-9A-Z]{10,32}$/.test(v), "Enter a valid IBAN"),
+  note: z.string().trim().max(300),
+  isActive: z.boolean(),
+});
+
 export const planSchema = z.object({
   code: z
     .string()

@@ -37,7 +37,9 @@ export const advanceSchema = z
     payeeId: pick("labor.v.choosePayee"),
     amountPaisa: requiredAmount(),
     date: z.string().min(1, msg("validation.dateRequired")),
-    paidFrom: z.enum(["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA"]),
+    paidFrom: z.enum(["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"]),
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
     reference: z.string().trim().max(60),
     note: optionalNote,
   });
@@ -55,7 +57,9 @@ export type MeasurementValues = z.input<typeof measurementSchema>;
 export const subPaymentSchema = z.object({
   type: z.enum(["RUNNING", "FINAL", "RETENTION_RELEASE"]),
   amountPaisa: requiredAmount(),
-  paidFrom: z.enum(["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA"]),
+  paidFrom: z.enum(["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"]),
+  groupId: z.string().nullable(),
+  companyAccountId: z.string().nullable(),
   reference: z.string().trim().max(60),
   date: z.string().min(1),
   note: optionalNote,
@@ -105,7 +109,9 @@ export type KharchaValues = z.input<typeof kharchaSchema>;
 export const floatSchema = z.object({
   holderUserId: pick("labor.v.chooseCashReceiver"),
   amountPaisa: requiredAmount(),
-  method: z.enum(["CASH", "BANK", "JAZZCASH", "EASYPAISA"]),
+  method: z.enum(["CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"]),
+  groupId: z.string().nullable(),
+  companyAccountId: z.string().nullable(),
   reference: z.string().trim().max(60),
   projectId: z.string().nullable(),
   note: optionalNote,
@@ -115,7 +121,7 @@ export type FloatValues = z.input<typeof floatSchema>;
 export const topupSchema = z.object({ amountPaisa: requiredAmount(), note: optionalNote });
 export type TopupValues = z.input<typeof topupSchema>;
 
-export const approveTopupSchema = z.object({ amountPaisa: requiredAmount(), method: z.enum(["CASH", "BANK", "JAZZCASH", "EASYPAISA"]), reference: z.string().trim().max(60) });
+export const approveTopupSchema = z.object({ amountPaisa: requiredAmount(), groupId: z.string().nullable(), companyAccountId: z.string().nullable(), method: z.enum(["CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"]), reference: z.string().trim().max(60) });
 export type ApproveTopupValues = z.input<typeof approveTopupSchema>;
 
 export const countSchema = z.object({ countedPaisa: paisa.refine((v): v is string => v !== null, msg("labor.v.enterCounted")), note: optionalNote });

@@ -41,6 +41,16 @@ export interface SyncProblem {
   at: IsoDateTime;
 }
 
+export interface OfficeSyncStatus {
+  /** True only when the web app runs on the office PC itself. */
+  officeMode: boolean;
+  /** ok | copying | offline | waiting-approval | not-allowed | login-failed | account-locked | error; null before the first round. */
+  state: string | null;
+  lastSyncAt: string | null;
+  /** Office entries not sent to the cloud yet. */
+  pending: number;
+}
+
 export interface SyncProblems {
   /** True only when the web app runs on the office PC itself; in the cloud the list is empty. */
   officeMode: boolean;

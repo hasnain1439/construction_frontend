@@ -5377,6 +5377,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subscription/payment-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where to send the money
+         * @description THEKEDAR only. The open accounts the platform admin has added. An empty list means the slip form asks for the method instead. **Works while READ_ONLY.**
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data: components["schemas"]["PaymentAccount"][];
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAY_ON_WEBSITE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subscription/payments": {
         parameters: {
             query?: never;
@@ -5451,11 +5521,11 @@ export interface paths {
         put?: never;
         /**
          * Submit a payment slip for review
-         * @description 1. Pay by JazzCash / Easypaisa / Raast / bank transfer.
+         * @description 1. Pay into one of the accounts from `GET /subscription/payment-accounts` (JazzCash / Easypaisa / Raast / bank transfer).
          *     2. Upload the slip: `POST /attachments` with `kind: PAYMENT_SLIP` (allowed even when the company is read-only).
          *     3. Submit it here. A platform admin reviews it; approval extends the period (and applies a pending upgrade).
          *
-         *     Rules: amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
+         *     Rules: `paymentAccountId` is required while any account is listed; `method` is for when none is · amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
          */
         post: {
             parameters: {
@@ -5473,10 +5543,16 @@ export interface paths {
                          */
                         planId?: string;
                         /**
+                         * Format: uuid
+                         * @description The account from GET /subscription/payment-accounts the money was sent to. Required while any account is listed
+                         */
+                        paymentAccountId?: string;
+                        /**
+                         * @description Only when no payment account is listed
                          * @example EASYPAISA
                          * @enum {string}
                          */
-                        method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                        method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
                         /**
                          * @description Trimmed and upper-cased; must be unique
                          * @example EP2610030117
@@ -5514,7 +5590,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description VALIDATION_ERROR | AMOUNT_MISMATCH | INVALID_PLAN | PLAN_REQUIRED | PAID_ON_IN_FUTURE | PAID_ON_TOO_OLD */
+                /** @description VALIDATION_ERROR | AMOUNT_MISMATCH | INVALID_PLAN | PLAN_REQUIRED | PAID_ON_IN_FUTURE | PAID_ON_TOO_OLD | PAYMENT_ACCOUNT_REQUIRED | PAYMENT_ACCOUNT_NOT_AVAILABLE */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -5550,7 +5626,7 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description PAYMENT_PENDING | DUPLICATE_TRANSACTION */
+                /** @description PAYMENT_PENDING | DUPLICATE_TRANSACTION | PAY_ON_WEBSITE */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14853,6 +14929,327 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/brands/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Brands: download the import template
+         * @description `masterdata.material.create`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `name` (required), `groups`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Excel template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/brands/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Brands: preview an import
+         * @description `masterdata.material.create`. Parses the file and checks every row with the create endpoint’s own rules (Zod schema + name must be new — in the company and in the file). **Writes nothing.** Headers are matched by key or by any of the three labels; unknown columns are listed in `unknownColumns`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rows with their errors */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "workers",
+                         *         "fileName": "workers.xlsx",
+                         *         "columns": [
+                         *           {
+                         *             "key": "name",
+                         *             "label": "Name",
+                         *             "labelRoman": "Naam",
+                         *             "labelUrdu": "نام",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "type",
+                         *             "label": "Worker type",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "phone",
+                         *             "label": "Phone",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "dailyRate",
+                         *             "label": "Daily rate (Rs)",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "notes",
+                         *             "label": "Notes",
+                         *             "required": false
+                         *           }
+                         *         ],
+                         *         "unknownColumns": [],
+                         *         "skippedExampleRows": 1,
+                         *         "totalRows": 2,
+                         *         "validRows": 1,
+                         *         "invalidRows": 1,
+                         *         "rows": [
+                         *           {
+                         *             "rowNumber": 3,
+                         *             "values": {
+                         *               "name": "Riaz",
+                         *               "type": "MAZDOOR",
+                         *               "phone": "03001112233",
+                         *               "dailyRate": "",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [],
+                         *             "valid": true
+                         *           },
+                         *           {
+                         *             "rowNumber": 4,
+                         *             "values": {
+                         *               "name": "A",
+                         *               "type": "PLUMBER",
+                         *               "phone": "12345",
+                         *               "dailyRate": "abc",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [
+                         *               {
+                         *                 "column": "dailyRate",
+                         *                 "message": "Enter the amount in rupees, e.g. 1600"
+                         *               },
+                         *               {
+                         *                 "column": "name",
+                         *                 "message": "Name is too short"
+                         *               }
+                         *             ],
+                         *             "valid": false
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/brands/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Brands: import
+         * @description `masterdata.material.create`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.brands`. Master data has no plan limits.
+         */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description true = import only the valid rows (default: all-or-nothing) */
+                    skipInvalid?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Imported */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "brands",
+                         *         "fileName": "brands.xlsx",
+                         *         "created": 12,
+                         *         "skipped": 0,
+                         *         "ids": [
+                         *           "0199a8c0-0000-7000-8000-0000000000c1"
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD | IMPORT_HAS_ERRORS | NOTHING_TO_IMPORT | VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description IMPORT_CONFLICT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/clients/template": {
         parameters: {
             query?: never;
@@ -15115,6 +15512,327 @@ export interface paths {
                          *       "data": {
                          *         "entity": "clients",
                          *         "fileName": "clients.xlsx",
+                         *         "created": 12,
+                         *         "skipped": 0,
+                         *         "ids": [
+                         *           "0199a8c0-0000-7000-8000-0000000000c1"
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD | IMPORT_HAS_ERRORS | NOTHING_TO_IMPORT | VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description IMPORT_CONFLICT */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/company-accounts/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Accounts: download the import template
+         * @description `finance.account.manage`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `group` (required), `name` (required), `accountTitle`, `accountNumber`, `openingBalance`, `iban`, `branch`, `worksLike`, `notes`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Excel template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/company-accounts/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accounts: preview an import
+         * @description `finance.account.manage`. Parses the file and checks every row with the create endpoint’s own rules (Zod schema + name must be new — in the company and in the file). **Writes nothing.** Headers are matched by key or by any of the three labels; unknown columns are listed in `unknownColumns`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Rows with their errors */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "workers",
+                         *         "fileName": "workers.xlsx",
+                         *         "columns": [
+                         *           {
+                         *             "key": "name",
+                         *             "label": "Name",
+                         *             "labelRoman": "Naam",
+                         *             "labelUrdu": "نام",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "type",
+                         *             "label": "Worker type",
+                         *             "required": true
+                         *           },
+                         *           {
+                         *             "key": "phone",
+                         *             "label": "Phone",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "dailyRate",
+                         *             "label": "Daily rate (Rs)",
+                         *             "required": false
+                         *           },
+                         *           {
+                         *             "key": "notes",
+                         *             "label": "Notes",
+                         *             "required": false
+                         *           }
+                         *         ],
+                         *         "unknownColumns": [],
+                         *         "skippedExampleRows": 1,
+                         *         "totalRows": 2,
+                         *         "validRows": 1,
+                         *         "invalidRows": 1,
+                         *         "rows": [
+                         *           {
+                         *             "rowNumber": 3,
+                         *             "values": {
+                         *               "name": "Riaz",
+                         *               "type": "MAZDOOR",
+                         *               "phone": "03001112233",
+                         *               "dailyRate": "",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [],
+                         *             "valid": true
+                         *           },
+                         *           {
+                         *             "rowNumber": 4,
+                         *             "values": {
+                         *               "name": "A",
+                         *               "type": "PLUMBER",
+                         *               "phone": "12345",
+                         *               "dailyRate": "abc",
+                         *               "notes": ""
+                         *             },
+                         *             "errors": [
+                         *               {
+                         *                 "column": "dailyRate",
+                         *                 "message": "Enter the amount in rupees, e.g. 1600"
+                         *               },
+                         *               {
+                         *                 "column": "name",
+                         *                 "message": "Name is too short"
+                         *               }
+                         *             ],
+                         *             "valid": false
+                         *           }
+                         *         ]
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description FILE_REQUIRED | FILE_TOO_LARGE | INVALID_FILE | INVALID_FILE_TYPE | EMPTY_FILE | TOO_MANY_ROWS | MISSING_COLUMNS | INVALID_UPLOAD */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PERMISSION_DENIED | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/company-accounts/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accounts: import
+         * @description `finance.account.manage`. Send the SAME file again (stateless: nothing is kept between preview and commit, and the rows are checked again). **All-or-nothing** by default: any row with an error → 400 IMPORT_HAS_ERRORS (`details.rows`) and nothing is written; `?skipInvalid=true` imports only the valid rows. One transaction, one audit row `import.company-accounts`. Master data has no plan limits.
+         */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description true = import only the valid rows (default: all-or-nothing) */
+                    skipInvalid?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description The filled template: .xlsx (sheet "Data" or the first sheet) or UTF-8 .csv, ≤ 2 MB, ≤ 1000 rows
+                         */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Imported */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "entity": "company-accounts",
+                         *         "fileName": "company-accounts.xlsx",
                          *         "created": 12,
                          *         "skipped": 0,
                          *         "ids": [
@@ -32468,7 +33186,12 @@ export interface paths {
                          * @description Required for CASH / PARTIAL
                          * @enum {string}
                          */
-                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description Photo of the challan (upload with kind CHALLAN)
@@ -32864,7 +33587,12 @@ export interface paths {
                          */
                         paidNowPaisa?: string | number;
                         /** @enum {string} */
-                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                     };
                 };
             };
@@ -34561,7 +35289,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     supplierId?: string;
-                    method?: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                    method?: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "WALLET";
                     status?: "CLEARED" | "PENDING" | "BOUNCED";
                     from?: string;
                     to?: string;
@@ -34674,7 +35402,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         reference?: string;
                         chequeNo?: string;
                         /** @example 2026-12-25 */
@@ -36092,6 +36825,11 @@ export interface paths {
                          * @example 2500000
                          */
                         recoveredAmountPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description RECOVER_FROM_DRIVER: the company account the cash came into
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description ACCEPT_LOSS only (THEKEDAR): charge the loss to this sub-contract as a deduction
@@ -38815,6 +39553,11 @@ export interface paths {
                          * @example 2500000
                          */
                         depositPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description The company account the deposit was paid from
+                         */
+                        companyAccountId?: string;
                         /** @example PSY-2231 */
                         reference?: string;
                         note?: string;
@@ -39487,6 +40230,11 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description The company account the refund came into
+                         */
+                        companyAccountId?: string;
                         /**
                          * @description Cash the yard paid back; the rest of the deposit is adjusted against the charges
                          * @example 2500000
@@ -43690,7 +44438,12 @@ export interface paths {
                         /** @example 2026-12-25 */
                         date: string;
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description SITE_CASH: whose cash. Defaults to the caller's own.
@@ -45059,7 +45812,12 @@ export interface paths {
                     "application/json": {
                         lineIds: string[];
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** Format: uuid */
                         cashAccountId?: string;
                         reference?: string;
@@ -45615,7 +46373,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** Format: uuid */
                         cashAccountId?: string;
                         reference?: string;
@@ -46209,7 +46972,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** @example EP88213 */
                         reference?: string;
                         /** Format: uuid */
@@ -47244,7 +48012,12 @@ export interface paths {
                          */
                         amountPaisa?: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         reference?: string;
                     };
                 };
@@ -48323,7 +49096,7 @@ export interface paths {
                     from?: string;
                     to?: string;
                     categoryId?: string;
-                    paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                    paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
                     /** @description Description or paid to */
                     search?: string;
                 };
@@ -48352,6 +49125,7 @@ export interface paths {
                          *           },
                          *           "amountPaisa": "8500000",
                          *           "paidVia": "BANK",
+                         *           "companyAccountId": null,
                          *           "paidTo": "Ch. Aslam",
                          *           "description": "Office rent, November",
                          *           "attachmentId": null,
@@ -48438,7 +49212,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        paidVia: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidVia: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** @example Landlord — Ch. Aslam */
                         paidTo?: string;
                         /** @example Office rent, November */
@@ -48470,6 +49249,7 @@ export interface paths {
                          *         },
                          *         "amountPaisa": "8500000",
                          *         "paidVia": "BANK",
+                         *         "companyAccountId": null,
                          *         "paidTo": "Ch. Aslam",
                          *         "description": "Office rent, November",
                          *         "attachmentId": null,
@@ -48630,7 +49410,9 @@ export interface paths {
                          */
                         amountPaisa?: string | number;
                         /** @enum {string} */
-                        paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /** Format: uuid */
+                        companyAccountId?: string | null;
                         paidTo?: string | null;
                         description?: string;
                         /** Format: uuid */
@@ -48657,6 +49439,7 @@ export interface paths {
                          *         },
                          *         "amountPaisa": "9000000",
                          *         "paidVia": "BANK",
+                         *         "companyAccountId": null,
                          *         "paidTo": "Ch. Aslam",
                          *         "description": "Office rent, November",
                          *         "attachmentId": null,
@@ -48709,6 +49492,862 @@ export interface paths {
                 };
                 /** @description OFFICE_EXPENSE_NOT_FOUND */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/company-accounts/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Payment groups
+         * @description The company’s own list, A–Z. Every company starts with Bank, Cash and Online wallet. `type` says how a group behaves; `balancePaisa` adds up its accounts. Also open to whoever moves company money (no balance for them).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Groups */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *           "name": "Bank",
+                         *           "type": "BANK",
+                         *           "accountCount": 2,
+                         *           "balancePaisa": "6000000"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a payment group
+         * @description One group per name (ignoring case). `type` cannot change later.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example Bank */
+                        name: string;
+                        /**
+                         * @description How it behaves. BANK and WALLET accounts need a title and number; a payment records BANK_TRANSFER or CHEQUE, WALLET, or CASH. It cannot change later.
+                         * @enum {string}
+                         */
+                        type: "CASH" | "WALLET" | "BANK";
+                    };
+                };
+            };
+            responses: {
+                /** @description Group */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *         "name": "Bank",
+                         *         "type": "BANK",
+                         *         "accountCount": 0,
+                         *         "balancePaisa": "6000000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-accounts/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a payment group
+         * @description Only an empty group, and not the last one.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccountGroup id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_GROUP_IN_USE | COMPANY_ACCOUNT_GROUP_LAST */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename a payment group
+         * @description Its accounts stay in it.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccountGroup id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Group */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *         "name": "Banks",
+                         *         "type": "BANK",
+                         *         "accountCount": 2,
+                         *         "balancePaisa": "6000000"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/company-accounts/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Account statement
+         * @description Every movement, newest first: + money in, − money out, and the balance after it.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Movements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca201",
+                         *           "type": "CLIENT_PAYMENT",
+                         *           "amountPaisa": "5000000",
+                         *           "description": "Payment RV-2026-0014",
+                         *           "refId": null,
+                         *           "projectId": null,
+                         *           "occurredAt": "2026-11-06T09:00:00.000Z",
+                         *           "balancePaisa": "6000000"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Company accounts
+         * @description Where the company keeps money, by group, then A–Z, with each balance. Also open to whoever moves company money, for the account picker: they see names and last digits, no balance.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    groupId?: string;
+                    /** @description true: only the ones on the payment form */
+                    active?: "true" | "false";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *           "group": {
+                         *             "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *             "name": "Bank",
+                         *             "type": "BANK"
+                         *           },
+                         *           "name": "HBL",
+                         *           "accountTitle": "Malik & Sons Builders",
+                         *           "accountNumber": "01234567890123",
+                         *           "iban": null,
+                         *           "branch": null,
+                         *           "note": null,
+                         *           "isActive": true,
+                         *           "balancePaisa": "6000000",
+                         *           "openingBalancePaisa": "1000000",
+                         *           "paymentCount": 3,
+                         *           "createdAt": "2026-11-06T09:00:00.000Z",
+                         *           "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an account
+         * @description In a BANK or WALLET group it needs `accountTitle` and `accountNumber`. One account per group + name + number (ignoring case).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description One of the company’s payment groups. It cannot change later.
+                         */
+                        groupId: string;
+                        /** @example HBL */
+                        name: string;
+                        /** @description Name on the account. Required in a BANK or WALLET group. */
+                        accountTitle?: string;
+                        /** @description Account or mobile number. Required in a BANK or WALLET group. */
+                        accountNumber?: string;
+                        /**
+                         * @description What is in the account today; the balance starts from it
+                         * @example 2500000
+                         */
+                        openingBalancePaisa?: string | number;
+                        iban?: string;
+                        branch?: string;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *         "group": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *           "name": "Bank",
+                         *           "type": "BANK"
+                         *         },
+                         *         "name": "HBL",
+                         *         "accountTitle": "Malik & Sons Builders",
+                         *         "accountNumber": "01234567890123",
+                         *         "iban": null,
+                         *         "branch": null,
+                         *         "note": null,
+                         *         "isActive": true,
+                         *         "balancePaisa": "6000000",
+                         *         "openingBalancePaisa": "1000000",
+                         *         "paymentCount": 3,
+                         *         "createdAt": "2026-11-06T09:00:00.000Z",
+                         *         "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | INVALID_COMPANY_ACCOUNT_GROUP | COMPANY_ACCOUNT_DETAILS_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/company-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an account
+         * @description Only an account no payment came into; otherwise switch it off.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "deleted": true
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_IN_USE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change an account
+         * @description Only the fields sent change; null clears an optional one. `isActive: false` takes it off the payment form and its payments stay. The group cannot change.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        accountTitle?: string | null;
+                        accountNumber?: string | null;
+                        iban?: string | null;
+                        branch?: string | null;
+                        note?: string | null;
+                        /** @description false takes it off the payment form; its payments stay */
+                        isActive?: boolean;
+                        /**
+                         * @description Corrects the opening balance; the balance moves by the difference
+                         * @example 2500000
+                         */
+                        openingBalancePaisa?: string | number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "id": "0199a8c0-0000-7000-8000-0000000ca001",
+                         *         "group": {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca101",
+                         *           "name": "Bank",
+                         *           "type": "BANK"
+                         *         },
+                         *         "name": "HBL",
+                         *         "accountTitle": "Malik & Sons Builders",
+                         *         "accountNumber": "01234567890123",
+                         *         "iban": null,
+                         *         "branch": null,
+                         *         "note": null,
+                         *         "isActive": false,
+                         *         "balancePaisa": "6000000",
+                         *         "openingBalancePaisa": "1000000",
+                         *         "paymentCount": 3,
+                         *         "createdAt": "2026-11-06T09:00:00.000Z",
+                         *         "updatedAt": "2026-11-06T09:00:00.000Z"
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | COMPANY_ACCOUNT_DETAILS_REQUIRED */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED | ACCOUNT_READ_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_EXISTS */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -50800,7 +52439,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     status?: "CLEARED" | "PENDING" | "BOUNCED";
-                    method?: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST";
+                    method?: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST" | "WALLET";
                 };
                 header?: never;
                 path: {
@@ -50942,7 +52581,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST";
+                        method: "CASH" | "BANK_TRANSFER" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "RAAST" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account it came into; must be switched on and in a group that takes `method` (group type CASH → CASH, WALLET → WALLET, BANK → BANK_TRANSFER / CHEQUE)
+                         */
+                        companyAccountId?: string;
                         bankName?: string;
                         reference?: string;
                         chequeNo?: string;
@@ -52740,7 +54384,12 @@ export interface paths {
                              * @description Top-up approve: how the cash is sent
                              * @enum {string}
                              */
-                            method?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                            method?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                            /**
+                             * Format: uuid
+                             * @description Top-up approve: the company account it is sent from
+                             */
+                            companyAccountId?: string;
                         }[];
                     };
                 };
@@ -67159,6 +68808,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/edge/sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * This office PC’s sync status
+         * @description For the footer badge; every signed-in user. Only an office PC server (OFFICE_MODE) has one: `state` is ok, copying, offline, waiting-approval, not-allowed, login-failed, account-locked or error (null before the agent’s first round). `lastSyncAt` is the last round that reached the cloud; `pending` the office entries not sent yet. In the cloud: officeMode false.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "officeMode": true,
+                         *         "state": "ok",
+                         *         "lastSyncAt": "2026-11-06T12:00:00.000Z",
+                         *         "pending": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/edge/problems": {
         parameters: {
             query?: never;
@@ -68375,6 +70087,10 @@ export interface paths {
                     limit?: number;
                     status?: "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REFUNDED";
                     method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                    /** @description Payments into this platform payment group */
+                    groupId?: string;
+                    /** @description Payments into this platform payment account */
+                    accountId?: string;
                     tenantId?: string;
                     /** @description Submitted on or after (date) */
                     from?: string;
@@ -68740,6 +70456,540 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payment-accounts/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment groups with how many accounts each has */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Groups */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Add a payment group */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example Online wallet */
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payment-accounts/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an empty payment group
+         * @description A group with accounts, closed ones included, and the last group cannot be deleted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Payment group id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_GROUP_NOT_EMPTY | LAST_PAYMENT_GROUP */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Rename a payment group */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Payment group id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example Online wallet */
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Renamed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_GROUP_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_GROUP_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/admin/payment-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts companies pay into (open first, then closed) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accounts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an account companies can pay into
+         * @description Open accounts appear on the company's upload-slip form at once. An account number can be added once.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        groupId: string;
+                        /** @example HBL */
+                        name: string;
+                        accountTitle: string;
+                        accountNumber: string;
+                        /** @default null */
+                        iban?: string | null;
+                        /**
+                         * @description Shown to the company next to the account
+                         * @default null
+                         */
+                        note?: string | null;
+                        /** @default true */
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | PAYMENT_GROUP_NOT_FOUND */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payment-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change or close an account
+         * @description A closed account (`isActive: false`) is no longer offered. Payments already made keep the name and number they were sent to, also after an edit.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Payment account id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        groupId?: string;
+                        /** @example HBL */
+                        name?: string;
+                        accountTitle?: string;
+                        accountNumber?: string;
+                        iban?: string | null;
+                        /** @description Shown to the company next to the account */
+                        note?: string | null;
+                        /** @description false closes it: no longer offered; payments already made keep its details */
+                        isActive?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description VALIDATION_ERROR | PAYMENT_GROUP_NOT_FOUND */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description PAYMENT_ACCOUNT_EXISTS */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/api/v1/admin/plans": {
@@ -70612,6 +72862,22 @@ export interface components {
             features: string[];
             current: boolean;
         };
+        PaymentAccount: {
+            /** Format: uuid */
+            id: string;
+            group: {
+                /** Format: uuid */
+                id: string;
+                /** @example Bank */
+                name: string;
+            };
+            /** @example HBL */
+            name: string;
+            accountTitle: string;
+            accountNumber: string;
+            iban: string | null;
+            note: string | null;
+        };
         SubscriptionPayment: {
             /** Format: uuid */
             id: string;
@@ -70624,10 +72890,16 @@ export interface components {
             /** @example 950000 */
             amountPaisa: string;
             /**
+             * @description null when paid into an account: see paidTo
              * @example EASYPAISA
-             * @enum {string}
+             * @enum {string|null}
              */
-            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT" | null;
+            paidTo: {
+                group: string | null;
+                name: string;
+                accountNumber: string | null;
+            } | null;
             transactionId: string;
             /** @example 2026-10-03 */
             paidOn: string;

@@ -8,6 +8,7 @@ import {
   useGetAdminPaymentsQuery,
   useRejectPaymentMutation,
 } from "@/api/services/admin/payments.api";
+import { useGetAdminPaymentAccountsQuery, useGetAdminPaymentGroupsQuery } from "@/api/services/admin/paymentAccounts.api";
 import type { AdminPaymentDetail, AdminPaymentRow, AdminPaymentsQuery } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -30,7 +31,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { cn } from "@/lib/cn";
 import { formatDate, formatDateTime, formatRelative } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
-import { PAYMENT_METHOD_LABEL, PAYMENT_METHOD_OPTIONS } from "@/lib/options";
+import { paidToText } from "../paidTo";
 
 function SlipPreview({ slip }: { slip: AdminPaymentDetail["slip"] }) {
   const [zoom, setZoom] = useState(false);
@@ -98,7 +99,7 @@ function ReviewBody({ payment, onDone }: { payment: AdminPaymentDetail; onDone: 
               </span>
             ),
           },
-          { label: "Method", value: PAYMENT_METHOD_LABEL[payment.method] ?? payment.method },
+          { label: "Paid to", value: paidToText(payment) },
           { label: "Transaction ID", value: <span className="font-mono">{payment.transactionId}</span> },
           { label: "Paid on", value: formatDate(payment.paidOn) },
           { label: "Submitted", value: formatDateTime(payment.submittedAt) },
@@ -187,7 +188,9 @@ function PaymentReviewSlideOver({ paymentId, onClose }: { paymentId: string | nu
 }
 
 export function PaymentsView() {
-  const list = useListState({ status: "PENDING_REVIEW", method: "" });
+  const list = useListState({ status: "PENDING_REVIEW", groupId: "", accountId: "" });
+  const groups = useGetAdminPaymentGroupsQuery();
+  const accounts = useGetAdminPaymentAccountsQuery();
   const { data, isLoading, isFetching, error, refetch } = useGetAdminPaymentsQuery(list.query as AdminPaymentsQuery);
   const [reviewing, setReviewing] = useState<string | null>(null);
 
@@ -214,7 +217,7 @@ export function PaymentsView() {
         </span>
       ),
     },
-    { id: "method", header: "Method", cell: (p) => PAYMENT_METHOD_LABEL[p.method] ?? p.method },
+    { id: "paidTo", header: "Paid to", cell: (p) => paidToText(p) },
     { id: "txn", header: "Transaction ID", cell: (p) => <span className="font-mono text-xs">{p.transactionId}</span> },
     { id: "submitted", header: "Submitted", cell: (p) => <span title={formatDateTime(p.submittedAt)}>{formatRelative(p.submittedAt)}</span>, sortValue: (p) => p.submittedAt },
     { id: "status", header: "Status", cell: (p) => <StatusBadge domain="payment" value={p.status} /> },
@@ -235,7 +238,21 @@ export function PaymentsView() {
             { value: "REFUNDED", label: "Refunded" },
           ]}
         />
-        <FilterSelect label="Method" value={list.filters.method} onChange={(v) => list.setFilter("method", v)} options={[...PAYMENT_METHOD_OPTIONS]} />
+        <FilterSelect
+          label="Group"
+          value={list.filters.groupId}
+          onChange={(v) => {
+            list.setFilter("groupId", v);
+            list.setFilter("accountId", "");
+          }}
+          options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))}
+        />
+        <FilterSelect
+          label="Account"
+          value={list.filters.accountId}
+          onChange={(v) => list.setFilter("accountId", v)}
+          options={(accounts.data ?? []).filter((a) => !list.filters.groupId || a.group.id === list.filters.groupId).map((a) => ({ value: a.id, label: a.name }))}
+        />
       </FilterBar>
       <SectionCard flush>
         <DataTable

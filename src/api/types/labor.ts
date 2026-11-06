@@ -10,7 +10,7 @@ import type { ProjectRef } from "./inventory";
 
 export type AttendanceStatus = "FULL" | "HALF" | "ABSENT";
 export type RateType = "PER_SQFT" | "PER_TON" | "PER_BRICK" | "PER_RFT" | "PER_CFT" | "LUMPSUM";
-export type LaborPaidFrom = "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+export type LaborPaidFrom = "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
 export type SettlementStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "RETURNED";
 export type MeasurementStatus = "RECORDED" | "VERIFIED" | "REJECTED";
 export type AdvanceStatus = "OUTSTANDING" | "PARTLY_ADJUSTED" | "ADJUSTED";
@@ -291,7 +291,7 @@ export type ExpenseCategory =
   | "OWNER_PURCHASE"
   | "REPAIRS"
   | "OTHER";
-export type FloatMethod = "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+export type FloatMethod = "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
 
 export interface CashAccount {
   id: Id;

@@ -22,6 +22,7 @@ export const COMPANY_TAGS = [
   "Subscription",
   "SubscriptionPlans",
   "SubscriptionPayments",
+  "SubscriptionPaymentAccounts",
   "MaterialGroups",
   "Materials",
   "QualityCategories",
@@ -124,6 +125,9 @@ export const COMPANY_TAGS = [
   // Office expenses
   "OfficeExpenses",
   "OfficeExpenseCategories",
+  // Company accounts
+  "CompanyAccounts",
+  "CompanyAccountGroups",
 ] as const;
 
 export const ADMIN_TAGS = [
@@ -133,6 +137,8 @@ export const ADMIN_TAGS = [
   "Tenants",
   "AdminPayments",
   "AdminPlans",
+  "AdminPaymentAccounts",
+  "AdminPaymentGroups",
   "AdminHolidays",
   "AuditLogs",
   "ActAsSessions",

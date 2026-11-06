@@ -95,6 +95,8 @@ export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
       paymentMode: "UDHAAR",
       paidNowPaisa: null,
       paidFrom: null,
+      groupId: null,
+      companyAccountId: null,
     },
   });
   const onSubmit = async (v: z.output<typeof ratesSchema>) => {
@@ -106,7 +108,7 @@ export function RatesSlideOver({ purchase, open, onOpenChange }: Props) {
             items: v.items.map((i) => ({ materialId: i.materialId, ratePaisa: i.ratePaisa })),
             paymentMode: v.paymentMode as PaymentMode,
             ...(v.paymentMode === "PARTIAL" && v.paidNowPaisa ? { paidNowPaisa: v.paidNowPaisa } : {}),
-            ...(v.paymentMode !== "UDHAAR" && v.paidFrom ? { paidFrom: v.paidFrom as PaidFrom } : {}),
+            ...(v.paymentMode !== "UDHAAR" && v.paidFrom ? { paidFrom: v.paidFrom as PaidFrom, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}),
           },
         }).unwrap(),
       { success: t("procurement.actions.priced", { number: purchase.number }), setError: form.setError, codeFields: { INVALID_PAID_AMOUNT: "paidNowPaisa" } },

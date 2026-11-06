@@ -660,7 +660,7 @@ export function PaymentsView({ projectId }: { projectId: string }) {
   const columns: Column<ClientPayment>[] = [
     { id: "number", header: t("billing.invoices.colReceipt"), cell: (p) => <span className="font-medium tabular">{p.number}</span> },
     { id: "date", header: t("field.received"), sortValue: (p) => p.receivedOn, cell: (p) => formatDate(p.receivedOn) },
-    { id: "method", header: t("field.method"), cell: (p) => <PaymentMethodIcon method={p.method} bankName={[p.bankName, p.chequeNo ? `#${p.chequeNo}` : null].filter(Boolean).join(" ") || null} /> },
+    { id: "method", header: t("field.method"), cell: (p) => <PaymentMethodIcon method={p.method} bankName={[p.companyAccount?.name, p.bankName, p.chequeNo ? `#${p.chequeNo}` : null].filter(Boolean).join(" · ") || null} /> },
     { id: "amount", header: t("field.amount"), align: "right", cell: (p) => <MoneyText paisa={p.amountPaisa} className="font-semibold" /> },
     ...(anyWht
       ? [

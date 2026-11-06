@@ -19,6 +19,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"rentals"}], load: () => import("@/app/(company)/equipment/rentals/page") },
   { segments: [{"kind":"static","name":"equipment"},{"kind":"static","name":"shuttering"}], load: () => import("@/app/(company)/equipment/shuttering/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"catchAll","name":"rest"}], load: () => import("@/app/(company)/finance/[...rest]/page") },
+  { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"accounts"}], load: () => import("@/app/(company)/finance/accounts/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-floats"}], load: () => import("@/app/(company)/finance/cash-floats/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"cash-flow"}], load: () => import("@/app/(company)/finance/cash-flow/page") },
   { segments: [{"kind":"static","name":"finance"},{"kind":"static","name":"office-expenses"}], load: () => import("@/app/(company)/finance/office-expenses/page") },

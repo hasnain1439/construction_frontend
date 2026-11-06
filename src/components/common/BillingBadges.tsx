@@ -32,6 +32,7 @@ export const PAYMENT_METHODS: Array<{ value: ClientPaymentMethod; label: string;
   { value: "RAAST", label: METHOD_EN.RAAST, icon: Zap },
   { value: "JAZZCASH", label: METHOD_EN.JAZZCASH, icon: Smartphone },
   { value: "EASYPAISA", label: METHOD_EN.EASYPAISA, icon: Smartphone },
+  { value: "WALLET", label: METHOD_EN.WALLET, icon: Smartphone },
 ];
 export const paymentMethodLabel = (m: string) => PAYMENT_METHODS.find((x) => x.value === m)?.label ?? m;
 

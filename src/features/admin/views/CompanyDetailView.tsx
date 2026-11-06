@@ -47,7 +47,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
-import { LANGUAGE_LABEL, PAYMENT_METHOD_LABEL, REGION_LABEL } from "@/lib/options";
+import { LANGUAGE_LABEL, REGION_LABEL } from "@/lib/options";
+import { paidToText } from "../paidTo";
 import { formatPhone } from "@/lib/phone";
 
 type Action = TenantStatusBody["action"];
@@ -561,7 +562,7 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                     align: "right",
                     cell: (p) => <MoneyText paisa={p.amountPaisa} />,
                   },
-                  { id: "method", header: "Method", cell: (p) => PAYMENT_METHOD_LABEL[p.method] ?? p.method },
+                  { id: "paidTo", header: "Paid to", cell: (p) => paidToText(p) },
                   {
                     id: "txn",
                     header: "Transaction",

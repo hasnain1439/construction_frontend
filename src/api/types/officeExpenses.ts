@@ -24,6 +24,7 @@ export interface OfficeExpense {
   category: NamedRef;
   amountPaisa: Paisa;
   paidVia: FloatMethod;
+  companyAccountId: Id | null;
   paidTo: string | null;
   description: string;
   attachmentId: Id | null;
@@ -54,6 +55,7 @@ export interface OfficeExpenseBody {
   categoryId: Id;
   amountPaisa: Paisa;
   paidVia: FloatMethod;
+  companyAccountId?: Id;
   paidTo?: string;
   description: string;
   attachmentId?: Id;
@@ -65,6 +67,7 @@ export interface OfficeExpensePatch {
   categoryId?: Id;
   amountPaisa?: Paisa;
   paidVia?: FloatMethod;
+  companyAccountId?: Id | null;
   paidTo?: string | null;
   description?: string;
   attachmentId?: Id | null;

@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { CompanyAccountField, useCompanyAccountCheck } from "@/features/finance/components/CompanyAccountField";
 import type { z } from "zod";
 import {
   useCloseRentalMutation,
@@ -69,6 +70,8 @@ export function NewRentalSlideOver({
       startDate: todayPK(),
       expectedEndDate: prefill?.expectedEndDate ?? "",
       depositPaisa: null,
+      groupId: null,
+      companyAccountId: null,
       reference: "",
       note: prefill?.note ?? "",
       items: [{ equipmentId: prefill?.equipmentId ?? null, qty: prefill?.qty ? String(prefill.qty) : null, ratePaisaPerDay: null }],
@@ -76,7 +79,10 @@ export function NewRentalSlideOver({
   });
   const deliverTo = useWatch({ control: form.control, name: "deliverTo" });
 
+  const checkDeposit = useCompanyAccountCheck(form);
+  const deposit = useWatch({ control: form.control, name: "depositPaisa" });
   const onSubmit = async (v: z.output<typeof rentalSchema>) => {
+    if (v.depositPaisa && !checkDeposit(v)) return;
     const where =
       v.deliverTo === "SITE" && v.projectId
         ? { projectId: v.projectId }
@@ -90,7 +96,7 @@ export function NewRentalSlideOver({
           ...where,
           startDate: v.startDate,
           ...(v.expectedEndDate ? { expectedEndDate: v.expectedEndDate } : {}),
-          ...(v.depositPaisa ? { depositPaisa: v.depositPaisa } : {}),
+          ...(v.depositPaisa ? { depositPaisa: v.depositPaisa, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}),
           ...(v.reference ? { reference: v.reference } : {}),
           ...(v.note ? { note: v.note } : {}),
           items: v.items.map((i) => ({
@@ -170,6 +176,7 @@ export function NewRentalSlideOver({
             hint={t("equipment.rental.depositHint")}
           />
         </FieldGrid>
+        {deposit ? <CompanyAccountField label={t("cashSite.accounts.paidFromGroup")} /> : null}
         <TextField
           name="reference"
           label={t("field.reference")}
@@ -397,16 +404,19 @@ export function CloseRentalSlideOver({
   const run = useMutationToast();
   const form = useForm<CloseValues, unknown, z.output<typeof closeSchema>>({
     resolver: zodResolver(closeSchema),
-    values: { depositRefundPaisa: null, note: "" },
+    values: { depositRefundPaisa: null, groupId: null, companyAccountId: null, note: "" },
   });
+  const checkRefund = useCompanyAccountCheck(form);
+  const refund = useWatch({ control: form.control, name: "depositRefundPaisa" });
   if (!rental) return null;
   const onSubmit = async (v: z.output<typeof closeSchema>) => {
+    if (v.depositRefundPaisa && !checkRefund(v)) return;
     const result = await run(
       () =>
         close({
           id: rental.id,
           body: {
-            ...(v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa } : {}),
+            ...(v.depositRefundPaisa ? { depositRefundPaisa: v.depositRefundPaisa, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}),
             ...(v.note ? { note: v.note } : {}),
           },
         }).unwrap(),
@@ -447,6 +457,7 @@ export function CloseRentalSlideOver({
           label={t("equipment.field.depositRefund")}
           hint={t("equipment.rental.refundHint")}
         />
+        {refund ? <CompanyAccountField label={t("cashSite.accounts.receivedInGroup")} /> : null}
         <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>

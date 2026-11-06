@@ -281,7 +281,7 @@ export const strings: Widen<typeof En.strings> = {
 };
 
 export const enums: Widen<typeof En.enums> = {
-  laborPaidFrom: { SITE_CASH: "Site cash", OFFICE_CASH: "Office cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  laborPaidFrom: { SITE_CASH: "Site cash", OFFICE_CASH: "Office cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
   laborRateType: {
     PER_SQFT: "Fi sq ft",
     PER_TON: "Fi ton",
@@ -291,7 +291,7 @@ export const enums: Widen<typeof En.enums> = {
     LUMPSUM: "Yakmusht (theka)",
   },
   laborRateUnit: { sqft: "sq ft", ton: "ton", brick: "eent", rft: "running ft", cft: "cu ft" },
-  laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
   laborCashEntry: {
     FLOAT_IN: "Float mila",
     EXPENSE: "Kharcha",

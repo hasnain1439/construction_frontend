@@ -6,6 +6,17 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Office PC sync badge (6 Nov 2026)
+
+- **Fixed:** the footer's "All synced" was fixed text. On an office PC it now follows the sync agent: all synced, offline, entries waiting, syncing or a sync problem.
+- **Added:** the time of the last sync next to it on an office PC.
+
+### Platform payment accounts (6 Nov 2026)
+
+- **Added:** platform admin → Payment Accounts: add, edit, close and reopen the bank and wallet accounts companies pay their subscription into. They sit in groups the admin makes (Manage groups), with a tab per group.
+- **Changed:** Upload payment slip shows those accounts with title, number and IBAN (copy buttons). The company picks a group, then the account it sent the money to. Accounts have no fixed method, so any bank or wallet can be added. With no accounts added, the form asks for the method as before.
+- **Added:** "Paid to" (group, account, number) on the admin's payments list and review, the company page and the company's payment history. The admin's Payments screen filters by group and account instead of method.
+
 ### Estimate QA re-check integration (QE5 + QE6, 22 Oct 2026)
 
 - **Merged:** `p23/qe5` and `p23/qe6`; both sides kept (the only conflict was this file).

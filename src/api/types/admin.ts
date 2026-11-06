@@ -69,7 +69,8 @@ export interface AdminPaymentSummary {
   id: Id;
   plan: { code: string; name: string };
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   status: PaymentStatus;
@@ -172,13 +173,39 @@ export interface TenantPlanResult {
 
 // ─── Payments ───────────────────────────────────────────────────────────────
 
+/** The platform account a company paid into, as it was at that moment. */
+export type PaidTo = { group: string | null; name: string; accountNumber: string | null } | null;
+
+export interface AdminPaymentGroup {
+  id: Id;
+  name: string;
+  accountCount: number;
+}
+
+export interface AdminPaymentAccount {
+  id: Id;
+  group: { id: Id; name: string };
+  name: string;
+  accountTitle: string;
+  accountNumber: string;
+  iban: string | null;
+  note: string | null;
+  isActive: boolean;
+  createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
+}
+
+export type CreatePaymentAccountBody = RequestBody<"/api/v1/admin/payment-accounts", "post">;
+export type UpdatePaymentAccountBody = RequestBody<"/api/v1/admin/payment-accounts/{id}", "patch">;
+
 export interface AdminPaymentRow {
   id: Id;
   tenant: NamedRef;
   plan: { code: string; name: string };
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   submittedAt: IsoDateTime;
@@ -194,7 +221,8 @@ export interface AdminPaymentDetail {
   plan: { id: Id; code: string; name: string };
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   status: PaymentStatus;
