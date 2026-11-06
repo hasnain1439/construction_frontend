@@ -109,6 +109,7 @@ const MESSAGES: Record<string, Message> = {
   ATTACHMENT_NOT_FOUND: { en: "The uploaded file was not found. Upload it again.", ur: "Upload ki hui file nahi mili. Dobara upload karein." },
 
   // Subscription
+  PAY_ON_WEBSITE: { en: "Send subscription payments from the website, not from the office PC.", ur: "Subscription ki payment website se bhejein, office PC se nahi." },
   PAYMENT_ACCOUNT_REQUIRED: { en: "Choose the account you sent the money to.", ur: "Woh account chunein jis mein paisa bheja." },
   PAYMENT_ACCOUNT_NOT_AVAILABLE: { en: "This account is no longer available. Choose another one.", ur: "Yeh account ab dastyab nahi. Koi aur chunein." },
   AMOUNT_MISMATCH: { en: "The amount must equal the plan price.", ur: "Raqam plan ki qeemat ke barabar honi chahiye." },

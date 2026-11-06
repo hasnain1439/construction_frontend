@@ -69,7 +69,8 @@ export interface AdminPaymentSummary {
   id: Id;
   plan: { code: string; name: string };
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
+  paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
   status: PaymentStatus;
@@ -173,7 +174,7 @@ export interface TenantPlanResult {
 // ─── Payments ───────────────────────────────────────────────────────────────
 
 /** The platform account a company paid into, as it was at that moment. */
-export type PaidTo = { name: string; accountNumber: string | null } | null;
+export type PaidTo = { group: string | null; name: string; accountNumber: string | null } | null;
 
 export interface AdminPaymentGroup {
   id: Id;
@@ -185,7 +186,6 @@ export interface AdminPaymentAccount {
   id: Id;
   group: { id: Id; name: string };
   name: string;
-  method: PaymentMethod;
   accountTitle: string;
   accountNumber: string;
   iban: string | null;
@@ -204,7 +204,7 @@ export interface AdminPaymentRow {
   plan: { code: string; name: string };
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
   paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;
@@ -221,7 +221,7 @@ export interface AdminPaymentDetail {
   plan: { id: Id; code: string; name: string };
   expectedAmountPaisa: Paisa;
   amountPaisa: Paisa;
-  method: PaymentMethod;
+  method: PaymentMethod | null;
   paidTo: PaidTo;
   transactionId: string;
   paidOn: IsoDate;

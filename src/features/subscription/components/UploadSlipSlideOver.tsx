@@ -105,7 +105,6 @@ const onlyAccountIn = (accounts: PaymentAccount[], groupId: string | null) => {
 /** Which of the platform's accounts the money goes to: group, then account, with the details to send it. */
 function PaidToField({ accounts }: { accounts: PaymentAccount[] }) {
   const t = useT();
-  const te = useEnumT();
   const { setValue } = useFormContext<Values>();
   const groupId = useWatch({ name: "paymentGroupId" }) as string | null;
   const id = useWatch({ name: "paymentAccountId" }) as string | null;
@@ -129,7 +128,7 @@ function PaidToField({ accounts }: { accounts: PaymentAccount[] }) {
         required
         disabled={!groupId}
         placeholder={t("teamCompany.slip.choosePaidTo")}
-        options={accounts.filter((a) => a.group.id === groupId).map((a) => ({ value: a.id, label: `${a.name} · ${te("walletMethod", a.method)}` }))}
+        options={accounts.filter((a) => a.group.id === groupId).map((a) => ({ value: a.id, label: `${a.name} · ${a.accountNumber}` }))}
       />
       {account ? (
         <div className="space-y-2 rounded-xl border p-3" data-testid="payment-account-details">
@@ -161,7 +160,8 @@ export function UploadSlipSlideOver({
   const t = useT();
   const te = useEnumT();
   const [submit, { isLoading }] = useSubmitPaymentMutation();
-  const { data: accounts, isLoading: loadingAccounts, error: accountsError, refetch } = useGetPaymentAccountsQuery(undefined, { skip: !open });
+  // Fresh on every open: the admin may have just added or closed one.
+  const { data: accounts, isFetching: loadingAccounts, error: accountsError, refetch } = useGetPaymentAccountsQuery(undefined, { skip: !open, refetchOnMountOrArgChange: true });
   const hasAccounts = Boolean(accounts?.length);
   const onlyGroup = accounts && groupsOf(accounts).length === 1 ? accounts[0]!.group.id : null;
   const run = useMutationToast();
@@ -170,9 +170,8 @@ export function UploadSlipSlideOver({
     resolver: zodResolver(paymentSlipSchema),
     values: {
       planId: defaultPlanId,
-      // One group or one account leaves nothing to choose.
-      paymentGroupId: onlyGroup,
-      paymentAccountId: accounts ? onlyAccountIn(accounts, onlyGroup) : null,
+      paymentGroupId: null,
+      paymentAccountId: null,
       method: "EASYPAISA",
       transactionId: "",
       amountPaisa: priceOf(defaultPlanId),
@@ -182,7 +181,16 @@ export function UploadSlipSlideOver({
     resetOptions: { keepDirtyValues: true },
   });
 
+  // One group or one account leaves nothing to choose. Set here, not in `values`: new values would reset
+  // whatever isn't dirty, such as the amount of a plan chosen before the accounts arrived.
+  useEffect(() => {
+    if (!open || !accounts || !onlyGroup || form.getValues("paymentGroupId")) return;
+    form.setValue("paymentGroupId", onlyGroup, { shouldDirty: true });
+    form.setValue("paymentAccountId", onlyAccountIn(accounts, onlyGroup), { shouldDirty: true });
+  }, [open, accounts, onlyGroup, defaultPlanId, form]);
+
   const onSubmit = async (values: z.output<typeof paymentSlipSchema>) => {
+    if (loadingAccounts || accountsError) return;
     if (hasAccounts && !values.paymentAccountId) {
       form.setError("paymentAccountId", { message: msg("teamCompany.v.choosePaidTo") });
       return;
@@ -214,6 +222,9 @@ export function UploadSlipSlideOver({
     if (result) {
       form.reset();
       onOpenChange(false);
+    } else {
+      // A refused account means the list changed: show the new one, and the field that carries the error.
+      void refetch();
     }
   };
 
@@ -224,7 +235,7 @@ export function UploadSlipSlideOver({
       title={t("teamCompany.slip.title")}
       description={t("teamCompany.slip.desc")}
       busy={isLoading}
-      footer={<FormActions formId={FORM_ID} submitLabel={t("teamCompany.slip.submit")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
+      footer={<FormActions formId={FORM_ID} submitLabel={t("teamCompany.slip.submit")} loading={isLoading} disabled={loadingAccounts || Boolean(accountsError)} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <SelectField

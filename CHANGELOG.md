@@ -9,8 +9,8 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 ### Platform payment accounts (6 Nov 2026)
 
 - **Added:** platform admin → Payment Accounts: add, edit, close and reopen the bank and wallet accounts companies pay their subscription into. They sit in groups the admin makes (Manage groups), with a tab per group.
-- **Changed:** Upload payment slip shows those accounts with title, number and IBAN (copy buttons). The company picks a group, then the account it sent the money to, and the method comes from the account. With no accounts added, the form asks for the method as before.
-- **Added:** "Paid to" on the admin's payments list and review, and the account name in the company's payment history.
+- **Changed:** Upload payment slip shows those accounts with title, number and IBAN (copy buttons). The company picks a group, then the account it sent the money to. Accounts have no fixed method, so any bank or wallet can be added. With no accounts added, the form asks for the method as before.
+- **Added:** "Paid to" (group, account, number) on the admin's payments list and review, the company page and the company's payment history. The admin's Payments screen filters by group and account instead of method.
 
 ### Estimate QA re-check integration (QE5 + QE6, 22 Oct 2026)
 

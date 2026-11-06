@@ -5428,6 +5428,15 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
+                /** @description PAY_ON_WEBSITE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         put?: never;
@@ -5516,7 +5525,7 @@ export interface paths {
          *     2. Upload the slip: `POST /attachments` with `kind: PAYMENT_SLIP` (allowed even when the company is read-only).
          *     3. Submit it here. A platform admin reviews it; approval extends the period (and applies a pending upgrade).
          *
-         *     Rules: `paymentAccountId` is required while any account is listed, and sets the method; `method` is for when none is · amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
+         *     Rules: `paymentAccountId` is required while any account is listed; `method` is for when none is · amount = plan price · `paidOn` not in the future and ≤ 30 days old · one payment in review at a time · a transaction ID can be used once across the whole platform. **Works while READ_ONLY.**
          */
         post: {
             parameters: {
@@ -5535,7 +5544,7 @@ export interface paths {
                         planId?: string;
                         /**
                          * Format: uuid
-                         * @description The account from GET /subscription/payment-accounts the money was sent to. Required while any account is listed; sets the method
+                         * @description The account from GET /subscription/payment-accounts the money was sent to. Required while any account is listed
                          */
                         paymentAccountId?: string;
                         /**
@@ -5617,7 +5626,7 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
-                /** @description PAYMENT_PENDING | DUPLICATE_TRANSACTION */
+                /** @description PAYMENT_PENDING | DUPLICATE_TRANSACTION | PAY_ON_WEBSITE */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -70015,6 +70024,10 @@ export interface paths {
                     limit?: number;
                     status?: "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REFUNDED";
                     method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+                    /** @description Payments into this platform payment group */
+                    groupId?: string;
+                    /** @description Payments into this platform payment account */
+                    accountId?: string;
                     tenantId?: string;
                     /** @description Submitted on or after (date) */
                     from?: string;
@@ -70721,7 +70734,7 @@ export interface paths {
         put?: never;
         /**
          * Add an account companies can pay into
-         * @description Open accounts appear on the company's upload-slip form at once. The same method and number can be added once.
+         * @description Open accounts appear on the company's upload-slip form at once. An account number can be added once.
          */
         post: {
             parameters: {
@@ -70737,11 +70750,6 @@ export interface paths {
                         groupId: string;
                         /** @example HBL */
                         name: string;
-                        /**
-                         * @description How companies pay into it. IBFT = bank transfer
-                         * @enum {string}
-                         */
-                        method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
                         accountTitle: string;
                         accountNumber: string;
                         /** @default null */
@@ -70848,11 +70856,6 @@ export interface paths {
                         groupId?: string;
                         /** @example HBL */
                         name?: string;
-                        /**
-                         * @description How companies pay into it. IBFT = bank transfer
-                         * @enum {string}
-                         */
-                        method?: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
                         accountTitle?: string;
                         accountNumber?: string;
                         iban?: string | null;
@@ -72807,11 +72810,6 @@ export interface components {
             };
             /** @example HBL */
             name: string;
-            /**
-             * @example EASYPAISA
-             * @enum {string}
-             */
-            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
             accountTitle: string;
             accountNumber: string;
             iban: string | null;
@@ -72829,11 +72827,13 @@ export interface components {
             /** @example 950000 */
             amountPaisa: string;
             /**
+             * @description null when paid into an account: see paidTo
              * @example EASYPAISA
-             * @enum {string}
+             * @enum {string|null}
              */
-            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT";
+            method: "JAZZCASH" | "EASYPAISA" | "RAAST" | "IBFT" | null;
             paidTo: {
+                group: string | null;
                 name: string;
                 accountNumber: string | null;
             } | null;

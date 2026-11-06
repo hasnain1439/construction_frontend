@@ -47,7 +47,6 @@ export const createCompanySchema = z
 export const paymentAccountSchema = z.object({
   groupId: z.string().min(1, "Choose a group"),
   name: requiredText("Name", 2, 60),
-  method: z.enum(["JAZZCASH", "EASYPAISA", "RAAST", "IBFT"], { error: "Choose how companies pay into it" }),
   accountTitle: requiredText("Account title", 2, 100),
   accountNumber: z
     .string()

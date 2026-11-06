@@ -53,7 +53,11 @@ function PaymentHistory() {
     { id: "submitted", header: t("teamCompany.subscription.colSubmitted"), cell: (p) => formatDate(p.createdAt), sortValue: (p) => p.createdAt },
     { id: "plan", header: t("teamCompany.slip.plan"), cell: (p) => p.plan.name },
     { id: "amount", header: t("field.amount"), align: "right", cell: (p) => <MoneyText paisa={p.amountPaisa} /> },
-    { id: "method", header: t("field.method"), cell: (p) => (p.paidTo ? `${te("walletMethod", p.method)} · ${p.paidTo.name}` : te("walletMethod", p.method)) },
+    {
+      id: "paidTo",
+      header: t("teamCompany.slip.paidToCol"),
+      cell: (p) => (p.paidTo ? [p.paidTo.group, p.paidTo.name].filter(Boolean).join(" · ") : p.method ? te("walletMethod", p.method) : "—"),
+    },
     { id: "txn", header: t("teamCompany.slip.transactionId"), cell: (p) => <span className="font-mono text-xs">{p.transactionId}</span> },
     {
       id: "status",

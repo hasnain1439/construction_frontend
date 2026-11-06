@@ -28,7 +28,6 @@ import { ToggleField } from "@/components/forms/ToggleField";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { PAYMENT_METHOD_LABEL, PAYMENT_METHOD_OPTIONS } from "@/lib/options";
 import { PaymentGroupsSlideOver } from "../components/PaymentGroupsSlideOver";
 import { paymentAccountSchema } from "../schemas";
 
@@ -39,7 +38,6 @@ type Values = z.input<typeof paymentAccountSchema>;
 const toValues = (a: AdminPaymentAccount | null, groupId: string | null): Values => ({
   groupId: a?.group.id ?? groupId ?? "",
   name: a?.name ?? "",
-  method: a?.method ?? "IBFT",
   accountTitle: a?.accountTitle ?? "",
   accountNumber: a?.accountNumber ?? "",
   iban: a?.iban ?? "",
@@ -73,10 +71,7 @@ function PaymentAccountSlideOver({ account, groupId, onClose }: { account: Admin
     >
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <SelectField name="groupId" label="Payment group" required placeholder="Choose a group" options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
-        <FieldGrid>
-          <TextField name="name" label="Name" required placeholder="HBL" />
-          <SelectField name="method" label="Companies pay by" required options={[...PAYMENT_METHOD_OPTIONS]} />
-        </FieldGrid>
+        <TextField name="name" label="Name" required placeholder="HBL" />
         <FieldGrid>
           <TextField name="accountTitle" label="Account title" required />
           <TextField name="accountNumber" label="Account number" required dir="ltr" />
@@ -106,7 +101,6 @@ export function PaymentAccountsView() {
   const columns: Column<AdminPaymentAccount>[] = [
     { id: "name", header: "Name", cell: (a) => <span className="font-medium">{a.name}</span>, sortValue: (a) => a.name },
     { id: "group", header: "Group", cell: (a) => a.group.name, sortValue: (a) => a.group.name },
-    { id: "method", header: "Companies pay by", cell: (a) => PAYMENT_METHOD_LABEL[a.method] ?? a.method },
     { id: "title", header: "Account title", cell: (a) => a.accountTitle },
     { id: "number", header: "Account number", cell: (a) => <span className="font-mono text-xs">{a.accountNumber}</span> },
     { id: "iban", header: "IBAN", cell: (a) => (a.iban ? <span className="font-mono text-xs">{a.iban}</span> : "—") },
