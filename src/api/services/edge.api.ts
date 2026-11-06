@@ -1,6 +1,6 @@
 import { baseApi } from "@/api/baseApi";
 import { ENDPOINTS } from "@/api/endpoints";
-import type { OfficeDeviceApproval, OfficeDevices, SyncProblems } from "@/api/types";
+import type { OfficeDeviceApproval, OfficeDevices, OfficeSyncStatus, SyncProblems } from "@/api/types";
 
 /** Offline office: office PCs waiting for / holding approval, and sync problems on the office PC. */
 export const edgeApi = baseApi.injectEndpoints({
@@ -17,6 +17,9 @@ export const edgeApi = baseApi.injectEndpoints({
       query: (id) => ({ url: ENDPOINTS.edge.deviceRevoke(id), method: "POST" }),
       invalidatesTags: ["OfficeDevices"],
     }),
+    getOfficeSyncStatus: build.query<OfficeSyncStatus, void>({
+      query: () => ENDPOINTS.edge.syncStatus,
+    }),
     getSyncProblems: build.query<SyncProblems, void>({
       query: () => ENDPOINTS.edge.problems,
       providesTags: ["SyncProblems"],
@@ -28,5 +31,6 @@ export const {
   useGetOfficeDevicesQuery,
   useApproveOfficeDeviceMutation,
   useRevokeOfficeDeviceMutation,
+  useGetOfficeSyncStatusQuery,
   useGetSyncProblemsQuery,
 } = edgeApi;

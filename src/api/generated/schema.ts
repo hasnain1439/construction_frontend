@@ -68808,6 +68808,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/edge/sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * This office PC’s sync status
+         * @description For the footer badge; every signed-in user. Only an office PC server (OFFICE_MODE) has one: `state` is ok, copying, offline, waiting-approval, not-allowed, login-failed, account-locked or error (null before the agent’s first round). `lastSyncAt` is the last round that reached the cloud; `pending` the office entries not sent yet. In the cloud: officeMode false.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": {
+                         *         "officeMode": true,
+                         *         "state": "ok",
+                         *         "lastSyncAt": "2026-11-06T12:00:00.000Z",
+                         *         "pending": 0
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/edge/problems": {
         parameters: {
             query?: never;

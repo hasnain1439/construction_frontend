@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Office PC sync badge (6 Nov 2026)
+
+- **Fixed:** the footer's "All synced" was fixed text. On an office PC it now follows the sync agent: all synced, offline, entries waiting, syncing or a sync problem.
+- **Added:** the time of the last sync next to it on an office PC.
+
 ### Platform payment accounts (6 Nov 2026)
 
 - **Added:** platform admin → Payment Accounts: add, edit, close and reopen the bank and wallet accounts companies pay their subscription into. They sit in groups the admin makes (Manage groups), with a tab per group.

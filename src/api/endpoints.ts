@@ -508,6 +508,7 @@ export const ENDPOINTS = {
     deviceApprove: (deviceId: string) => `/edge/devices/${id(deviceId)}/approve`,
     deviceRevoke: (deviceId: string) => `/edge/devices/${id(deviceId)}/revoke`,
     problems: "/edge/problems",
+    syncStatus: "/edge/sync-status",
   },
 
   /** Step 18 — tax settings, project override, WHT certificate. */
