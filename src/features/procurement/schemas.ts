@@ -49,6 +49,8 @@ export const purchaseSchema = z
     paymentMode: z.enum(["UDHAAR", "CASH", "PARTIAL"]),
     paidNowPaisa: paisa,
     paidFrom: z.string().nullable(),
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
     challan: file.refine((f) => Boolean(f), msg("procurement.v.uploadChallan")),
     bill: file,
     note: z.string().trim().max(500),
@@ -115,6 +117,8 @@ export const ratesSchema = z
     paymentMode: z.enum(["UDHAAR", "CASH", "PARTIAL"]),
     paidNowPaisa: paisa,
     paidFrom: z.string().nullable(),
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.paymentMode !== "UDHAAR" && !v.paidFrom) ctx.addIssue({ code: "custom", path: ["paidFrom"], message: msg("procurement.v.choosePaidFrom") });
@@ -136,7 +140,9 @@ export const paymentSchema = z
   .object({
     supplierId: z.string().nullable().refine((v): v is string => Boolean(v), msg("procurement.v.chooseSupplier")),
     amountPaisa: paisa.refine((v): v is string => Boolean(v) && v !== "0", msg("procurement.v.enterAmount")),
-    method: z.enum(["CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA"]),
+    method: z.enum(["CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA", "WALLET"]),
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
     paidOn: z.string().min(1, msg("validation.enterDate")),
     reference: z.string().trim().max(60),
     chequeNo: z.string().trim().max(30),
@@ -188,6 +194,8 @@ export const resolveSchema = z
     resolution: z.enum(["SEND_REMAINING", "RETURN_TO_STORE", "ACCEPT_LOSS", "RECOVER_FROM_DRIVER", "SUPPLIER_CREDIT"]).nullable(),
     note: requiredText("field.note", 3, 500),
     recoveredAmountPaisa: paisa,
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
   })
   .superRefine((v, ctx) => {
     if (!v.resolution) ctx.addIssue({ code: "custom", path: ["resolution"], message: msg("procurement.v.chooseDecision") });

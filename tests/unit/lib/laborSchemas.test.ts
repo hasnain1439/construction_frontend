@@ -27,7 +27,7 @@ describe("labour & cash form rules", () => {
   });
 
   it("peshgi needs a payee and an amount > 0", () => {
-    const base = { payeeType: "WORKER", payeeId: "w1", amountPaisa: "500000", date: "2026-09-22", paidFrom: "SITE_CASH", reference: "", note: "" } as const;
+    const base = { payeeType: "WORKER", payeeId: "w1", amountPaisa: "500000", date: "2026-09-22", paidFrom: "SITE_CASH", groupId: null, companyAccountId: null, reference: "", note: "" } as const;
     expect(advanceSchema.safeParse(base).success).toBe(true);
     expect(advanceSchema.safeParse({ ...base, payeeId: null }).success).toBe(false);
     expect(advanceSchema.safeParse({ ...base, amountPaisa: "0" }).success).toBe(false);

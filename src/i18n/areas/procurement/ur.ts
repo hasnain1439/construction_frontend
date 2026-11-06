@@ -338,9 +338,10 @@ export const enums: Widen<typeof En.enums> = {
     CHEQUE: "چیک",
     JAZZCASH: "جاز کیش",
     EASYPAISA: "ایزی پیسہ",
+    WALLET: "آن لائن والیٹ",
     SITE_CASH: "سائٹ کا نقد",
   },
-  procPaymentMethod: { CASH: "نقد", BANK: "بینک ٹرانسفر", CHEQUE: "چیک", JAZZCASH: "جاز کیش", EASYPAISA: "ایزی پیسہ" },
+  procPaymentMethod: { CASH: "نقد", BANK: "بینک ٹرانسفر", CHEQUE: "چیک", JAZZCASH: "جاز کیش", EASYPAISA: "ایزی پیسہ", WALLET: "آن لائن والیٹ" },
   procMovement: {
     PURCHASE_IN: "خریدا گیا",
     PURCHASE_RETURN_OUT: "سپلائر کو واپس",

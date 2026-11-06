@@ -468,6 +468,7 @@ export const ENDPOINTS = {
   companyAccounts: {
     list: "/company-accounts",
     byId: (accountId: string) => `/company-accounts/${id(accountId)}`,
+    entries: (accountId: string) => `/company-accounts/${id(accountId)}/entries`,
     groups: "/company-accounts/groups",
     groupById: (groupId: string) => `/company-accounts/groups/${id(groupId)}`,
   },

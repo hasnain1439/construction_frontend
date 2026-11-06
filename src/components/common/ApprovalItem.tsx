@@ -21,10 +21,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useForm } from "react-hook-form";
+import { Form } from "@/components/forms/Form";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
+import { useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import { MoneyText } from "./MoneyText";
-import { SegmentedControl } from "./SegmentedControl";
 
 export const APPROVAL_ICON: Record<ApprovalType, LucideIcon> = {
   SETTLEMENT_SUBMITTED: HandCoins,
@@ -38,11 +40,14 @@ export const APPROVAL_ICON: Record<ApprovalType, LucideIcon> = {
   CHEQUE_PENDING: Banknote,
 };
 
-export type FloatMethod = "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+export type FloatMethod = "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
 export interface ActionInput {
   note?: string;
   method?: FloatMethod;
+  companyAccountId?: string;
 }
+
+const TOPUP_HOW_PAID: HowPaid = { name: "method", CASH: "CASH", WALLET: "WALLET", BANK: "BANK" };
 
 const DECLINE: ApprovalAction[] = ["reject", "return", "bounce"];
 export const isDecline = (action: ApprovalAction) => DECLINE.includes(action);
@@ -73,9 +78,9 @@ export function ActionInputDialog({
   busy?: boolean;
 }) {
   const t = useT();
-  const te = useEnumT();
   const [note, setNote] = useState("");
-  const [method, setMethod] = useState<FloatMethod>("CASH");
+  const form = useForm<{ method: FloatMethod; groupId: string | null; companyAccountId: string | null }>({ defaultValues: { method: "CASH", groupId: null, companyAccountId: null } });
+  const checkAccount = useCompanyAccountCheck(form, { skip: !action?.needsMethod });
   if (!action) return null;
   const noteShort = action.needsNote && note.trim().length < MIN_NOTE;
   return (
@@ -86,20 +91,9 @@ export function ActionInputDialog({
           <DialogDescription>{action.needsNote ? t("app.components.approval.sayWhy") : t("app.components.approval.chooseCashMethod")}</DialogDescription>
         </DialogHeader>
         {action.needsMethod ? (
-          <div className="space-y-1.5">
-            <Label>{t("app.components.approval.sendBy")}</Label>
-            <SegmentedControl<FloatMethod>
-              ariaLabel={t("app.components.approval.sendBy")}
-              value={method}
-              onChange={setMethod}
-              options={[
-                { value: "CASH", label: t("field.cash") },
-                { value: "BANK", label: t("field.bank") },
-                { value: "JAZZCASH", label: te("paymentMethod", "JAZZCASH") },
-                { value: "EASYPAISA", label: te("paymentMethod", "EASYPAISA") },
-              ]}
-            />
-          </div>
+          <Form form={form} onSubmit={() => undefined}>
+            <CompanyAccountField how={TOPUP_HOW_PAID} label={t("app.components.approval.sendBy")} />
+          </Form>
         ) : null}
         {action.needsNote ? (
           <div className="space-y-1.5">
@@ -116,7 +110,11 @@ export function ActionInputDialog({
             type="button"
             variant={isDecline(action.action) ? "destructive" : "default"}
             disabled={noteShort || busy}
-            onClick={() => onConfirm({ ...(action.needsNote ? { note: note.trim() } : {}), ...(action.needsMethod ? { method } : {}) })}
+            onClick={() => {
+              const v = form.getValues();
+              if (action.needsMethod && !checkAccount(v)) return;
+              onConfirm({ ...(action.needsNote ? { note: note.trim() } : {}), ...(action.needsMethod ? { method: v.method, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}) });
+            }}
           >
             {busy ? <Loader2 className="animate-spin" aria-hidden /> : null}
             {action.label}

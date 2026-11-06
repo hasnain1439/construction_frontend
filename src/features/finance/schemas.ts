@@ -9,6 +9,7 @@ export const PAID_VIA_VALUES = [
   "BANK",
   "JAZZCASH",
   "EASYPAISA",
+  "WALLET",
 ] as const satisfies readonly FloatMethod[];
 
 export const COMPANY_ACCOUNT_TYPES = ["CASH", "WALLET", "BANK"] as const satisfies readonly CompanyAccountType[];
@@ -20,6 +21,7 @@ export const companyAccountSchema = z.object({
     .nullable()
     .refine((v): v is string => Boolean(v), msg("cashSite.accounts.chooseGroup")),
   name: requiredText("cashSite.accounts.name", 2, 60),
+  openingBalancePaisa: z.string().nullable(),
   accountTitle: z.string().trim().max(100),
   accountNumber: z.string().trim().max(40),
   iban: z.string().trim().max(40),
@@ -43,6 +45,8 @@ export const officeExpenseSchema = z.object({
       msg("validation.moreThanZero", { label: "field.amount" }),
     ),
   paidVia: z.enum(PAID_VIA_VALUES),
+  groupId: z.string().nullable(),
+  companyAccountId: z.string().nullable(),
   paidTo: z.string().trim().max(120, msg("validation.tooLongPlain")),
   description: requiredText("cashSite.office.whatFor", 2, 300),
   receipt: z.custom<UploadedFile | null>().nullable(),

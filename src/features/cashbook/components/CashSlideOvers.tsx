@@ -27,12 +27,10 @@ import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormField, useFieldError } from "@/components/forms/FormField";
 import { MoneyField } from "@/components/forms/MoneyInput";
-import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { newClientId } from "@/features/labor/components/LaborSlideOvers";
-import { FLOAT_METHOD_OPTIONS } from "@/features/labor/options";
 import {
   approveTopupSchema,
   countSchema,
@@ -48,8 +46,9 @@ import {
   type TopupValues,
 } from "@/features/labor/schemas";
 import { applyLineError } from "@/features/procurement/lineErrors";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { useMutationToast } from "@/hooks/useMutationToast";
-import { useEnumT, useT } from "@/i18n/useT";
+import { useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
 import { formatPKR, toPaisaBigInt } from "@/lib/money";
 
@@ -68,11 +67,7 @@ function CategoryField() {
   );
 }
 
-/** Float methods (cash, bank, wallets) as select options in the current language. */
-function useFloatMethodOptions() {
-  const te = useEnumT();
-  return FLOAT_METHOD_OPTIONS.map((o) => ({ value: o.value, label: te("cashFloatMethod", o.value, o.label) }));
-}
+const FLOAT_HOW_PAID: HowPaid = { name: "method", CASH: "CASH", WALLET: "WALLET", BANK: "BANK" };
 
 /** Kharcha from the holder's own site cash; above the company limit it waits for approval. */
 export function KharchaSlideOver({ open, onOpenChange, projectId, balancePaisa }: Open & { projectId: string; balancePaisa?: string }) {
@@ -162,25 +157,27 @@ export function KharchaSlideOver({ open, onOpenChange, projectId, balancePaisa }
 /** THEKEDAR sends cash to a munshi / PM; it counts once they acknowledge it. */
 export function SendFloatSlideOver({ open, onOpenChange, projectId, holderUserId }: Open & { projectId?: string; holderUserId?: string }) {
   const t = useT();
-  const methods = useFloatMethodOptions();
   const users = useGetUsersQuery({ status: "ACTIVE", limit: 100 });
   const projects = useGetProjectsQuery({ limit: 100 });
   const [send, { isLoading }] = useSendFloatMutation();
   const run = useMutationToast();
   const form = useForm<FloatValues, unknown, z.output<typeof floatSchema>>({
     resolver: zodResolver(floatSchema),
-    values: { holderUserId: holderUserId ?? null, amountPaisa: null, method: "EASYPAISA", reference: "", projectId: projectId ?? null, note: "" },
+    values: { holderUserId: holderUserId ?? null, amountPaisa: null, method: "CASH", groupId: null, companyAccountId: null, reference: "", projectId: projectId ?? null, note: "" },
   });
   const holders = (users.data?.items ?? [])
     .filter((u) => u.role !== "THEKEDAR")
     .map((u) => ({ value: u.id, label: u.name, description: u.role === "PM" ? t("field.projectManager") : t("field.munshi") }));
+  const checkAccount = useCompanyAccountCheck(form, { skip: !open });
   const onSubmit = async (v: z.output<typeof floatSchema>) => {
+    if (!checkAccount(v)) return;
     const ok = await run(
       () =>
         send({
           holderUserId: v.holderUserId,
           amountPaisa: v.amountPaisa,
           method: v.method,
+          ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
           ...(v.reference ? { reference: v.reference } : {}),
           ...(v.projectId ? { projectId: v.projectId } : {}),
           ...(v.note ? { note: v.note } : {}),
@@ -200,10 +197,8 @@ export function SendFloatSlideOver({ open, onOpenChange, projectId, holderUserId
     >
       <Form form={form} onSubmit={onSubmit} id="float-form">
         <ComboboxField name="holderUserId" label={t("field.to")} required options={holders} loading={users.isLoading} />
-        <FieldGrid>
-          <MoneyField name="amountPaisa" label={t("field.amount")} required />
-          <SelectField name="method" label={t("cashSite.cash.sentBy")} required options={methods} />
-        </FieldGrid>
+        <MoneyField name="amountPaisa" label={t("field.amount")} required />
+        <CompanyAccountField how={FLOAT_HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         {/* i18n-ignore: sample reference number, the same in every language */}
         <TextField name="reference" label={t("field.reference")} placeholder="EP88213" />
         <ComboboxField
@@ -250,15 +245,16 @@ export function TopupRequestSlideOver({ open, onOpenChange }: Open) {
 
 export function ApproveTopupSlideOver({ open, onOpenChange, topup }: Open & { topup: TopupRequest }) {
   const t = useT();
-  const methods = useFloatMethodOptions();
   const [approve, { isLoading }] = useApproveTopupMutation();
   const run = useMutationToast();
   const form = useForm<ApproveTopupValues, unknown, z.output<typeof approveTopupSchema>>({
     resolver: zodResolver(approveTopupSchema),
-    values: { amountPaisa: topup.amountPaisa, method: "EASYPAISA", reference: "" },
+    values: { amountPaisa: topup.amountPaisa, method: "CASH", groupId: null, companyAccountId: null, reference: "" },
   });
+  const checkAccount = useCompanyAccountCheck(form, { skip: !open });
   const onSubmit = async (v: z.output<typeof approveTopupSchema>) => {
-    const ok = await run(() => approve({ id: topup.id, body: { amountPaisa: v.amountPaisa, method: v.method, ...(v.reference ? { reference: v.reference } : {}) } }).unwrap(), {
+    if (!checkAccount(v)) return;
+    const ok = await run(() => approve({ id: topup.id, body: { amountPaisa: v.amountPaisa, method: v.method, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}), ...(v.reference ? { reference: v.reference } : {}) } }).unwrap(), {
       success: t("cashSite.cash.approvedSent"),
       setError: form.setError,
     });
@@ -276,10 +272,8 @@ export function ApproveTopupSlideOver({ open, onOpenChange, topup }: Open & { to
       footer={<FormActions formId="topup-approve" submitLabel={t("cashSite.cash.approveSend")} loading={isLoading} onCancel={() => onOpenChange(false)} />}
     >
       <Form form={form} onSubmit={onSubmit} id="topup-approve">
-        <FieldGrid>
-          <MoneyField name="amountPaisa" label={t("cashSite.cash.amountToSend")} required />
-          <SelectField name="method" label={t("cashSite.cash.sentBy")} required options={methods} />
-        </FieldGrid>
+        <MoneyField name="amountPaisa" label={t("cashSite.cash.amountToSend")} required />
+        <CompanyAccountField how={FLOAT_HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         <TextField name="reference" label={t("field.reference")} />
       </Form>
     </SlideOver>

@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeftRight, CircleCheck, HandCoins, PackagePlus, Undo2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
+import { CompanyAccountField, useCompanyAccountCheck } from "@/features/finance/components/CompanyAccountField";
 import type { z } from "zod";
 import { useCreateDispatchMutation, useResolveShortageMutation } from "@/api/services/dispatch.api";
 import type { Resolution, Shortage } from "@/api/types";
@@ -164,13 +165,15 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
   const run = useMutationToast();
   const form = useForm<ResolveValues, unknown, z.output<typeof resolveSchema>>({
     resolver: zodResolver(resolveSchema),
-    values: { resolution: null, note: "", recoveredAmountPaisa: shortage?.valuePaisa ?? null },
+    values: { resolution: null, note: "", recoveredAmountPaisa: shortage?.valuePaisa ?? null, groupId: null, companyAccountId: null },
   });
+  const checkAccount = useCompanyAccountCheck(form, { skip: !open });
   const resolution = useWatch({ control: form.control, name: "resolution" });
   if (!shortage) return null;
   const options: RadioCardOption<Resolution>[] = shortage.allowedResolutions.map((r) => ({ value: r, title: te("procResolution", r), description: te("procResolutionDesc", r), icon: RESOLUTION_ICONS[r] }));
 
   const onSubmit = async (v: z.output<typeof resolveSchema>) => {
+    if (v.resolution === "RECOVER_FROM_DRIVER" && !checkAccount(v)) return;
     const result = await run(
       () =>
         resolve({
@@ -178,7 +181,7 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
           body: {
             resolution: v.resolution as Resolution,
             note: v.note,
-            ...(v.resolution === "RECOVER_FROM_DRIVER" && v.recoveredAmountPaisa ? { recoveredAmountPaisa: v.recoveredAmountPaisa } : {}),
+            ...(v.resolution === "RECOVER_FROM_DRIVER" && v.recoveredAmountPaisa ? { recoveredAmountPaisa: v.recoveredAmountPaisa, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } : {}),
           },
         }).unwrap(),
       { success: (s) => (s.newDispatch ? t("procurement.resolve.resolvedNew", { number: s.newDispatch.number }) : t("procurement.resolve.resolved")), setError: form.setError },
@@ -208,7 +211,12 @@ export function ResolveShortageSlideOver({ shortage, open, onOpenChange }: { sho
         </div>
         {shortage.note ? <InlineAlert tone="info" title={t("procurement.resolve.siteNote")}>{shortage.note}</InlineAlert> : null}
         <RadioCards<Resolution> name="resolution" label={t("procurement.resolve.decision")} options={options} />
-        {resolution === "RECOVER_FROM_DRIVER" ? <MoneyField name="recoveredAmountPaisa" label={t("procurement.resolve.amountRecovered")} required /> : null}
+        {resolution === "RECOVER_FROM_DRIVER" ? (
+          <>
+            <MoneyField name="recoveredAmountPaisa" label={t("procurement.resolve.amountRecovered")} required />
+            <CompanyAccountField label={t("cashSite.accounts.receivedInGroup")} />
+          </>
+        ) : null}
         {resolution === "SEND_REMAINING" && shortage.dispatch ? (
           <p className="text-sm text-muted-foreground">
             {shortage.dispatch.vehicleNo

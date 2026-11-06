@@ -8,8 +8,8 @@ import type { ComboboxOption } from "@/components/forms/ComboboxField";
 import { useEnumT } from "@/i18n/useT";
 
 const PAYMENT_MODES: PaymentMode[] = ["UDHAAR", "CASH", "PARTIAL"];
-const PAID_FROM: PaidFrom[] = ["OFFICE_CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA", "SITE_CASH"];
-const PAYMENT_METHODS: SupplierPaymentMethod[] = ["CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA"];
+const PAID_FROM: PaidFrom[] = ["OFFICE_CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA", "WALLET", "SITE_CASH"];
+const PAYMENT_METHODS: SupplierPaymentMethod[] = ["CASH", "BANK", "CHEQUE", "JAZZCASH", "EASYPAISA", "WALLET"];
 
 /** Udhaar / Cash now / Part now, in the current language. */
 export function usePaymentModeOptions(): Array<{ value: PaymentMode; label: string }> {

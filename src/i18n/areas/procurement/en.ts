@@ -336,9 +336,10 @@ export const enums = {
     CHEQUE: "Cheque",
     JAZZCASH: "JazzCash",
     EASYPAISA: "Easypaisa",
+    WALLET: "Online wallet",
     SITE_CASH: "Site cash",
   },
-  procPaymentMethod: { CASH: "Cash", BANK: "Bank transfer", CHEQUE: "Cheque", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa" },
+  procPaymentMethod: { CASH: "Cash", BANK: "Bank transfer", CHEQUE: "Cheque", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },
   procMovement: {
     PURCHASE_IN: "Purchased",
     PURCHASE_RETURN_OUT: "Returned to supplier",

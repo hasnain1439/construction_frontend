@@ -3,7 +3,7 @@
  * (Bank, Cash, Online …) and its own accounts in each. Hand-written from the API docs
  * (companyAccounts.docs.ts), like the other modules in this folder.
  */
-import type { Id, IsoDateTime } from "./common";
+import type { Id, IsoDateTime, Paisa } from "./common";
 
 /** How a group behaves: which details its accounts need, and the payment method it records. */
 export type CompanyAccountType = "CASH" | "WALLET" | "BANK";
@@ -13,6 +13,8 @@ export interface CompanyAccountGroup {
   name: string;
   type: CompanyAccountType;
   accountCount: number;
+  /** Its accounts added up; null for who only picks an account. */
+  balancePaisa: Paisa | null;
 }
 
 export interface CompanyAccount {
@@ -26,9 +28,25 @@ export interface CompanyAccount {
   note: string | null;
   /** Off: not on the payment form; its payments stay. */
   isActive: boolean;
+  /** Null for who only picks an account (they see the last digits of the number too). */
+  balancePaisa: Paisa | null;
+  openingBalancePaisa: Paisa | null;
+  /** Movements, the opening balance left out. */
   paymentCount: number;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
+}
+
+/** One movement on a statement: + money in, − money out, and the balance after it. */
+export interface CompanyAccountEntry {
+  id: Id;
+  type: string;
+  amountPaisa: Paisa;
+  description: string;
+  refId: Id | null;
+  projectId: Id | null;
+  occurredAt: IsoDateTime;
+  balancePaisa: Paisa;
 }
 
 export interface CompanyAccountsQuery {
@@ -40,6 +58,7 @@ export interface CompanyAccountsQuery {
 export interface CompanyAccountBody {
   groupId: Id;
   name: string;
+  openingBalancePaisa?: Paisa;
   accountTitle?: string;
   accountNumber?: string;
   iban?: string;
@@ -56,4 +75,5 @@ export interface CompanyAccountPatch {
   branch?: string | null;
   note?: string | null;
   isActive?: boolean;
+  openingBalancePaisa?: Paisa;
 }

@@ -11,29 +11,32 @@ import { DateField } from "@/components/forms/DateField";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyField } from "@/components/forms/MoneyInput";
-import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { todayPK } from "@/lib/dates";
 import { useT } from "@/i18n/useT";
-import { usePaymentMethodOptions, useSupplierOptions } from "../options";
+import { useSupplierOptions } from "../options";
 import { paymentSchema, type PaymentValues } from "../schemas";
+
+const HOW_PAID: HowPaid = { name: "method", CASH: "CASH", WALLET: "WALLET", BANK: "BANK", cheque: "CHEQUE" };
 
 /** Pay a supplier (credits the udhaar). Cheques start "pending" until cleared or bounced. */
 export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boolean; onOpenChange: (open: boolean) => void; supplierId?: string }) {
   const t = useT();
-  const methodOptions = usePaymentMethodOptions();
   const [create, { isLoading }] = useCreateSupplierPaymentMutation();
   const run = useMutationToast();
   const suppliers = useSupplierOptions();
   const form = useForm<PaymentValues, unknown, z.output<typeof paymentSchema>>({
     resolver: zodResolver(paymentSchema),
-    values: { supplierId: supplierId ?? null, amountPaisa: null, method: "CASH", paidOn: todayPK(), reference: "", chequeNo: "", chequeDate: "", note: "" },
+    values: { supplierId: supplierId ?? null, amountPaisa: null, method: "CASH", groupId: null, companyAccountId: null, paidOn: todayPK(), reference: "", chequeNo: "", chequeDate: "", note: "" },
   });
   const method = useWatch({ control: form.control, name: "method" });
+  const checkAccount = useCompanyAccountCheck(form, { skip: !open });
 
   const onSubmit = async (v: z.output<typeof paymentSchema>) => {
+    if (!checkAccount(v)) return;
     const result = await run(
       () =>
         create({
@@ -41,6 +44,7 @@ export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boo
           amountPaisa: v.amountPaisa,
           method: v.method as SupplierPaymentMethod,
           paidOn: v.paidOn,
+          ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
           ...(v.reference ? { reference: v.reference } : {}),
           ...(v.method === "CHEQUE" ? { chequeNo: v.chequeNo, ...(v.chequeDate ? { chequeDate: v.chequeDate } : {}) } : {}),
           ...(v.note ? { note: v.note } : {}),
@@ -65,7 +69,7 @@ export function PaymentSlideOver({ open, onOpenChange, supplierId }: { open: boo
           <MoneyField name="amountPaisa" label={t("field.amount")} required />
           <DateField name="paidOn" label={t("procurement.payment.paidOn")} required max={todayPK()} />
         </FieldGrid>
-        <SelectField name="method" label={t("field.method")} required options={methodOptions} />
+        <CompanyAccountField how={HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         {method === "CHEQUE" ? (
           <FieldGrid>
             <TextField name="chequeNo" label={t("procurement.payment.chequeNo")} required />

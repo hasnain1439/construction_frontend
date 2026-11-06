@@ -32,10 +32,10 @@ vi.mock("@/api/services/billing.api", async (importOriginal) => ({
   useRecordPaymentMutation: () => [api.record, { isLoading: false }],
 }));
 
-const BANK: CompanyAccountGroup = { id: "g-bank", name: "Bank", type: "BANK", accountCount: 2 };
-const CASH: CompanyAccountGroup = { id: "g-cash", name: "Cash", type: "CASH", accountCount: 1 };
-const ONLINE: CompanyAccountGroup = { id: "g-online", name: "Online", type: "WALLET", accountCount: 0 };
-const CARD: CompanyAccountGroup = { id: "g-card", name: "Credit card", type: "BANK", accountCount: 1 };
+const BANK: CompanyAccountGroup = { id: "g-bank", name: "Bank", type: "BANK", accountCount: 2, balancePaisa: "0" };
+const CASH: CompanyAccountGroup = { id: "g-cash", name: "Cash", type: "CASH", accountCount: 1, balancePaisa: "0" };
+const ONLINE: CompanyAccountGroup = { id: "g-online", name: "Online", type: "WALLET", accountCount: 0, balancePaisa: "0" };
+const CARD: CompanyAccountGroup = { id: "g-card", name: "Credit card", type: "BANK", accountCount: 1, balancePaisa: "0" };
 
 const account = (
   id: string,
@@ -52,6 +52,8 @@ const account = (
   branch: null,
   note: null,
   isActive: true,
+  balancePaisa: "0",
+  openingBalancePaisa: "0",
   paymentCount: 0,
   createdAt: "2026-11-06T09:00:00.000Z",
   updatedAt: "2026-11-06T09:00:00.000Z",
@@ -62,13 +64,15 @@ const open = () =>
     me: meFixture("THEKEDAR"),
   });
 const choose = async (label: RegExp, option: RegExp) => {
-  await userEvent.click(screen.getByRole("combobox", { name: label }));
+  await userEvent.click(await screen.findByRole("combobox", { name: label }));
   await userEvent.click(await screen.findByRole("option", { name: option }));
 };
+/** The options of a select; it closes on its first one, which every list here opens on or may pick. */
 const optionsOf = async (label: RegExp) => {
-  await userEvent.click(screen.getByRole("combobox", { name: label }));
-  const names = (await screen.findAllByRole("option")).map((o) => o.textContent);
-  await userEvent.keyboard("{Escape}");
+  await userEvent.click(await screen.findByRole("combobox", { name: label }));
+  const options = await screen.findAllByRole("option");
+  const names = options.map((o) => o.textContent);
+  await userEvent.click(options[0]!);
   return names;
 };
 
@@ -86,15 +90,15 @@ describe("Payment form: the company's groups, then their accounts", () => {
 
   it("offers the company's own groups and only the accounts of the chosen one", async () => {
     open();
-    expect(await optionsOf(/^Payment group/)).toEqual(["Bank", "Cash", "Credit card", "Online"]);
+    expect(await optionsOf(/^Received in/)).toEqual(["Bank", "Cash", "Credit card", "Online"]);
     expect(await optionsOf(/^Account/)).toEqual(["HBL · 0123456789", "MCB · 9988776655"]);
-    await choose(/^Payment group/, /^Cash$/);
+    await choose(/^Received in/, /^Cash$/);
     // An only account fills in by itself; cash has no transfer / cheque choice.
     await waitFor(() =>
       expect(screen.getByRole("combobox", { name: /^Account/ })).toHaveTextContent("Office cash"),
     );
     expect(screen.queryByRole("combobox", { name: /^Method/ })).not.toBeInTheDocument();
-    await choose(/^Payment group/, /^Credit card$/);
+    await choose(/^Received in/, /^Credit card$/);
     await waitFor(() =>
       expect(screen.getByRole("combobox", { name: /^Account/ })).toHaveTextContent("Visa · 4111222233"),
     );
@@ -103,15 +107,15 @@ describe("Payment form: the company's groups, then their accounts", () => {
 
   it("coming back to a bank-type group keeps a method, and asks for the account", async () => {
     open();
-    await choose(/^Payment group/, /^Cash$/);
-    await choose(/^Payment group/, /^Bank$/);
+    await choose(/^Received in/, /^Cash$/);
+    await choose(/^Received in/, /^Bank$/);
     await waitFor(() => expect(screen.getByRole("combobox", { name: /^Method/ })).toHaveTextContent("Bank transfer"));
     expect(screen.getByRole("combobox", { name: /^Account/ })).not.toHaveTextContent("Office cash");
   });
 
   it("a group with no account says so and offers to add one", async () => {
     open();
-    await choose(/^Payment group/, /^Online$/);
+    await choose(/^Received in/, /^Online$/);
     expect(await screen.findByText("No Online account yet")).toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: /^Account/ })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add account" })).toBeInTheDocument();

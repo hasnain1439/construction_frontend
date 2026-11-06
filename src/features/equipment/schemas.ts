@@ -155,6 +155,8 @@ export const rentalSchema = z
     startDate: date,
     expectedEndDate: z.string(),
     depositPaisa: paisa,
+    groupId: z.string().nullable(),
+    companyAccountId: z.string().nullable(),
     reference: z.string().trim().max(60),
     note: z.string().trim().max(500),
     items: z
@@ -216,7 +218,7 @@ export const returnSchema = z.object({
 });
 export type ReturnValues = z.input<typeof returnSchema>;
 
-export const closeSchema = z.object({ depositRefundPaisa: paisa, note: z.string().trim().max(500) });
+export const closeSchema = z.object({ depositRefundPaisa: paisa, groupId: z.string().nullable(), companyAccountId: z.string().nullable(), note: z.string().trim().max(500) });
 export type CloseValues = z.input<typeof closeSchema>;
 
 // ─── Losses ─────────────────────────────────────────────────────────────────

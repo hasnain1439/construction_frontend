@@ -12,6 +12,7 @@ import type { CompanyAccount } from "@/api/types";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
+import { MoneyField } from "@/components/forms/MoneyInput";
 import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
@@ -46,6 +47,7 @@ export function CompanyAccountSlideOver({
     defaultValues: {
       groupId: account?.group.id ?? groupId ?? null,
       name: account?.name ?? "",
+      openingBalancePaisa: account?.openingBalancePaisa ?? null,
       accountTitle: account?.accountTitle ?? "",
       accountNumber: account?.accountNumber ?? "",
       iban: account?.iban ?? "",
@@ -87,6 +89,9 @@ export function CompanyAccountSlideOver({
                 iban: bank ? v.iban || null : null,
                 branch: bank ? v.branch || null : null,
                 note: v.note || null,
+                ...(v.openingBalancePaisa !== (account.openingBalancePaisa ?? null)
+                  ? { openingBalancePaisa: v.openingBalancePaisa ?? "0" }
+                  : {}),
               },
             }).unwrap(),
           { ...feedback, success: t("cashSite.accounts.updated", { name: v.name }) },
@@ -96,6 +101,7 @@ export function CompanyAccountSlideOver({
             create({
               groupId: v.groupId,
               name: v.name,
+              ...(v.openingBalancePaisa ? { openingBalancePaisa: v.openingBalancePaisa } : {}),
               ...(v.accountTitle ? { accountTitle: v.accountTitle } : {}),
               ...(v.accountNumber ? { accountNumber: v.accountNumber } : {}),
               ...(bank && v.iban ? { iban: v.iban } : {}),
@@ -169,6 +175,11 @@ export function CompanyAccountSlideOver({
             <TextField name="branch" label={t("cashSite.accounts.branch")} maxLength={100} />
           </FieldGrid>
         ) : null}
+        <MoneyField
+          name="openingBalancePaisa"
+          label={t("cashSite.accounts.openingBalance")}
+          hint={t("cashSite.accounts.openingHint")}
+        />
         <TextareaField name="note" label={t("field.note")} rows={2} />
       </Form>
     </SlideOver>

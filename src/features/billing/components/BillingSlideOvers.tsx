@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import {
@@ -17,11 +17,9 @@ import {
   useRecordPaymentMutation,
 } from "@/api/services/billing.api";
 import { useGetChangeOrdersQuery } from "@/api/services/changeOrders.api";
-import { useGetCompanyAccountGroupsQuery, useGetCompanyAccountsQuery } from "@/api/services/companyAccounts.api";
 import { useGetProjectTaxQuery } from "@/api/services/tax.api";
-import type { ClientPaymentMethod, CompanyAccountType, ScheduleStage, UnpaidStageWarning } from "@/api/types";
+import type { ScheduleStage, UnpaidStageWarning } from "@/api/types";
 import { AllocationEditor, type AllocatableInvoice } from "@/components/common/AllocationEditor";
-import { PAYMENT_METHODS } from "@/components/common/BillingBadges";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
@@ -39,7 +37,7 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { Button } from "@/components/ui/button";
-import { CompanyAccountSlideOver } from "@/features/finance/components/CompanyAccountSlideOver";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useEnumT, useT } from "@/i18n/useT";
 import { todayPK } from "@/lib/dates";
@@ -355,17 +353,10 @@ export function NewInvoiceSlideOver({ open, onOpenChange, projectId, billingMode
 
 // ─── Record payment ─────────────────────────────────────────────────────────
 
-/** A group's type decides the method; only a bank-type group asks which of its two. */
-const BANK_METHODS: readonly ClientPaymentMethod[] = ["BANK_TRANSFER", "CHEQUE"];
-const ACCOUNT_TYPE_OF: Record<ClientPaymentMethod, CompanyAccountType> = { CASH: "CASH", WALLET: "WALLET", JAZZCASH: "WALLET", EASYPAISA: "WALLET", RAAST: "WALLET", BANK_TRANSFER: "BANK", CHEQUE: "BANK" };
+const HOW_PAID: HowPaid = { name: "method", CASH: "CASH", WALLET: "WALLET", BANK: "BANK_TRANSFER", cheque: "CHEQUE" };
 
 export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open & { projectId: string }) {
   const t = useT();
-  const te = useEnumT();
-  const canAddAccount = useCan("finance.account.manage");
-  const groups = useGetCompanyAccountGroupsQuery(undefined, { skip: !open });
-  const accounts = useGetCompanyAccountsQuery({ active: true }, { skip: !open });
-  const [addingAccount, setAddingAccount] = useState(false);
   // Step 18: WHT only when tax is on for this project (company setting or project override).
   const projectTax = useGetProjectTaxQuery(projectId);
   const invoices = useGetInvoicesQuery({ projectId, limit: 100 });
@@ -378,39 +369,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
     values: { receivedOn: todayPK(), amountPaisa: null, method: "BANK_TRANSFER", groupId: null, companyAccountId: null, bankName: "", reference: "", chequeNo: "", chequeDate: "", whtDeductedPaisa: null, whtRatePercent: null, whtCertificateNo: "", whtCertificateDate: "", whtCertificate: null, slip: null, note: "" },
   });
   const [method, amount, wht, whtRate] = useWatch({ control: form.control, name: ["method", "amountPaisa", "whtDeductedPaisa", "whtRatePercent"] });
-  const groupId = useWatch({ control: form.control, name: "groupId" });
-  const group = groups.data?.find((g) => g.id === groupId);
-  const accountType = group?.type ?? ACCOUNT_TYPE_OF[method];
-  const inGroup = useMemo(() => (accounts.data ?? []).filter((a) => a.group.id === groupId), [accounts.data, groupId]);
-  // The method and account follow the group in the same update: a select that mounts or changes
-  // options while its value is not one of them clears the field.
-  const pickGroup = useCallback(
-    (id: string | null) => {
-      const next = groups.data?.find((g) => g.id === id);
-      if (!next) return;
-      const current = form.getValues("method");
-      if (next.type !== "BANK") form.setValue("method", next.type);
-      else if (!BANK_METHODS.includes(current)) form.setValue("method", "BANK_TRANSFER");
-      const options = (accounts.data ?? []).filter((a) => a.group.id === next.id);
-      form.setValue("companyAccountId", options.length === 1 ? options[0]!.id : null);
-    },
-    [groups.data, accounts.data, form],
-  );
-  // Opens on the first bank-type group, as the form always has.
-  useEffect(() => {
-    if (form.getValues("groupId") || !groups.data?.length) return;
-    const first = (groups.data.find((g) => g.type === "BANK") ?? groups.data[0]!).id;
-    form.setValue("groupId", first);
-    pickGroup(first);
-  }, [groups.data, form, pickGroup]);
-  const accountId = useWatch({ control: form.control, name: "companyAccountId" });
-  const chosenAccount = inGroup.find((a) => a.id === accountId);
-  // The group changed (or the list did): keep a choice that still fits, and fill in an only account.
-  useEffect(() => {
-    const current = form.getValues("companyAccountId");
-    if (current && inGroup.some((a) => a.id === current)) return;
-    form.setValue("companyAccountId", inGroup.length === 1 ? inGroup[0]!.id : null);
-  }, [inGroup, form]);
+  const checkAccount = useCompanyAccountCheck(form);
   const taxOn = projectTax.data?.effective.taxOn ?? false;
   const defaultWht = projectTax.data?.company.whtDefaultRatePercent ?? 0;
   // Rate without an amount → the backend works the WHT out (r % of cash + WHT); shown here the same way.
@@ -429,10 +388,7 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
   const total = sumPaisa([amount ?? "0", whtPaisa]);
 
   const onSubmit = async (v: z.output<typeof paymentSchema>) => {
-    if (inGroup.length && !v.companyAccountId) {
-      form.setError("companyAccountId", { message: t("cashSite.accounts.chooseAccount") });
-      return;
-    }
+    if (!checkAccount(v)) return;
     const allocations = touched
       ? Object.entries(alloc)
           .filter(([, a]) => a && Number(a) > 0)
@@ -447,8 +403,8 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             amountPaisa: v.amountPaisa,
             method: v.method,
             ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
-            ...(accountType === "BANK" && v.bankName ? { bankName: v.bankName } : {}),
-            ...(accountType !== "CASH" && v.reference ? { reference: v.reference } : {}),
+            ...((v.method === "BANK_TRANSFER" || v.method === "CHEQUE") && v.bankName ? { bankName: v.bankName } : {}),
+            ...(v.method !== "CASH" && v.reference ? { reference: v.reference } : {}),
             ...(v.method === "CHEQUE" ? { chequeNo: v.chequeNo, ...(v.chequeDate ? { chequeDate: v.chequeDate } : {}) } : {}),
             ...(taxOn && v.whtDeductedPaisa ? { whtDeductedPaisa: v.whtDeductedPaisa } : {}),
             ...(taxOn && v.whtRatePercent ? { whtRatePercent: v.whtRatePercent } : {}),
@@ -484,36 +440,10 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
             <MoneyField name="amountPaisa" label={t("field.amount")} required />
             <DateField name="receivedOn" label={t("billing.forms.receivedOn")} required max={todayPK()} />
           </FieldGrid>
-          <FieldGrid>
-            <SelectField name="groupId" label={t("cashSite.accounts.paymentGroup")} required onValueChange={pickGroup} options={(groups.data ?? []).map((g) => ({ value: g.id, label: g.name }))} />
-            {inGroup.length ? (
-              <SelectField name="companyAccountId" label={t("cashSite.accounts.account")} required options={inGroup.map((a) => ({ value: a.id, label: a.accountNumber ? `${a.name} · ${a.accountNumber}` : a.name }))} />
-            ) : null}
-          </FieldGrid>
-          {chosenAccount?.accountTitle ? (
-            <p className="text-sm text-muted-foreground" data-testid="payment-account-details">
-              {[chosenAccount.accountTitle, chosenAccount.iban, chosenAccount.branch].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
-          {accounts.data && group && !inGroup.length ? (
-            <InlineAlert
-              tone="warning"
-              title={t("cashSite.accounts.noneInGroup", { group: group?.name ?? "" })}
-              action={
-                canAddAccount ? (
-                  <Button type="button" variant="outline" size="sm" onClick={() => setAddingAccount(true)}>
-                    {t("cashSite.accounts.add")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              {t("cashSite.accounts.noneInGroupDesc")}
-            </InlineAlert>
-          ) : null}
-          {accountType === "BANK" ? <SelectField name="method" label={t("field.method")} required options={PAYMENT_METHODS.filter((m) => BANK_METHODS.includes(m.value)).map((m) => ({ value: m.value, label: te("clientPaymentMethod", m.value, m.label) }))} /> : null}
-          {accountType === "CASH" ? null : (
+          <CompanyAccountField how={HOW_PAID} label={t("cashSite.accounts.receivedInGroup")} />
+          {method === "CASH" ? null : (
             <FieldGrid>
-              {accountType === "BANK" ? <TextField name="bankName" label={t("cashSite.accounts.customerBank")} placeholder={t("billing.forms.bankPh")} /> : null}
+              {method === "BANK_TRANSFER" || method === "CHEQUE" ? <TextField name="bankName" label={t("cashSite.accounts.customerBank")} placeholder={t("billing.forms.bankPh")} /> : null}
               <TextField name="reference" label={t("field.reference")} placeholder={t("billing.forms.referencePh")} />
             </FieldGrid>
           )}
@@ -563,8 +493,6 @@ export function RecordPaymentSlideOver({ open, onOpenChange, projectId }: Open &
           <TextareaField name="note" label={t("field.note")} rows={2} />
         </Form>
       </SlideOver>
-      {/* Beside the form, not in it: a submit inside would bubble to the payment form through React. */}
-      {addingAccount ? <CompanyAccountSlideOver account={null} groupId={groupId} onClose={() => setAddingAccount(false)} onSaved={(a) => form.setValue("companyAccountId", a.id)} /> : null}
     </>
   );
 }

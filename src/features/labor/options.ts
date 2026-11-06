@@ -5,7 +5,7 @@ import { enums as laborEnums } from "@/i18n/areas/labor/en";
 import { useEnumT } from "@/i18n/useT";
 import { humanize } from "@/lib/status";
 
-export const PAID_FROM_VALUES: LaborPaidFrom[] = ["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA"];
+export const PAID_FROM_VALUES: LaborPaidFrom[] = ["SITE_CASH", "OFFICE_CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"];
 
 export const RATE_TYPE_OPTIONS: Array<{ value: RateType; unit: string }> = [
   { value: "PER_SQFT", unit: "sqft" },
@@ -17,7 +17,7 @@ export const RATE_TYPE_OPTIONS: Array<{ value: RateType; unit: string }> = [
 ];
 
 /** English labels (kept for the cash book until it reads `te("laborFloatMethod", v)`). */
-export const FLOAT_METHOD_OPTIONS = (["CASH", "BANK", "JAZZCASH", "EASYPAISA"] as const).map((value) => ({ value, label: laborEnums.laborFloatMethod[value] }));
+export const FLOAT_METHOD_OPTIONS = (["CASH", "BANK", "JAZZCASH", "EASYPAISA", "WALLET"] as const).map((value) => ({ value, label: laborEnums.laborFloatMethod[value] }));
 
 /** English labels (kept for the cash book until it reads `te("laborCashEntry", type)`). */
 export const CASH_ENTRY_LABELS: Record<string, string> = laborEnums.laborCashEntry;

@@ -15504,7 +15504,7 @@ export interface paths {
         };
         /**
          * Accounts: download the import template
-         * @description `finance.account.manage`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `group` (required), `name` (required), `accountTitle`, `accountNumber`, `iban`, `branch`, `worksLike`, `notes`.
+         * @description `finance.account.manage`. An .xlsx file: sheet **Data** with the headers (English + Roman Urdu, notes in English / Roman Urdu / Urdu on each header) and one example row (rows containing "(example" are skipped), sheet **Instructions** with every column in three languages and the allowed values of this company. Columns: `group` (required), `name` (required), `accountTitle`, `accountNumber`, `openingBalance`, `iban`, `branch`, `worksLike`, `notes`.
          */
         get: {
             parameters: {
@@ -33110,7 +33110,12 @@ export interface paths {
                          * @description Required for CASH / PARTIAL
                          * @enum {string}
                          */
-                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description Photo of the challan (upload with kind CHALLAN)
@@ -33506,7 +33511,12 @@ export interface paths {
                          */
                         paidNowPaisa?: string | number;
                         /** @enum {string} */
-                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH";
+                        paidFrom?: "OFFICE_CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "SITE_CASH" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                     };
                 };
             };
@@ -35203,7 +35213,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     supplierId?: string;
-                    method?: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                    method?: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "WALLET";
                     status?: "CLEARED" | "PENDING" | "BOUNCED";
                     from?: string;
                     to?: string;
@@ -35316,7 +35326,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "CHEQUE" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         reference?: string;
                         chequeNo?: string;
                         /** @example 2026-12-25 */
@@ -36734,6 +36749,11 @@ export interface paths {
                          * @example 2500000
                          */
                         recoveredAmountPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description RECOVER_FROM_DRIVER: the company account the cash came into
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description ACCEPT_LOSS only (THEKEDAR): charge the loss to this sub-contract as a deduction
@@ -39457,6 +39477,11 @@ export interface paths {
                          * @example 2500000
                          */
                         depositPaisa?: string | number;
+                        /**
+                         * Format: uuid
+                         * @description The company account the deposit was paid from
+                         */
+                        companyAccountId?: string;
                         /** @example PSY-2231 */
                         reference?: string;
                         note?: string;
@@ -40129,6 +40154,11 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description The company account the refund came into
+                         */
+                        companyAccountId?: string;
                         /**
                          * @description Cash the yard paid back; the rest of the deposit is adjusted against the charges
                          * @example 2500000
@@ -44332,7 +44362,12 @@ export interface paths {
                         /** @example 2026-12-25 */
                         date: string;
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /**
                          * Format: uuid
                          * @description SITE_CASH: whose cash. Defaults to the caller's own.
@@ -45701,7 +45736,12 @@ export interface paths {
                     "application/json": {
                         lineIds: string[];
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** Format: uuid */
                         cashAccountId?: string;
                         reference?: string;
@@ -46257,7 +46297,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidFrom: "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** Format: uuid */
                         cashAccountId?: string;
                         reference?: string;
@@ -46851,7 +46896,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** @example EP88213 */
                         reference?: string;
                         /** Format: uuid */
@@ -47886,7 +47936,12 @@ export interface paths {
                          */
                         amountPaisa?: string | number;
                         /** @enum {string} */
-                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        method: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         reference?: string;
                     };
                 };
@@ -48965,7 +49020,7 @@ export interface paths {
                     from?: string;
                     to?: string;
                     categoryId?: string;
-                    paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                    paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
                     /** @description Description or paid to */
                     search?: string;
                 };
@@ -48994,6 +49049,7 @@ export interface paths {
                          *           },
                          *           "amountPaisa": "8500000",
                          *           "paidVia": "BANK",
+                         *           "companyAccountId": null,
                          *           "paidTo": "Ch. Aslam",
                          *           "description": "Office rent, November",
                          *           "attachmentId": null,
@@ -49080,7 +49136,12 @@ export interface paths {
                          */
                         amountPaisa: string | number;
                         /** @enum {string} */
-                        paidVia: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidVia: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /**
+                         * Format: uuid
+                         * @description The company account the money moved through; its balance moves. Must be switched on and fit how it was paid.
+                         */
+                        companyAccountId?: string;
                         /** @example Landlord — Ch. Aslam */
                         paidTo?: string;
                         /** @example Office rent, November */
@@ -49112,6 +49173,7 @@ export interface paths {
                          *         },
                          *         "amountPaisa": "8500000",
                          *         "paidVia": "BANK",
+                         *         "companyAccountId": null,
                          *         "paidTo": "Ch. Aslam",
                          *         "description": "Office rent, November",
                          *         "attachmentId": null,
@@ -49272,7 +49334,9 @@ export interface paths {
                          */
                         amountPaisa?: string | number;
                         /** @enum {string} */
-                        paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                        paidVia?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                        /** Format: uuid */
+                        companyAccountId?: string | null;
                         paidTo?: string | null;
                         description?: string;
                         /** Format: uuid */
@@ -49299,6 +49363,7 @@ export interface paths {
                          *         },
                          *         "amountPaisa": "9000000",
                          *         "paidVia": "BANK",
+                         *         "companyAccountId": null,
                          *         "paidTo": "Ch. Aslam",
                          *         "description": "Office rent, November",
                          *         "attachmentId": null,
@@ -49371,7 +49436,7 @@ export interface paths {
         };
         /**
          * Payment groups
-         * @description The company’s own list, A–Z. Every company starts with Bank, Cash and Online wallet. `type` says how a group behaves. Also open to whoever records payments.
+         * @description The company’s own list, A–Z. Every company starts with Bank, Cash and Online wallet. `type` says how a group behaves; `balancePaisa` adds up its accounts. Also open to whoever moves company money (no balance for them).
          */
         get: {
             parameters: {
@@ -49396,7 +49461,8 @@ export interface paths {
                          *           "id": "0199a8c0-0000-7000-8000-0000000ca101",
                          *           "name": "Bank",
                          *           "type": "BANK",
-                         *           "accountCount": 2
+                         *           "accountCount": 2,
+                         *           "balancePaisa": "6000000"
                          *         }
                          *       ]
                          *     }
@@ -49467,7 +49533,8 @@ export interface paths {
                          *         "id": "0199a8c0-0000-7000-8000-0000000ca101",
                          *         "name": "Bank",
                          *         "type": "BANK",
-                         *         "accountCount": 0
+                         *         "accountCount": 0,
+                         *         "balancePaisa": "6000000"
                          *       }
                          *     }
                          */
@@ -49644,7 +49711,8 @@ export interface paths {
                          *         "id": "0199a8c0-0000-7000-8000-0000000ca101",
                          *         "name": "Banks",
                          *         "type": "BANK",
-                         *         "accountCount": 2
+                         *         "accountCount": 2,
+                         *         "balancePaisa": "6000000"
                          *       }
                          *     }
                          */
@@ -49704,6 +49772,105 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/company-accounts/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Account statement
+         * @description Every movement, newest first: + money in, − money out, and the balance after it.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description CompanyAccount id */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Movements */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "success": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "0199a8c0-0000-7000-8000-0000000ca201",
+                         *           "type": "CLIENT_PAYMENT",
+                         *           "amountPaisa": "5000000",
+                         *           "description": "Payment RV-2026-0014",
+                         *           "refId": null,
+                         *           "projectId": null,
+                         *           "occurredAt": "2026-11-06T09:00:00.000Z",
+                         *           "balancePaisa": "6000000"
+                         *         }
+                         *       ],
+                         *       "meta": {
+                         *         "page": 1,
+                         *         "limit": 25,
+                         *         "total": 1,
+                         *         "totalPages": 1
+                         *       }
+                         *     }
+                         */
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: true;
+                            data?: unknown;
+                        };
+                    };
+                };
+                /** @description UNAUTHENTICATED | TOKEN_INVALID | TOKEN_EXPIRED | SESSION_REVOKED | ACCOUNT_DISABLED | DEVICE_REVOKED */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description FORBIDDEN | COMPANY_SUSPENDED */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description COMPANY_ACCOUNT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/company-accounts": {
         parameters: {
             query?: never;
@@ -49713,7 +49880,7 @@ export interface paths {
         };
         /**
          * Company accounts
-         * @description Where the company receives money, by group, then A–Z. Also open to whoever records payments: the payment form picks from this list.
+         * @description Where the company keeps money, by group, then A–Z, with each balance. Also open to whoever moves company money, for the account picker: they see names and last digits, no balance.
          */
         get: {
             parameters: {
@@ -49752,6 +49919,8 @@ export interface paths {
                          *           "branch": null,
                          *           "note": null,
                          *           "isActive": true,
+                         *           "balancePaisa": "6000000",
+                         *           "openingBalancePaisa": "1000000",
                          *           "paymentCount": 3,
                          *           "createdAt": "2026-11-06T09:00:00.000Z",
                          *           "updatedAt": "2026-11-06T09:00:00.000Z"
@@ -49812,6 +49981,11 @@ export interface paths {
                         accountTitle?: string;
                         /** @description Account or mobile number. Required in a BANK or WALLET group. */
                         accountNumber?: string;
+                        /**
+                         * @description What is in the account today; the balance starts from it
+                         * @example 2500000
+                         */
+                        openingBalancePaisa?: string | number;
                         iban?: string;
                         branch?: string;
                         note?: string;
@@ -49842,6 +50016,8 @@ export interface paths {
                          *         "branch": null,
                          *         "note": null,
                          *         "isActive": true,
+                         *         "balancePaisa": "6000000",
+                         *         "openingBalancePaisa": "1000000",
                          *         "paymentCount": 3,
                          *         "createdAt": "2026-11-06T09:00:00.000Z",
                          *         "updatedAt": "2026-11-06T09:00:00.000Z"
@@ -50011,6 +50187,11 @@ export interface paths {
                         note?: string | null;
                         /** @description false takes it off the payment form; its payments stay */
                         isActive?: boolean;
+                        /**
+                         * @description Corrects the opening balance; the balance moves by the difference
+                         * @example 2500000
+                         */
+                        openingBalancePaisa?: string | number;
                     };
                 };
             };
@@ -50038,6 +50219,8 @@ export interface paths {
                          *         "branch": null,
                          *         "note": null,
                          *         "isActive": false,
+                         *         "balancePaisa": "6000000",
+                         *         "openingBalancePaisa": "1000000",
                          *         "paymentCount": 3,
                          *         "createdAt": "2026-11-06T09:00:00.000Z",
                          *         "updatedAt": "2026-11-06T09:00:00.000Z"
@@ -54125,7 +54308,12 @@ export interface paths {
                              * @description Top-up approve: how the cash is sent
                              * @enum {string}
                              */
-                            method?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA";
+                            method?: "CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
+                            /**
+                             * Format: uuid
+                             * @description Top-up approve: the company account it is sent from
+                             */
+                            companyAccountId?: string;
                         }[];
                     };
                 };

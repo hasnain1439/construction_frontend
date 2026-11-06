@@ -1,6 +1,6 @@
 "use client";
 
-import { Landmark, Layers, Pencil, Plus, Power, Trash2 } from "lucide-react";
+import { Landmark, Layers, Pencil, Plus, Power, ScrollText, Trash2, Wallet } from "lucide-react";
 import { useState } from "react";
 import {
   useDeleteCompanyAccountMutation,
@@ -11,6 +11,8 @@ import {
 import type { CompanyAccount } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { KpiCard } from "@/components/common/KpiCard";
+import { MoneyText } from "@/components/common/MoneyText";
 import { useCan } from "@/components/common/PermissionGate";
 import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -20,10 +22,12 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { CompanyAccountGroupsSlideOver } from "@/features/finance/components/CompanyAccountGroupsSlideOver";
 import { CompanyAccountSlideOver } from "@/features/finance/components/CompanyAccountSlideOver";
+import { CompanyAccountStatement } from "@/features/finance/components/CompanyAccountStatement";
 import { ImportButton } from "@/features/onboarding/components/ImportWizard";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useT } from "@/i18n/useT";
+import { formatPKR, sumPaisa } from "@/lib/money";
 
 const ALL = "ALL";
 
@@ -42,6 +46,8 @@ export function CompanyAccountsView() {
   const [managing, setManaging] = useState(false);
   const [editing, setEditing] = useState<CompanyAccount | null>(null);
   const [deleting, setDeleting] = useState<CompanyAccount | null>(null);
+  const [statement, setStatement] = useState<CompanyAccount | null>(null);
+  const total = sumPaisa((groups.data ?? []).map((g) => g.balancePaisa ?? "0"));
   // A group deleted while it was picked falls back to All.
   const tab = groups.data?.some((g) => g.id === picked) ? picked : ALL;
 
@@ -93,11 +99,16 @@ export function CompanyAccountsView() {
         ),
     },
     {
-      id: "payments",
-      header: t("cashSite.accounts.payments"),
+      id: "balance",
+      header: t("cashSite.accounts.balance"),
       align: "right",
-      sortValue: (a) => a.paymentCount,
-      cell: (a) => <span className="tabular">{a.paymentCount}</span>,
+      sortValue: (a) => Number(a.balancePaisa ?? 0),
+      cell: (a) => (
+        <MoneyText
+          paisa={a.balancePaisa ?? "0"}
+          className={a.balancePaisa?.startsWith("-") ? "font-medium text-danger" : "font-medium"}
+        />
+      ),
     },
     {
       id: "status",
@@ -115,6 +126,7 @@ export function CompanyAccountsView() {
         <RowActions
           name={a.name}
           actions={[
+            { label: t("cashSite.accounts.statement"), icon: ScrollText, onSelect: () => setStatement(a) },
             { label: t("common.edit"), icon: Pencil, onSelect: () => setEditing(a), hidden: !canManage },
             {
               label: t(a.isActive ? "cashSite.accounts.switchOff" : "cashSite.accounts.switchOn"),
@@ -158,6 +170,27 @@ export function CompanyAccountsView() {
           ) : null
         }
       />
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="account-totals">
+        <KpiCard
+          label={t("cashSite.accounts.totalBalance")}
+          icon={Wallet}
+          highlight
+          loading={groups.isLoading}
+          value={formatPKR(total)}
+        />
+        {(groups.data ?? []).map((g) => (
+          <KpiCard
+            key={g.id}
+            label={g.name}
+            icon={Landmark}
+            value={formatPKR(g.balancePaisa ?? "0")}
+            tone={g.balancePaisa?.startsWith("-") ? "danger" : undefined}
+            hint={t(g.accountCount === 1 ? "cashSite.accounts.oneAccount" : "cashSite.accounts.nAccounts", {
+              n: g.accountCount,
+            })}
+          />
+        ))}
+      </div>
       <div className="mb-4 overflow-x-auto">
         <SegmentedControl<string>
           value={tab}
@@ -194,6 +227,9 @@ export function CompanyAccountsView() {
       ) : null}
       {editing ? (
         <CompanyAccountSlideOver key={editing.id} account={editing} onClose={() => setEditing(null)} />
+      ) : null}
+      {statement ? (
+        <CompanyAccountStatement key={statement.id} account={statement} onClose={() => setStatement(null)} />
       ) : null}
       {deleting ? (
         <ConfirmDialog

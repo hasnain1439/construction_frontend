@@ -42,6 +42,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ProjectPageShell } from "@/features/projects/views/ProjectModeViews";
+import { useForm } from "react-hook-form";
+import { Form } from "@/components/forms/Form";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatDate } from "@/lib/dates";
 import { formatPKR, formatPKRShort, sumPaisa } from "@/lib/money";
@@ -331,11 +334,13 @@ function AdjustLineDialog({ settlementId, line, onClose }: { settlementId: strin
   );
 }
 
+const WAGES_HOW_PAID: HowPaid = { name: "paidFrom", CASH: "OFFICE_CASH", WALLET: "WALLET", BANK: "BANK", siteCash: "SITE_CASH" };
+
 function PayDialog({ settlement, lines, onClose }: { settlement: Settlement; lines: SettlementLine[]; onClose: () => void }) {
   const t = useT();
-  const { paidFromOptions } = useLaborLabels();
   const munshi = useIsMunshi();
-  const [paidFrom, setPaidFrom] = useState<LaborPaidFrom>(munshi ? "SITE_CASH" : "OFFICE_CASH");
+  const form = useForm<{ paidFrom: LaborPaidFrom; groupId: string | null; companyAccountId: string | null }>({ defaultValues: { paidFrom: munshi ? "SITE_CASH" : "OFFICE_CASH", groupId: null, companyAccountId: null } });
+  const checkAccount = useCompanyAccountCheck(form, { skip: munshi });
   const [pay, { isLoading }] = usePaySettlementMutation();
   const run = useMutationToast();
   const total = sumPaisa(lines.map((l) => l.netPaisa));
@@ -351,18 +356,9 @@ function PayDialog({ settlement, lines, onClose }: { settlement: Settlement; lin
           {munshi ? (
             <p className="text-sm">{t("labor.pay.yourSiteCash")}</p>
           ) : (
-            <Select value={paidFrom} onValueChange={(v) => setPaidFrom(v as LaborPaidFrom)}>
-              <SelectTrigger aria-label={t("field.paidFrom")}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {paidFromOptions.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Form form={form} onSubmit={() => undefined}>
+              <CompanyAccountField how={WAGES_HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
+            </Form>
           )}
         </div>
         <DialogFooter>
@@ -372,7 +368,9 @@ function PayDialog({ settlement, lines, onClose }: { settlement: Settlement; lin
           <Button
             disabled={isLoading}
             onClick={async () => {
-              const ok = await run(() => pay({ id: settlement.id, body: { lineIds: lines.map((l) => l.id), paidFrom } }).unwrap(), { success: t("labor.pay.paid", { amount: formatPKR(total) }) });
+              const v = form.getValues();
+              if (!checkAccount(v)) return;
+              const ok = await run(() => pay({ id: settlement.id, body: { lineIds: lines.map((l) => l.id), paidFrom: v.paidFrom, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}) } }).unwrap(), { success: t("labor.pay.paid", { amount: formatPKR(total) }) });
               if (ok) onClose();
             }}
           >

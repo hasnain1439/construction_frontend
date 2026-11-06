@@ -1,14 +1,16 @@
 import { baseApi } from "@/api/baseApi";
 import { ENDPOINTS } from "@/api/endpoints";
 import { LIST, providesList } from "@/api/tags";
-import { cleanParams } from "@/api/transform";
+import { cleanParams, toPage } from "@/api/transform";
 import type {
   CompanyAccount,
   CompanyAccountBody,
+  CompanyAccountEntry,
   CompanyAccountGroup,
   CompanyAccountPatch,
   CompanyAccountsQuery,
   CompanyAccountType,
+  Paginated,
 } from "@/api/types";
 
 const ACCOUNTS_LIST = { type: "CompanyAccounts" as const, id: LIST };
@@ -43,6 +45,11 @@ export const companyAccountsApi = baseApi.injectEndpoints({
     }),
 
     // An account changes its group's account count too.
+    getCompanyAccountEntries: build.query<Paginated<CompanyAccountEntry>, { id: string; page: number; limit: number }>({
+      query: ({ id, page, limit }) => ({ url: ENDPOINTS.companyAccounts.entries(id), params: { page, limit } }),
+      transformResponse: toPage<CompanyAccountEntry>,
+      providesTags: [ACCOUNTS_LIST],
+    }),
     getCompanyAccounts: build.query<CompanyAccount[], CompanyAccountsQuery | void>({
       query: (params) => ({ url: ENDPOINTS.companyAccounts.list, params: cleanParams(params ?? undefined) }),
       providesTags: (rows) => providesList(rows, "CompanyAccounts"),
@@ -67,6 +74,7 @@ export const {
   useCreateCompanyAccountGroupMutation,
   useRenameCompanyAccountGroupMutation,
   useDeleteCompanyAccountGroupMutation,
+  useGetCompanyAccountEntriesQuery,
   useGetCompanyAccountsQuery,
   useCreateCompanyAccountMutation,
   useUpdateCompanyAccountMutation,

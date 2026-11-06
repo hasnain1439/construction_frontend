@@ -36,6 +36,7 @@ import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
+import { CompanyAccountField, useCompanyAccountCheck, type HowPaid } from "@/features/finance/components/CompanyAccountField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { todayPK } from "@/lib/dates";
 import { formatPKR } from "@/lib/money";
@@ -245,18 +246,21 @@ function PayeeField({ projectId, allowSubcontractor }: { projectId: string; allo
   );
 }
 
+const LABOR_HOW_PAID: HowPaid = { name: "paidFrom", CASH: "OFFICE_CASH", WALLET: "WALLET", BANK: "BANK", siteCash: "SITE_CASH" };
+
 export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerId }: Open & { projectId: string; defaultWorkerId?: string }) {
   const t = useT();
-  const { paidFromOptions } = useLaborLabels();
   const munshi = useIsMunshi();
   const [create, { isLoading }] = useCreateAdvanceMutation();
   const run = useMutationToast();
   const [clientId] = useState(newClientId);
   const form = useForm<AdvanceValues, unknown, z.output<typeof advanceSchema>>({
     resolver: zodResolver(advanceSchema),
-    values: { payeeType: "WORKER", payeeId: defaultWorkerId ?? null, amountPaisa: null, date: todayPK(), paidFrom: munshi ? "SITE_CASH" : "OFFICE_CASH", reference: "", note: "" },
+    values: { payeeType: "WORKER", payeeId: defaultWorkerId ?? null, amountPaisa: null, date: todayPK(), paidFrom: munshi ? "SITE_CASH" : "OFFICE_CASH", groupId: null, companyAccountId: null, reference: "", note: "" },
   });
+  const checkAccount = useCompanyAccountCheck(form, { skip: munshi || !open });
   const onSubmit = async (v: z.output<typeof advanceSchema>) => {
+    if (!checkAccount(v)) return;
     const ok = await run(
       () =>
         create({
@@ -267,6 +271,7 @@ export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerI
             amountPaisa: v.amountPaisa,
             date: v.date,
             paidFrom: v.paidFrom,
+            ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}),
             ...(v.reference ? { reference: v.reference } : {}),
             ...(v.note ? { note: v.note } : {}),
             clientId,
@@ -295,7 +300,7 @@ export function AdvanceSlideOver({ open, onOpenChange, projectId, defaultWorkerI
         {munshi ? (
           <InlineAlert tone="info">{t("labor.advance.fromSiteCash")}</InlineAlert>
         ) : (
-          <SelectField name="paidFrom" label={t("field.paidFrom")} required options={paidFromOptions} />
+          <CompanyAccountField how={LABOR_HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         )}
         {!munshi ? <TextField name="reference" label={t("field.reference")} placeholder={t("labor.advance.referencePlaceholder")} /> : null}
         <TextareaField name="note" label={t("field.note")} rows={2} placeholder={t("labor.advance.notePlaceholder")} />
@@ -359,21 +364,22 @@ export function MeasurementSlideOver({ open, onOpenChange, projectId, defaultAss
 
 export function SubPaymentSlideOver({ open, onOpenChange, row }: Open & { row: SubcontractAccountRow | null }) {
   const t = useT();
-  const { paidFromOptions } = useLaborLabels();
   const [pay, { isLoading }] = usePaySubcontractorMutation();
   const run = useMutationToast();
   const form = useForm<SubPaymentValues, unknown, z.output<typeof subPaymentSchema>>({
     resolver: zodResolver(subPaymentSchema),
-    values: { type: "RUNNING", amountPaisa: null, paidFrom: "BANK", reference: "", date: todayPK(), note: "", allowAdvance: false },
+    values: { type: "RUNNING", amountPaisa: null, paidFrom: "BANK", groupId: null, companyAccountId: null, reference: "", date: todayPK(), note: "", allowAdvance: false },
   });
+  const checkAccount = useCompanyAccountCheck(form, { skip: !open });
   const retention = useWatch({ control: form.control, name: "type" }) === "RETENTION_RELEASE";
   if (!row) return null;
   const onSubmit = async (v: z.output<typeof subPaymentSchema>) => {
+    if (!checkAccount(v)) return;
     const ok = await run(
       () =>
         pay({
           id: row.id,
-          body: { type: v.type, amountPaisa: v.amountPaisa, paidFrom: v.paidFrom, date: v.date, ...(v.reference ? { reference: v.reference } : {}), ...(v.note ? { note: v.note } : {}), ...(v.allowAdvance ? { allowAdvance: true } : {}) },
+          body: { type: v.type, amountPaisa: v.amountPaisa, paidFrom: v.paidFrom, ...(v.companyAccountId ? { companyAccountId: v.companyAccountId } : {}), date: v.date, ...(v.reference ? { reference: v.reference } : {}), ...(v.note ? { note: v.note } : {}), ...(v.allowAdvance ? { allowAdvance: true } : {}) },
         }).unwrap(),
       { success: t("labor.subPay.recorded"), setError: form.setError, codeFields: { EXCEEDS_BALANCE: "amountPaisa", EXCEEDS_RETENTION: "amountPaisa", INSUFFICIENT_CASH: "amountPaisa", NO_CASH_ACCOUNT: "paidFrom" } },
     );
@@ -408,7 +414,7 @@ export function SubPaymentSlideOver({ open, onOpenChange, row }: Open & { row: S
           <MoneyField name="amountPaisa" label={t("field.amount")} required />
           <DateField name="date" label={t("field.date")} required max={todayPK()} />
         </FieldGrid>
-        <SelectField name="paidFrom" label={t("field.paidFrom")} required options={paidFromOptions} />
+        <CompanyAccountField how={LABOR_HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         <TextField name="reference" label={t("field.reference")} placeholder={t("labor.subPay.referencePlaceholder")} />
         {!retention ? <ToggleField name="allowAdvance" label={t("labor.subPay.allowAdvance")} /> : null}
         <TextareaField name="note" label={t("field.note")} rows={2} />
