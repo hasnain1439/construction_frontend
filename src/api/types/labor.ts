@@ -425,7 +425,7 @@ export interface WorkerLaborSummary {
 }
 
 export interface SubcontractorLaborSummary {
-  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean };
+  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean; bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
   assignments: Array<SubcontractAssignment & { project: ProjectStatusRef; account: SubAccount }>;
   totals: { valuePaisa: Paisa; paidPaisa: Paisa; retentionHeldPaisa: Paisa; balanceDuePaisa: Paisa };
 }
