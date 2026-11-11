@@ -7,6 +7,7 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
+import type { PayeeAccount } from "./masterData";
 
 export type AttendanceStatus = "FULL" | "HALF" | "ABSENT";
 export type RateType = "PER_SQFT" | "PER_TON" | "PER_BRICK" | "PER_RFT" | "PER_CFT" | "LUMPSUM" | "PER_UNIT";
@@ -425,7 +426,7 @@ export interface WorkerLaborSummary {
 }
 
 export interface SubcontractorLaborSummary {
-  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean; bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
+  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean; accounts?: PayeeAccount[] };
   assignments: Array<SubcontractAssignment & { project: ProjectStatusRef; account: SubAccount }>;
   totals: { valuePaisa: Paisa; paidPaisa: Paisa; retentionHeldPaisa: Paisa; balanceDuePaisa: Paisa };
 }

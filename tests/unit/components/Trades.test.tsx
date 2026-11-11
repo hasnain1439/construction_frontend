@@ -59,10 +59,44 @@ describe("trades", () => {
   });
 });
 
-describe("payee account", () => {
-  it("a new record sends only the filled fields; an edit clears the emptied ones", () => {
-    const v = { bankName: "HBL", accountTitle: "", accountNumber: "0123", iban: "" };
-    expect(payeeAccountCreate(v)).toEqual({ bankName: "HBL", accountNumber: "0123" });
-    expect(payeeAccountUpdate(v)).toEqual({ bankName: "HBL", accountTitle: null, accountNumber: "0123", iban: null });
+describe("payee accounts", () => {
+  const cement = { id: "a1", bankName: "HBL", accountTitle: "", accountNumber: "0123", iban: "", forWhat: "Cement" };
+  const wallet = { bankName: "JazzCash", accountTitle: "Bashir", accountNumber: "03001234567", iban: "", forWhat: "" };
+
+  it("a new record sends the accounts only when some were added; empties become null", () => {
+    expect(payeeAccountCreate({ accounts: [] })).toEqual({});
+    expect(payeeAccountCreate({ accounts: [wallet] })).toEqual({ accounts: [{ bankName: "JazzCash", accountTitle: "Bashir", accountNumber: "03001234567", iban: null, forWhat: null }] });
+  });
+
+  it("an edit sends the whole list (kept rows with their id; [] removes them all)", () => {
+    expect(payeeAccountUpdate({ accounts: [cement, wallet] }).accounts).toEqual([
+      { id: "a1", bankName: "HBL", accountTitle: null, accountNumber: "0123", iban: null, forWhat: "Cement" },
+      { bankName: "JazzCash", accountTitle: "Bashir", accountNumber: "03001234567", iban: null, forWhat: null },
+    ]);
+    expect(payeeAccountUpdate({ accounts: [] })).toEqual({ accounts: [] });
+  });
+
+  it("the form adds as many accounts as needed and needs a number or an IBAN", async () => {
+    const user = userEvent.setup();
+    const { FormProbe } = await import("./payeeFormProbe");
+    const submitted = vi.fn();
+    renderWithStore(<FormProbe onSubmit={submitted} />);
+    const add = screen.getByRole("button", { name: "Add account" });
+    await user.click(add);
+    await user.click(add);
+    expect(screen.getByText("Main account")).toBeInTheDocument();
+    expect(screen.getByText("Account 2")).toBeInTheDocument();
+    const banks = screen.getAllByLabelText(/Bank or wallet/);
+    await user.type(banks[0]!, "HBL");
+    await user.type(screen.getAllByLabelText(/^For/)[0]!, "Cement");
+    await user.type(banks[1]!, "Meezan");
+    await user.type(screen.getAllByLabelText("Account number")[0]!, "01234567");
+    await user.click(screen.getByRole("button", { name: "Go" }));
+    expect(await screen.findByText("Write the account number or the IBAN")).toBeInTheDocument();
+    expect(submitted).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Remove account 2" }));
+    await user.click(screen.getByRole("button", { name: "Go" }));
+    await vi.waitFor(() => expect(submitted).toHaveBeenCalledTimes(1));
+    expect(submitted.mock.calls[0]![0].accounts).toEqual([{ bankName: "HBL", accountTitle: null, accountNumber: "01234567", iban: null, forWhat: "Cement" }]);
   });
 });

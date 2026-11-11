@@ -21,8 +21,7 @@ import { useWorkerTypeName } from "@/hooks/useWorkerTypes";
 import { namesFromWorker } from "@/lib/workerTypes";
 import { useT } from "@/i18n/useT";
 import { useLaborLabels } from "../options";
-import { InfoList } from "@/components/common/InfoList";
-import { payeeAccountItems } from "@/features/master-data/components/PayeeAccountFields";
+import { PayeeAccountsList } from "@/features/master-data/components/PayeeAccountFields";
 
 const ProjectLink = ({ project, path }: { project: { id: string; name: string; code: string }; path: string }) => (
   <Link href={projectHref(project.id, path)} className="font-medium text-primary underline-offset-4 hover:underline">
@@ -122,9 +121,9 @@ export function SubcontractorDetailView({ subcontractorId }: { subcontractorId: 
             <KpiCard label={t("labor.common.retentionHeld")} icon={Wallet} value={formatPKRShort(d.totals.retentionHeldPaisa)} />
             <KpiCard label={t("field.balanceDue")} icon={d.totals.balanceDuePaisa.startsWith("-") ? BadgeAlert : HandCoins} tone={d.totals.balanceDuePaisa.startsWith("-") ? "danger" : "primary"} value={formatPKRShort(d.totals.balanceDuePaisa)} />
           </div>
-          {d.subcontractor.accountNumber || d.subcontractor.bankName ? (
+          {d.subcontractor.accounts?.length ? (
             <SectionCard title={t("masterData.payee.title")}>
-              <InfoList columns={2} items={payeeAccountItems(d.subcontractor, t)} />
+              <PayeeAccountsList accounts={d.subcontractor.accounts} />
             </SectionCard>
           ) : null}
           <SectionCard flush title={t("labor.common.subContracts")}>

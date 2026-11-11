@@ -228,11 +228,8 @@ export interface Supplier {
   address: string | null;
   ntn: string | null;
   notes: string | null;
-  /** Where to send its money. */
-  bankName?: string | null;
-  accountTitle?: string | null;
-  accountNumber?: string | null;
-  iban?: string | null;
+  /** Where to send its money (first = main). */
+  accounts?: PayeeAccount[];
   isActive: boolean;
   /** Sample supplier from "Try with demo data". */
   isDemo?: boolean;
@@ -269,7 +266,17 @@ export interface SupplierRates {
 }
 
 export type SuppliersQuery = QueryParams<"/api/v1/suppliers", "get">;
-type PayeeBody = { bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
+/** A supplier's / sub-contractor's bank or wallet account; `forWhat` = what it is for ("Cement"). */
+export interface PayeeAccount {
+  id: Id;
+  bankName: string;
+  accountTitle: string | null;
+  accountNumber: string | null;
+  iban: string | null;
+  forWhat: string | null;
+}
+/** The whole list (replaces the saved one); rows sent back with their id keep it. */
+type PayeeBody = { accounts?: Array<Omit<PayeeAccount, "id"> & { id?: Id }> };
 export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post"> & PayeeBody & { creditLimitPaisa?: Paisa };
 export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch"> & PayeeBody & { creditLimitPaisa?: Paisa | null };
 export type SetSupplierRatesBody = RequestBody<"/api/v1/suppliers/{id}/rates", "put">;
@@ -364,10 +371,7 @@ export interface Subcontractor {
   tradeLabel?: string;
   tradeLabelRoman?: string | null;
   tradeLabelUrdu?: string | null;
-  bankName?: string | null;
-  accountTitle?: string | null;
-  accountNumber?: string | null;
-  iban?: string | null;
+  accounts?: PayeeAccount[];
   phone: string | null;
   notes: string | null;
   isActive: boolean;
@@ -375,8 +379,8 @@ export interface Subcontractor {
 }
 
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
-export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & { trade: string; bankName?: string; accountTitle?: string; accountNumber?: string; iban?: string };
-export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & { trade?: string; bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
+export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & PayeeBody & { trade: string };
+export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & PayeeBody & { trade?: string };
 
 /** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
 export interface SupplierCategory {

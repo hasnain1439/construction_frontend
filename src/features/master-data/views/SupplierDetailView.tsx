@@ -34,7 +34,7 @@ import { formatPhone } from "@/lib/phone";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
 import { MaterialName, materialLabel } from "@/components/forms/MaterialPicker";
-import { payeeAccountItems } from "../components/PayeeAccountFields";
+import { PayeeAccountsList } from "../components/PayeeAccountFields";
 
 interface RateRow {
   materialId: string;
@@ -296,11 +296,15 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
                           },
                         ]
                       : []),
-                    ...payeeAccountItems(supplier, t),
                     { label: t("field.notes"), value: supplier.notes },
                   ]}
                 />
               </SectionCard>
+              {supplier.accounts?.length ? (
+                <SectionCard title={t("masterData.payee.title")}>
+                  <PayeeAccountsList accounts={supplier.accounts} />
+                </SectionCard>
+              ) : null}
               <SupplierProductsCard supplierId={supplier.id} />
             </TabsContent>
             <TabsContent value="rates" className="space-y-5">

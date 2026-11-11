@@ -199,10 +199,10 @@ describe("payment account fields", () => {
   it("are on the sub-contractor form, not on the worker form", () => {
     state.wages = true;
     const w = renderWithStore(<WorkerSlideOver open worker={worker()} onOpenChange={() => {}} />, { me: meFixture("PM") });
-    expect(screen.queryByLabelText(/Bank or wallet/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add account" })).not.toBeInTheDocument();
     w.unmount();
     renderWithStore(<SubcontractorSlideOver open subcontractor={null} onOpenChange={() => {}} />, { me: meFixture("PM") });
-    expect(screen.getByLabelText(/Bank or wallet/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add account" })).toBeInTheDocument();
   });
 });
 
