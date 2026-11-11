@@ -1707,6 +1707,38 @@
    "field": false
   },
   {
+   "key": "finance.staff.view",
+   "module": "finance",
+   "resource": "staff",
+   "action": "view",
+   "label": {
+    "en": "View office staff and salaries",
+    "roman": "Office staff aur tankhwah dekhna",
+    "urdu": "دفتری عملہ اور تنخواہ دیکھنا"
+   },
+   "description": "Office staff on a monthly salary, their advances and paid salaries.",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
+   "key": "finance.staff.manage",
+   "module": "finance",
+   "resource": "staff",
+   "action": "manage",
+   "label": {
+    "en": "Pay office staff",
+    "roman": "Office staff ko tankhwah dena",
+    "urdu": "دفتری عملے کو تنخواہ دینا"
+   },
+   "description": "Add or change office staff, give advances and pay salaries (each one is an office expense under Salaries).",
+   "ownerOnly": false,
+   "scoped": false,
+   "limit": false,
+   "field": false
+  },
+  {
    "key": "finance.account.view",
    "module": "finance",
    "resource": "account",
@@ -2852,6 +2884,8 @@
     "finance.companyreports.view",
     "finance.officeexpense.view",
     "finance.officeexpense.manage",
+    "finance.staff.view",
+    "finance.staff.manage",
     "finance.account.view",
     "finance.account.manage",
     "dashboard.overview.view",
@@ -3132,6 +3166,8 @@
     "finance.reports.view",
     "finance.officeexpense.view",
     "finance.officeexpense.manage",
+    "finance.staff.view",
+    "finance.staff.manage",
     "finance.account.view",
     "finance.account.manage",
     "dashboard.overview.view",

@@ -439,6 +439,14 @@ export const COMPANY_NAV: NavSection[] = [
         keywords: ["rent", "bills", "salary", "overhead", "kiraya", "bijli"],
       },
       {
+        id: "finance.staff",
+        label: L("Staff & Salaries", "Staff aur tankhwah", "عملہ اور تنخواہ"),
+        href: "/finance/staff",
+        available: true,
+        access: P("finance.staff.view"),
+        keywords: ["salary", "payroll", "advance", "employee", "tankhwah", "mulazim"],
+      },
+      {
         id: "finance.accounts",
         label: L("Accounts", "Accounts", "اکاؤنٹس"),
         href: "/finance/accounts",

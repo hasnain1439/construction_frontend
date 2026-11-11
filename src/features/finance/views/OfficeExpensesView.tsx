@@ -114,7 +114,20 @@ export function OfficeExpensesView() {
       header: t("field.date"),
       cell: (e) => <span className="whitespace-nowrap">{formatDate(e.date)}</span>,
     },
-    { id: "category", header: t("field.category"), cell: (e) => e.category.name },
+    {
+      id: "category",
+      header: t("field.category"),
+      cell: (e) => (
+        <div className="min-w-0">
+          <p>{e.category.name}</p>
+          {e.fromStaff ? (
+            <p className="text-xs text-muted-foreground">
+              {t(e.fromStaff === "ADVANCE" ? "cashSite.staff.fromAdvance" : "cashSite.staff.fromSalary")}
+            </p>
+          ) : null}
+        </div>
+      ),
+    },
     {
       id: "description",
       header: t("field.description"),
@@ -163,7 +176,10 @@ export function OfficeExpensesView() {
       ? [
           {
             ...ACTIONS_COLUMN,
-            cell: (e: OfficeExpense) => (
+            cell: (e: OfficeExpense) =>
+              e.fromStaff ? (
+                <span className="text-xs text-muted-foreground">{t("cashSite.staff.fromStaffHint")}</span>
+              ) : (
               <RowActions
                 name={e.description}
                 actions={[

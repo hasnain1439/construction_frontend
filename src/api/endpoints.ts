@@ -483,6 +483,17 @@ export const ENDPOINTS = {
     categoryById: (categoryId: string) => `/office-expenses/categories/${id(categoryId)}`,
   },
 
+  /** Office staff on a monthly salary. */
+  staff: {
+    list: "/staff",
+    byId: (staffId: string) => `/staff/${id(staffId)}`,
+    advances: (staffId: string) => `/staff/${id(staffId)}/advances`,
+    advanceById: (advanceId: string) => `/staff/advances/${id(advanceId)}`,
+    salaries: (staffId: string) => `/staff/${id(staffId)}/salaries`,
+    salaryById: (salaryId: string) => `/staff/salaries/${id(salaryId)}`,
+    salarySheet: "/staff/salary-sheet",
+  },
+
   /** Step 11 — estimate revisions and the company rulebook. */
   estimates: {
     byId: (estimateId: string) => `/estimates/${id(estimateId)}`,

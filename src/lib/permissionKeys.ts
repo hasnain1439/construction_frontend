@@ -105,6 +105,8 @@ export const PERMISSION_KEYS = [
   "finance.companyreports.view",
   "finance.officeexpense.view",
   "finance.officeexpense.manage",
+  "finance.staff.view",
+  "finance.staff.manage",
   "finance.account.view",
   "finance.account.manage",
   // dashboard

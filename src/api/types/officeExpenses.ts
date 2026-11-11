@@ -28,6 +28,8 @@ export interface OfficeExpense {
   paidTo: string | null;
   description: string;
   attachmentId: Id | null;
+  /** Paid from Staff & salaries: changed / deleted there only. */
+  fromStaff?: "ADVANCE" | "SALARY" | null;
   createdBy: NamedRef | null;
   createdAt: IsoDateTime;
   updatedBy: NamedRef | null;
