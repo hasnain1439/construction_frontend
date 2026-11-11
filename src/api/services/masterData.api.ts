@@ -13,6 +13,7 @@ import type {
   CreateSupplierBody,
   CreateWorkerBody,
   CreateTradeBody,
+  UpdateTradeBody,
   CreateWorkerTypeBody,
   DuplicateQualityCategoryBody,
   LaborRate,
@@ -219,6 +220,10 @@ export const masterDataApi = baseApi.injectEndpoints({
     }),
     createTrade: build.mutation<TradeRow, CreateTradeBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.trades, method: "POST", body }),
+      invalidatesTags: [{ type: "Trades", id: LIST }, { type: "LaborRates", id: LIST }],
+    }),
+    updateTrade: build.mutation<TradeRow, { id: string; body: UpdateTradeBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.masterData.tradeById(id), method: "PATCH", body }),
       invalidatesTags: [{ type: "Trades", id: LIST }, { type: "LaborRates", id: LIST }],
     }),
     getWorkerTypes: build.query<WorkerTypeRow[], WorkerTypesQuery | void>({
@@ -444,6 +449,7 @@ export const {
   useUpdateLaborRatesMutation,
   useGetTradesQuery,
   useCreateTradeMutation,
+  useUpdateTradeMutation,
   useGetWorkerTypesQuery,
   useCreateWorkerTypeMutation,
   useUpdateWorkerTypeMutation,

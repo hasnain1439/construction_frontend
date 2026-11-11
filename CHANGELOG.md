@@ -10,6 +10,8 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 - **Added:** Labour rates → **Add trade**: a sub-contract trade of the company's own with names in three languages and a default rate. The sub-contractor form, list and filter show the company's trades.
 - **Added:** Assign sub-contract → paid **Per unit (your own)**: write the unit (point, room …); the rate and measurements use it.
+- **Added:** Labour rates → ✏️ on each sub-contract trade: rename it, change its rate / unit, or switch it off (sub-contractors who have it keep it).
+- **Added:** Supplier and sub-contractor forms → **Payment account** (bank or wallet, title, number, IBAN), shown on their pages. Suppliers also get a **Credit limit** (with 'See rates'): the udhaar balance turns red with 'Over the credit limit' in the list and on the page.
 
 ### Office PC sync badge (6 Nov 2026)
 

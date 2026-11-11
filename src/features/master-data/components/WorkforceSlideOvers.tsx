@@ -28,6 +28,7 @@ import { formatPhone } from "@/lib/phone";
 import { OTHER_WORKER_TYPE } from "@/lib/workerTypes";
 import { useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
 import { subcontractorSchema, workerSchema, workerSchemaFor } from "../schemas";
+import { PayeeAccountFields, payeeAccountCreate, payeeAccountUpdate, payeeAccountValues } from "./PayeeAccountFields";
 
 type WorkerValues = z.input<typeof workerSchema>;
 
@@ -145,6 +146,7 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
         </FieldGrid>
         {wages ? <DailyRateField standardRate={byKey.get(type)?.ratePaisa ?? null} /> : null}
         <TextareaField name="notes" label={t("field.notes")} rows={2} />
+        <PayeeAccountFields />
       </Form>
     </SlideOver>
   );
@@ -174,6 +176,7 @@ export function SubcontractorSlideOver({
       trade: subcontractor?.trade ?? "",
       phone: subcontractor?.phone ? formatPhone(subcontractor.phone) : "",
       notes: subcontractor?.notes ?? "",
+      ...payeeAccountValues(subcontractor),
     },
   });
 
@@ -181,11 +184,11 @@ export function SubcontractorSlideOver({
     const options = { setError: form.setError, codeFields: { SUBCONTRACTOR_EXISTS: "name" } };
     const result = subcontractor
       ? await run(
-          () => update({ id: subcontractor.id, body: { name: v.name, trade: v.trade, phone: v.phone ?? null, notes: v.notes ?? null } }).unwrap(),
+          () => update({ id: subcontractor.id, body: { name: v.name, trade: v.trade, phone: v.phone ?? null, notes: v.notes ?? null, ...payeeAccountUpdate(v) } }).unwrap(),
           { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
-          () => create({ name: v.name, trade: v.trade, ...(v.phone ? { phone: v.phone } : {}), ...(v.notes ? { notes: v.notes } : {}) }).unwrap(),
+          () => create({ name: v.name, trade: v.trade, ...(v.phone ? { phone: v.phone } : {}), ...(v.notes ? { notes: v.notes } : {}), ...payeeAccountCreate(v) }).unwrap(),
           { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) onOpenChange(false);

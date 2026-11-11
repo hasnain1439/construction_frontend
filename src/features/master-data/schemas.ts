@@ -4,6 +4,7 @@ import { msg } from "@/i18n/message";
 import { translate, type TranslationKey } from "@/i18n/useT";
 import { optionalAnyPhoneSchema, optionalPhoneSchema, optionalText, requiredText } from "@/lib/validation";
 import { OTHER_WORKER_TYPE } from "@/lib/workerTypes";
+import { payeeAccountSchema } from "./components/PayeeAccountFields";
 
 export const materialSchema = z.object({
   name: requiredText("field.name", 2, 80),
@@ -102,6 +103,9 @@ export const supplierSchema = z.object({
     .trim()
     .refine((v) => v === "" || /^\d{7}-\d$/.test(v), msg("masterData.v.ntnFormat", { example: "1234567-8" })),
   notes: z.string().trim().max(500, msg("validation.tooLongPlain")),
+  ...payeeAccountSchema,
+  /** Most udhaar allowed; empty = no limit (only with rates.view). */
+  creditLimitPaisa: z.string().nullable(),
 });
 
 /**
@@ -160,4 +164,5 @@ export const subcontractorSchema = z.object({
   trade: z.string().min(1, msg("masterData.v.chooseTrade")),
   phone: optionalAnyPhoneSchema,
   notes: optionalText(500),
+  ...payeeAccountSchema,
 });

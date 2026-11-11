@@ -189,6 +189,7 @@ export interface LaborRate {
   /** Absent on DAILY rows without `fields.wages`. */
   ratePaisa?: Paisa;
   overtimeMultiplier: number | null;
+  isActive?: boolean;
   updatedAt: IsoDateTime;
 }
 
@@ -227,6 +228,11 @@ export interface Supplier {
   address: string | null;
   ntn: string | null;
   notes: string | null;
+  /** Where to send its money. */
+  bankName?: string | null;
+  accountTitle?: string | null;
+  accountNumber?: string | null;
+  iban?: string | null;
   isActive: boolean;
   /** Sample supplier from "Try with demo data". */
   isDemo?: boolean;
@@ -234,6 +240,9 @@ export interface Supplier {
   /** Present with rates.view (THEKEDAR, PM). */
   udhaarBalancePaisa?: Paisa;
   oldestUnpaidDays?: number | null;
+  /** Most udhaar allowed (null = no limit); with rates.view. */
+  creditLimitPaisa?: Paisa | null;
+  overCreditLimit?: boolean;
 }
 
 export interface SupplierCurrentRate {
@@ -260,8 +269,9 @@ export interface SupplierRates {
 }
 
 export type SuppliersQuery = QueryParams<"/api/v1/suppliers", "get">;
-export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post">;
-export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch">;
+type PayeeBody = { bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
+export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post"> & PayeeBody & { creditLimitPaisa?: Paisa };
+export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch"> & PayeeBody & { creditLimitPaisa?: Paisa | null };
 export type SetSupplierRatesBody = RequestBody<"/api/v1/suppliers/{id}/rates", "put">;
 
 /** Names of a worker type in the three UI languages (Roman Urdu / Urdu may be missing). */
@@ -337,6 +347,7 @@ export interface TradeRow {
   isActive: boolean;
   subcontractorCount: number;
 }
+export type UpdateTradeBody = Partial<Omit<CreateTradeBody, "labelRoman" | "labelUrdu">> & { labelRoman?: string | null; labelUrdu?: string | null; isActive?: boolean };
 export interface CreateTradeBody {
   label: string;
   labelRoman?: string;
@@ -353,6 +364,10 @@ export interface Subcontractor {
   tradeLabel?: string;
   tradeLabelRoman?: string | null;
   tradeLabelUrdu?: string | null;
+  bankName?: string | null;
+  accountTitle?: string | null;
+  accountNumber?: string | null;
+  iban?: string | null;
   phone: string | null;
   notes: string | null;
   isActive: boolean;
@@ -360,8 +375,8 @@ export interface Subcontractor {
 }
 
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
-export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & { trade: string };
-export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & { trade?: string };
+export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & { trade: string; bankName?: string; accountTitle?: string; accountNumber?: string; iban?: string };
+export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & { trade?: string; bankName?: string | null; accountTitle?: string | null; accountNumber?: string | null; iban?: string | null };
 
 /** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
 export interface SupplierCategory {

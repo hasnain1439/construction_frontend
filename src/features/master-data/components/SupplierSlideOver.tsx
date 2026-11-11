@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import Link from "next/link";
 import { useCreateSupplierMutation, useGetSupplierCategoriesQuery, useUpdateSupplierMutation } from "@/api/services/masterData.api";
-import { useCan } from "@/components/common/PermissionGate";
+import { useCan, usePermissions } from "@/components/common/PermissionGate";
+import { MoneyField } from "@/components/forms/MoneyInput";
+import { PayeeAccountFields, payeeAccountCreate, payeeAccountUpdate, payeeAccountValues } from "./PayeeAccountFields";
 import type { Supplier } from "@/api/types";
 import { SlideOver } from "@/components/common/SlideOver";
 import { FieldGrid, Form } from "@/components/forms/Form";
@@ -30,6 +32,8 @@ const toValues = (s: Supplier | null): Values => ({
   address: s?.address ?? "",
   ntn: s?.ntn ?? "",
   notes: s?.notes ?? "",
+  ...payeeAccountValues(s),
+  creditLimitPaisa: s?.creditLimitPaisa ?? null,
 });
 
 export function SupplierSlideOver({
@@ -47,6 +51,8 @@ export function SupplierSlideOver({
   const [create, { isLoading: creating }] = useCreateSupplierMutation();
   const [update, { isLoading: updating }] = useUpdateSupplierMutation();
   const run = useMutationToast();
+  // The credit limit is money: shown and sent only with rates.view.
+  const seesRates = usePermissions().canSee("rates");
   const { data: categories } = useGetSupplierCategoriesQuery(undefined, { skip: !open });
   const canManageCategories = useCan("masterdata.supplier.manage");
   // The supplier's own category stays choosable even if it was removed from the list meanwhile.
@@ -71,6 +77,8 @@ export function SupplierSlideOver({
                 address: v.address || null,
                 ntn: v.ntn || null,
                 notes: v.notes || null,
+                ...payeeAccountUpdate(v),
+                ...(seesRates ? { creditLimitPaisa: v.creditLimitPaisa || null } : {}),
               },
             }).unwrap(),
           { ...options, success: t("masterData.common.saved", { name: v.name }) },
@@ -85,6 +93,8 @@ export function SupplierSlideOver({
               ...(v.address ? { address: v.address } : {}),
               ...(v.ntn ? { ntn: v.ntn } : {}),
               ...(v.notes ? { notes: v.notes } : {}),
+              ...payeeAccountCreate(v),
+              ...(seesRates && v.creditLimitPaisa ? { creditLimitPaisa: v.creditLimitPaisa } : {}),
             }).unwrap(),
           { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
@@ -126,6 +136,8 @@ export function SupplierSlideOver({
         </FieldGrid>
         <TextareaField name="address" label={t("field.address")} rows={2} />
         <TextareaField name="notes" label={t("field.notes")} rows={2} />
+        {seesRates ? <MoneyField name="creditLimitPaisa" label={t("masterData.payee.creditLimit")} hint={t("masterData.payee.creditLimitHint")} /> : null}
+        <PayeeAccountFields />
       </Form>
     </SlideOver>
   );
