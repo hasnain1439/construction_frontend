@@ -17,8 +17,7 @@ import { DataTable, type Column } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { KpiCard } from "@/components/common/KpiCard";
 import { useCan } from "@/components/common/PermissionGate";
-import { QueryState } from "@/components/common/QueryState";
-import { RowActions } from "@/components/common/RowActions";
+import { ACTIONS_COLUMN, RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -303,6 +302,36 @@ export function DesignationsView() {
     if (ok) setName("");
   };
 
+  const designationColumns: Column<StaffDesignation>[] = [
+    { id: "name", header: t("cashSite.staff.designation"), cell: (d) => <span className="font-medium">{d.name}</span> },
+    {
+      id: "staff",
+      header: t("cashSite.staff.listTitle"),
+      cell: (d) =>
+        d.staffCount ? (
+          t("cashSite.staff.staffCount", { n: d.staffCount })
+        ) : (
+          <span className="text-muted-foreground">{t("cashSite.staff.noStaffYet")}</span>
+        ),
+    },
+    ...(canManage
+      ? [
+          {
+            ...ACTIONS_COLUMN,
+            cell: (d: StaffDesignation) => (
+              <RowActions
+                name={d.name}
+                actions={[
+                  { label: t("cashSite.staff.renameDesignation"), icon: Pencil, onSelect: () => setRenaming(d) },
+                  { label: t("common.delete"), icon: Trash2, destructive: true, onSelect: () => setDeleting(d) },
+                ]}
+              />
+            ),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>
       <PageHeader
@@ -310,55 +339,37 @@ export function DesignationsView() {
         description={t("cashSite.staff.designationsDesc")}
         breadcrumbs={[{ label: t("cashSite.staff.officeStaff") }, { label: t("cashSite.staff.designationsTitle") }]}
       />
-      <SectionCard className="max-w-2xl">
-        <div className="space-y-4">
-          {canManage ? (
-            <form
-              className="flex items-end gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void add();
-              }}
-            >
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <Label htmlFor="designation-new">{t("cashSite.staff.newDesignation")}</Label>
-                <Input id="designation-new" value={name} maxLength={MAX_NAME} placeholder={t("cashSite.staff.designationPlaceholder")} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <Button type="submit" disabled={trimmed.length < 2 || adding}>
-                <Plus data-icon="inline-start" />
-                {t("common.add")}
-              </Button>
-            </form>
-          ) : null}
-          <QueryState query={query}>
-            {(rows) =>
-              rows.length ? (
-                <ul className="divide-y rounded-xl border">
-                  {rows.map((d) => (
-                    <li key={d.id} className="flex items-center gap-3 px-3 py-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{d.name}</p>
-                        <p className="text-xs text-muted-foreground">{t("cashSite.staff.staffCount", { n: d.staffCount ?? 0 })}</p>
-                      </div>
-                      {canManage ? (
-                        <RowActions
-                          name={d.name}
-                          actions={[
-                            { label: t("cashSite.staff.renameDesignation"), icon: Pencil, onSelect: () => setRenaming(d) },
-                            { label: t("common.delete"), icon: Trash2, destructive: true, onSelect: () => setDeleting(d) },
-                          ]}
-                        />
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState title={t("cashSite.staff.noDesignations")} icon={BriefcaseBusiness} compact />
-              )
-            }
-          </QueryState>
-        </div>
-      </SectionCard>
+      <div className="space-y-4">
+        {canManage ? (
+          <form
+            className="flex flex-wrap items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void add();
+            }}
+          >
+            <div className="w-full space-y-1.5 sm:w-80">
+              <Label htmlFor="designation-new">{t("cashSite.staff.newDesignation")}</Label>
+              <Input id="designation-new" value={name} maxLength={MAX_NAME} placeholder={t("cashSite.staff.designationPlaceholder")} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <Button type="submit" disabled={trimmed.length < 2 || adding}>
+              <Plus data-icon="inline-start" />
+              {t("common.add")}
+            </Button>
+          </form>
+        ) : null}
+        <SectionCard flush>
+          <DataTable
+            rows={query.data}
+            columns={designationColumns}
+            getRowId={(d) => d.id}
+            loading={query.isLoading || query.isFetching}
+            error={query.error}
+            onRetry={query.refetch}
+            empty={{ title: t("cashSite.staff.noDesignations"), icon: BriefcaseBusiness }}
+          />
+        </SectionCard>
+      </div>
       {renaming ? <RenameDesignation key={renaming.id} designation={renaming} onClose={() => setRenaming(null)} /> : null}
       {deleting ? (
         <ConfirmDialog
