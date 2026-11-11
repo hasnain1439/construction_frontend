@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { Pencil, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
-import { useGetLaborRatesQuery, useUpdateLaborRatesMutation } from "@/api/services/masterData.api";
+import { useGetLaborRatesQuery, useGetTradesQuery, useUpdateLaborRatesMutation } from "@/api/services/masterData.api";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import type { LaborRate } from "@/api/types";
 import { ErrorState } from "@/components/common/ErrorState";
 import { useCan, useSeesWages } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { TableSkeleton } from "@/components/common/TableSkeleton";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { TradeSlideOver } from "../components/TradeSlideOver";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyInput } from "@/components/forms/MoneyInput";
@@ -32,6 +36,7 @@ function RatesTable({
   editable,
   daily,
   showRate = true,
+  onEdit,
 }: {
   title: string;
   description: string;
@@ -41,6 +46,8 @@ function RatesTable({
   daily: boolean;
   /** False for the daily wages without `fields.wages` (the API leaves them out). */
   showRate?: boolean;
+  /** Sub-contract trades: rename / switch off. */
+  onEdit?: (rate: LaborRate) => void;
 }) {
   const t = useT();
   const te = useEnumT();
@@ -65,6 +72,7 @@ function RatesTable({
                 {t("masterData.laborRates.colOvertime")}
               </TableHead>
             ) : null}
+            {onEdit ? <TableHead className="w-12 px-2" /> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,7 +80,12 @@ function RatesTable({
             const index = indexOf(rate.id);
             return (
               <TableRow key={rate.id}>
-                <TableCell className="px-4 py-3 font-medium">{rate.label}</TableCell>
+                <TableCell className="px-4 py-3 font-medium">
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    {rate.label}
+                    {rate.isActive === false ? <StatusBadge domain="active" value={false} /> : null}
+                  </span>
+                </TableCell>
                 <TableCell className="px-4 py-3 text-muted-foreground">
                   {te("laborUnit", rate.unit)}
                 </TableCell>
@@ -119,6 +132,13 @@ function RatesTable({
                     )}
                   </TableCell>
                 ) : null}
+                {onEdit ? (
+                  <TableCell className="px-2 py-2 text-end">
+                    <Button type="button" variant="ghost" size="icon" aria-label={t("masterData.laborRates.editTrade", { name: rate.label })} onClick={() => onEdit(rate)}>
+                      <Pencil className="size-4" aria-hidden />
+                    </Button>
+                  </TableCell>
+                ) : null}
               </TableRow>
             );
           })}
@@ -152,6 +172,10 @@ export function LaborRatesView() {
   const { data, isLoading, error, refetch } = useGetLaborRatesQuery();
   const [save, { isLoading: saving }] = useUpdateLaborRatesMutation();
   const run = useMutationToast();
+  const [addingTrade, setAddingTrade] = useState(false);
+  const [editingTradeId, setEditingTradeId] = useState<string | null>(null);
+  const trades = useGetTradesQuery({ includeInactive: true }, { skip: !editable });
+  const editingTrade = trades.data?.find((r) => r.id === editingTradeId);
   const values = useMemo<RateValues>(
     () => ({
       rates: (data ?? []).map((r) => ({
@@ -209,7 +233,17 @@ export function LaborRatesView() {
         title={t("masterData.laborRates.title")}
         description={t("masterData.laborRates.description")}
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.laborRates.title") }]}
+        actions={
+          editable ? (
+            <Button variant="outline" onClick={() => setAddingTrade(true)}>
+              <Plus data-icon="inline-start" />
+              {t("masterData.laborRates.addTrade")}
+            </Button>
+          ) : null
+        }
       />
+      {addingTrade ? <TradeSlideOver open onOpenChange={setAddingTrade} /> : null}
+      {editingTrade ? <TradeSlideOver key={editingTrade.id} open trade={editingTrade} onOpenChange={(o) => !o && setEditingTradeId(null)} /> : null}
       {isLoading ? (
         <TableSkeleton />
       ) : error && !data ? (
@@ -232,6 +266,7 @@ export function LaborRatesView() {
             indexOf={indexOf}
             editable={editable}
             daily={false}
+            onEdit={editable ? (rate) => setEditingTradeId(rate.id) : undefined}
           />
           {editable ? <SaveBar saving={saving} onReset={() => form.reset(values)} /> : null}
         </Form>

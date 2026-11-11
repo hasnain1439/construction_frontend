@@ -90,6 +90,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/features/onboarding/components/ImportWizard", () => ({ ImportButton: () => null }));
 vi.mock("@/api/services/masterData.api", () => ({
+  useGetTradesQuery: () => ({ data: [], isLoading: false }),
   useGetWorkersQuery: () => ({
     data: { items: [worker()], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } },
     isLoading: false,
@@ -135,7 +136,7 @@ vi.mock("@/features/projects/views/ProjectModeViews", () => ({
 }));
 
 const { WorkersView } = await import("@/features/master-data/views/WorkforceViews");
-const { WorkerSlideOver } = await import("@/features/master-data/components/WorkforceSlideOvers");
+const { WorkerSlideOver, SubcontractorSlideOver } = await import("@/features/master-data/components/WorkforceSlideOvers");
 const { SettlementDetailView } = await import("@/features/labor/views/MoneyViews");
 
 const noWagesPm = () => meFixture("PM", { deny: ["fields.wages"] });
@@ -191,6 +192,17 @@ describe("fields.wages — worker form", () => {
     const { body } = calls.update[0] as { body: Record<string, unknown> };
     expect(body).not.toHaveProperty("dailyRatePaisa");
     expect(body).toMatchObject({ name: "Aslam Masih", type: "MASON" });
+  });
+});
+
+describe("payment account fields", () => {
+  it("are on the sub-contractor form, not on the worker form", () => {
+    state.wages = true;
+    const w = renderWithStore(<WorkerSlideOver open worker={worker()} onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.queryByRole("button", { name: "Add account" })).not.toBeInTheDocument();
+    w.unmount();
+    renderWithStore(<SubcontractorSlideOver open subcontractor={null} onOpenChange={() => {}} />, { me: meFixture("PM") });
+    expect(screen.getByRole("button", { name: "Add account" })).toBeInTheDocument();
   });
 });
 

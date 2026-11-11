@@ -7,9 +7,10 @@
  */
 import type { Id, IsoDate, IsoDateTime, NamedRef, Paisa, QueryParams, RequestBody } from "./common";
 import type { ProjectRef } from "./inventory";
+import type { PayeeAccount } from "./masterData";
 
 export type AttendanceStatus = "FULL" | "HALF" | "ABSENT";
-export type RateType = "PER_SQFT" | "PER_TON" | "PER_BRICK" | "PER_RFT" | "PER_CFT" | "LUMPSUM";
+export type RateType = "PER_SQFT" | "PER_TON" | "PER_BRICK" | "PER_RFT" | "PER_CFT" | "LUMPSUM" | "PER_UNIT";
 export type LaborPaidFrom = "SITE_CASH" | "OFFICE_CASH" | "BANK" | "JAZZCASH" | "EASYPAISA" | "WALLET";
 export type SettlementStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "RETURNED";
 export type MeasurementStatus = "RECORDED" | "VERIFIED" | "REJECTED";
@@ -58,7 +59,7 @@ export interface SubcontractAssignment {
 
 export type AssignWorkerBody = RequestBody<"/api/v1/projects/{id}/labor/workers", "post">;
 export type UpdateProjectWorkerBody = RequestBody<"/api/v1/project-workers/{id}", "patch">;
-export type AssignSubcontractBody = RequestBody<"/api/v1/projects/{id}/labor/subcontracts", "post">;
+export type AssignSubcontractBody = Omit<RequestBody<"/api/v1/projects/{id}/labor/subcontracts", "post">, "rateType"> & { rateType: RateType; unitLabel?: string };
 export type UpdateSubcontractBody = RequestBody<"/api/v1/subcontract-assignments/{id}", "patch">;
 
 // ─── Hazri ──────────────────────────────────────────────────────────────────
@@ -425,7 +426,7 @@ export interface WorkerLaborSummary {
 }
 
 export interface SubcontractorLaborSummary {
-  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean };
+  subcontractor: { id: Id; name: string; trade: string; phone: string | null; isActive: boolean; accounts?: PayeeAccount[] };
   assignments: Array<SubcontractAssignment & { project: ProjectStatusRef; account: SubAccount }>;
   totals: { valuePaisa: Paisa; paidPaisa: Paisa; retentionHeldPaisa: Paisa; balanceDuePaisa: Paisa };
 }

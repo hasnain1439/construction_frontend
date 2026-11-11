@@ -189,6 +189,7 @@ export interface LaborRate {
   /** Absent on DAILY rows without `fields.wages`. */
   ratePaisa?: Paisa;
   overtimeMultiplier: number | null;
+  isActive?: boolean;
   updatedAt: IsoDateTime;
 }
 
@@ -227,6 +228,8 @@ export interface Supplier {
   address: string | null;
   ntn: string | null;
   notes: string | null;
+  /** Where to send its money (first = main). */
+  accounts?: PayeeAccount[];
   isActive: boolean;
   /** Sample supplier from "Try with demo data". */
   isDemo?: boolean;
@@ -234,6 +237,9 @@ export interface Supplier {
   /** Present with rates.view (THEKEDAR, PM). */
   udhaarBalancePaisa?: Paisa;
   oldestUnpaidDays?: number | null;
+  /** Most udhaar allowed (null = no limit); with rates.view. */
+  creditLimitPaisa?: Paisa | null;
+  overCreditLimit?: boolean;
 }
 
 export interface SupplierCurrentRate {
@@ -260,8 +266,19 @@ export interface SupplierRates {
 }
 
 export type SuppliersQuery = QueryParams<"/api/v1/suppliers", "get">;
-export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post">;
-export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch">;
+/** A supplier's / sub-contractor's bank or wallet account; `forWhat` = what it is for ("Cement"). */
+export interface PayeeAccount {
+  id: Id;
+  bankName: string;
+  accountTitle: string | null;
+  accountNumber: string | null;
+  iban: string | null;
+  forWhat: string | null;
+}
+/** The whole list (replaces the saved one); rows sent back with their id keep it. */
+type PayeeBody = { accounts?: Array<Omit<PayeeAccount, "id"> & { id?: Id }> };
+export type CreateSupplierBody = RequestBody<"/api/v1/suppliers", "post"> & PayeeBody & { creditLimitPaisa?: Paisa };
+export type UpdateSupplierBody = RequestBody<"/api/v1/suppliers/{id}", "patch"> & PayeeBody & { creditLimitPaisa?: Paisa | null };
 export type SetSupplierRatesBody = RequestBody<"/api/v1/suppliers/{id}/rates", "put">;
 
 /** Names of a worker type in the three UI languages (Roman Urdu / Urdu may be missing). */
@@ -325,10 +342,36 @@ export type SubcontractTrade =
   | "WATERPROOFING"
   | "PAINT";
 
+/** A sub-contract trade of the company (GET /trades): the defaults and its own. */
+export interface TradeRow {
+  id: Id;
+  key: string;
+  label: string;
+  labelRoman: string | null;
+  labelUrdu: string | null;
+  unit: "SQFT" | "TON" | "BRICK" | "RFT" | "LUMPSUM";
+  ratePaisa: Paisa;
+  isActive: boolean;
+  subcontractorCount: number;
+}
+export type UpdateTradeBody = Partial<Omit<CreateTradeBody, "labelRoman" | "labelUrdu">> & { labelRoman?: string | null; labelUrdu?: string | null; isActive?: boolean };
+export interface CreateTradeBody {
+  label: string;
+  labelRoman?: string;
+  labelUrdu?: string;
+  unit: TradeRow["unit"];
+  ratePaisa: Paisa;
+}
+
 export interface Subcontractor {
   id: Id;
   name: string;
-  trade: SubcontractTrade;
+  /** A built-in trade or one the company added (GET /trades). */
+  trade: SubcontractTrade | (string & {});
+  tradeLabel?: string;
+  tradeLabelRoman?: string | null;
+  tradeLabelUrdu?: string | null;
+  accounts?: PayeeAccount[];
   phone: string | null;
   notes: string | null;
   isActive: boolean;
@@ -336,8 +379,8 @@ export interface Subcontractor {
 }
 
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
-export type CreateSubcontractorBody = RequestBody<"/api/v1/subcontractors", "post">;
-export type UpdateSubcontractorBody = RequestBody<"/api/v1/subcontractors/{id}", "patch">;
+export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & PayeeBody & { trade: string };
+export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & PayeeBody & { trade?: string };
 
 /** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
 export interface SupplierCategory {

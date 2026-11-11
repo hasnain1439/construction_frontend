@@ -34,6 +34,7 @@ import { formatPhone } from "@/lib/phone";
 import { ActiveToggle } from "../components/ActiveToggle";
 import { SupplierSlideOver } from "../components/SupplierSlideOver";
 import { MaterialName, materialLabel } from "@/components/forms/MaterialPicker";
+import { PayeeAccountsList } from "../components/PayeeAccountFields";
 
 interface RateRow {
   materialId: string;
@@ -279,11 +280,31 @@ function SupplierDetailBody({ supplierId }: { supplierId: string }) {
                     { label: t("field.address"), value: supplier.address },
                     { label: t("field.ntn"), value: supplier.ntn ? <bdi dir="ltr">{supplier.ntn}</bdi> : null },
                     { label: t("masterData.common.colAdded"), value: formatDate(supplier.createdAt) },
-                    ...(seesRates ? [{ label: t("masterData.suppliers.udhaarBalance"), value: <MoneyText paisa={supplier.udhaarBalancePaisa} className="font-semibold" /> }] : []),
+                    ...(seesRates ? [{ label: t("masterData.suppliers.udhaarBalance"), value: <MoneyText paisa={supplier.udhaarBalancePaisa} className={supplier.overCreditLimit ? "font-semibold text-danger" : "font-semibold"} /> }] : []),
+                    ...(seesRates
+                      ? [
+                          {
+                            label: t("masterData.payee.creditLimit"),
+                            value: supplier.creditLimitPaisa ? (
+                              <span className="inline-flex flex-wrap items-center gap-2">
+                                <MoneyText paisa={supplier.creditLimitPaisa} />
+                                {supplier.overCreditLimit ? <span className="text-xs font-medium text-danger">{t("masterData.payee.overLimit")}</span> : null}
+                              </span>
+                            ) : (
+                              t("masterData.payee.noLimit")
+                            ),
+                          },
+                        ]
+                      : []),
                     { label: t("field.notes"), value: supplier.notes },
                   ]}
                 />
               </SectionCard>
+              {supplier.accounts?.length ? (
+                <SectionCard title={t("masterData.payee.title")}>
+                  <PayeeAccountsList accounts={supplier.accounts} />
+                </SectionCard>
+              ) : null}
               <SupplierProductsCard supplierId={supplier.id} />
             </TabsContent>
             <TabsContent value="rates" className="space-y-5">

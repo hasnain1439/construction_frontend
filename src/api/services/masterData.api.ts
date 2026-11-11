@@ -12,6 +12,8 @@ import type {
   CreateSubcontractorBody,
   CreateSupplierBody,
   CreateWorkerBody,
+  CreateTradeBody,
+  UpdateTradeBody,
   CreateWorkerTypeBody,
   DuplicateQualityCategoryBody,
   LaborRate,
@@ -54,6 +56,7 @@ import type {
   UpdateWorkerTypeBody,
   Worker,
   WorkersQuery,
+  TradeRow,
   WorkerTypeRow,
   WorkerTypesQuery,
 } from "@/api/types";
@@ -209,7 +212,19 @@ export const masterDataApi = baseApi.injectEndpoints({
     }),
     updateLaborRates: build.mutation<LaborRate[], UpdateLaborRatesBody>({
       query: (body) => ({ url: ENDPOINTS.masterData.laborRates, method: "PUT", body }),
-      invalidatesTags: [{ type: "LaborRates", id: LIST }, { type: "WorkerTypes", id: LIST }],
+      invalidatesTags: [{ type: "LaborRates", id: LIST }, { type: "WorkerTypes", id: LIST }, { type: "Trades", id: LIST }],
+    }),
+    getTrades: build.query<TradeRow[], { includeInactive?: boolean } | void>({
+      query: (params) => ({ url: ENDPOINTS.masterData.trades, params: params?.includeInactive ? { includeInactive: "true" } : undefined }),
+      providesTags: (rows) => providesList(rows, "Trades"),
+    }),
+    createTrade: build.mutation<TradeRow, CreateTradeBody>({
+      query: (body) => ({ url: ENDPOINTS.masterData.trades, method: "POST", body }),
+      invalidatesTags: [{ type: "Trades", id: LIST }, { type: "LaborRates", id: LIST }],
+    }),
+    updateTrade: build.mutation<TradeRow, { id: string; body: UpdateTradeBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.masterData.tradeById(id), method: "PATCH", body }),
+      invalidatesTags: [{ type: "Trades", id: LIST }, { type: "LaborRates", id: LIST }],
     }),
     getWorkerTypes: build.query<WorkerTypeRow[], WorkerTypesQuery | void>({
       query: (params) => ({
@@ -432,6 +447,9 @@ export const {
   useGetRateHistoryQuery,
   useGetLaborRatesQuery,
   useUpdateLaborRatesMutation,
+  useGetTradesQuery,
+  useCreateTradeMutation,
+  useUpdateTradeMutation,
   useGetWorkerTypesQuery,
   useCreateWorkerTypeMutation,
   useUpdateWorkerTypeMutation,

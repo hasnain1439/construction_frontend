@@ -170,6 +170,8 @@ export const ENDPOINTS = {
     laborRates: "/labor-rates",
 
     workerTypes: "/worker-types",
+    trades: "/trades",
+    tradeById: (tradeId: string) => `/trades/${id(tradeId)}`,
     workerTypeById: (workerTypeId: string) => `/worker-types/${id(workerTypeId)}`,
 
     paymentTemplates: "/payment-templates",
@@ -479,6 +481,21 @@ export const ENDPOINTS = {
     byId: (expenseId: string) => `/office-expenses/${id(expenseId)}`,
     categories: "/office-expenses/categories",
     categoryById: (categoryId: string) => `/office-expenses/categories/${id(categoryId)}`,
+  },
+
+  /** Office staff on a monthly salary. */
+  staff: {
+    list: "/staff",
+    byId: (staffId: string) => `/staff/${id(staffId)}`,
+    advances: (staffId: string) => `/staff/${id(staffId)}/advances`,
+    advanceById: (advanceId: string) => `/staff/advances/${id(advanceId)}`,
+    salaries: (staffId: string) => `/staff/${id(staffId)}/salaries`,
+    salaryById: (salaryId: string) => `/staff/salaries/${id(salaryId)}`,
+    salarySheet: "/staff/salary-sheet",
+    designations: "/staff/designations",
+    designationById: (designationId: string) => `/staff/designations/${id(designationId)}`,
+    attendance: "/staff/attendance",
+    attendanceMonth: "/staff/attendance/month",
   },
 
   /** Step 11 — estimate revisions and the company rulebook. */

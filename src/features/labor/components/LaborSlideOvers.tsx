@@ -157,11 +157,13 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
   const run = useMutationToast();
   const form = useForm<AssignSubcontractValues, unknown, z.output<typeof assignSubcontractSchema>>({
     resolver: zodResolver(assignSubcontractSchema),
-    values: { subcontractorId: null, scope: "", rateType: "PER_SQFT", ratePaisa: null, contractValuePaisa: null, retentionPercent: 5, startDate: todayPK() },
+    values: { subcontractorId: null, scope: "", rateType: "PER_SQFT", unitLabel: "", ratePaisa: null, contractValuePaisa: null, retentionPercent: 5, startDate: todayPK() },
   });
   const rateType = useWatch({ control: form.control, name: "rateType" });
   const lump = rateType === "LUMPSUM";
-  const unit = RATE_TYPE_OPTIONS.find((o) => o.value === rateType)?.unit;
+  const ownUnit = useWatch({ control: form.control, name: "unitLabel" });
+  const perUnit = rateType === "PER_UNIT";
+  const unit = perUnit ? ownUnit.trim() || undefined : RATE_TYPE_OPTIONS.find((o) => o.value === rateType)?.unit;
   const onSubmit = async (v: z.output<typeof assignSubcontractSchema>) => {
     const ok = await run(
       () =>
@@ -171,6 +173,7 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
             subcontractorId: v.subcontractorId,
             scope: v.scope,
             rateType: v.rateType,
+            ...(v.rateType === "PER_UNIT" ? { unitLabel: v.unitLabel.trim() } : {}),
             startDate: v.startDate,
             ...(v.retentionPercent !== null ? { retentionPercent: v.retentionPercent } : {}),
             ...(lump ? (v.contractValuePaisa ? { contractValuePaisa: v.contractValuePaisa } : {}) : v.ratePaisa ? { ratePaisa: v.ratePaisa } : {}),
@@ -199,6 +202,7 @@ export function AssignSubcontractSlideOver({ open, onOpenChange, projectId }: Op
         />
         <TextField name="scope" label={t("labor.assignSub.work")} required placeholder={t("labor.assignSub.workPlaceholder")} />
         <SelectField name="rateType" label={t("field.paid")} required options={labels.rateTypeOptions} />
+        {perUnit ? <TextField name="unitLabel" label={t("labor.assignSub.unitLabel")} required placeholder={t("labor.assignSub.unitPlaceholder")} hint={t("labor.assignSub.unitHint")} /> : null}
         <FieldGrid>
           {lump ? (
             <MoneyField name="contractValuePaisa" label={t("labor.assignSub.lumpValue")} hint={t("labor.assignSub.emptyCompanyRate")} />

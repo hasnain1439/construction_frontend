@@ -68,7 +68,12 @@ export function SuppliersView() {
       align: "right",
       hidden: !seesRates,
       sortValue: (s) => Number(s.udhaarBalancePaisa ?? 0),
-      cell: (s) => <MoneyText paisa={s.udhaarBalancePaisa} className="font-medium" />,
+      cell: (s) => (
+        <span className="inline-flex flex-col items-end">
+          <MoneyText paisa={s.udhaarBalancePaisa} className={s.overCreditLimit ? "font-medium text-danger" : "font-medium"} />
+          {s.overCreditLimit ? <span className="text-xs text-danger">{t("masterData.payee.overLimit")}</span> : null}
+        </span>
+      ),
     },
     { id: "age", header: t("masterData.suppliers.oldestUnpaid"), align: "right", hidden: !seesRates, sortValue: (s) => s.oldestUnpaidDays ?? -1, cell: (s) => <AgeingText days={s.oldestUnpaidDays} /> },
     { id: "status", header: t("field.status"), cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },

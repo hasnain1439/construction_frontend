@@ -30,6 +30,7 @@ export const COMPANY_TAGS = [
   "RateHistory",
   "LaborRates",
   "WorkerTypes",
+  "Trades",
   "PaymentTemplates",
   "Suppliers",
   "SupplierRates",
@@ -125,6 +126,10 @@ export const COMPANY_TAGS = [
   // Office expenses
   "OfficeExpenses",
   "OfficeExpenseCategories",
+  "Staff",
+  "SalarySheet",
+  "StaffDesignations",
+  "StaffAttendance",
   // Company accounts
   "CompanyAccounts",
   "CompanyAccountGroups",

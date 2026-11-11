@@ -22,12 +22,13 @@ import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { formatPKR } from "@/lib/money";
-import { useEnumT, useT } from "@/i18n/useT";
-import { TRADE_LABEL } from "@/lib/options";
+import { useT } from "@/i18n/useT";
+import { useTradeOptions } from "@/hooks/useTrades";
 import { formatPhone } from "@/lib/phone";
 import { OTHER_WORKER_TYPE } from "@/lib/workerTypes";
 import { useWorkerTypeOptions } from "@/hooks/useWorkerTypes";
 import { subcontractorSchema, workerSchema, workerSchemaFor } from "../schemas";
+import { PayeeAccountFields, payeeAccountCreate, payeeAccountUpdate, payeeAccountValues } from "./PayeeAccountFields";
 
 type WorkerValues = z.input<typeof workerSchema>;
 
@@ -163,7 +164,7 @@ export function SubcontractorSlideOver({
 }) {
   const FORM_ID = "subcontractor-form";
   const t = useT();
-  const te = useEnumT();
+  const { options: tradeOptions } = useTradeOptions({ current: subcontractor?.trade });
   const [create, { isLoading: creating }] = useCreateSubcontractorMutation();
   const [update, { isLoading: updating }] = useUpdateSubcontractorMutation();
   const run = useMutationToast();
@@ -171,9 +172,10 @@ export function SubcontractorSlideOver({
     resolver: zodResolver(subcontractorSchema),
     values: {
       name: subcontractor?.name ?? "",
-      trade: subcontractor?.trade ?? "SHUTTERING",
+      trade: subcontractor?.trade ?? "",
       phone: subcontractor?.phone ? formatPhone(subcontractor.phone) : "",
       notes: subcontractor?.notes ?? "",
+      ...payeeAccountValues(subcontractor),
     },
   });
 
@@ -181,11 +183,11 @@ export function SubcontractorSlideOver({
     const options = { setError: form.setError, codeFields: { SUBCONTRACTOR_EXISTS: "name" } };
     const result = subcontractor
       ? await run(
-          () => update({ id: subcontractor.id, body: { name: v.name, trade: v.trade, phone: v.phone ?? null, notes: v.notes ?? null } }).unwrap(),
+          () => update({ id: subcontractor.id, body: { name: v.name, trade: v.trade, phone: v.phone ?? null, notes: v.notes ?? null, ...payeeAccountUpdate(v) } }).unwrap(),
           { ...options, success: t("masterData.common.saved", { name: v.name }) },
         )
       : await run(
-          () => create({ name: v.name, trade: v.trade, ...(v.phone ? { phone: v.phone } : {}), ...(v.notes ? { notes: v.notes } : {}) }).unwrap(),
+          () => create({ name: v.name, trade: v.trade, ...(v.phone ? { phone: v.phone } : {}), ...(v.notes ? { notes: v.notes } : {}), ...payeeAccountCreate(v) }).unwrap(),
           { ...options, success: t("masterData.common.added", { name: v.name }) },
         );
     if (result) onOpenChange(false);
@@ -205,10 +207,11 @@ export function SubcontractorSlideOver({
       <Form form={form} onSubmit={onSubmit} id={FORM_ID}>
         <TextField name="name" label={t("field.name")} required placeholder={t("masterData.subcontractors.namePlaceholder")} />
         <FieldGrid>
-          <SelectField name="trade" label={t("masterData.common.trade")} required options={Object.keys(TRADE_LABEL).map((value) => ({ value, label: te("trade", value) }))} />
+          <SelectField name="trade" label={t("masterData.common.trade")} required options={tradeOptions} />
           <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
         <TextareaField name="notes" label={t("field.notes")} rows={2} />
+        <PayeeAccountFields />
       </Form>
     </SlideOver>
   );

@@ -26,8 +26,8 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useSearchFlag } from "@/hooks/useSearchFlag";
 import { formatPhone } from "@/lib/phone";
-import { useEnumT, useT } from "@/i18n/useT";
-import { TRADE_LABEL } from "@/lib/options";
+import { useT } from "@/i18n/useT";
+import { useTradeName, useTradeOptions } from "@/hooks/useTrades";
 import { namesFromWorker } from "@/lib/workerTypes";
 import { activeToggleAction, useActiveToggleLabels } from "../components/ActiveToggle";
 import { SubcontractorSlideOver, WorkerSlideOver } from "../components/WorkforceSlideOvers";
@@ -167,7 +167,6 @@ export function WorkersView() {
 
 export function SubcontractorsView() {
   const t = useT();
-  const te = useEnumT();
   const toggleLabels = useActiveToggleLabels();
   const statusOptions = useStatusOptions();
   const readOnly = useReadOnly();
@@ -181,6 +180,8 @@ export function SubcontractorsView() {
   const [editing, setEditing] = useState<Subcontractor | null>(null);
   const run = useMutationToast();
 
+  const tradeName = useTradeName();
+  const { options: tradeFilterOptions } = useTradeOptions({ all: true });
   const columns: Column<Subcontractor>[] = [
     {
       id: "name",
@@ -195,7 +196,7 @@ export function SubcontractorsView() {
         ),
       sortValue: (s) => s.name,
     },
-    { id: "trade", header: t("masterData.common.trade"), cell: (s) => te("trade", s.trade), sortValue: (s) => s.trade },
+    { id: "trade", header: t("masterData.common.trade"), cell: (s) => tradeName(s.trade, { label: s.tradeLabel, labelRoman: s.tradeLabelRoman, labelUrdu: s.tradeLabelUrdu }), sortValue: (s) => s.trade },
     { id: "phone", header: t("field.phone"), cell: (s) => <span className="tabular" dir="ltr">{formatPhone(s.phone)}</span> },
     { id: "notes", header: t("field.notes"), cell: (s) => <span className="line-clamp-1 text-muted-foreground">{s.notes ?? "—"}</span> },
     { id: "status", header: t("field.status"), cell: (s) => <StatusBadge domain="active" value={s.isActive} /> },
@@ -245,7 +246,7 @@ export function SubcontractorsView() {
           label={t("masterData.common.trade")}
           value={list.filters.trade}
           onChange={(v) => list.setFilter("trade", v)}
-          options={Object.keys(TRADE_LABEL).map((value) => ({ value, label: te("trade", value) }))}
+          options={tradeFilterOptions}
         />
         <FilterSelect label={t("field.status")} value={list.filters.isActive} onChange={(v) => list.setFilter("isActive", v)} options={statusOptions} />
       </FilterBar>
