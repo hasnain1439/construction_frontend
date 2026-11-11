@@ -146,7 +146,6 @@ export function WorkerSlideOver({ open, worker, onOpenChange }: { open: boolean;
         </FieldGrid>
         {wages ? <DailyRateField standardRate={byKey.get(type)?.ratePaisa ?? null} /> : null}
         <TextareaField name="notes" label={t("field.notes")} rows={2} />
-        <PayeeAccountFields />
       </Form>
     </SlideOver>
   );
@@ -212,6 +211,7 @@ export function SubcontractorSlideOver({
           <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
         <TextareaField name="notes" label={t("field.notes")} rows={2} />
+        <PayeeAccountFields />
       </Form>
     </SlideOver>
   );
