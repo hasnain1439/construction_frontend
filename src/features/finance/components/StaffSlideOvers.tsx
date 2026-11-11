@@ -2,9 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import {
   useCreateStaffMutation,
+  useGetStaffAttendanceMonthQuery,
+  useGetStaffDesignationsQuery,
   useGiveStaffAdvanceMutation,
   usePaySalaryMutation,
   useUpdateStaffMutation,
@@ -17,6 +20,7 @@ import { FieldGrid, Form, FormSection } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyField } from "@/components/forms/MoneyInput";
 import { PhoneField } from "@/components/forms/PhoneInput";
+import { SelectField } from "@/components/forms/SelectField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
 import { ToggleField } from "@/components/forms/ToggleField";
@@ -52,7 +56,7 @@ const blankToNull = (v: string) => (v.trim() ? v.trim() : null);
 
 export const staffSchema = z.object({
   name: requiredText("field.name", 2, 80),
-  designation: text(2, 60),
+  designationId: z.string().nullable(),
   phone: optionalAnyPhoneSchema,
   monthlySalaryPaisa: money("cashSite.staff.monthlySalary"),
   joinedOn: z.string(),
@@ -68,6 +72,12 @@ type StaffValues = z.input<typeof staffSchema>;
 /** Add (staff = null) or change one staff member. Mount it only while open. */
 export function StaffSlideOver({ staff, onClose }: { staff: StaffMember | null; onClose: () => void }) {
   const t = useT();
+  const designations = useGetStaffDesignationsQuery();
+  const designationOptions = (designations.data ?? []).map((d) => ({ value: d.id, label: d.name }));
+  // A designation deleted later stays on the person until another one is picked.
+  if (staff?.designationId && staff.designation && !designationOptions.some((o) => o.value === staff.designationId)) {
+    designationOptions.push({ value: staff.designationId, label: staff.designation });
+  }
   const [create, { isLoading: creating }] = useCreateStaffMutation();
   const [update, { isLoading: updating }] = useUpdateStaffMutation();
   const run = useMutationToast();
@@ -76,7 +86,7 @@ export function StaffSlideOver({ staff, onClose }: { staff: StaffMember | null; 
     resolver: zodResolver(staffSchema),
     defaultValues: {
       name: staff?.name ?? "",
-      designation: staff?.designation ?? "",
+      designationId: staff?.designationId ?? null,
       phone: staff?.phone ? formatPhone(staff.phone) : "",
       monthlySalaryPaisa: staff?.monthlySalaryPaisa ?? null,
       joinedOn: staff?.joinedOn ?? "",
@@ -92,7 +102,7 @@ export function StaffSlideOver({ staff, onClose }: { staff: StaffMember | null; 
   const onSubmit = async (v: z.output<typeof staffSchema>) => {
     const fields = {
       name: v.name,
-      designation: blankToNull(v.designation),
+      designationId: v.designationId,
       phone: v.phone ?? null,
       monthlySalaryPaisa: v.monthlySalaryPaisa,
       joinedOn: v.joinedOn || null,
@@ -126,7 +136,14 @@ export function StaffSlideOver({ staff, onClose }: { staff: StaffMember | null; 
       <Form form={form} onSubmit={onSubmit} id="staff-form">
         <TextField name="name" label={t("field.name")} required />
         <FieldGrid>
-          <TextField name="designation" label={t("cashSite.staff.designation")} placeholder={t("cashSite.staff.designationPlaceholder")} />
+          <SelectField
+            name="designationId"
+            label={t("cashSite.staff.designation")}
+            options={designationOptions}
+            disabled={designations.isLoading}
+            placeholder={t("cashSite.staff.chooseDesignation")}
+            hint={t("cashSite.staff.designationHint")}
+          />
           <PhoneField name="phone" label={t("field.phone")} allowLandline />
         </FieldGrid>
         <FieldGrid>
@@ -266,6 +283,10 @@ export function SalarySlideOver({
     { basicPaisa: values.basicPaisa ?? null, bonusPaisa: values.bonusPaisa ?? null, deductionPaisa: values.deductionPaisa ?? null, advanceCutPaisa: values.advanceCutPaisa ?? null },
     staff.advanceDuePaisa,
   );
+  const monthOk = /^\d{4}-\d{2}$/.test(values.month ?? "");
+  const attendance = useGetStaffAttendanceMonthQuery({ month: values.month ?? "", staffId: staff.id }, { skip: !monthOk });
+  const counts = attendance.data?.rows[0]?.totals;
+  const suggested = counts ? suggestedDeduction(values.basicPaisa ?? null, counts.absent, counts.halfDay, attendance.data!.daysInMonth) : null;
   const checkAccount = useCompanyAccountCheck(form);
   const onSubmit = async (v: z.output<typeof salarySchema>) => {
     if (!checkAccount(v)) return;
@@ -315,10 +336,36 @@ export function SalarySlideOver({
           <MoneyField name="deductionPaisa" label={t("cashSite.staff.deduction")} hint={t("cashSite.staff.deductionHint")} />
           <MoneyField name="advanceCutPaisa" label={t("cashSite.staff.advanceCut")} hint={t("cashSite.staff.advanceCutHint", { amount: formatPKR(staff.advanceDuePaisa) })} />
         </FieldGrid>
+        {counts && (counts.absent || counts.halfDay || counts.leave) ? (
+          <InlineAlert
+            tone="warning"
+            action={
+              suggested && suggested !== "0" ? (
+                <Button type="button" size="sm" variant="outline" onClick={() => form.setValue("deductionPaisa", suggested, { shouldDirty: true })}>
+                  {t("cashSite.staff.useSuggestion")}
+                </Button>
+              ) : undefined
+            }
+          >
+            {t("cashSite.staff.attendanceLine", { absent: counts.absent, half: counts.halfDay, leave: counts.leave })}
+            {suggested && suggested !== "0" ? ` ${t("cashSite.staff.suggestDeduction", { amount: formatPKR(suggested) })}` : ""}
+          </InlineAlert>
+        ) : null}
         <InlineAlert tone={net < ZERO ? "danger" : "info"}>{t("cashSite.staff.netLine", { amount: formatPKR(net.toString()) })}</InlineAlert>
         <CompanyAccountField how={HOW_PAID} label={t("cashSite.accounts.paidFromGroup")} />
         <TextField name="note" label={t("cashSite.staff.note")} />
       </Form>
     </SlideOver>
   );
+}
+
+/**
+ * Suggested cut for absences: (absent days + half days ÷ 2) × salary ÷ days in the month, in whole
+ * rupees. Leave is paid, so it is not cut. Only a suggestion: the user decides.
+ */
+export function suggestedDeduction(basicPaisa: string | null, absent: number, halfDays: number, daysInMonth: number) {
+  if (!basicPaisa || !/^\d+$/.test(basicPaisa) || !daysInMonth) return null;
+  const halves = BigInt(absent * 2 + halfDays);
+  const paisa = (BigInt(basicPaisa) * halves) / BigInt(daysInMonth * 2);
+  return ((paisa / BigInt(100)) * BigInt(100)).toString();
 }

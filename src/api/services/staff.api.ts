@@ -3,6 +3,10 @@ import { ENDPOINTS } from "@/api/endpoints";
 import { LIST, providesList } from "@/api/tags";
 import { cleanParams, toPage } from "@/api/transform";
 import type {
+  StaffAttendanceDay,
+  StaffAttendanceMonth,
+  MarkStaffAttendanceBody,
+  StaffDesignation,
   Paginated,
   SalaryPayment,
   SalaryPaymentBody,
@@ -66,6 +70,38 @@ export const staffApi = baseApi.injectEndpoints({
       query: (month) => ({ url: ENDPOINTS.staff.salarySheet, params: { month } }),
       providesTags: ["SalarySheet"],
     }),
+
+    // The company's own list of jobs. A rename shows on the staff too.
+    getStaffDesignations: build.query<StaffDesignation[], void>({
+      query: () => ENDPOINTS.staff.designations,
+      providesTags: ["StaffDesignations"],
+    }),
+    createStaffDesignation: build.mutation<StaffDesignation, { name: string }>({
+      query: (body) => ({ url: ENDPOINTS.staff.designations, method: "POST", body }),
+      invalidatesTags: ["StaffDesignations"],
+    }),
+    renameStaffDesignation: build.mutation<StaffDesignation, { id: string; name: string }>({
+      query: ({ id, name }) => ({ url: ENDPOINTS.staff.designationById(id), method: "PATCH", body: { name } }),
+      invalidatesTags: ["StaffDesignations", "Staff", "SalarySheet", "StaffAttendance"],
+    }),
+    deleteStaffDesignation: build.mutation<{ deleted: true }, string>({
+      query: (id) => ({ url: ENDPOINTS.staff.designationById(id), method: "DELETE" }),
+      invalidatesTags: ["StaffDesignations"],
+    }),
+
+    // Attendance: a day to mark, a month to check.
+    getStaffAttendanceDay: build.query<StaffAttendanceDay, string>({
+      query: (date) => ({ url: ENDPOINTS.staff.attendance, params: { date } }),
+      providesTags: ["StaffAttendance"],
+    }),
+    markStaffAttendance: build.mutation<StaffAttendanceDay, MarkStaffAttendanceBody>({
+      query: (body) => ({ url: ENDPOINTS.staff.attendance, method: "PUT", body }),
+      invalidatesTags: ["StaffAttendance", "SalarySheet"],
+    }),
+    getStaffAttendanceMonth: build.query<StaffAttendanceMonth, { month: string; staffId?: string }>({
+      query: (params) => ({ url: ENDPOINTS.staff.attendanceMonth, params: cleanParams(params) }),
+      providesTags: ["StaffAttendance"],
+    }),
   }),
 });
 
@@ -79,4 +115,11 @@ export const {
   usePaySalaryMutation,
   useDeleteSalaryMutation,
   useGetSalarySheetQuery,
+  useGetStaffDesignationsQuery,
+  useCreateStaffDesignationMutation,
+  useRenameStaffDesignationMutation,
+  useDeleteStaffDesignationMutation,
+  useGetStaffAttendanceDayQuery,
+  useMarkStaffAttendanceMutation,
+  useGetStaffAttendanceMonthQuery,
 } = staffApi;

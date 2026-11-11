@@ -49,7 +49,7 @@ describe("Step 9 navigation", () => {
   });
 
   it("owner sees all of Finance; MUNSHI sees neither Finance nor Reports", () => {
-    expect(visible(meFixture("THEKEDAR"), "finance")).toEqual(["finance.receivables", "finance.cashflow", "finance.pl", "finance.floats", "finance.officeExpenses", "finance.staff", "finance.accounts"]);
+    expect(visible(meFixture("THEKEDAR"), "finance")).toEqual(["finance.receivables", "finance.cashflow", "finance.pl", "finance.floats", "finance.officeExpenses", "finance.accounts"]);
     const munshi = meFixture("MUNSHI");
     expect(visible(munshi, "finance")).toEqual([]);
     expect(visible(munshi, "reports")).toEqual([]);

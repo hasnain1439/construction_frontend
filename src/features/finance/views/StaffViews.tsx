@@ -1,11 +1,12 @@
 "use client";
 
-import { Banknote, HandCoins, Pencil, Plus, Trash2, Users, Wallet } from "lucide-react";
+import { Banknote, CalendarCheck, CalendarClock, CalendarMinus, CalendarX, HandCoins, Pencil, Plus, Trash2, Users, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   useDeleteSalaryMutation,
   useDeleteStaffAdvanceMutation,
+  useGetStaffAttendanceMonthQuery,
   useGetSalarySheetQuery,
   useGetStaffMemberQuery,
   useGetStaffQuery,
@@ -27,7 +28,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SalarySlideOver, StaffAdvanceSlideOver, StaffSlideOver } from "@/features/finance/components/StaffSlideOvers";
 import { useListState } from "@/hooks/useListState";
 import { useMutationToast } from "@/hooks/useMutationToast";
@@ -38,7 +38,7 @@ import { formatPKR } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 
 const SEARCH = "w-full flex-none sm:w-60";
-const STAFF_HREF = (id: string) => `/finance/staff/${id}`;
+const STAFF_HREF = (id: string) => `/office-staff/${id}`;
 
 type Paying = { staff: Pick<StaffMember, "id" | "name" | "monthlySalaryPaisa" | "advanceDuePaisa">; month?: string };
 
@@ -47,18 +47,17 @@ function useCanManageStaff() {
   return useCan("finance.staff.manage") && !readOnly;
 }
 
-/** Finance → Staff & Salaries: the office staff list and each month's salary sheet. */
-export function StaffView() {
+/** Office Staff → Staff: people in the office on a monthly salary. */
+export function StaffListView() {
   const t = useT();
   const canManage = useCanManageStaff();
-  const [tab, setTab] = useState("staff");
   const [adding, setAdding] = useState(false);
   return (
     <>
       <PageHeader
-        title={t("cashSite.staff.title")}
-        description={t("cashSite.staff.description")}
-        breadcrumbs={[{ label: t("crumb.finance") }, { label: t("cashSite.staff.title") }]}
+        title={t("cashSite.staff.listTitle")}
+        description={t("cashSite.staff.listDesc")}
+        breadcrumbs={[{ label: t("cashSite.staff.officeStaff") }, { label: t("cashSite.staff.listTitle") }]}
         actions={
           canManage ? (
             <Button onClick={() => setAdding(true)}>
@@ -68,19 +67,24 @@ export function StaffView() {
           ) : null
         }
       />
-      <Tabs value={tab} onValueChange={setTab} className="gap-5">
-        <TabsList>
-          <TabsTrigger value="staff">{t("cashSite.staff.tabStaff")}</TabsTrigger>
-          <TabsTrigger value="sheet">{t("cashSite.staff.tabSheet")}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="staff">
-          <StaffList canManage={canManage} />
-        </TabsContent>
-        <TabsContent value="sheet">
-          <SalarySheetPanel canManage={canManage} />
-        </TabsContent>
-      </Tabs>
+      <StaffList canManage={canManage} />
       {adding ? <StaffSlideOver staff={null} onClose={() => setAdding(false)} /> : null}
+    </>
+  );
+}
+
+/** Office Staff → Salary sheet: one month for everyone. */
+export function SalarySheetView() {
+  const t = useT();
+  const canManage = useCanManageStaff();
+  return (
+    <>
+      <PageHeader
+        title={t("cashSite.staff.sheetTitle")}
+        description={t("cashSite.staff.description")}
+        breadcrumbs={[{ label: t("cashSite.staff.officeStaff") }, { label: t("cashSite.staff.sheetTitle") }]}
+      />
+      <SalarySheetPanel canManage={canManage} />
     </>
   );
 }
@@ -199,6 +203,12 @@ function SalarySheetPanel({ canManage }: { canManage: boolean }) {
       ),
     },
     { id: "salary", header: t("cashSite.staff.basic"), align: "right", cell: (r) => <MoneyText paisa={r.payment?.basicPaisa ?? r.monthlySalaryPaisa} /> },
+    {
+      id: "absent",
+      header: t("cashSite.staff.absences"),
+      align: "right",
+      cell: (r) => (r.attendance.absent || r.attendance.halfDay ? t("cashSite.staff.absentShort", { absent: r.attendance.absent, half: r.attendance.halfDay }) : "—"),
+    },
     { id: "cut", header: t("cashSite.staff.advanceCut"), align: "right", cell: (r) => (r.payment && r.payment.advanceCutPaisa !== "0" ? <MoneyText paisa={r.payment.advanceCutPaisa} /> : "—") },
     { id: "net", header: t("cashSite.staff.net"), align: "right", cell: (r) => (r.payment ? <MoneyText paisa={r.payment.netPaisa} className="font-medium" /> : "—") },
     {
@@ -308,7 +318,7 @@ export function StaffDetailView({ staffId }: { staffId: string }) {
             title={s.name}
             description={s.designation ?? undefined}
             meta={<StatusBadge domain="active" value={s.isActive} />}
-            breadcrumbs={[{ label: t("crumb.finance") }, { label: t("cashSite.staff.title"), href: "/finance/staff" }, { label: s.name }]}
+            breadcrumbs={[{ label: t("cashSite.staff.officeStaff") }, { label: t("cashSite.staff.listTitle"), href: "/office-staff" }, { label: s.name }]}
             actions={
               canManage ? (
                 <>
@@ -349,6 +359,7 @@ export function StaffDetailView({ staffId }: { staffId: string }) {
                 ]}
               />
             </SectionCard>
+            <MonthAttendanceCard staffId={s.id} />
             <SectionCard flush title={t("cashSite.staff.salaries")}>
               <DataTable rows={s.salaries} columns={salaryColumns} getRowId={(p) => p.id} empty={{ title: t("cashSite.staff.noSalaries"), icon: Banknote }} />
             </SectionCard>
@@ -392,5 +403,23 @@ export function StaffDetailView({ staffId }: { staffId: string }) {
         </>
       )}
     </QueryState>
+  );
+}
+
+/** This month's marks of one person, with a link to the full report. */
+function MonthAttendanceCard({ staffId }: { staffId: string }) {
+  const t = useT();
+  const month = todayPK().slice(0, 7);
+  const { data, isLoading } = useGetStaffAttendanceMonthQuery({ month, staffId });
+  const c = data?.rows[0]?.totals ?? { present: 0, absent: 0, halfDay: 0, leave: 0 };
+  return (
+    <SectionCard title={t("cashSite.staff.thisMonthAttendance", { month: formatMonth(month) })}>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <KpiCard label={t("cashSite.staff.status_PRESENT")} icon={CalendarCheck} loading={isLoading} value={String(c.present)} />
+        <KpiCard label={t("cashSite.staff.status_ABSENT")} icon={CalendarX} tone={c.absent ? "danger" : "primary"} loading={isLoading} value={String(c.absent)} />
+        <KpiCard label={t("cashSite.staff.status_HALF_DAY")} icon={CalendarClock} loading={isLoading} value={String(c.halfDay)} />
+        <KpiCard label={t("cashSite.staff.status_LEAVE")} icon={CalendarMinus} loading={isLoading} value={String(c.leave)} />
+      </div>
+    </SectionCard>
   );
 }

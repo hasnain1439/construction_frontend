@@ -492,6 +492,10 @@ export const ENDPOINTS = {
     salaries: (staffId: string) => `/staff/${id(staffId)}/salaries`,
     salaryById: (salaryId: string) => `/staff/salaries/${id(salaryId)}`,
     salarySheet: "/staff/salary-sheet",
+    designations: "/staff/designations",
+    designationById: (designationId: string) => `/staff/designations/${id(designationId)}`,
+    attendance: "/staff/attendance",
+    attendanceMonth: "/staff/attendance/month",
   },
 
   /** Step 11 — estimate revisions and the company rulebook. */

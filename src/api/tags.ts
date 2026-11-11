@@ -128,6 +128,8 @@ export const COMPANY_TAGS = [
   "OfficeExpenseCategories",
   "Staff",
   "SalarySheet",
+  "StaffDesignations",
+  "StaffAttendance",
   // Company accounts
   "CompanyAccounts",
   "CompanyAccountGroups",

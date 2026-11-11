@@ -12,6 +12,8 @@ export type YearMonth = string;
 export interface StaffMember {
   id: Id;
   name: string;
+  designationId: Id | null;
+  /** Its name (kept after the designation is deleted). */
   designation: string | null;
   phone: string | null;
   monthlySalaryPaisa: Paisa;
@@ -78,6 +80,8 @@ export interface SalarySheetRow {
   staff: { id: Id; name: string; designation: string | null; isActive: boolean };
   monthlySalaryPaisa: Paisa;
   advanceDuePaisa: Paisa;
+  /** The month's attendance marks. */
+  attendance: StaffAttendanceCounts;
   payment: SalaryPayment | null;
 }
 
@@ -89,7 +93,7 @@ export interface SalarySheet {
 
 export interface StaffBody {
   name: string;
-  designation?: string | null;
+  designationId?: Id | null;
   phone?: string | null;
   monthlySalaryPaisa: Paisa;
   joinedOn?: IsoDate | null;
@@ -117,4 +121,41 @@ export interface SalaryPaymentBody extends PaidFrom {
   deductionPaisa?: Paisa;
   advanceCutPaisa?: Paisa;
   paidOn: IsoDate;
+}
+
+/** A job on the company's own list (Accountant, Office boy …). */
+export interface StaffDesignation {
+  id: Id;
+  name: string;
+  staffCount?: number;
+}
+
+/** LEAVE = paid leave (not cut from salary). */
+export type StaffAttendanceStatus = "PRESENT" | "ABSENT" | "HALF_DAY" | "LEAVE";
+export const STAFF_ATTENDANCE_STATUSES: readonly StaffAttendanceStatus[] = ["PRESENT", "ABSENT", "HALF_DAY", "LEAVE"];
+
+export interface StaffAttendanceCounts {
+  present: number;
+  absent: number;
+  halfDay: number;
+  leave: number;
+}
+
+type StaffRef = { id: Id; name: string; designation: string | null; isActive: boolean };
+
+export interface StaffAttendanceDay {
+  date: IsoDate;
+  rows: Array<{ staff: StaffRef; status: StaffAttendanceStatus | null; note: string | null }>;
+  totals: StaffAttendanceCounts & { notMarked: number };
+}
+
+export interface StaffAttendanceMonth {
+  month: YearMonth;
+  daysInMonth: number;
+  rows: Array<{ staff: StaffRef; days: Record<IsoDate, StaffAttendanceStatus>; totals: StaffAttendanceCounts }>;
+}
+
+export interface MarkStaffAttendanceBody {
+  date: IsoDate;
+  entries: Array<{ staffId: Id; status: StaffAttendanceStatus | null; note?: string }>;
 }
