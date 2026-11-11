@@ -170,6 +170,8 @@ export const ENDPOINTS = {
     laborRates: "/labor-rates",
 
     workerTypes: "/worker-types",
+    trades: "/trades",
+    tradeById: (tradeId: string) => `/trades/${id(tradeId)}`,
     workerTypeById: (workerTypeId: string) => `/worker-types/${id(workerTypeId)}`,
 
     paymentTemplates: "/payment-templates",

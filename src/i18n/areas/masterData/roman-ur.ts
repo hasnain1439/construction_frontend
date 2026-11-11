@@ -33,6 +33,7 @@ export const strings: Widen<typeof En.strings> = {
     defaultBadge: "Default",
   },
   v: {
+    chooseTrade: "Kaam chunein",
     chooseGroup: "Group chunein",
     enterNumber: "Adad likhein",
     moreThanZero: "0 se zyada hona chahiye",
@@ -379,6 +380,15 @@ export const strings: Widen<typeof En.strings> = {
     emptyDesc: "Woh teams shamil karein jinhein aap theke par kaam dete hain.",
   },
   laborRates: {
+    addTrade: "Kaam shamil karein",
+    addTradeDesc: "Theke ka apna kaam, maslan False ceiling ya Sheeshe ka kaam, us ke default rate ke saath.",
+    tradeName: "Naam (English)",
+    tradePlaceholder: "Maslan False ceiling",
+    tradeRoman: "Naam (Roman Urdu)",
+    tradeUrdu: "Naam (Urdu)",
+    tradeRate: "Default rate",
+    tradeHint: "Ye piece-rate table, sub-contractor form aur Excel import mein nazar aayega.",
+    tradeAdded: "{name} shamil ho gaya",
     title: "Mazdoori ke rates",
     description: "Hazri ki default mazdoori aur theke ke kaam ke rates. Naye kaarigar inhi se shuru hote hain.",
     colWork: "Kaam",

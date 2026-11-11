@@ -31,6 +31,7 @@ export const strings = {
     defaultBadge: "Default",
   },
   v: {
+    chooseTrade: "Choose a trade",
     chooseGroup: "Choose a group",
     enterNumber: "Enter a number",
     moreThanZero: "Must be more than 0",
@@ -377,6 +378,15 @@ export const strings = {
     emptyDesc: "Add the teams you give piece-rate work to.",
   },
   laborRates: {
+    addTrade: "Add trade",
+    addTradeDesc: "A sub-contract trade of your own, e.g. False ceiling or Glass work, with its default rate.",
+    tradeName: "Name (English)",
+    tradePlaceholder: "e.g. False ceiling",
+    tradeRoman: "Name (Roman Urdu)",
+    tradeUrdu: "Name (Urdu)",
+    tradeRate: "Default rate",
+    tradeHint: "It shows in the piece-rate table, the sub-contractor form and Excel imports.",
+    tradeAdded: "{name} added",
     title: "Labor Rates",
     description: "Default wages for attendance and piece rates for sub-contract work. New workers start with these.",
     colWork: "Work",

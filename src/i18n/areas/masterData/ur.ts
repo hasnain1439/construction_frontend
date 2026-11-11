@@ -33,6 +33,7 @@ export const strings: Widen<typeof En.strings> = {
     defaultBadge: "ڈیفالٹ",
   },
   v: {
+    chooseTrade: "کام منتخب کریں",
     chooseGroup: "گروپ منتخب کریں",
     enterNumber: "عدد لکھیں",
     moreThanZero: "صفر سے زیادہ ہونا چاہیے",
@@ -379,6 +380,15 @@ export const strings: Widen<typeof En.strings> = {
     emptyDesc: "وہ ٹیمیں شامل کریں جنہیں آپ ٹھیکے پر کام دیتے ہیں۔",
   },
   laborRates: {
+    addTrade: "کام شامل کریں",
+    addTradeDesc: "ٹھیکے کا اپنا کام، مثلاً فالس سیلنگ یا شیشے کا کام، اس کے ڈیفالٹ ریٹ کے ساتھ۔",
+    tradeName: "نام (انگریزی)",
+    tradePlaceholder: "مثلاً فالس سیلنگ",
+    tradeRoman: "نام (رومن اردو)",
+    tradeUrdu: "نام (اردو)",
+    tradeRate: "ڈیفالٹ ریٹ",
+    tradeHint: "یہ پیس ریٹ ٹیبل، ٹھیکیدار فارم اور ایکسل امپورٹ میں نظر آئے گا۔",
+    tradeAdded: "{name} شامل ہو گیا",
     title: "مزدوری کے ریٹ",
     description: "حاضری کی ڈیفالٹ مزدوری اور ٹھیکے کے کام کے ریٹ۔ نئے کاریگر انہی سے شروع ہوتے ہیں۔",
     colWork: "کام",

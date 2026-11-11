@@ -26,6 +26,7 @@ export const strings = {
   },
   /** Form validation messages (zod schemas). */
   v: {
+    enterUnit: "Write the unit, e.g. point",
     chooseWorker: "Choose a worker",
     chooseSubcontractor: "Choose a sub-contractor",
     choosePayee: "Choose who gets the advance",
@@ -62,6 +63,9 @@ export const strings = {
     workingFrom: "Working here from",
   },
   assignSub: {
+    unitLabel: "Unit",
+    unitPlaceholder: "e.g. point, room, piece",
+    unitHint: "Measurements are entered in this unit.",
     title: "Add a sub-contract",
     description: "Piece-rate (per sq ft, ton …) or a lump-sum contract. Empty rate = the company labour rate for the trade.",
     submit: "Add sub-contract",
@@ -290,6 +294,7 @@ export const enums = {
     PER_RFT: "Per running ft",
     PER_CFT: "Per cu ft",
     LUMPSUM: "Lump sum",
+    PER_UNIT: "Per unit (your own)",
   },
   laborRateUnit: { sqft: "sq ft", ton: "ton", brick: "brick", rft: "running ft", cft: "cu ft" },
   laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },

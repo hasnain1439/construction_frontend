@@ -90,6 +90,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/features/onboarding/components/ImportWizard", () => ({ ImportButton: () => null }));
 vi.mock("@/api/services/masterData.api", () => ({
+  useGetTradesQuery: () => ({ data: [], isLoading: false }),
   useGetWorkersQuery: () => ({
     data: { items: [worker()], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } },
     isLoading: false,

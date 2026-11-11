@@ -26,6 +26,7 @@ export const strings: Widen<typeof En.strings> = {
     start: "آغاز",
   },
   v: {
+    enterUnit: "یونٹ لکھیں، مثلاً پوائنٹ",
     chooseWorker: "کاریگر منتخب کریں",
     chooseSubcontractor: "ذیلی ٹھیکیدار منتخب کریں",
     choosePayee: "منتخب کریں کہ پیشگی کس کو دی",
@@ -61,6 +62,9 @@ export const strings: Widen<typeof En.strings> = {
     workingFrom: "یہاں کب سے کام کر رہا ہے",
   },
   assignSub: {
+    unitLabel: "یونٹ",
+    unitPlaceholder: "مثلاً پوائنٹ، کمرہ، عدد",
+    unitHint: "ناپ اسی یونٹ میں لکھا جائے گا۔",
     title: "نیا ٹھیکہ شامل کریں",
     description: "ناپ کے حساب سے (فی مربع فٹ، ٹن …) یا یکمشت ٹھیکہ۔ ریٹ خالی ہو تو کمپنی کا اس کام کا مزدوری ریٹ لگے گا۔",
     submit: "ٹھیکہ شامل کریں",
@@ -289,6 +293,7 @@ export const enums: Widen<typeof En.enums> = {
     PER_RFT: "فی رننگ فٹ",
     PER_CFT: "فی مکعب فٹ",
     LUMPSUM: "یکمشت (ٹھیکہ)",
+    PER_UNIT: "فی یونٹ (اپنی)",
   },
   laborRateUnit: { sqft: "مربع فٹ", ton: "ٹن", brick: "اینٹ", rft: "رننگ فٹ", cft: "مکعب فٹ" },
   laborFloatMethod: { CASH: "نقد", BANK: "بینک", JAZZCASH: "جاز کیش", EASYPAISA: "ایزی پیسہ", WALLET: "آن لائن والیٹ" },

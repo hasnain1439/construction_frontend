@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 import { useGetLaborRatesQuery, useUpdateLaborRatesMutation } from "@/api/services/masterData.api";
 import type { LaborRate } from "@/api/types";
@@ -9,6 +10,8 @@ import { useCan, useSeesWages } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { TableSkeleton } from "@/components/common/TableSkeleton";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { TradeSlideOver } from "../components/TradeSlideOver";
 import { Form } from "@/components/forms/Form";
 import { FormActions } from "@/components/forms/FormActions";
 import { MoneyInput } from "@/components/forms/MoneyInput";
@@ -152,6 +155,7 @@ export function LaborRatesView() {
   const { data, isLoading, error, refetch } = useGetLaborRatesQuery();
   const [save, { isLoading: saving }] = useUpdateLaborRatesMutation();
   const run = useMutationToast();
+  const [addingTrade, setAddingTrade] = useState(false);
   const values = useMemo<RateValues>(
     () => ({
       rates: (data ?? []).map((r) => ({
@@ -209,7 +213,16 @@ export function LaborRatesView() {
         title={t("masterData.laborRates.title")}
         description={t("masterData.laborRates.description")}
         breadcrumbs={[{ label: t("crumb.settings") }, { label: t("masterData.laborRates.title") }]}
+        actions={
+          editable ? (
+            <Button variant="outline" onClick={() => setAddingTrade(true)}>
+              <Plus data-icon="inline-start" />
+              {t("masterData.laborRates.addTrade")}
+            </Button>
+          ) : null
+        }
       />
+      {addingTrade ? <TradeSlideOver open onOpenChange={setAddingTrade} /> : null}
       {isLoading ? (
         <TableSkeleton />
       ) : error && !data ? (

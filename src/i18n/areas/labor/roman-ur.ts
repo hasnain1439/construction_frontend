@@ -26,6 +26,7 @@ export const strings: Widen<typeof En.strings> = {
     start: "Shuru",
   },
   v: {
+    enterUnit: "Unit likhein, maslan point",
     chooseWorker: "Kaarigar chunein",
     chooseSubcontractor: "Sub-contractor chunein",
     choosePayee: "Chunein peshgi kis ko di",
@@ -61,6 +62,9 @@ export const strings: Widen<typeof En.strings> = {
     workingFrom: "Yahan kab se kaam kar raha hai",
   },
   assignSub: {
+    unitLabel: "Unit",
+    unitPlaceholder: "Maslan point, kamra, adad",
+    unitHint: "Naap isi unit mein likha jayega.",
     title: "Naya theka shamil karein",
     description: "Naap ke hisaab se (fi sq ft, ton …) ya yakmusht theka. Rate khaali ho to company ka us kaam ka mazdoori rate lagega.",
     submit: "Theka shamil karein",
@@ -289,6 +293,7 @@ export const enums: Widen<typeof En.enums> = {
     PER_RFT: "Fi running ft",
     PER_CFT: "Fi cu ft",
     LUMPSUM: "Yakmusht (theka)",
+    PER_UNIT: "Fi unit (apni)",
   },
   laborRateUnit: { sqft: "sq ft", ton: "ton", brick: "eent", rft: "running ft", cft: "cu ft" },
   laborFloatMethod: { CASH: "Cash", BANK: "Bank", JAZZCASH: "JazzCash", EASYPAISA: "Easypaisa", WALLET: "Online wallet" },

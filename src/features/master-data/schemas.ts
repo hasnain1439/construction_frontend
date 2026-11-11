@@ -156,17 +156,8 @@ export type WorkerTypeFormSchema = ReturnType<typeof createWorkerTypeSchema>;
 
 export const subcontractorSchema = z.object({
   name: requiredText("field.name", 2, 80),
-  trade: z.enum([
-    "SHUTTERING",
-    "STEEL_FIXING",
-    "BRICK_MASONRY",
-    "PLASTER",
-    "TILE_LAYING",
-    "ELECTRICAL_CONDUIT",
-    "PLUMBING_ROUGH_IN",
-    "WATERPROOFING",
-    "PAINT",
-  ]),
+  // A trade key of the company (GET /trades): a built-in one or its own.
+  trade: z.string().min(1, msg("masterData.v.chooseTrade")),
   phone: optionalAnyPhoneSchema,
   notes: optionalText(500),
 });

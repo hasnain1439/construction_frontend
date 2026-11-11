@@ -23,11 +23,16 @@ export const assignSubcontractSchema = z
   .object({
     subcontractorId: pick("labor.v.chooseSubcontractor"),
     scope: requiredText("labor.fieldName.scope", 2, 200),
-    rateType: z.enum(["PER_SQFT", "PER_TON", "PER_BRICK", "PER_RFT", "PER_CFT", "LUMPSUM"]),
+    rateType: z.enum(["PER_SQFT", "PER_TON", "PER_BRICK", "PER_RFT", "PER_CFT", "LUMPSUM", "PER_UNIT"]),
+    /** PER_UNIT: the unit the company writes (point, room …). */
+    unitLabel: z.string().max(20),
     ratePaisa: paisa,
     contractValuePaisa: paisa,
     retentionPercent: z.number().min(0).max(20, msg("labor.v.retentionMax")).nullable(),
     startDate: z.string(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.rateType === "PER_UNIT" && !v.unitLabel.trim()) ctx.addIssue({ code: "custom", path: ["unitLabel"], message: msg("labor.v.enterUnit") });
   });
 export type AssignSubcontractValues = z.input<typeof assignSubcontractSchema>;
 

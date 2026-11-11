@@ -325,10 +325,34 @@ export type SubcontractTrade =
   | "WATERPROOFING"
   | "PAINT";
 
+/** A sub-contract trade of the company (GET /trades): the defaults and its own. */
+export interface TradeRow {
+  id: Id;
+  key: string;
+  label: string;
+  labelRoman: string | null;
+  labelUrdu: string | null;
+  unit: "SQFT" | "TON" | "BRICK" | "RFT" | "LUMPSUM";
+  ratePaisa: Paisa;
+  isActive: boolean;
+  subcontractorCount: number;
+}
+export interface CreateTradeBody {
+  label: string;
+  labelRoman?: string;
+  labelUrdu?: string;
+  unit: TradeRow["unit"];
+  ratePaisa: Paisa;
+}
+
 export interface Subcontractor {
   id: Id;
   name: string;
-  trade: SubcontractTrade;
+  /** A built-in trade or one the company added (GET /trades). */
+  trade: SubcontractTrade | (string & {});
+  tradeLabel?: string;
+  tradeLabelRoman?: string | null;
+  tradeLabelUrdu?: string | null;
   phone: string | null;
   notes: string | null;
   isActive: boolean;
@@ -336,8 +360,8 @@ export interface Subcontractor {
 }
 
 export type SubcontractorsQuery = QueryParams<"/api/v1/subcontractors", "get">;
-export type CreateSubcontractorBody = RequestBody<"/api/v1/subcontractors", "post">;
-export type UpdateSubcontractorBody = RequestBody<"/api/v1/subcontractors/{id}", "patch">;
+export type CreateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors", "post">, "trade"> & { trade: string };
+export type UpdateSubcontractorBody = Omit<RequestBody<"/api/v1/subcontractors/{id}", "patch">, "trade"> & { trade?: string };
 
 /** Settings → Supplier categories: the choices in the supplier form and the suppliers filter. */
 export interface SupplierCategory {

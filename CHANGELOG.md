@@ -6,6 +6,11 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Company trades and per-unit contracts (11 Nov 2026)
+
+- **Added:** Labour rates → **Add trade**: a sub-contract trade of the company's own with names in three languages and a default rate. The sub-contractor form, list and filter show the company's trades.
+- **Added:** Assign sub-contract → paid **Per unit (your own)**: write the unit (point, room …); the rate and measurements use it.
+
 ### Office PC sync badge (6 Nov 2026)
 
 - **Fixed:** the footer's "All synced" was fixed text. On an office PC it now follows the sync agent: all synced, offline, entries waiting, syncing or a sync problem.

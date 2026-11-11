@@ -2,6 +2,7 @@
 import { useCallback, useMemo } from "react";
 import type { LaborPaidFrom, RateType } from "@/api/types";
 import { enums as laborEnums } from "@/i18n/areas/labor/en";
+import { useTradeName } from "@/hooks/useTrades";
 import { useEnumT } from "@/i18n/useT";
 import { humanize } from "@/lib/status";
 
@@ -14,6 +15,8 @@ export const RATE_TYPE_OPTIONS: Array<{ value: RateType; unit: string }> = [
   { value: "PER_RFT", unit: "rft" },
   { value: "PER_CFT", unit: "cft" },
   { value: "LUMPSUM", unit: "%" },
+  // The company writes the unit (point, room …) on the contract.
+  { value: "PER_UNIT", unit: "" },
 ];
 
 /** English labels (kept for the cash book until it reads `te("laborFloatMethod", v)`). */
@@ -28,7 +31,8 @@ export function useLaborLabels() {
   const paidFrom = useCallback((v: string | null | undefined) => (v ? te("laborPaidFrom", v, humanize(v)) : "—"), [te]);
   const rateType = useCallback((v: string) => te("laborRateType", v, humanize(v)), [te]);
   const unit = useCallback((u: string | null | undefined) => (u ? te("laborRateUnit", u, u) : ""), [te]);
-  const trade = useCallback((v: string) => te("trade", v, humanize(v)), [te]);
+  const tradeName = useTradeName();
+  const trade = useCallback((v: string) => tradeName(v), [tradeName]);
   const ledgerEntry = useCallback((v: string) => te("laborLedgerEntry", v, humanize(v)), [te]);
   const paidFromOptions = useMemo(() => PAID_FROM_VALUES.map((value) => ({ value, label: te("laborPaidFrom", value) })), [te]);
   const rateTypeOptions = useMemo(() => RATE_TYPE_OPTIONS.map((o) => ({ value: o.value, label: te("laborRateType", o.value) })), [te]);
