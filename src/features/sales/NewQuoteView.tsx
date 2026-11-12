@@ -35,7 +35,7 @@ const FORM_ID = "quote-form";
 function useLivePreview(control: Control<NewQuoteValues> | Control<QuoteInputValues>) {
   const values = useWatch({ control: control as Control<QuoteInputValues> });
   // The work list does not change the price: leave it out so typing in it never re-prices.
-  const body = useMemo(() => toInputsBody({ ...values, scopeCustom: false, scope: null }), [values]);
+  const body = useMemo(() => toInputsBody({ ...values, scopeCustom: false, scopeTemplateId: null, scope: null }), [values]);
   const key = JSON.stringify(body);
   const [preview] = usePreviewQuoteMutation();
   const [state, setState] = useState<{ key: string; data: QuoteComputed | null; failed: boolean }>({ key: "", data: null, failed: false });

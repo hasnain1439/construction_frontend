@@ -42,15 +42,35 @@ export interface QuoteInputs {
 
 /** Who a work item is for: in the quoted rate, provided / done by the owner, or not in this quotation. */
 export type QuoteScopeWho = "INCLUDED" | "OWNER" | "EXCLUDED";
-export interface QuoteScopeBody {
+/** What a quotation prints: work list, rate per sq ft in parts, material base rates, notes. */
+export interface QuoteScopeContent {
+  name: string;
   sections: Array<{ title: string; items: Array<{ text: string; who: QuoteScopeWho }> }>;
+  rates: Array<{ label: string; ratePerSqftPaisa: Paisa }>;
+  baseRates: Array<{ item: string; ratePaisa: Paisa; unit: string }>;
   terms: Array<{ title: string; text: string }>;
 }
-/** COMPANY / DEFAULT = copied from the template; QUOTE = edited for this quote. */
-export interface QuoteScope extends QuoteScopeBody {
-  source: "COMPANY" | "DEFAULT" | "QUOTE";
+/** A quote's own copy (inputs.scope). */
+export interface QuoteScopeBody extends QuoteScopeContent {
+  templateId?: string | null;
 }
-export type QuoteScopeTemplates = Record<QuoteContractType, QuoteScope>;
+/** COMPANY / DEFAULT = copied from a template; QUOTE = edited for this quote. */
+export interface QuoteScope extends QuoteScopeContent {
+  source: "COMPANY" | "DEFAULT" | "QUOTE";
+  templateId: string | null;
+}
+export interface QuoteTemplateBody extends QuoteScopeContent {
+  contractType: QuoteContractType;
+  isDefault: boolean;
+}
+export interface QuoteTemplate extends QuoteTemplateBody {
+  id: string;
+}
+/** COMPANY = the company saved its list; DEFAULT = the built-in list. */
+export interface QuoteTemplateList {
+  source: "COMPANY" | "DEFAULT";
+  templates: QuoteTemplate[];
+}
 
 export interface QuoteSummary {
   id: Id;
@@ -198,7 +218,7 @@ export interface QuotesQuery {
   followUp?: "true" | "false";
 }
 
-export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"] & { scope?: QuoteScopeBody | null };
+export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"] & { scope?: QuoteScopeBody | null; scopeTemplateId?: string | null };
 export type CreateQuoteBody = RequestBody<"/api/v1/quotes", "post">;
 export type UpdateQuoteBody = RequestBody<"/api/v1/quotes/{id}", "patch">;
 export type AddQuoteRevisionBody = RequestBody<"/api/v1/quotes/{id}/revisions", "post">;

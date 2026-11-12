@@ -25,6 +25,8 @@ export const quoteInputsFields = {
   note: optionalText(300),
   /** true = this quote has its own work list (scope); false = the company template is used. */
   scopeCustom: z.boolean(),
+  /** The quotation template to copy (null = the default of the contract type). */
+  scopeTemplateId: z.string().nullable().optional(),
   scope: scopeSchema.nullable(),
 };
 
@@ -72,6 +74,7 @@ export const DEFAULT_INPUT_VALUES: QuoteInputValues = {
   finalPricePaisa: null,
   note: "",
   scopeCustom: false,
+  scopeTemplateId: null,
   scope: null,
 };
 
@@ -96,6 +99,7 @@ export function valuesFromInputs(i: QuoteInputs): QuoteInputValues {
     finalPricePaisa: i.finalPricePaisa ?? null,
     note: "",
     scopeCustom: i.scope?.source === "QUOTE",
+    scopeTemplateId: i.scope?.templateId ?? null,
     scope: i.scope?.source === "QUOTE" ? scopeBody(i.scope) : null,
   };
 }
@@ -117,6 +121,6 @@ export function toInputsBody(v: Partial<QuoteInputValues>): QuoteInputsBody | nu
     ...(v.marginPercent !== null && v.marginPercent !== undefined ? { marginPercent: v.marginPercent } : {}),
     ...(v.contractType === "FULL" && v.finishingAllowancePercent !== null && v.finishingAllowancePercent !== undefined ? { finishingAllowancePercent: v.finishingAllowancePercent } : {}),
     ...(v.finalPricePaisa ? { finalPricePaisa: v.finalPricePaisa } : {}),
-    ...(v.scopeCustom && v.scope ? { scope: v.scope } : {}),
+    ...(v.scopeCustom && v.scope ? { scope: v.scope } : v.scopeTemplateId ? { scopeTemplateId: v.scopeTemplateId } : {}),
   } as QuoteInputsBody;
 }

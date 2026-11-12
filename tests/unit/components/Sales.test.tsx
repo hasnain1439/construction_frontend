@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteScope, QuoteSummary } from "@/api/types";
+import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteScope, QuoteSummary, QuoteTemplate, QuoteTemplateList } from "@/api/types";
 import { COMPANY_NAV } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
 import { meFixture, permissionsFor } from "../fixtures";
@@ -117,11 +117,27 @@ const INSIGHTS: QuoteInsights = {
 
 const LABOUR_SCOPE: QuoteScope = {
   source: "DEFAULT",
+  templateId: "labour-grey",
+  name: "Labour only · grey structure",
   sections: [{ title: "A · Up to DPC", items: [{ text: "Excavation of foundations", who: "INCLUDED" }, { text: "Anti-termite proofing", who: "OWNER" }] }],
+  rates: [{ label: "All work", ratePerSqftPaisa: "67500" }],
+  baseRates: [],
   terms: [{ title: "Plot depth", text: "Rs 15 per sq ft for each foot below road level." }],
 };
-const SCOPE_TEMPLATES = { LABOR_ONLY: LABOUR_SCOPE, GREY_OWNER_FINISHING: { ...LABOUR_SCOPE, sections: [{ title: "Grey structure", items: [{ text: "Brick work", who: "INCLUDED" as const }] }] }, FULL: LABOUR_SCOPE };
-const saveTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve({ ...LABOUR_SCOPE, source: "COMPANY" }) }));
+const tplOf = (id: string, contractType: QuoteTemplate["contractType"], isDefault: boolean, over: Partial<QuoteTemplate> = {}): QuoteTemplate => {
+  const { source: _s, templateId: _t, ...content } = LABOUR_SCOPE;
+  return { id, contractType, isDefault, ...content, ...over };
+};
+const TEMPLATE_LIST: QuoteTemplateList = {
+  source: "DEFAULT",
+  templates: [
+    tplOf("labour-grey", "LABOR_ONLY", true),
+    tplOf("grey-standard", "GREY_OWNER_FINISHING", true, { name: "Grey · Standard", sections: [{ title: "Grey structure", items: [{ text: "Brick work", who: "INCLUDED" }] }], rates: [{ label: "Inside", ratePerSqftPaisa: "285000" }, { label: "Outside", ratePerSqftPaisa: "30000" }] }),
+    tplOf("grey-premium", "GREY_OWNER_FINISHING", false, { name: "Grey · Premium (A+)", baseRates: [{ item: "Steel Grade 60", ratePaisa: "25000", unit: "kg" }] }),
+  ],
+};
+const createTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve(TEMPLATE_LIST) }));
+const updateTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve(TEMPLATE_LIST) }));
 const createQuote = vi.fn(() => ({ unwrap: () => Promise.resolve({ id: "q9", number: "Q-2026-0009" }) }));
 
 let previewResult: QuoteComputed = COMPUTED;
@@ -144,9 +160,11 @@ vi.mock("@/api/services/sales.api", () => ({
   useMarkQuoteLostMutation: mutation(),
   useMarkQuoteWonMutation: () => [markWon, { isLoading: false }],
   useGetQuotePdfMutation: mutation(),
-  useGetQuoteScopeTemplatesQuery: () => ({ data: SCOPE_TEMPLATES, isLoading: false, isSuccess: true }),
-  useSaveQuoteScopeTemplateMutation: () => [saveTemplate, { isLoading: false }],
-  useResetQuoteScopeTemplateMutation: mutation(),
+  useGetQuoteTemplatesQuery: () => ({ data: TEMPLATE_LIST, isLoading: false, isSuccess: true }),
+  useCreateQuoteTemplateMutation: () => [createTemplate, { isLoading: false }],
+  useUpdateQuoteTemplateMutation: () => [updateTemplate, { isLoading: false }],
+  useDeleteQuoteTemplateMutation: mutation(),
+  useResetQuoteTemplatesMutation: mutation(),
 }));
 vi.mock("@/api/services/clients.api", () => ({ useGetClientsQuery: () => ({ data: { items: [{ id: "c1", name: "Hamid Ali", phone: "+923214445566" }] } }) }));
 vi.mock("@/api/services/masterData.api", () => ({ useGetQualityCategoriesQuery: () => ({ data: [] }), useGetPaymentTemplatesQuery: () => ({ data: [] }) }));
@@ -291,13 +309,14 @@ describe("Sales — win / loss insights", () => {
   });
 });
 
-describe("Sales — work details & terms (scope)", () => {
-  it("a new quote shows the template of its contract type; Edit for this quote sends its own list", { timeout: 30_000 }, async () => {
+describe("Sales — quotation templates (scope)", () => {
+  it("a new quote starts with the default template of its type; another grade can be picked; Edit for this quote sends its own list", { timeout: 30_000 }, async () => {
     const user = userEvent.setup();
     createQuote.mockClear();
     renderWithStore(<NewQuoteView />, { me: meFixture("THEKEDAR") });
     expect(screen.getByText("Work details & terms")).toBeInTheDocument();
-    expect(screen.getByText(/1 sections · 1 items · 1 notes/)).toBeInTheDocument();
+    expect(screen.getAllByText("Grey · Standard").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /Use the template rate \(Rs 3,150 per sq ft\)/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Edit for this quote/ }));
     expect(screen.getByText("Changes here are for this quote only.")).toBeInTheDocument();
     const title = screen.getByDisplayValue("Grey structure");
@@ -305,44 +324,61 @@ describe("Sales — work details & terms (scope)", () => {
     await user.type(title, "A · Foundation");
     await user.type(screen.getByLabelText(/Plot size/), "10");
     await user.type(screen.getByLabelText(/Covered area/), "3950");
-    await user.type(screen.getByLabelText(/Quote title/), "Valencia labour");
+    await user.type(screen.getByLabelText(/Quote title/), "Valencia grey");
     await user.click(screen.getByRole("radio", { name: "New client" }));
     await user.type(screen.getByLabelText(/Client name/), "Hamid Ali");
     await user.type(screen.getByLabelText(/Client phone/), "03214445566");
     await user.click(screen.getAllByRole("button", { name: "Save quote" })[0]!);
     await waitFor(() => expect(createQuote).toHaveBeenCalled());
-    const body = (createQuote.mock.calls.at(-1) as unknown as [{ inputs: { scope: unknown } }])[0];
-    expect(body.inputs.scope).toEqual({ sections: [{ title: "A · Foundation", items: [{ text: "Brick work", who: "INCLUDED" }] }], terms: [{ title: "Plot depth", text: "Rs 15 per sq ft for each foot below road level." }] });
+    const body = (createQuote.mock.calls.at(-1) as unknown as [{ inputs: { scope: { templateId: string; name: string; sections: Array<{ title: string }>; rates: unknown[] } } }])[0];
+    expect(body.inputs.scope).toMatchObject({ templateId: "grey-standard", name: "Grey · Standard", sections: [{ title: "A · Foundation" }] });
+    expect(body.inputs.scope.rates).toHaveLength(2);
     // the live price never re-runs for the list
-    for (const call of preview.mock.calls as unknown as Array<[Record<string, unknown>]>) expect(call[0]).not.toHaveProperty("scope");
+    for (const call of preview.mock.calls as unknown as Array<[Record<string, unknown>]>) {
+      expect(call[0]).not.toHaveProperty("scope");
+      expect(call[0]).not.toHaveProperty("scopeTemplateId");
+    }
   });
 
-  it("templates page: one tab per contract type; the owner saves the labour-only list", { timeout: 20_000 }, async () => {
+  it("Use the template rate sets the agreed price = rate × covered area", { timeout: 20_000 }, async () => {
     const user = userEvent.setup();
-    saveTemplate.mockClear();
+    renderWithStore(<NewQuoteView />, { me: meFixture("THEKEDAR") });
+    await user.type(screen.getByLabelText(/Covered area/), "3600");
+    await user.click(screen.getByRole("button", { name: /Use the template rate/ }));
+    expect(screen.getByLabelText(/Agreed price/)).toHaveValue("1,13,40,000");
+  });
+
+  it("templates page: grouped by contract type; the owner edits a template and saves it", { timeout: 20_000 }, async () => {
+    const user = userEvent.setup();
+    updateTemplate.mockClear();
     renderWithStore(<QuoteTemplatesView />, { me: meFixture("THEKEDAR") });
-    expect(screen.getByRole("tab", { name: "Labour only" })).toBeInTheDocument();
+    expect(screen.getByText("These are the built-in templates. Your first change saves them as your company's list.")).toBeInTheDocument();
+    expect(screen.getByText("Grey · Premium (A+)")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /^Edit$/ })[0]!);
     expect(screen.getByDisplayValue("A · Up to DPC")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Add item/ }));
     const items = screen.getAllByRole("textbox", { name: "Work item" });
     await user.type(items.at(-1)!, "DPC 50 mm thick");
     await user.click(screen.getByRole("button", { name: /Save template/ }));
-    await waitFor(() => expect(saveTemplate).toHaveBeenCalled());
-    const arg = (saveTemplate.mock.calls.at(-1) as unknown as [{ contractType: string; body: { sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];
-    expect(arg.contractType).toBe("LABOR_ONLY");
+    await waitFor(() => expect(updateTemplate).toHaveBeenCalled());
+    const arg = (updateTemplate.mock.calls.at(-1) as unknown as [{ id: string; body: { contractType: string; sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];
+    expect(arg.id).toBe("labour-grey");
+    expect(arg.body.contractType).toBe("LABOR_ONLY");
     expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED" });
   });
 
   it("a PM (no sales.quote.manage) only reads the templates", () => {
     renderWithStore(<QuoteTemplatesView />, { me: meFixture("PM") });
-    expect(screen.queryByRole("button", { name: /Save template/ })).toBeNull();
-    expect(screen.getByText("Excavation of foundations")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /New template/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Edit$/ })).toBeNull();
+    expect(screen.getByText("Grey · Standard")).toBeInTheDocument();
   });
 
-  it("the quote detail lists the work items with who does them", () => {
+  it("the quote detail lists the rate parts and the work items with who does them", () => {
     detail = { ...DETAIL, latest: { ...DETAIL.latest, inputs: { ...DETAIL.latest.inputs, scope: LABOUR_SCOPE } } };
     renderWithStore(<QuoteDetailView quoteId="q1" />, { me: meFixture("THEKEDAR") });
     expect(screen.getByText("Anti-termite proofing")).toBeInTheDocument();
     expect(screen.getAllByText("By owner").length).toBeGreaterThan(0);
+    expect(screen.getByText("Total Rs 675 per sq ft")).toBeInTheDocument();
   });
 });

@@ -1,107 +1,201 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RotateCcw, Save } from "lucide-react";
+import { Copy, Pencil, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
-import { useGetQuoteScopeTemplatesQuery, useResetQuoteScopeTemplateMutation, useSaveQuoteScopeTemplateMutation } from "@/api/services/sales.api";
-import type { QuoteContractType, QuoteScope } from "@/api/types";
+import { z } from "zod";
+import { useCreateQuoteTemplateMutation, useDeleteQuoteTemplateMutation, useGetQuoteTemplatesQuery, useResetQuoteTemplatesMutation, useUpdateQuoteTemplateMutation } from "@/api/services/sales.api";
+import type { QuoteContractType, QuoteTemplate, QuoteTemplateBody, QuoteTemplateList } from "@/api/types";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { InlineAlert } from "@/components/common/InlineAlert";
 import { useCan } from "@/components/common/PermissionGate";
 import { QueryState } from "@/components/common/QueryState";
 import { SectionCard } from "@/components/common/SectionCard";
-import { Form } from "@/components/forms/Form";
+import { FieldGrid, Form } from "@/components/forms/Form";
+import { SelectField } from "@/components/forms/SelectField";
+import { ToggleField } from "@/components/forms/ToggleField";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
-import { scopeBody, ScopeFields, ScopeList, scopeSchema } from "./ScopeEditor";
+import { formatPKR } from "@/lib/money";
+import { rateTotal, scopeBody, scopeContentFields, ScopeFields, ScopeList } from "./ScopeEditor";
 
 const TYPES: QuoteContractType[] = ["LABOR_ONLY", "GREY_OWNER_FINISHING", "FULL"];
-const formSchema = scopeSchema;
+const formSchema = z.object({ contractType: z.enum(["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"]), isDefault: z.boolean(), ...scopeContentFields });
 type Values = z.input<typeof formSchema>;
 
-function TemplateForm({ contractType, template, canEdit }: { contractType: QuoteContractType; template: QuoteScope; canEdit: boolean }) {
+const valuesOf = (t: QuoteTemplateBody): Values => {
+  const { templateId: _ignored, ...content } = scopeBody(t);
+  return { contractType: t.contractType, isDefault: t.isDefault, ...content };
+};
+const EMPTY: QuoteTemplateBody = { contractType: "GREY_OWNER_FINISHING", isDefault: false, name: "", sections: [], rates: [], baseRates: [], terms: [] };
+
+/** Edit (or add) one template. */
+function TemplateEditor({ template, onDone }: { template: { id: string | null; body: QuoteTemplateBody }; onDone: () => void }) {
   const t = useT();
+  const enumT = useEnumT();
   const run = useMutationToast();
-  const [save, saving] = useSaveQuoteScopeTemplateMutation();
-  const [reset, resetting] = useResetQuoteScopeTemplateMutation();
-  const [confirm, setConfirm] = useState(false);
-  const form = useForm<Values, unknown, z.output<typeof formSchema>>({ resolver: zodResolver(formSchema), defaultValues: scopeBody(template) });
+  const [create, creating] = useCreateQuoteTemplateMutation();
+  const [update, updating] = useUpdateQuoteTemplateMutation();
+  const form = useForm<Values, unknown, z.output<typeof formSchema>>({ resolver: zodResolver(formSchema), defaultValues: valuesOf(template.body) });
   const onSubmit = async (v: z.output<typeof formSchema>) => {
-    const res = await run(() => save({ contractType, body: v }).unwrap(), { success: () => t("sales.scope.saved") });
-    if (res) form.reset(scopeBody(res));
+    const body = v as unknown as QuoteTemplateBody;
+    const res = await run(() => (template.id ? update({ id: template.id, body }).unwrap() : create(body).unwrap()), { success: () => t("sales.scope.saved") });
+    if (res) onDone();
   };
-  const doReset = async () => {
-    const res = await run(() => reset(contractType).unwrap(), { success: () => t("sales.scope.resetDone") });
-    setConfirm(false);
-    if (res) form.reset(scopeBody(res));
-  };
-  const badge = template.source === "COMPANY" ? t("sales.scope.fromCompany") : t("sales.scope.fromDefault");
-  if (!canEdit) {
-    return (
-      <SectionCard title={badge}>
-        <ScopeList scope={template} />
-      </SectionCard>
-    );
-  }
   return (
     <SectionCard
-      title={badge}
+      title={template.id ? template.body.name : t("sales.scope.addTemplate")}
       actions={
         <div className="flex flex-wrap gap-2">
-          {template.source === "COMPANY" ? (
-            <Button type="button" variant="outline" onClick={() => setConfirm(true)} disabled={resetting.isLoading}>
-              <RotateCcw data-icon="inline-start" />
-              {t("sales.scope.reset")}
-            </Button>
-          ) : null}
-          <Button type="submit" form={`scope-${contractType}`} disabled={saving.isLoading}>
+          <Button type="button" variant="outline" onClick={onDone}>
+            {t("sales.scope.cancel")}
+          </Button>
+          <Button type="submit" form="quote-template" disabled={creating.isLoading || updating.isLoading}>
             <Save data-icon="inline-start" />
             {t("sales.scope.save")}
           </Button>
         </div>
       }
     >
-      <Form form={form} onSubmit={onSubmit} id={`scope-${contractType}`}>
+      <Form form={form} onSubmit={onSubmit} id="quote-template">
+        <FieldGrid className="mb-6">
+          <SelectField name="contractType" label={t("sales.scope.contractType")} options={TYPES.map((k) => ({ value: k, label: enumT("projectContractType", k) }))} />
+          <ToggleField name="isDefault" label={t("sales.scope.isDefault")} />
+        </FieldGrid>
         <ScopeFields name="" />
       </Form>
-      <ConfirmDialog open={confirm} onOpenChange={setConfirm} title={t("sales.scope.reset")} description={t("sales.scope.resetConfirm")} confirmLabel={t("sales.scope.reset")} loading={resetting.isLoading} onConfirm={() => void doReset()} />
     </SectionCard>
   );
 }
 
-/** Sales → Quotation templates: the work list + notes each new quote starts with, per contract type. */
-export function QuoteTemplatesView() {
+function TemplateCard({ tpl, canEdit, onEdit, onCopy, onRemove }: { tpl: QuoteTemplate; canEdit: boolean; onEdit: () => void; onCopy: () => void; onRemove: () => void }) {
+  const t = useT();
+  const total = rateTotal(tpl);
+  const items = tpl.sections.reduce((a, s) => a + s.items.length, 0);
+  return (
+    <div className="space-y-2 rounded-2xl border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-semibold" dir="auto">
+            {tpl.name}
+            {tpl.isDefault ? <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{t("sales.scope.defaultBadge")}</span> : null}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("sales.scope.counts", { n: tpl.sections.length, items, terms: tpl.terms.length })}
+            {total > BigInt(0) ? ` · ${t("sales.scope.totalRate", { rate: formatPKR(total) })}` : ""}
+          </p>
+        </div>
+        {canEdit ? (
+          <div className="flex flex-wrap gap-1">
+            <Button type="button" variant="outline" size="sm" onClick={onEdit}>
+              <Pencil data-icon="inline-start" />
+              {t("sales.scope.edit")}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onCopy}>
+              <Copy data-icon="inline-start" />
+              {t("sales.scope.duplicate")}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onRemove} aria-label={`${t("sales.scope.remove")} ${tpl.name}`}>
+              <Trash2 />
+            </Button>
+          </div>
+        ) : null}
+      </div>
+      <details>
+        <summary className="cursor-pointer text-sm text-muted-foreground">{t("sales.scope.title")}</summary>
+        <div className="mt-3">
+          <ScopeList scope={tpl} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function TemplatesBody({ list, canEdit }: { list: QuoteTemplateList; canEdit: boolean }) {
   const t = useT();
   const enumT = useEnumT();
+  const run = useMutationToast();
+  const [editing, setEditing] = useState<{ id: string | null; body: QuoteTemplateBody } | null>(null);
+  const [removing, setRemoving] = useState<QuoteTemplate | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [remove, removeState] = useDeleteQuoteTemplateMutation();
+  const [reset, resetState] = useResetQuoteTemplatesMutation();
+  const body = ({ id: _id, ...rest }: QuoteTemplate): QuoteTemplateBody => rest;
+
+  if (editing) return <TemplateEditor key={editing.id ?? "new"} template={editing} onDone={() => setEditing(null)} />;
+  return (
+    <div className="space-y-6">
+      {list.source === "DEFAULT" ? <InlineAlert tone="info">{t("sales.scope.builtIn")}</InlineAlert> : null}
+      {canEdit ? (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" onClick={() => setEditing({ id: null, body: EMPTY })}>
+            <Plus data-icon="inline-start" />
+            {t("sales.scope.addTemplate")}
+          </Button>
+          {list.source === "COMPANY" ? (
+            <Button type="button" variant="outline" onClick={() => setResetOpen(true)}>
+              <RotateCcw data-icon="inline-start" />
+              {t("sales.scope.resetAll")}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      {TYPES.map((type) => {
+        const ofType = list.templates.filter((x) => x.contractType === type);
+        if (!ofType.length) return null;
+        return (
+          <SectionCard key={type} title={enumT("projectContractType", type)}>
+            <div className="space-y-3">
+              {ofType.map((tpl) => (
+                <TemplateCard
+                  key={tpl.id}
+                  tpl={tpl}
+                  canEdit={canEdit}
+                  onEdit={() => setEditing({ id: tpl.id, body: body(tpl) })}
+                  onCopy={() => setEditing({ id: null, body: { ...body(tpl), isDefault: false, name: t("sales.scope.copyOf", { name: tpl.name }).slice(0, 80) } })}
+                  onRemove={() => setRemoving(tpl)}
+                />
+              ))}
+            </div>
+          </SectionCard>
+        );
+      })}
+      <ConfirmDialog
+        open={removing !== null}
+        onOpenChange={(o) => (!o ? setRemoving(null) : undefined)}
+        title={t("sales.scope.remove")}
+        description={removing ? t("sales.scope.removeConfirm", { name: removing.name }) : ""}
+        confirmLabel={t("sales.scope.remove")}
+        loading={removeState.isLoading}
+        onConfirm={() => void run(() => remove(removing!.id).unwrap(), { success: () => t("sales.scope.removed") }).then(() => setRemoving(null))}
+      />
+      <ConfirmDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        title={t("sales.scope.resetAll")}
+        description={t("sales.scope.resetAllConfirm")}
+        confirmLabel={t("sales.scope.resetAll")}
+        loading={resetState.isLoading}
+        onConfirm={() => void run(() => reset().unwrap(), { success: () => t("sales.scope.resetDone") }).then(() => setResetOpen(false))}
+      />
+    </div>
+  );
+}
+
+/** Sales → Quotation templates: ready quotations (work list, rate parts, base rates, notes) per contract type. */
+export function QuoteTemplatesView() {
+  const t = useT();
   const readOnly = useReadOnly();
   const canEdit = useCan("sales.quote.manage") && !readOnly;
-  const query = useGetQuoteScopeTemplatesQuery();
+  const query = useGetQuoteTemplatesQuery();
   return (
     <>
       <PageHeader title={t("sales.scope.templatesTitle")} description={t("sales.scope.templatesDesc")} breadcrumbs={[{ label: t("crumb.sales") }, { label: t("sales.scope.templatesTitle") }]} />
-      <QueryState query={query}>
-        {(templates) => (
-          <Tabs defaultValue="LABOR_ONLY" className="gap-4">
-            <TabsList className="max-w-full overflow-x-auto">
-              {TYPES.map((k) => (
-                <TabsTrigger key={k} value={k}>
-                  {enumT("projectContractType", k)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {TYPES.map((k) => (
-              <TabsContent key={k} value={k}>
-                <TemplateForm key={`${k}:${templates[k].source}`} contractType={k} template={templates[k]} canEdit={canEdit} />
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
-      </QueryState>
+      <QueryState query={query}>{(list) => <TemplatesBody list={list as QuoteTemplateList} canEdit={canEdit} />}</QueryState>
     </>
   );
 }
