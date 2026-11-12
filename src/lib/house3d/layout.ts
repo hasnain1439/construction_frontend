@@ -439,6 +439,16 @@ function subtract(a: Rect, b: Rect): Rect[] {
   return out.filter((r) => r.dx > 0.01 && r.dz > 0.01);
 }
 
+/** A terrace's hole in the roof: out to the slab edge on the sides where it is on the block's edge. */
+function terraceCut(tr: Rect, block: Rect): Rect {
+  const reach = EXT + SLAB_OVERHANG + 0.01;
+  const l = Math.abs(tr.x - block.x) < 0.05 ? reach : 0;
+  const r = Math.abs(tr.x + tr.dx - (block.x + block.dx)) < 0.05 ? reach : 0;
+  const b = Math.abs(tr.z - block.z) < 0.05 ? reach : 0;
+  const f = Math.abs(tr.z + tr.dz - (block.z + block.dz)) < 0.05 ? reach : 0;
+  return { x: tr.x - l, z: tr.z - b, dx: tr.dx + l + r, dz: tr.dz + b + f };
+}
+
 // ─── The whole house ─────────────────────────────────────────────────────────
 
 const LEVEL_ORDER: Record<FloorLevel, number> = { BASEMENT: 0, GROUND: 1, FIRST: 2, SECOND: 3, THIRD: 4, MUMTY: 5 };
@@ -504,7 +514,7 @@ export function buildHouse(input: HouseInput): HouseModel {
   let assumedRooms = 0;
   let groundLines: Line[] = [];
   const groundColumns: Array<{ x: number; z: number }> = [];
-  let topRoof: { i: number; rects: Rect[]; y: number } | null = null;
+  let topRoof: { i: number; rects: Rect[]; y: number; base: number } | null = null;
 
   plans.forEach((plan, i) => {
     const fl = floorsIn[i]!;
@@ -654,13 +664,13 @@ export function buildHouse(input: HouseInput): HouseModel {
     // Roof slab over the floor (not over a terrace), a little wider than the walls.
     const o = env ?? outline({ ...plan, placed: rooms } as FloorPlan)!;
     let slabRects: Rect[] = [{ x: o.x - EXT - SLAB_OVERHANG, z: o.z - EXT - SLAB_OVERHANG, dx: o.dx + 2 * (EXT + SLAB_OVERHANG), dz: o.dz + 2 * (EXT + SLAB_OVERHANG) }];
-    for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) slabRects = slabRects.flatMap((r) => subtract(r, { x: tr.x, z: tr.z, dx: tr.dx, dz: tr.dz }));
+    for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) slabRects = slabRects.flatMap((r) => subtract(r, terraceCut(tr, o)));
     const t = slabT(fl);
     for (const r of slabRects) boxes.push({ kind: "slab", x: r.x, y: baseY + h, z: r.z, w: r.dx, h: t, d: r.dz, floor: i });
-    if (fl.level !== "BASEMENT" && fl.level !== "MUMTY" && (!topRoof || baseY > topRoof.y)) {
+    if (fl.level !== "BASEMENT" && fl.level !== "MUMTY" && (!topRoof || baseY > (topRoof as { base: number }).base)) {
       let roofRects: Rect[] = [{ x: o.x - EXT, z: o.z - EXT, dx: o.dx + 2 * EXT, dz: o.dz + 2 * EXT }];
-      for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) roofRects = roofRects.flatMap((r) => subtract(r, { x: tr.x, z: tr.z, dx: tr.dx, dz: tr.dz }));
-      topRoof = { i, rects: roofRects, y: baseY + h + t };
+      for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) roofRects = roofRects.flatMap((r) => subtract(r, terraceCut(tr, o)));
+      topRoof = { i, rects: roofRects, y: baseY + h + t, base: baseY };
     }
   });
 
@@ -679,20 +689,22 @@ export function buildHouse(input: HouseInput): HouseModel {
         { alongX: false, fixed: r.x + r.dx - t, a: r.z, b: r.z + r.dz, outside: (u) => [r.x + r.dx + 0.2, u] },
       ];
       for (const e of edges) {
-        // Walk the edge in 1 ft steps; keep the stretches with no roof beyond them.
+        // Walk the edge in about 1 ft cells; keep the stretches with no roof beyond them.
+        const n = Math.max(1, Math.ceil(e.b - e.a));
+        const step = (e.b - e.a) / n;
         let start: number | null = null;
-        for (let u = e.a; u <= e.b + 0.001; u += Math.min(1, e.b - e.a)) {
-          const free = !covered(...e.outside(Math.min(u + 0.5, e.b - 0.01)));
-          const at = Math.min(u, e.b);
-          if (free && start === null) start = at;
-          if ((!free || at >= e.b - 0.001) && start !== null) {
-            const end = free ? e.b : at;
-            if (end - start > 0.05)
-              boxes.push(e.alongX ? { kind: "parapet", x: start, y: ry, z: e.fixed, w: end - start, h: ph, d: t, floor: ti } : { kind: "parapet", x: e.fixed, y: ry, z: start, w: t, h: ph, d: end - start, floor: ti });
-            start = null;
-          }
-          if (at >= e.b) break;
+        const flush = (end: number) => {
+          if (start !== null && end - start > 0.05)
+            boxes.push(e.alongX ? { kind: "parapet", x: start, y: ry, z: e.fixed, w: end - start, h: ph, d: t, floor: ti } : { kind: "parapet", x: e.fixed, y: ry, z: start, w: t, h: ph, d: end - start, floor: ti });
+          start = null;
+        };
+        for (let k = 0; k < n; k++) {
+          const u0 = e.a + k * step;
+          const free = !covered(...e.outside(u0 + step / 2));
+          if (free && start === null) start = u0;
+          if (!free) flush(u0);
         }
+        flush(e.b);
       }
     }
   }
