@@ -12,7 +12,8 @@ export const strings = {
     addRooms: "Add rooms",
     noWebgl: "This browser cannot show 3D. Try Chrome or Edge, or turn on hardware acceleration.",
     howTo: "Drag to turn, scroll or pinch to zoom, right-drag to move.",
-    packedNote: "{n} rooms are not tied to other rooms by a shared wall, so they are set side by side.",
+    packedNote: "No shared walls are set for {n} rooms, so they are laid out in rows inside the house: bedrooms at the back, drawing room at the front.",
+    assumedNote: "{n} rooms have no door or window saved: a standard door and window are shown for them.",
     setWalls: "Set the shared walls",
     noPlot: "The plot size is not entered: the plot is drawn round the house.",
     show: "Show",
@@ -44,6 +45,9 @@ export const strings = {
     partDoor: "Door",
     partWindow: "Window / ventilator",
     partBoundary: "Boundary wall",
+    partChajja: "Sunshade",
+    partPlinth: "Plinth",
+    partFloor: "Floor",
   },
   glossary: {
     lenter: {

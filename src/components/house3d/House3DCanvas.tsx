@@ -7,10 +7,12 @@ import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRe
 import { PART_COLOR } from "@/lib/house3d/colors";
 import type { BoxKind, HouseModel } from "@/lib/house3d/layout";
 
-const SEE_THROUGH = new Set<BoxKind>(["window", "ventilator"]);
-const OUTLINED = new Set<BoxKind>(["wall", "slab", "parapet", "boundary", "column"]);
-const FOUNDATION = new Set<BoxKind>(["pcc", "footing", "foundationWall", "raft", "pile", "plinthFill", "plinthBeam", "dpc"]);
+const GLASS = new Set<BoxKind>(["window", "ventilator"]);
+/** Below the ground: shown with "Foundation". */
+const FOUNDATION = new Set<BoxKind>(["pcc", "footing", "foundationWall", "raft", "pile", "plinthFill", "plinthBeam"]);
 const ROOF = new Set<BoxKind>(["slab", "parapet"]);
+const NO_SHADOW = new Set<BoxKind>(["ground", "road", "paving", "floorFinish", "wetFloor", "window", "ventilator"]);
+const ROUGHNESS: Partial<Record<BoxKind, number>> = { window: 0.08, ventilator: 0.1, door: 0.6, frame: 0.5, road: 0.95, ground: 1 };
 
 export interface ViewOptions {
   /** Floors shown: index into model.floors, up to and including this one. */
@@ -22,6 +24,25 @@ export interface ViewOptions {
 }
 
 export type CameraView = "corner" | "top" | "front";
+
+/** A soft sky: light at the horizon, blue above. */
+function skyTexture() {
+  const c = document.createElement("canvas");
+  c.width = 4;
+  c.height = 256;
+  const g = c.getContext("2d");
+  if (g) {
+    const grad = g.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, "#8fb6dc");
+    grad.addColorStop(0.65, "#dbe8f2");
+    grad.addColorStop(1, "#f3efe7");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 4, 256);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 /**
  * The 3D scene of a house model (three.js): orbit with the mouse / a finger, scroll or pinch to zoom.
@@ -59,40 +80,60 @@ export function House3DCanvas({
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0xdfe9f3);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     el.appendChild(renderer.domElement);
     const labelRenderer = new CSS2DRenderer();
-    labelRenderer.domElement.style.position = "absolute";
-    labelRenderer.domElement.style.inset = "0";
-    labelRenderer.domElement.style.pointerEvents = "none";
+    Object.assign(labelRenderer.domElement.style, { position: "absolute", inset: "0", pointerEvents: "none" });
     el.appendChild(labelRenderer.domElement);
 
-    const scene = new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a66, 1.1));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
-    sun.position.set(-40, 80, 60);
-    scene.add(sun);
-
     const b = model.bounds;
-    const centre = new THREE.Vector3((b.minX + b.maxX) / 2, 0, (b.minZ + b.maxZ) / 2);
-    const size = Math.max(b.maxX - b.minX, b.maxZ - b.minZ, b.maxY - b.minY, 20);
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.5, size * 20);
+    const centre = new THREE.Vector3((b.minX + b.maxX) / 2, Math.max(0, b.maxY) / 3, (b.minZ + b.maxZ) / 2);
+    const radius = Math.max(15, Math.hypot(b.maxX - b.minX, Math.max(b.maxY, 0) - Math.min(b.minY, 0), b.maxZ - b.minZ) / 2);
+
+    const scene = new THREE.Scene();
+    const sky = skyTexture();
+    scene.background = sky;
+    scene.fog = new THREE.Fog(0xe9eef2, radius * 5, radius * 14);
+    scene.add(new THREE.HemisphereLight(0xdfeeff, 0x8a7a63, 1.0));
+    const sun = new THREE.DirectionalLight(0xfff3e0, 2.2);
+    sun.position.set(centre.x - radius * 1.2, radius * 2.2, centre.z + radius * 1.6);
+    sun.target.position.copy(centre);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    const sc = sun.shadow.camera;
+    sc.left = -radius * 1.3;
+    sc.right = radius * 1.3;
+    sc.top = radius * 1.3;
+    sc.bottom = -radius * 1.3;
+    sc.near = 1;
+    sc.far = radius * 6;
+    sun.shadow.bias = -0.0008;
+    sun.shadow.normalBias = 0.45;
+    scene.add(sun, sun.target);
+
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.3, radius * 30);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.maxPolarAngle = Math.PI * 0.95;
+    controls.maxPolarAngle = Math.PI * 0.49 + (model.bounds.minY < 0 ? 0.35 : 0);
+    controls.minDistance = 5;
+    controls.maxDistance = radius * 8;
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const edges = new THREE.EdgesGeometry(geometry);
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x3a3a3a, transparent: true, opacity: 0.25 });
     const materials = new Map<BoxKind, THREE.MeshStandardMaterial>();
     const materialOf = (kind: BoxKind) => {
       let m = materials.get(kind);
       if (!m) {
         m = new THREE.MeshStandardMaterial({
           color: PART_COLOR[kind],
-          roughness: 0.85,
-          transparent: SEE_THROUGH.has(kind) || kind === "ground",
-          opacity: SEE_THROUGH.has(kind) ? 0.45 : 1,
+          roughness: ROUGHNESS[kind] ?? 0.88,
+          metalness: GLASS.has(kind) ? 0.1 : 0,
+          transparent: GLASS.has(kind) || kind === "ground",
+          opacity: GLASS.has(kind) ? 0.4 : 1,
+          // Closed boxes: casting from the back faces stops the speckled self-shadow on walls.
+          shadowSide: THREE.BackSide,
         });
         materials.set(kind, m);
       }
@@ -105,39 +146,51 @@ export function House3DCanvas({
       const mesh = new THREE.Mesh(geometry, materialOf(box.kind));
       mesh.scale.set(Math.max(box.w, 0.01), Math.max(box.h, 0.01), Math.max(box.d, 0.01));
       mesh.position.set(box.x + box.w / 2, box.y + box.h / 2, box.z + box.d / 2);
-      if (OUTLINED.has(box.kind)) mesh.add(new THREE.LineSegments(edges, lineMaterial));
+      mesh.castShadow = !NO_SHADOW.has(box.kind);
+      mesh.receiveShadow = !GLASS.has(box.kind);
       scene.add(mesh);
       list.push({ object: mesh, kind: box.kind, floor: box.floor });
     }
     for (const l of model.labels) {
       const tag = document.createElement("span");
       tag.textContent = l.text;
-      tag.className = "rounded bg-background/85 px-1.5 py-0.5 text-[11px] font-medium text-foreground shadow-sm";
+      Object.assign(tag.style, {
+        background: "rgba(255,255,255,0.88)",
+        color: "#1f2328",
+        font: "500 11px system-ui, sans-serif",
+        padding: "2px 6px",
+        borderRadius: "6px",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+        whiteSpace: "nowrap",
+      });
       const obj = new CSS2DObject(tag);
       obj.position.set(l.x, l.y, l.z);
       scene.add(obj);
       list.push({ object: obj, kind: "label", floor: l.floor });
     }
+
     apply.current = (o: ViewOptions) => {
       for (const p of list) {
         const floorShown = p.floor === null || p.floor <= o.upTo;
         let visible = floorShown;
-        if (p.kind === "label") visible = floorShown && o.labels;
+        // Names only where they can be read: the top floor shown, when its roof is off.
+        if (p.kind === "label") visible = o.labels && p.floor === o.upTo && !o.roofs;
         else if (FOUNDATION.has(p.kind)) visible = o.foundation;
         else if (p.kind === "boundary") visible = o.boundary;
         else if (ROOF.has(p.kind)) visible = floorShown && (o.roofs || p.floor! < o.upTo);
         p.object.visible = visible;
       }
-      groundMaterial.opacity = o.foundation ? 0.35 : 1;
+      groundMaterial.opacity = o.foundation ? 0.3 : 1;
       groundMaterial.depthWrite = !o.foundation;
     };
     apply.current(latest.current);
 
+    const fovDistance = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2));
     moveCamera.current = (v: CameraView) => {
-      controls.target.copy(centre).setY(Math.max(0, (b.maxY + 0) / 3));
-      if (v === "top") camera.position.set(centre.x, size * 1.6, centre.z + 0.01);
-      else if (v === "front") camera.position.set(centre.x, size * 0.35, b.maxZ + size * 1.1);
-      else camera.position.set(b.maxX + size * 0.7, size * 0.8, b.maxZ + size * 0.9);
+      controls.target.copy(centre);
+      if (v === "top") camera.position.set(centre.x, centre.y + fovDistance * 1.05, centre.z + 0.01);
+      else if (v === "front") camera.position.set(centre.x, centre.y + radius * 0.25, centre.z + fovDistance * 1.05);
+      else camera.position.copy(centre).add(new THREE.Vector3(0.62, 0.48, 0.62).normalize().multiplyScalar(fovDistance * 0.95));
       controls.update();
     };
     moveCamera.current("corner");
@@ -168,8 +221,7 @@ export function House3DCanvas({
       observer?.disconnect();
       controls.dispose();
       geometry.dispose();
-      edges.dispose();
-      lineMaterial.dispose();
+      sky.dispose();
       for (const m of materials.values()) m.dispose();
       renderer.dispose();
       el.replaceChildren();

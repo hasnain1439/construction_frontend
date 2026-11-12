@@ -13,7 +13,8 @@ export const strings: Widen<typeof En.strings> = {
     addRooms: "Kamre add karein",
     noWebgl: "Ye browser 3D nahi dikha sakta. Chrome ya Edge try karein, ya hardware acceleration on karein.",
     howTo: "Ghumane ke liye ghaseetein, zoom ke liye scroll ya do ungliyan, hilane ke liye right-click se ghaseetein.",
-    packedNote: "{n} kamre kisi aur kamre se sanjhi deewar se jude nahi, is liye saath saath rakhe gaye hain.",
+    packedNote: "{n} kamron ki sanjhi deewarein set nahi, is liye wo ghar ke andar qataron mein rakhe gaye hain: bedrooms peeche, drawing room aage.",
+    assumedNote: "{n} kamron ka koi darwaza ya khirki save nahi: un mein aam darwaza aur khirki dikhayi gayi hai.",
     setWalls: "Sanjhi deewarein set karein",
     noPlot: "Plot ka naap nahi diya: plot ghar ke gird bana diya gaya hai.",
     show: "Dikhayein",
@@ -45,6 +46,9 @@ export const strings: Widen<typeof En.strings> = {
     partDoor: "Darwaza",
     partWindow: "Khirki / roshandan",
     partBoundary: "Chaar diwari",
+    partChajja: "Chajja",
+    partPlinth: "Plinth",
+    partFloor: "Farsh",
   },
   glossary: {
     lenter: {

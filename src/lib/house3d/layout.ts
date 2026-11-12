@@ -4,15 +4,23 @@
  * here: this file is pure and unit-tested.
  *
  * Axes: x along the plot front (left → right), z from the back of the plot (0) to the road (depthFt),
- * y up from the natural ground (0). Rooms have no saved position, so they are placed from their
- * shared walls: a room that shares its RIGHT wall with another sits right next to it (turned so the
- * two shared sides face each other). Rooms not tied to others are packed in rows. The result is an
- * approximation of the plan — sizes, heights, walls, doors and windows are the real ones.
+ * y up from the natural ground (0).
+ *
+ * Rooms have no saved position, so a plan is worked out:
+ * - Walls entered with shared pairs: a room sits next to the room it shares a wall with, turned so the
+ *   two shared sides face each other.
+ * - Otherwise (the usual case) the house is one closed block the width of the plot: rooms in rows —
+ *   bedrooms and baths at the back, lounge / kitchen / stairs in the middle, drawing room at the road
+ *   side — with 4.5″ walls between them and a 9″ outer wall; space left over is a passage.
+ * Walls are built per line, so a wall two rooms share is built once with both rooms' doors in it.
+ * Doors open to a passage or the next room, windows to the outside (with a sunshade over them).
  */
-import type { FloorLevel, FloorWithRooms, OpeningType, ProjectCoverage, ProjectFoundation, Room, RoomWall, WallSide, WallType } from "@/api/types";
+import type { FloorLevel, FloorWithRooms, OpeningType, ProjectCoverage, ProjectFoundation, Room, RoomType, RoomWall, WallSide } from "@/api/types";
 
 export type BoxKind =
   | "ground"
+  | "road"
+  | "paving"
   | "pcc"
   | "footing"
   | "foundationWall"
@@ -21,14 +29,19 @@ export type BoxKind =
   | "plinthFill"
   | "plinthBeam"
   | "dpc"
+  | "plinthWall"
+  | "floorFinish"
+  | "wetFloor"
   | "wall"
   | "column"
   | "slab"
   | "parapet"
+  | "chajja"
   | "stair"
   | "door"
   | "window"
   | "ventilator"
+  | "frame"
   | "boundary";
 
 /** An axis-aligned box: (x, y, z) is its minimum corner, (w, h, d) its size along x, y, z. */
@@ -67,8 +80,8 @@ export interface HouseModel {
   plot: { frontFt: number; depthFt: number; known: boolean };
   /** Overall size, for the camera. */
   bounds: { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
-  /** Rooms placed next to the room they share a wall with / packed because nothing ties them. */
-  placement: { tied: number; packed: number };
+  /** Rooms placed next to the room they share a wall with / laid out in rows (no shared walls entered); rooms shown with an assumed door / window. */
+  placement: { tied: number; packed: number; assumed: number };
 }
 
 export interface HouseInput {
@@ -84,62 +97,98 @@ export interface HouseInput {
 // ─── Defaults (feet) ─────────────────────────────────────────────────────────
 
 const IN = 1 / 12;
+const EXT = 9 * IN;
+const INT = 4.5 * IN;
 const DEFAULT_FOUNDATION = { excavationDepthFt: 4, footingWidthFt: 2.5, footingThicknessIn: 12, plinthHeightFt: 1.5, dpcThicknessIn: 1.5, pccThicknessIn: 3 };
 const DEFAULT_SLAB_IN = 5;
 const PARAPET_FT = 3;
-const PARAPET_THICK = 4.5 * IN;
-const GAP = 9 * IN; // between rooms that are not tied (an external wall each side would overlap)
+const SLAB_OVERHANG = 0.5;
+const CHAJJA_FT = 1.5;
 const SILL: Record<OpeningType, (wallH: number, h: number) => number> = {
   DOOR: () => 0,
   WINDOW: (wallH, h) => Math.max(0, Math.min(3, wallH - h - 1)),
   VENTILATOR: (wallH, h) => Math.max(0, wallH - h - 1),
 };
 const FILL: Record<OpeningType, BoxKind> = { DOOR: "door", WINDOW: "window", VENTILATOR: "ventilator" };
+const WET: ReadonlySet<RoomType> = new Set(["ATTACHED_BATH", "POWDER_ROOM", "KITCHEN"]);
 
-// ─── Directions ──────────────────────────────────────────────────────────────
+/** Shown for a room saved without any door or window: a standard door and a window (a vent in a bath). */
+function defaultOpenings(type: RoomType): Array<{ type: OpeningType; widthFt: number; heightFt: number; quantity: number; side: null }> {
+  const door = { type: "DOOR" as const, widthFt: 3, heightFt: 7, quantity: 1, side: null };
+  if (type === "ATTACHED_BATH" || type === "POWDER_ROOM") return [{ ...door, widthFt: 2.5 }, { type: "VENTILATOR", widthFt: 2, heightFt: 1.5, quantity: 1, side: null }];
+  if (type === "STORE") return [door];
+  return [door, { type: "WINDOW", widthFt: 4, heightFt: 4, quantity: 1, side: null }];
+}
+/** Row bands, back (0) to road side (2). */
+const BAND: Record<RoomType, number> = {
+  MASTER_BEDROOM: 0,
+  BEDROOM: 0,
+  ATTACHED_BATH: 0,
+  STORE: 1,
+  STAIR: 1,
+  KITCHEN: 1,
+  TV_LOUNGE: 1,
+  DINING: 1,
+  POWDER_ROOM: 1,
+  OTHER: 1,
+  DRAWING_ROOM: 2,
+  GARAGE: 2,
+  TERRACE: 2,
+};
+
+// ─── Plan geometry ───────────────────────────────────────────────────────────
 
 /** World directions: 0 = N (back, −z), 1 = E (+x), 2 = S (road, +z), 3 = W (−x). */
 type Dir = 0 | 1 | 2 | 3;
 const BASE: Record<WallSide, Dir> = { TOP: 0, RIGHT: 1, BOTTOM: 2, LEFT: 3 };
 const dirOf = (side: WallSide, rot: number) => ((BASE[side] + rot) % 4) as Dir;
 
-const defaultThickness = (type: WallType, framed: boolean) => (type === "SHARED" ? (framed ? 4.5 : 9) : type === "PASSAGE" ? 4.5 : 9) * IN;
-const thicknessOf = (w: RoomWall | undefined, framed: boolean) => {
-  if (!w) return 9 * IN;
-  if (w.type === "OPEN") return 0;
-  if (w.type === "DOUBLE") return ((w.thicknessIn ?? 9) + (w.cavityIn ?? 2) + (w.innerLeafIn ?? 4.5)) * IN;
-  return w.thicknessIn ? w.thicknessIn * IN : defaultThickness(w.type, framed);
-};
-
-interface Placed {
-  room: Room;
-  rot: number;
+interface Rect {
   x: number;
   z: number;
   dx: number;
   dz: number;
 }
 
+export interface Placed extends Rect {
+  room: Room;
+  rot: number;
+}
+
 const sizeFor = (room: Room, rot: number) => (rot % 2 ? { dx: room.widthFt, dz: room.lengthFt } : { dx: room.lengthFt, dz: room.widthFt });
-const overlaps = (a: { x: number; z: number; dx: number; dz: number }, b: { x: number; z: number; dx: number; dz: number }) =>
-  a.x < b.x + b.dx - 0.01 && b.x < a.x + a.dx - 0.01 && a.z < b.z + b.dz - 0.01 && b.z < a.z + a.dz - 0.01;
+const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.dx - 0.01 && b.x < a.x + a.dx - 0.01 && a.z < b.z + b.dz - 0.01 && b.z < a.z + a.dz - 0.01;
+const byOrder = (a: Room, b: Room) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name);
 
-// ─── Placing the rooms of one floor ──────────────────────────────────────────
+const thicknessOf = (w: RoomWall | undefined, framed: boolean): number => {
+  if (!w) return EXT;
+  if (w.type === "OPEN") return 0;
+  if (w.type === "DOUBLE") return ((w.thicknessIn ?? 9) + (w.cavityIn ?? 2) + (w.innerLeafIn ?? 4.5)) * IN;
+  if (w.thicknessIn) return w.thicknessIn * IN;
+  return w.type === "SHARED" ? (framed ? INT : EXT) : w.type === "PASSAGE" ? INT : EXT;
+};
 
-/** Rooms of a floor in plan, the room-to-room pairings that were honoured, and the floor outline. */
-export function placeRooms(rooms: Room[], framed: boolean, maxRowFt: number | null) {
-  const sorted = [...rooms].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+export interface FloorPlan {
+  placed: Placed[];
+  /** Passage / leftover floor inside the block. */
+  fillers: Rect[];
+  /** The closed block (row layout); null when placed from shared walls. */
+  envelope: Rect | null;
+  tied: number;
+  packed: number;
+}
+
+/** Rooms placed from their shared walls (walls entered in the setup). */
+function placeTied(rooms: Room[], framed: boolean): FloorPlan {
+  const sorted = [...rooms].sort(byOrder);
   const byId = new Map(sorted.map((r) => [r.id, r]));
   const placed = new Map<string, Placed>();
-  const tiedPairs = new Set<string>();
+  const tiedIds = new Set<string>();
   const components: Placed[][] = [];
-
   for (const start of sorted) {
     if (placed.has(start.id)) continue;
-    const comp: Placed[] = [];
     const first: Placed = { room: start, rot: 0, x: 0, z: 0, ...sizeFor(start, 0) };
     placed.set(start.id, first);
-    comp.push(first);
+    const comp = [first];
     const queue = [first];
     while (queue.length) {
       const a = queue.shift()!;
@@ -152,108 +201,242 @@ export function placeRooms(rooms: Room[], framed: boolean, maxRowFt: number | nu
         const rot = (((dA + 2) % 4) - BASE[bSide] + 4) % 4;
         const { dx, dz } = sizeFor(other, rot);
         const t = thicknessOf(w, framed);
-        const candidates: Array<{ x: number; z: number }> = [];
+        const spots: Rect[] = [];
         if (dA === 1 || dA === 3) {
           const x = dA === 1 ? a.x + a.dx + t : a.x - t - dx;
-          for (const z of [a.z, a.z + a.dz - dz, a.z + (a.dz - dz) / 2]) candidates.push({ x, z });
+          for (const z of [a.z, a.z + a.dz - dz, a.z + (a.dz - dz) / 2]) spots.push({ x, z, dx, dz });
         } else {
           const z = dA === 2 ? a.z + a.dz + t : a.z - t - dz;
-          for (const x of [a.x, a.x + a.dx - dx, a.x + (a.dx - dx) / 2]) candidates.push({ x, z });
+          for (const x of [a.x, a.x + a.dx - dx, a.x + (a.dx - dx) / 2]) spots.push({ x, z, dx, dz });
         }
-        const spot = candidates.find((c) => [...placed.values()].every((p) => !overlaps({ ...c, dx, dz }, p)));
-        if (!spot) continue; // packed on its own later
-        const b: Placed = { room: other, rot, ...spot, dx, dz };
+        const spot = spots.find((s) => [...placed.values()].every((p) => !overlaps(s, p)));
+        if (!spot) continue;
+        const b: Placed = { room: other, rot, ...spot };
         placed.set(other.id, b);
         comp.push(b);
         queue.push(b);
-        tiedPairs.add([a.room.id, other.id].sort().join("|"));
+        tiedIds.add(a.room.id).add(other.id);
       }
     }
     components.push(comp);
   }
-
-  // Pack the components in rows, each one moved to start at (cursor, row).
-  let cursorX = 0;
-  let rowZ = 0;
-  let rowDepth = 0;
+  // Components side by side.
+  let cursor = 0;
   for (const comp of components) {
     const minX = Math.min(...comp.map((p) => p.x));
     const minZ = Math.min(...comp.map((p) => p.z));
-    const w = Math.max(...comp.map((p) => p.x + p.dx)) - minX;
-    const d = Math.max(...comp.map((p) => p.z + p.dz)) - minZ;
-    if (maxRowFt && cursorX > 0 && cursorX + w > maxRowFt) {
-      cursorX = 0;
-      rowZ += rowDepth + GAP;
-      rowDepth = 0;
-    }
     for (const p of comp) {
-      p.x += cursorX - minX;
-      p.z += rowZ - minZ;
+      p.x += cursor - minX;
+      p.z -= minZ;
     }
-    cursorX += w + GAP;
-    rowDepth = Math.max(rowDepth, d);
+    cursor = Math.max(...comp.map((p) => p.x + p.dx)) + EXT * 2;
   }
   const all = [...placed.values()];
-  const tied = all.filter((p) => [...tiedPairs].some((k) => k.includes(p.room.id))).length;
-  return { placed: all, tiedPairs, tied, packed: all.length - tied };
+  return { placed: all, fillers: [], envelope: null, tied: tiedIds.size, packed: all.length - tiedIds.size };
 }
 
-// ─── Walls with their openings ───────────────────────────────────────────────
+/**
+ * Rooms in rows inside a block `width` ft wide (inside the outer walls): back band first. Each room is
+ * turned to fit the row; what is left over is a passage. The block grows wider for a room that does
+ * not fit at all.
+ */
+function placeRows(rooms: Room[], width: number): FloorPlan {
+  const order = [...rooms].sort((a, b) => BAND[a.type] - BAND[b.type] || byOrder(a, b));
+  let W = Math.max(width, ...rooms.map((r) => Math.min(r.lengthFt, r.widthFt)));
+  const rows: Placed[][] = [];
+  let row: Placed[] = [];
+  let x = 0;
+  let band = order[0] ? BAND[order[0].type] : 0;
+  const rowDepth = (r: Placed[]) => Math.max(0, ...r.map((p) => p.dz));
+  for (const room of order) {
+    const options = [0, 1].map((rot) => ({ rot, ...sizeFor(room, rot) }));
+    const fits = (o: { dx: number }) => x + o.dx <= W + 0.01;
+    // A new band starts a new row, so the drawing room really is at the front.
+    if (row.length && BAND[room.type] !== band) {
+      rows.push(row);
+      row = [];
+      x = 0;
+    }
+    band = BAND[room.type];
+    let pick = options.filter(fits);
+    if (!pick.length && row.length) {
+      rows.push(row);
+      row = [];
+      x = 0;
+      pick = options.filter(fits);
+    }
+    if (!pick.length) {
+      const narrow = options.reduce((a, b) => (a.dx <= b.dx ? a : b));
+      W = Math.max(W, narrow.dx);
+      pick = [narrow];
+    }
+    const depth = rowDepth(row);
+    const best = pick.reduce((a, b) => {
+      if (!row.length) return b.dz < a.dz ? b : a; // shallow rows
+      const score = (o: { dz: number }) => Math.abs(o.dz - depth);
+      return score(b) < score(a) ? b : a;
+    });
+    row.push({ room, rot: best.rot, x, z: 0, dx: best.dx, dz: best.dz });
+    x += best.dx + INT;
+  }
+  if (row.length) rows.push(row);
+
+  const placed: Placed[] = [];
+  const fillers: Rect[] = [];
+  let z = 0;
+  for (const r of rows) {
+    const depth = rowDepth(r);
+    for (const p of r) {
+      p.z = z;
+      placed.push(p);
+      if (depth - p.dz > 1) fillers.push({ x: p.x, z: z + p.dz + INT, dx: p.dx, dz: depth - p.dz - INT });
+    }
+    const end = r[r.length - 1]!;
+    const used = end.x + end.dx + INT;
+    if (W - used > 1) fillers.push({ x: used, z, dx: W - used, dz: depth });
+    else if (W - (end.x + end.dx) > 0.01) end.dx = W - end.x; // a sliver: the last room takes it
+    z += depth + INT;
+  }
+  const D = Math.max(0, z - INT);
+  return { placed, fillers, envelope: { x: 0, z: 0, dx: W, dz: D }, tied: 0, packed: placed.length };
+}
+
+/** A floor's plan: from the shared walls when they were entered, else rows in a block `width` wide. */
+export function placeRooms(rooms: Room[], framed: boolean, width: number | null): FloorPlan {
+  const hasPairs = rooms.some((r) => r.walls?.some((w) => w.type === "SHARED" && w.sharedWithRoomId));
+  if (hasPairs) return placeTied(rooms, framed);
+  const area = rooms.reduce((s, r) => s + r.lengthFt * r.widthFt, 0);
+  return placeRows(rooms, width ?? Math.max(20, Math.round(Math.sqrt(area * 0.8))));
+}
+
+// ─── Walls, built per line ───────────────────────────────────────────────────
 
 interface Hole {
   type: OpeningType;
   width: number;
   height: number;
+  /** Start along the line (absolute). */
+  at: number;
 }
 
-/** Holes of one wall, spread evenly; widths are shrunk when they would not fit. */
-function spread(length: number, holes: Hole[]) {
+/** One wall band: along x (`alongX`, at z = `fixed` … fixed + thick) or along z (at x = fixed …). */
+interface Line {
+  kind: "wall" | "parapet";
+  alongX: boolean;
+  fixed: number;
+  thick: number;
+  height: number;
+  /** +1 / −1: which way is outside (for sunshades); 0 inside the house. */
+  out: number;
+  spans: Array<[number, number]>;
+  holes: Hole[];
+}
+
+class Lines {
+  private map = new Map<string, Line>();
+  add(l: Omit<Line, "spans" | "holes">, span: [number, number], holes: Hole[] = []) {
+    if (span[1] - span[0] < 0.01 || l.thick <= 0) return;
+    const key = `${l.kind}|${l.alongX ? "x" : "z"}|${l.fixed.toFixed(2)}|${l.thick.toFixed(3)}`;
+    const line = this.map.get(key) ?? { ...l, spans: [], holes: [] };
+    line.spans.push(span);
+    line.holes.push(...holes);
+    line.height = Math.max(line.height, l.height);
+    if (l.out) line.out = l.out;
+    this.map.set(key, line);
+  }
+  all() {
+    return [...this.map.values()];
+  }
+}
+
+/** Holes spread evenly over [a, b]; widths shrink when they would not fit. */
+function spread(a: number, b: number, holes: Array<Omit<Hole, "at">>): Hole[] {
   if (!holes.length) return [];
+  const length = b - a;
   const total = holes.reduce((s, h) => s + h.width, 0);
-  const scale = total > length * 0.85 ? (length * 0.85) / total : 1;
+  const scale = total > length * 0.8 ? (length * 0.8) / total : 1;
   const gap = (length - total * scale) / (holes.length + 1);
-  let u = gap;
+  let u = a + gap;
   return holes.map((h) => {
-    const at = { ...h, width: h.width * scale, u };
+    const at = { ...h, width: h.width * scale, at: u };
     u += h.width * scale + gap;
     return at;
   });
 }
 
-/**
- * Boxes of one straight wall from (x0, z0) running `length` ft along +x (`alongX`) or +z, `thick` ft
- * thick on the positive side, `height` ft tall from `baseY`: solid pieces around the holes, and a
- * door / glass panel in each hole.
- */
-function wallWithHoles(out: Box[], floor: number, x0: number, z0: number, alongX: boolean, length: number, thick: number, baseY: number, height: number, holes: Hole[], kind: BoxKind = "wall") {
-  const seg = (u: number, len: number, y: number, h: number, k: BoxKind, inset = 0, t = thick) => {
-    if (len <= 0.001 || h <= 0.001) return;
-    out.push(alongX ? { kind: k, x: x0 + u, y: baseY + y, z: z0 + inset, w: len, h, d: t, floor } : { kind: k, x: x0 + inset, y: baseY + y, z: z0 + u, w: t, h, d: len, floor });
-  };
-  let u = 0;
-  for (const h of spread(length, holes)) {
-    const sill = SILL[h.type](height, h.height);
-    const top = Math.min(height, sill + h.height);
-    seg(u, h.u - u, 0, height, kind);
-    seg(h.u, h.width, 0, sill, kind);
-    seg(h.u, h.width, top, height - top, kind);
-    const panel = Math.min(thick, h.type === "DOOR" ? 0.15 : 0.08);
-    seg(h.u, h.width, sill, top - sill, FILL[h.type], (thick - panel) / 2, panel);
-    u = h.u + h.width;
+const merge = (spans: Array<[number, number]>) => {
+  const s = [...spans].sort((p, q) => p[0] - q[0]);
+  const out: Array<[number, number]> = [];
+  for (const [a, b] of s) {
+    const last = out[out.length - 1];
+    if (last && a <= last[1] + 0.02) last[1] = Math.max(last[1], b);
+    else out.push([a, b]);
   }
-  seg(u, length - u, 0, height, kind);
+  return out;
+};
+
+/** Boxes of the lines of one floor: solid pieces round the holes, a door / glass panel with a frame, sunshades. */
+function buildLines(out: Box[], floor: number, baseY: number, lines: Line[], kindOf: (l: Line) => BoxKind = (l) => l.kind) {
+  for (const l of lines) {
+    const piece = (u: number, len: number, y: number, h: number, kind: BoxKind, inset = 0, t = l.thick) => {
+      if (len <= 0.01 || h <= 0.01) return;
+      out.push(l.alongX ? { kind, x: u, y: baseY + y, z: l.fixed + inset, w: len, h, d: t, floor } : { kind, x: l.fixed + inset, y: baseY + y, z: u, w: t, h, d: len, floor });
+    };
+    for (const [a, b] of merge(l.spans)) {
+      let u = a;
+      const holes = l.holes.filter((h) => h.at >= a - 0.01 && h.at + h.width <= b + 0.01).sort((p, q) => p.at - q.at);
+      for (const hole of holes) {
+        // Two rooms' openings on one shared wall: the later one moves along, or is left out if it no longer fits.
+        const h = hole.at < u + 0.5 && u > a ? { ...hole, at: u + 0.75 } : hole;
+        if (h.at + h.width > b - 0.25) continue;
+        const sill = SILL[h.type](l.height, h.height);
+        const top = Math.min(l.height, sill + h.height);
+        piece(u, h.at - u, 0, l.height, kindOf(l));
+        piece(h.at, h.width, 0, sill, kindOf(l));
+        piece(h.at, h.width, top, l.height - top, kindOf(l));
+        const panel = Math.min(l.thick, h.type === "DOOR" ? 0.15 : 0.06);
+        const mid = (l.thick - panel) / 2;
+        piece(h.at, h.width, sill, top - sill, FILL[h.type], mid, panel);
+        if (h.type !== "DOOR") {
+          // Frame round the glass.
+          const f = 0.18;
+          const ft = Math.min(l.thick, 0.3);
+          piece(h.at, h.width, sill, f, "frame", (l.thick - ft) / 2, ft);
+          piece(h.at, h.width, top - f, f, "frame", (l.thick - ft) / 2, ft);
+          piece(h.at, f, sill, top - sill, "frame", (l.thick - ft) / 2, ft);
+          piece(h.at + h.width - f, f, sill, top - sill, "frame", (l.thick - ft) / 2, ft);
+        } else {
+          piece(h.at - 0.12, 0.12, 0, top, "frame", (l.thick - 0.3) / 2, Math.min(l.thick, 0.3));
+          piece(h.at + h.width, 0.12, 0, top, "frame", (l.thick - 0.3) / 2, Math.min(l.thick, 0.3));
+        }
+        // Sunshade (chajja) over outside windows.
+        if (l.out && h.type !== "VENTILATOR") {
+          const y = baseY + top + 0.25;
+          const w = h.width + 1;
+          const x0 = h.at - 0.5;
+          if (l.alongX) out.push({ kind: "chajja", x: x0, y, z: l.out > 0 ? l.fixed + l.thick : l.fixed - CHAJJA_FT, w, h: 0.25, d: CHAJJA_FT, floor });
+          else out.push({ kind: "chajja", x: l.out > 0 ? l.fixed + l.thick : l.fixed - CHAJJA_FT, y, z: x0, w: CHAJJA_FT, h: 0.25, d: w, floor });
+        }
+        u = h.at + h.width;
+      }
+      piece(u, b - u, 0, l.height, kindOf(l));
+    }
+  }
 }
 
-const holesOf = (room: Room, side: WallSide) =>
-  room.openings.filter((o) => o.side === side).flatMap((o) => Array.from({ length: Math.max(1, o.quantity) }, () => ({ type: o.type, width: o.widthFt, height: o.heightFt })));
-
-/** Openings saved without a wall go on a sensible one: doors inside (shared / passage), windows outside. */
-function unplacedSide(room: Room, type: OpeningType): WallSide {
-  const walls = room.walls ?? [];
-  const inner = walls.find((w) => w.type === "SHARED" || w.type === "PASSAGE")?.side;
-  const outer = walls.find((w) => w.type === "EXTERNAL" || w.type === "DOUBLE" || w.type === "BOUNDARY")?.side;
-  if (type === "DOOR") return inner ?? outer ?? "BOTTOM";
-  return outer ?? walls.find((w) => w.type !== "OPEN")?.side ?? "TOP";
+/** Rect a minus rect b (axis-aligned): up to four pieces. */
+function subtract(a: Rect, b: Rect): Rect[] {
+  if (!overlaps(a, b)) return [a];
+  const out: Rect[] = [];
+  const x0 = Math.max(a.x, b.x);
+  const x1 = Math.min(a.x + a.dx, b.x + b.dx);
+  if (b.z > a.z) out.push({ x: a.x, z: a.z, dx: a.dx, dz: b.z - a.z });
+  if (b.z + b.dz < a.z + a.dz) out.push({ x: a.x, z: b.z + b.dz, dx: a.dx, dz: a.z + a.dz - (b.z + b.dz) });
+  const z0 = Math.max(a.z, b.z);
+  const z1 = Math.min(a.z + a.dz, b.z + b.dz);
+  if (b.x > a.x) out.push({ x: a.x, z: z0, dx: x0 - a.x, dz: z1 - z0 });
+  if (b.x + b.dx < a.x + a.dx) out.push({ x: x1, z: z0, dx: a.x + a.dx - x1, dz: z1 - z0 });
+  return out.filter((r) => r.dx > 0.01 && r.dz > 0.01);
 }
 
 // ─── The whole house ─────────────────────────────────────────────────────────
@@ -277,31 +460,31 @@ export function buildHouse(input: HouseInput): HouseModel {
   };
   const known = Boolean(input.frontFt && input.depthFt);
   const floorsIn = [...input.floors].sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level] || a.sortOrder - b.sortOrder);
-
-  const boxes: Box[] = [];
-  const labels: RoomLabel[] = [];
-  const floors: HouseFloor[] = [];
-  let tied = 0;
-  let packed = 0;
-
-  // Plans first (to size the plot when it was not entered).
-  const plans = floorsIn.map((fl) => placeRooms(fl.rooms, framed, input.frontFt ?? null));
-  const outline = (pl: (typeof plans)[number]) =>
-    pl.placed.length
-      ? { minX: Math.min(...pl.placed.map((p) => p.x)), maxX: Math.max(...pl.placed.map((p) => p.x + p.dx)), minZ: Math.min(...pl.placed.map((p) => p.z)), maxZ: Math.max(...pl.placed.map((p) => p.z + p.dz)) }
-      : null;
   const groundAt = floorsIn.findIndex((fl) => fl.level === "GROUND");
   const groundIdx = groundAt >= 0 ? groundAt : Math.max(0, floorsIn.findIndex((fl) => fl.level !== "BASEMENT"));
-  const withRooms = plans[groundIdx]?.placed.length ? plans[groundIdx] : plans.find((p) => p.placed.length);
-  const ref = withRooms ? outline(withRooms) : null;
-  const houseW = ref ? ref.maxX - ref.minX : 20;
-  const houseD = ref ? ref.maxZ - ref.minZ : 20;
+
+  // Block width: the plot front less the outer walls (no side gaps on a Pakistani town plot).
+  const blockW = input.frontFt ? input.frontFt - 2 * EXT : null;
+  const plans = floorsIn.map((fl) => placeRooms(fl.rooms, framed, fl.level === "MUMTY" ? Math.min(blockW ?? 24, 24) : blockW));
+  const outline = (p: FloorPlan): Rect | null =>
+    p.envelope ??
+    (p.placed.length
+      ? (() => {
+          const minX = Math.min(...p.placed.map((r) => r.x));
+          const minZ = Math.min(...p.placed.map((r) => r.z));
+          return { x: minX, z: minZ, dx: Math.max(...p.placed.map((r) => r.x + r.dx)) - minX, dz: Math.max(...p.placed.map((r) => r.z + r.dz)) - minZ };
+        })()
+      : null);
+  const ref = outline(plans[groundIdx]?.placed.length ? plans[groundIdx]! : (plans.find((p) => p.placed.length) ?? { placed: [], fillers: [], envelope: null, tied: 0, packed: 0 }));
+  const houseW = (ref?.dx ?? 20) + 2 * EXT;
+  const houseD = (ref?.dz ?? 20) + 2 * EXT;
   const frontFt = input.frontFt ?? Math.ceil(houseW + 10);
   const depthFt = input.depthFt ?? Math.ceil(houseD + 20);
-  // The house sits centred across the plot, 5 ft from the back (the open space — lawn, porch — is at the road side).
-  const back = Math.min(5, Math.max(0, depthFt - houseD - 1));
+  // The block sits centred across the plot, a little off the back; the open space (lawn, car porch) is at the road side.
+  const back = Math.max(0, Math.min(3, depthFt - houseD - 10));
+  const originX = (frontFt - houseW) / 2 + EXT - (ref?.x ?? 0);
+  const originZ = back + EXT - (ref?.z ?? 0);
 
-  // Floor heights: basement under the plinth, then each storey on the slab of the one below.
   const slabT = (fl: FloorWithRooms) => (fl.roof?.thicknessIn ?? fl.slabSuggestion?.suggestedIn ?? DEFAULT_SLAB_IN) * IN;
   const baseYs: number[] = [];
   let y = fnd.plinth;
@@ -313,148 +496,242 @@ export function buildHouse(input: HouseInput): HouseModel {
     }
   });
 
-  /** Wall lines of the ground floor (whole length, holes ignored): the foundation runs under them. */
-  const groundWalls: Array<{ x: number; z: number; alongX: boolean; length: number; thick: number }> = [];
-  const columns = new Map<string, { x: number; z: number }>();
-  let topRoof: { i: number; minX: number; maxX: number; minZ: number; maxZ: number; y: number } | null = null;
+  const boxes: Box[] = [];
+  const labels: RoomLabel[] = [];
+  const floors: HouseFloor[] = [];
+  let tied = 0;
+  let packed = 0;
+  let assumedRooms = 0;
+  let groundLines: Line[] = [];
+  const groundColumns: Array<{ x: number; z: number }> = [];
+  let topRoof: { i: number; rects: Rect[]; y: number } | null = null;
 
   plans.forEach((plan, i) => {
     const fl = floorsIn[i]!;
-    const o = outline(plan);
+    const baseY = baseYs[i]!;
+    const h = fl.ceilingHeightFt;
     tied += plan.tied;
     packed += plan.packed;
-    floors.push({ level: fl.level, name: fl.name, baseY: baseYs[i]!, heightFt: fl.ceilingHeightFt, rooms: fl.rooms.length });
-    if (!o) return;
-    // Upper floors line up with the ground floor's back-left corner; everything centred on the plot.
-    const shiftX = (frontFt - houseW) / 2 - (ref?.minX ?? 0);
-    const shiftZ = back - (ref?.minZ ?? 0);
-    const baseY = baseYs[i]!;
-    const floorBoxes: Box[] = [];
-    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    floors.push({ level: fl.level, name: fl.name, baseY, heightFt: h, rooms: fl.rooms.length });
+    if (!plan.placed.length) return;
 
-    for (const p of plan.placed) {
+    // Mumty: at the back-left of the roof; other floors on the ground floor's block.
+    const ox = originX;
+    const oz = originZ;
+    const rect = (r: Rect): Rect => ({ x: r.x + ox, z: r.z + oz, dx: r.dx, dz: r.dz });
+    const rooms = plan.placed.map((p) => ({ ...p, ...rect(p) }));
+    const fillers = plan.fillers.map(rect);
+    const env = plan.envelope ? rect(plan.envelope) : null;
+    const lines = new Lines();
+    const near = 0.05;
+
+    // What is across one side of a room: another room, the outside, or (inside the block) a passage.
+    const across = (p: Placed, d: Dir): { kind: "room" | "outside" | "inside"; gap: number } => {
+      for (const q of rooms) {
+        if (q === p) continue;
+        const g =
+          d === 0 ? p.z - (q.z + q.dz) : d === 2 ? q.z - (p.z + p.dz) : d === 1 ? q.x - (p.x + p.dx) : p.x - (q.x + q.dx);
+        const overlap = d % 2 === 0 ? Math.min(p.x + p.dx, q.x + q.dx) - Math.max(p.x, q.x) : Math.min(p.z + p.dz, q.z + q.dz) - Math.max(p.z, q.z);
+        if (g > -near && g < EXT + near && overlap > 1) return { kind: "room", gap: Math.max(g, INT) };
+      }
+      if (env) {
+        const onEdge = d === 0 ? Math.abs(p.z - env.z) < near : d === 2 ? Math.abs(p.z + p.dz - (env.z + env.dz)) < near : d === 1 ? Math.abs(p.x + p.dx - (env.x + env.dx)) < near : Math.abs(p.x - env.x) < near;
+        return { kind: onEdge ? "outside" : "inside", gap: onEdge ? EXT : INT };
+      }
+      return { kind: "outside", gap: EXT };
+    };
+
+    for (const p of rooms) {
       const room = p.room;
-      const rx = p.x + shiftX;
-      const rz = p.z + shiftZ;
-      const h = room.heightFt || fl.ceilingHeightFt;
-      labels.push({ text: room.name, x: rx + p.dx / 2, y: baseY + 0.6, z: rz + p.dz / 2, floor: i });
+      const terrace = room.type === "TERRACE";
+      labels.push({ text: room.name, x: p.x + p.dx / 2, y: baseY + 0.4, z: p.z + p.dz / 2, floor: i });
+      boxes.push({ kind: WET.has(room.type) ? "wetFloor" : "floorFinish", x: p.x, y: baseY, z: p.z, w: p.dx, h: 0.08, d: p.dz, floor: i });
 
-      const sides: WallSide[] = ["TOP", "RIGHT", "BOTTOM", "LEFT"];
-      const extraHoles = new Map<WallSide, Hole[]>();
-      for (const op of room.openings.filter((x) => !x.side)) {
-        const s = unplacedSide(room, op.type);
-        extraHoles.set(s, [...(extraHoles.get(s) ?? []), ...Array.from({ length: Math.max(1, op.quantity) }, () => ({ type: op.type, width: op.widthFt, height: op.heightFt }))]);
-      }
-      for (const side of sides) {
-        const w = room.walls?.find((x) => x.side === side);
-        const t = thicknessOf(w, framed);
-        if (t === 0) continue;
-        const holes = [...holesOf(room, side), ...(extraHoles.get(side) ?? [])];
-        if (w?.type === "SHARED" && w.sharedWithRoomId) {
-          const pair = [room.id, w.sharedWithRoomId].sort().join("|");
-          if (plan.tiedPairs.has(pair)) {
-            if (room.id > w.sharedWithRoomId) continue; // the other room draws it, with these holes too
-            const partner = fl.rooms.find((r) => r.id === w.sharedWithRoomId);
-            if (partner && w.sharedWithSide) holes.push(...holesOf(partner, w.sharedWithSide));
-          }
+      const sides = ([0, 1, 2, 3] as Dir[]).map((d) => ({ d, ...across(p, d) }));
+      const openings = new Map<Dir, Array<Omit<Hole, "at">>>();
+      const push = (d: Dir, o: { type: OpeningType; widthFt: number; heightFt: number; quantity: number }) =>
+        openings.set(d, [...(openings.get(d) ?? []), ...Array.from({ length: Math.max(1, o.quantity) }, () => ({ type: o.type, width: o.widthFt, height: o.heightFt }))]);
+      const assumed = !room.openings.length && room.type !== "TERRACE" && room.type !== "STAIR";
+      if (assumed) assumedRooms += 1;
+      const given = assumed ? defaultOpenings(room.type) : room.openings;
+      for (const o of given) {
+        if (o.side) push(dirOf(o.side, p.rot), o);
+        else {
+          // Doors to a passage or the next room; windows / ventilators outside (the longest outside side).
+          const want = o.type === "DOOR" ? ["inside", "room", "outside"] : ["outside", "inside", "room"];
+          const pick = want.map((k) => sides.filter((s) => s.kind === k)).find((s) => s.length);
+          // Windows: the road side first (the face of the house), else the longest side.
+          const score = (s: { d: Dir }) => (s.d === 2 ? 1000 : 0) + (s.d % 2 === 0 ? p.dx : p.dz);
+          const best = (pick ?? sides).reduce((a, b) => (o.type === "DOOR" ? (b.kind === "inside" && a.kind !== "inside" ? b : a) : score(b) > score(a) ? b : a));
+          push(best.d, o);
         }
-        const d = dirOf(side, p.rot);
-        // Walls wrap the room: N / S run along x (extended over the corners), E / W along z.
-        const line =
-          d === 0 ? { x: rx - t, z: rz - t, alongX: true, length: p.dx + 2 * t, thick: t }
-          : d === 2 ? { x: rx - t, z: rz + p.dz, alongX: true, length: p.dx + 2 * t, thick: t }
-          : d === 1 ? { x: rx + p.dx, z: rz, alongX: false, length: p.dz, thick: t }
-          : { x: rx - t, z: rz, alongX: false, length: p.dz, thick: t };
-        wallWithHoles(floorBoxes, i, line.x, line.z, line.alongX, line.length, t, baseY, h, holes);
-        if (i === groundIdx) groundWalls.push(line);
-        minX = Math.min(minX, rx - t);
-        maxX = Math.max(maxX, rx + p.dx + t);
-        minZ = Math.min(minZ, rz - t);
-        maxZ = Math.max(maxZ, rz + p.dz + t);
       }
-      minX = Math.min(minX, rx);
-      maxX = Math.max(maxX, rx + p.dx);
-      minZ = Math.min(minZ, rz);
-      maxZ = Math.max(maxZ, rz + p.dz);
+      for (const s of sides) {
+        const entered = room.walls?.find((w) => dirOf(w.side, p.rot) === s.d);
+        if (entered?.type === "OPEN") continue;
+        if (terrace && s.kind === "room") continue; // the room's own wall
+        const outside = s.kind === "outside";
+        const t = env ? s.gap : entered ? thicknessOf(entered, framed) : outside ? EXT : s.gap;
+        const kind = terrace ? "parapet" : "wall";
+        const height = terrace ? PARAPET_FT : h;
+        const alongX = s.d % 2 === 0;
+        const fixed = s.d === 0 ? p.z - t : s.d === 2 ? p.z + p.dz : s.d === 1 ? p.x + p.dx : p.x - t;
+        const [a, b] = alongX ? [p.x, p.x + p.dx] : [p.z, p.z + p.dz];
+        // Outside corners: the N / S walls run over the corners.
+        const span: [number, number] = alongX && outside && !env ? [a - t, b + t] : [a, b];
+        const out = outside ? (s.d === 0 || s.d === 3 ? -1 : 1) : 0;
+        lines.add({ kind, alongX, fixed, thick: t, height, out }, span, terrace ? [] : spread(a, b, openings.get(s.d) ?? []));
+      }
 
-      // Stairs: steps of about 7″ rising along the room's longer side to the next floor.
       if (room.type === "STAIR") {
-        const rise = fl.ceilingHeightFt + slabT(fl);
+        const rise = h + slabT(fl);
         const steps = Math.max(2, Math.round(rise / (7 * IN)));
         const runX = p.dx >= p.dz;
         const run = (runX ? p.dx : p.dz) / steps;
-        const width = Math.min(runX ? p.dz : p.dx, 4);
+        const width = Math.min((runX ? p.dz : p.dx) / 2, 4);
         for (let s = 0; s < steps; s++) {
-          floorBoxes.push(
+          boxes.push(
             runX
-              ? { kind: "stair", x: rx + s * run, y: baseY, z: rz, w: run, h: (rise * (s + 1)) / steps, d: width, floor: i }
-              : { kind: "stair", x: rx, y: baseY, z: rz + s * run, w: width, h: (rise * (s + 1)) / steps, d: run, floor: i },
+              ? { kind: "stair", x: p.x + s * run, y: baseY, z: p.z, w: run, h: (rise * (s + 1)) / steps, d: width, floor: i }
+              : { kind: "stair", x: p.x, y: baseY, z: p.z + s * run, w: width, h: (rise * (s + 1)) / steps, d: run, floor: i },
           );
         }
       }
-      // Columns of a framed house at the room corners (one per corner, shared corners once).
-      if (framed && fl.level !== "MUMTY") {
-        for (const [cx, cz] of [[rx, rz], [rx + p.dx, rz], [rx, rz + p.dz], [rx + p.dx, rz + p.dz]] as const) {
-          columns.set(`${i}:${Math.round(cx)}:${Math.round(cz)}`, { x: cx, z: cz });
+    }
+    for (const fr of fillers) boxes.push({ kind: "floorFinish", x: fr.x, y: baseY, z: fr.z, w: fr.dx, h: 0.08, d: fr.dz, floor: i });
+
+    // The block's outer walls (also where a passage meets the outside), less the terrace stretches.
+    if (env) {
+      const terraces = rooms.filter((p) => p.room.type === "TERRACE");
+      const outer = (alongX: boolean, fixed: number, a: number, b: number, out: number) => {
+        let spans: Array<[number, number]> = [[a, b]];
+        for (const tr of terraces) {
+          const [ta, tb] = alongX ? [tr.x, tr.x + tr.dx] : [tr.z, tr.z + tr.dz];
+          const touches = alongX ? Math.abs(fixed - (tr.z - EXT)) < near || Math.abs(fixed - (tr.z + tr.dz)) < near : Math.abs(fixed - (tr.x - EXT)) < near || Math.abs(fixed - (tr.x + tr.dx)) < near;
+          if (!touches) continue;
+          spans = spans.flatMap(([s0, s1]): Array<[number, number]> => (tb <= s0 || ta >= s1 ? [[s0, s1]] : ([[s0, ta], [tb, s1]] as Array<[number, number]>).filter(([q0, q1]) => q1 - q0 > EXT + 0.05)));
+        }
+        for (const s of spans) lines.add({ kind: "wall", alongX, fixed, thick: EXT, height: h, out }, s);
+      };
+      outer(true, env.z - EXT, env.x - EXT, env.x + env.dx + EXT, -1);
+      outer(true, env.z + env.dz, env.x - EXT, env.x + env.dx + EXT, 1);
+      outer(false, env.x - EXT, env.z, env.z + env.dz, -1);
+      outer(false, env.x + env.dx, env.z, env.z + env.dz, 1);
+      // Main door: in the middle of the front, on the ground floor.
+      if (i === groundIdx) {
+        const mid = env.x + env.dx / 2;
+        const at = Math.max(env.x + 0.5, Math.min(env.x + env.dx - 4, mid - 1.75));
+        lines.add({ kind: "wall", alongX: true, fixed: env.z + env.dz, thick: EXT, height: h, out: 1 }, [at, at + 3.5], [{ type: "DOOR", width: 3.5, height: 7, at }]);
+      }
+    }
+    const built = lines.all();
+    buildLines(boxes, i, baseY, built);
+    if (i === groundIdx) groundLines = built.filter((l) => l.kind === "wall");
+
+    // Columns of a framed house: the block corners and every ~12 ft along the outer walls.
+    if (framed && fl.level !== "MUMTY") {
+      const o = env ?? outline({ ...plan, placed: rooms } as FloorPlan);
+      if (o) {
+        const cw = (fl.roof?.columnWidthIn ?? 12) * IN;
+        const along = (a: number, b: number) => {
+          const n = Math.max(1, Math.round((b - a) / 12));
+          return Array.from({ length: n + 1 }, (_, k) => a + ((b - a) * k) / n);
+        };
+        const pts: Array<[number, number]> = [];
+        for (const x of along(o.x - EXT / 2, o.x + o.dx + EXT / 2)) pts.push([x, o.z - EXT / 2], [x, o.z + o.dz + EXT / 2]);
+        for (const z of along(o.z - EXT / 2, o.z + o.dz + EXT / 2).slice(1, -1)) pts.push([o.x - EXT / 2, z], [o.x + o.dx + EXT / 2, z]);
+        const terraces = rooms.filter((q) => q.room.type === "TERRACE");
+        const m = EXT + 1;
+        const onTerrace = (cx: number, cz: number) => terraces.some((q) => cx > q.x - m && cx < q.x + q.dx + m && cz > q.z - m && cz < q.z + q.dz + m);
+        for (const [cx, cz] of pts) {
+          if (onTerrace(cx, cz)) continue;
+          boxes.push({ kind: "column", x: cx - cw / 2, y: baseY, z: cz - cw / 2, w: cw, h, d: cw, floor: i });
+          if (i === groundIdx) groundColumns.push({ x: cx, z: cz });
         }
       }
     }
-    for (const [key, c] of columns) {
-      if (!key.startsWith(`${i}:`)) continue;
-      const cw = (fl.roof?.columnWidthIn ?? 9) * IN + 2 * IN;
-      floorBoxes.push({ kind: "column", x: c.x - cw / 2, y: baseY, z: c.z - cw / 2, w: cw, h: fl.ceilingHeightFt, d: cw, floor: i });
-    }
 
-    // Slab (lenter) over the floor.
+    // Roof slab over the floor (not over a terrace), a little wider than the walls.
+    const o = env ?? outline({ ...plan, placed: rooms } as FloorPlan)!;
+    let slabRects: Rect[] = [{ x: o.x - EXT - SLAB_OVERHANG, z: o.z - EXT - SLAB_OVERHANG, dx: o.dx + 2 * (EXT + SLAB_OVERHANG), dz: o.dz + 2 * (EXT + SLAB_OVERHANG) }];
+    for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) slabRects = slabRects.flatMap((r) => subtract(r, { x: tr.x, z: tr.z, dx: tr.dx, dz: tr.dz }));
     const t = slabT(fl);
-    floorBoxes.push({ kind: "slab", x: minX, y: baseY + fl.ceilingHeightFt, z: minZ, w: maxX - minX, h: t, d: maxZ - minZ, floor: i });
-    if (fl.level !== "BASEMENT" && fl.level !== "MUMTY" && (!topRoof || baseY > topRoof.y)) topRoof = { i, minX, maxX, minZ, maxZ, y: baseY + fl.ceilingHeightFt + t };
-    boxes.push(...floorBoxes);
+    for (const r of slabRects) boxes.push({ kind: "slab", x: r.x, y: baseY + h, z: r.z, w: r.dx, h: t, d: r.dz, floor: i });
+    if (fl.level !== "BASEMENT" && fl.level !== "MUMTY" && (!topRoof || baseY > topRoof.y)) {
+      let roofRects: Rect[] = [{ x: o.x - EXT, z: o.z - EXT, dx: o.dx + 2 * EXT, dz: o.dz + 2 * EXT }];
+      for (const tr of rooms.filter((p) => p.room.type === "TERRACE")) roofRects = roofRects.flatMap((r) => subtract(r, { x: tr.x, z: tr.z, dx: tr.dx, dz: tr.dz }));
+      topRoof = { i, rects: roofRects, y: baseY + h + t };
+    }
   });
 
   // Parapet (mundair) round the top roof.
   if (topRoof) {
-    const r = topRoof as { i: number; minX: number; maxX: number; minZ: number; maxZ: number; y: number };
+    // Round the edge of the roof: each edge of a roof piece that no other piece continues.
+    const { i: ti, rects, y: ry } = topRoof as { i: number; rects: Rect[]; y: number };
     const ph = input.parapetHeightFt ?? PARAPET_FT;
-    const t = PARAPET_THICK;
-    boxes.push(
-      { kind: "parapet", x: r.minX, y: r.y, z: r.minZ, w: r.maxX - r.minX, h: ph, d: t, floor: r.i },
-      { kind: "parapet", x: r.minX, y: r.y, z: r.maxZ - t, w: r.maxX - r.minX, h: ph, d: t, floor: r.i },
-      { kind: "parapet", x: r.minX, y: r.y, z: r.minZ, w: t, h: ph, d: r.maxZ - r.minZ, floor: r.i },
-      { kind: "parapet", x: r.maxX - t, y: r.y, z: r.minZ, w: t, h: ph, d: r.maxZ - r.minZ, floor: r.i },
-    );
+    const t = INT;
+    const covered = (x: number, z: number) => rects.some((r) => x > r.x - 0.01 && x < r.x + r.dx + 0.01 && z > r.z - 0.01 && z < r.z + r.dz + 0.01);
+    for (const r of rects) {
+      const edges: Array<{ alongX: boolean; fixed: number; a: number; b: number; outside: (u: number) => [number, number] }> = [
+        { alongX: true, fixed: r.z, a: r.x, b: r.x + r.dx, outside: (u) => [u, r.z - 0.2] },
+        { alongX: true, fixed: r.z + r.dz - t, a: r.x, b: r.x + r.dx, outside: (u) => [u, r.z + r.dz + 0.2] },
+        { alongX: false, fixed: r.x, a: r.z, b: r.z + r.dz, outside: (u) => [r.x - 0.2, u] },
+        { alongX: false, fixed: r.x + r.dx - t, a: r.z, b: r.z + r.dz, outside: (u) => [r.x + r.dx + 0.2, u] },
+      ];
+      for (const e of edges) {
+        // Walk the edge in 1 ft steps; keep the stretches with no roof beyond them.
+        let start: number | null = null;
+        for (let u = e.a; u <= e.b + 0.001; u += Math.min(1, e.b - e.a)) {
+          const free = !covered(...e.outside(Math.min(u + 0.5, e.b - 0.01)));
+          const at = Math.min(u, e.b);
+          if (free && start === null) start = at;
+          if ((!free || at >= e.b - 0.001) && start !== null) {
+            const end = free ? e.b : at;
+            if (end - start > 0.05)
+              boxes.push(e.alongX ? { kind: "parapet", x: start, y: ry, z: e.fixed, w: end - start, h: ph, d: t, floor: ti } : { kind: "parapet", x: e.fixed, y: ry, z: start, w: t, h: ph, d: end - start, floor: ti });
+            start = null;
+          }
+          if (at >= e.b) break;
+        }
+      }
+    }
   }
 
-  // Foundation under the ground floor walls (or the basement's), plinth and DPC.
+  // Foundation under the ground floor walls; plinth wall above ground (always seen), DPC on top.
   const bottom = -fnd.depth;
-  const gFloor = floorsIn[groundIdx];
-  const footprint = boxes.filter((b) => b.kind === "slab" && b.floor === groundIdx)[0];
-  if (gFloor && footprint) {
-    const plinthTop = fnd.plinth;
-    for (const w of groundWalls) {
-      const { alongX, thick } = w;
-      const len = w.length;
-      const cx = alongX ? w.x : w.x + thick / 2;
-      const cz = alongX ? w.z + thick / 2 : w.z;
-      const band = (kind: BoxKind, width: number, y0: number, h: number) =>
-        boxes.push(alongX ? { kind, x: cx, y: y0, z: cz - width / 2, w: len, h, d: width, floor: null } : { kind, x: cx - width / 2, y: y0, z: cz, w: width, h, d: len, floor: null });
+  const plinthTop = fnd.plinth;
+  for (const l of groundLines) {
+    for (const [a, b] of merge(l.spans)) {
+      const len = b - a;
+      const mid = l.fixed + l.thick / 2;
+      const band = (kind: BoxKind, width: number, y0: number, hh: number) => {
+        if (hh <= 0.01) return;
+        boxes.push(l.alongX ? { kind, x: a, y: y0, z: mid - width / 2, w: len, h: hh, d: width, floor: null } : { kind, x: mid - width / 2, y: y0, z: a, w: width, h: hh, d: len, floor: null });
+      };
+      const masonryFrom = fnd.type === "STRIP" || fnd.type === "RAFT" ? bottom + fnd.pcc + fnd.footingT : -1;
       if (fnd.type === "STRIP") {
         band("pcc", fnd.footingW + 0.5, bottom, fnd.pcc);
         band("footing", fnd.footingW, bottom + fnd.pcc, fnd.footingT);
-        band("foundationWall", thick + 4.5 * IN, bottom + fnd.pcc + fnd.footingT, plinthTop - fnd.dpc - (bottom + fnd.pcc + fnd.footingT));
-      } else {
-        band("foundationWall", thick, fnd.type === "RAFT" ? bottom + fnd.pcc + fnd.footingT : -1, plinthTop - fnd.dpc - (fnd.type === "RAFT" ? bottom + fnd.pcc + fnd.footingT : -1));
-        if (fnd.type !== "RAFT") band("plinthBeam", thick, plinthTop - fnd.dpc - 1, 1);
       }
-      band("dpc", thick, plinthTop - fnd.dpc, fnd.dpc);
+      if (fnd.type !== "STRIP" && fnd.type !== "RAFT") band("plinthBeam", l.thick, -1, 1);
+      band("foundationWall", l.thick + (fnd.type === "STRIP" ? 4.5 * IN : 0), masonryFrom, 0 - masonryFrom);
+      band("plinthWall", l.thick, 0, plinthTop - fnd.dpc);
+      band("dpc", l.thick, plinthTop - fnd.dpc, fnd.dpc);
     }
+  }
+  const groundSlab = boxes.filter((b) => b.kind === "slab" && b.floor === groundIdx);
+  if (groundSlab.length) {
+    const minX = Math.min(...groundSlab.map((b) => b.x)) + SLAB_OVERHANG;
+    const maxX = Math.max(...groundSlab.map((b) => b.x + b.w)) - SLAB_OVERHANG;
+    const minZ = Math.min(...groundSlab.map((b) => b.z)) + SLAB_OVERHANG;
+    const maxZ = Math.max(...groundSlab.map((b) => b.z + b.d)) - SLAB_OVERHANG;
+    boxes.push({ kind: "plinthFill", x: minX + EXT, y: 0, z: minZ + EXT, w: maxX - minX - 2 * EXT, h: plinthTop - 0.1, d: maxZ - minZ - 2 * EXT, floor: null });
     if (fnd.type === "RAFT") {
-      boxes.push({ kind: "pcc", x: footprint.x - 0.5, y: bottom, z: footprint.z - 0.5, w: footprint.w + 1, h: fnd.pcc, d: footprint.d + 1, floor: null });
-      boxes.push({ kind: "raft", x: footprint.x, y: bottom + fnd.pcc, z: footprint.z, w: footprint.w, h: fnd.footingT, d: footprint.d, floor: null });
+      boxes.push({ kind: "pcc", x: minX - 0.5, y: bottom, z: minZ - 0.5, w: maxX - minX + 1, h: fnd.pcc, d: maxZ - minZ + 1, floor: null });
+      boxes.push({ kind: "raft", x: minX, y: bottom + fnd.pcc, z: minZ, w: maxX - minX, h: fnd.footingT, d: maxZ - minZ, floor: null });
     }
     if (fnd.type === "ISOLATED" || fnd.type === "COMBINED" || fnd.type === "PILE") {
-      for (const [key, c] of columns) {
-        if (!key.startsWith(`${groundIdx}:`)) continue;
+      for (const c of groundColumns) {
         if (fnd.type === "PILE") {
           boxes.push({ kind: "pile", x: c.x - fnd.pileD / 2, y: bottom - fnd.pileDepth, z: c.z - fnd.pileD / 2, w: fnd.pileD, h: fnd.pileDepth, d: fnd.pileD, floor: null });
           boxes.push({ kind: "footing", x: c.x - 1.5, y: bottom, z: c.z - 1.5, w: 3, h: fnd.footingT, d: 3, floor: null });
@@ -464,42 +741,56 @@ export function buildHouse(input: HouseInput): HouseModel {
           boxes.push({ kind: "footing", x: c.x - fnd.padL / 2, y: bottom + fnd.pcc, z: c.z - pw / 2, w: fnd.padL, h: fnd.footingT, d: pw, floor: null });
         }
         const cw = 12 * IN;
-        boxes.push({ kind: "column", x: c.x - cw / 2, y: bottom + fnd.pcc + fnd.footingT, z: c.z - cw / 2, w: cw, h: plinthTop - (bottom + fnd.pcc + fnd.footingT), d: cw, floor: null });
+        boxes.push({ kind: "column", x: c.x - cw / 2, y: bottom + fnd.pcc + fnd.footingT, z: c.z - cw / 2, w: cw, h: 0 - (bottom + fnd.pcc + fnd.footingT), d: cw, floor: null });
       }
     }
-    // Earth filled inside the plinth, under each ground floor room.
-    for (const b of boxes.filter((x) => x.kind === "slab" && x.floor === groundIdx)) {
-      boxes.push({ kind: "plinthFill", x: b.x + 0.4, y: 0, z: b.z + 0.4, w: b.w - 0.8, h: plinthTop - 0.05, d: b.d - 0.8, floor: null });
+    // Paved drive from the gate to the house front.
+    const frontZ = maxZ;
+    if (depthFt - frontZ > 2) {
+      const pw = Math.min(12, frontFt / 3);
+      boxes.push({ kind: "paving", x: (frontFt - pw) / 2, y: 0, z: frontZ, w: pw, h: 0.05, d: depthFt - frontZ, floor: null });
     }
   }
 
   // Boundary wall with a gate in the middle of the front.
   if (input.coverage?.boundaryWall) {
-    const h = input.coverage.boundaryHeightFt ?? 7;
+    const bh = input.coverage.boundaryHeightFt ?? 7;
     const t = (input.coverage.boundaryThickness === "IN_4_5" ? 4.5 : 9) * IN;
     const gate = Math.min(12, frontFt / 3);
     const g0 = (frontFt - gate) / 2;
+    // Where the house stands on the plot edge its own wall is the boundary: no second wall there.
+    const house = groundSlab.length
+      ? { x0: Math.min(...groundSlab.map((b) => b.x)) + SLAB_OVERHANG, x1: Math.max(...groundSlab.map((b) => b.x + b.w)) - SLAB_OVERHANG, z0: Math.min(...groundSlab.map((b) => b.z)) + SLAB_OVERHANG, z1: Math.max(...groundSlab.map((b) => b.z + b.d)) - SLAB_OVERHANG }
+      : null;
+    const side = (x: number, touches: boolean) => {
+      const spans: Array<[number, number]> = touches && house ? [[0, house.z0], [house.z1, depthFt]] : [[0, depthFt]];
+      for (const [a, b] of spans) if (b - a > 0.05) boxes.push({ kind: "boundary", x, y: 0, z: a, w: t, h: bh, d: b - a, floor: null });
+    };
+    if (!(house && house.z0 < t + 0.05)) boxes.push({ kind: "boundary", x: 0, y: 0, z: 0, w: frontFt, h: bh, d: t, floor: null });
+    side(0, Boolean(house && house.x0 < t + 0.05));
+    side(frontFt - t, Boolean(house && house.x1 > frontFt - t - 0.05));
     boxes.push(
-      { kind: "boundary", x: 0, y: 0, z: 0, w: frontFt, h, d: t, floor: null },
-      { kind: "boundary", x: 0, y: 0, z: 0, w: t, h, d: depthFt, floor: null },
-      { kind: "boundary", x: frontFt - t, y: 0, z: 0, w: t, h, d: depthFt, floor: null },
-      { kind: "boundary", x: 0, y: 0, z: depthFt - t, w: g0, h, d: t, floor: null },
-      { kind: "boundary", x: g0 + gate, y: 0, z: depthFt - t, w: frontFt - g0 - gate, h, d: t, floor: null },
+      { kind: "boundary", x: 0, y: 0, z: depthFt - t, w: g0, h: bh, d: t, floor: null },
+      { kind: "boundary", x: g0 + gate, y: 0, z: depthFt - t, w: frontFt - g0 - gate, h: bh, d: t, floor: null },
     );
   }
 
-  boxes.push({ kind: "ground", x: -5, y: -0.05, z: -5, w: frontFt + 10, h: 0.05, d: depthFt + 10, floor: null });
+  boxes.push({ kind: "ground", x: -8, y: -0.05, z: -8, w: frontFt + 16, h: 0.05, d: depthFt + 8, floor: null });
+  boxes.push({ kind: "road", x: -20, y: -0.06, z: depthFt + 4, w: frontFt + 40, h: 0.06, d: 16, floor: null });
 
-  const bounds = boxes.reduce(
-    (acc, b) => ({
-      minX: Math.min(acc.minX, b.x),
-      maxX: Math.max(acc.maxX, b.x + b.w),
-      minY: Math.min(acc.minY, b.y),
-      maxY: Math.max(acc.maxY, b.y + b.h),
-      minZ: Math.min(acc.minZ, b.z),
-      maxZ: Math.max(acc.maxZ, b.z + b.d),
-    }),
-    { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minZ: Infinity, maxZ: -Infinity },
-  );
-  return { boxes, labels, floors, plot: { frontFt, depthFt, known }, bounds, placement: { tied, packed } };
+  const bounds = boxes
+    .filter((b) => b.kind !== "road" && b.kind !== "ground")
+    .reduce(
+      (acc, b) => ({
+        minX: Math.min(acc.minX, b.x),
+        maxX: Math.max(acc.maxX, b.x + b.w),
+        minY: Math.min(acc.minY, b.y),
+        maxY: Math.max(acc.maxY, b.y + b.h),
+        minZ: Math.min(acc.minZ, b.z),
+        maxZ: Math.max(acc.maxZ, b.z + b.d),
+      }),
+      { minX: 0, maxX: frontFt, minY: 0, maxY: 1, minZ: 0, maxZ: depthFt },
+    );
+  return { boxes, labels, floors, plot: { frontFt, depthFt, known }, bounds, placement: { tied, packed, assumed: assumedRooms } };
 }
+

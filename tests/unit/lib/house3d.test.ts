@@ -100,10 +100,12 @@ describe("house 3D: the model", () => {
     expect(model.floors[1]!.baseY).toBeCloseTo(1.5 + 10 + 5 / 12);
   });
 
-  it("doors and windows are holes in the walls with a panel in them", () => {
+  it("doors and windows are holes in the walls with a panel in them; rooms saved without any get a standard pair", () => {
     const kinds = model.boxes.map((b) => b.kind);
-    expect(kinds.filter((k) => k === "window")).toHaveLength(1);
-    expect(kinds.filter((k) => k === "door")).toHaveLength(1);
+    // Bedroom: its own window + door; lounge and the upstairs room: an assumed door + window each.
+    expect(kinds.filter((k) => k === "window")).toHaveLength(3);
+    expect(kinds.filter((k) => k === "door")).toHaveLength(3);
+    expect(model.placement.assumed).toBe(2);
     const win = model.boxes.find((b) => b.kind === "window")!;
     expect(win.y).toBeCloseTo(1.5 + 3); // sill 3 ft above the floor
     expect(win.h).toBeCloseTo(4);
@@ -131,6 +133,46 @@ describe("house 3D: the model", () => {
     expect(loose.plot.frontFt).toBeGreaterThan(20);
     expect(loose.boxes.some((b) => b.kind === "column")).toBe(false);
     const empty = buildHouse({ frontFt: 30, depthFt: 60, structureType: "FRAMED", foundation: null, coverage: null, floors: [] });
-    expect(empty.boxes.map((b) => b.kind)).toEqual(["ground"]);
+    expect(empty.boxes.map((b) => b.kind)).toEqual(["ground", "road"]);
+  });
+});
+
+describe("house 3D: no shared walls entered (the usual case)", () => {
+  const rows = buildHouse({
+    frontFt: 35,
+    depthFt: 65,
+    structureType: "FRAMED",
+    foundation: null,
+    coverage: { boundaryWall: true, boundaryHeightFt: 7, boundaryThickness: "IN_9" },
+    floors: [
+      floor("GROUND", [
+        room("d", "Drawing", 16, 14, { type: "DRAWING_ROOM", sortOrder: 0 }),
+        room("m", "Master", 16, 14, { type: "MASTER_BEDROOM", sortOrder: 1 }),
+        room("b", "Bath", 8, 6, { type: "ATTACHED_BATH", sortOrder: 2 }),
+        room("k", "Kitchen", 12, 10, { type: "KITCHEN", sortOrder: 3 }),
+      ]),
+    ],
+  });
+
+  it("one closed block the plot's width: bedrooms at the back, the drawing room at the road side", () => {
+    const labelOf = (name: string) => rows.labels.find((l) => l.text === name)!;
+    expect(labelOf("Master").z).toBeLessThan(labelOf("Kitchen").z);
+    expect(labelOf("Kitchen").z).toBeLessThan(labelOf("Drawing").z);
+    const walls = rows.boxes.filter((b) => b.kind === "wall");
+    expect(Math.min(...walls.map((w) => w.x))).toBeCloseTo(0);
+    expect(Math.max(...walls.map((w) => w.x + w.w))).toBeCloseTo(35);
+  });
+
+  it("walls are not doubled, there is a main door at the front, and the boundary wall stops where the house stands", () => {
+    const walls = rows.boxes.filter((b) => b.kind === "wall");
+    const keys = walls.map((w) => [w.x, w.y, w.z, w.w, w.h, w.d].map((v) => v.toFixed(2)).join(","));
+    expect(new Set(keys).size).toBe(keys.length);
+    const doors = rows.boxes.filter((b) => b.kind === "door");
+    const front = Math.max(...walls.map((w) => w.z + w.d));
+    expect(doors.some((d) => Math.abs(d.z + d.d / 2 - (front - 9 / 24)) < 0.2)).toBe(true);
+    // The house is the plot's full width, so the side boundary walls run only beside the open parts.
+    const sideWalls = rows.boxes.filter((b) => b.kind === "boundary" && b.w < 1);
+    expect(sideWalls.length).toBeGreaterThan(0);
+    expect(sideWalls.every((b) => b.z + b.d <= Math.min(...walls.map((w) => w.z)) + 0.01 || b.z >= front - 0.01)).toBe(true);
   });
 });

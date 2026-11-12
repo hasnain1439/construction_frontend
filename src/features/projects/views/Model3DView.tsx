@@ -36,6 +36,9 @@ const LEGEND: Array<[BoxKind, TranslationKey]> = [
   ["wall", "projects.model3d.partWall"],
   ["column", "projects.model3d.partColumn"],
   ["slab", "projects.model3d.partSlab"],
+  ["chajja", "projects.model3d.partChajja"],
+  ["plinthWall", "projects.model3d.partPlinth"],
+  ["floorFinish", "projects.model3d.partFloor"],
   ["stair", "projects.model3d.partStair"],
   ["door", "projects.model3d.partDoor"],
   ["window", "projects.model3d.partWindow"],
@@ -117,6 +120,7 @@ function Model3D({ project }: { project: ProjectDetail }) {
             </Link>
           </InlineAlert>
         ) : null}
+        {model.placement.assumed ? <InlineAlert tone="info">{t("projects.model3d.assumedNote", { n: model.placement.assumed })}</InlineAlert> : null}
         {!model.plot.known ? <InlineAlert tone="info">{t("projects.model3d.noPlot")}</InlineAlert> : null}
       </div>
 
