@@ -56,6 +56,7 @@ export const strings = {
     pilesLine: "{n} piles",
     plinthBeamLine: "plinth beams {ft} ft",
     frameLine: "{name}: {columns} columns {size}″, beams {beams} ft ({beamSize}″)",
+    enteredBeams: "Setup: {ft} ft of beams (the 3D follows the walls drawn)",
     hoverHint: "Point at a column, beam or footing to see its name (e.g. G-C4).",
     partBeam: "Beam",
     partPile: "Pile",

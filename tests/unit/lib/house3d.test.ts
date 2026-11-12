@@ -192,6 +192,10 @@ describe("house 3D: the structure follows the setup", () => {
     expect(Math.min(...m.boxes.filter((b) => b.kind === "pcc").map((b) => b.y))).toBeCloseTo(-5);
     expect(m.structure.foundation).toMatchObject({ type: "ISOLATED", depthFt: 5, footings: 9, piles: 0 });
     expect(m.structure.foundation.plinthBeamFt).toBeGreaterThan(0);
+    // Every footing carries a ground floor column.
+    const centre = (b: { x: number; z: number; w: number; d: number }) => `${(b.x + b.w / 2).toFixed(1)},${(b.z + b.d / 2).toFixed(1)}`;
+    const columns = new Set(m.boxes.filter((b) => b.kind === "column" && b.floor === 0).map(centre));
+    expect(pads.filter((p) => !columns.has(centre(p)))).toEqual([]);
   });
 
   it("pile: as many piles as entered; strip: footings run under the walls (no pads)", () => {

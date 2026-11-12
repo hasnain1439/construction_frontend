@@ -57,6 +57,7 @@ export const strings: Widen<typeof En.strings> = {
     pilesLine: "{n} پائل",
     plinthBeamLine: "پلنتھ بیم {ft} فٹ",
     frameLine: "{name}: {columns} کالم {size}″، بیم {beams} فٹ ({beamSize}″)",
+    enteredBeams: "سیٹ اپ میں: {ft} فٹ بیم (تھری ڈی بنی دیواروں کے حساب سے)",
     hoverHint: "کالم، بیم یا فوٹنگ پر ماؤس لے جائیں تو اس کا نام نظر آئے گا۔",
     partBeam: "بیم",
     partPile: "پائل",

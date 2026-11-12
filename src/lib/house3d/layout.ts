@@ -88,7 +88,7 @@ export interface HouseModel {
   /** What the structure holds, as drawn (counts follow the setup). */
   structure: {
     foundation: { type: string; depthFt: number; footings: number; piles: number; plinthBeamFt: number };
-    floors: Array<{ name: string; columns: number; columnSizeIn: string; beamRunFt: number; beamSizeIn: string }>;
+    floors: Array<{ name: string; columns: number; columnSizeIn: string; beamRunFt: number; beamSizeIn: string; enteredBeamRunFt: number | null; enteredColumns: number | null }>;
   };
 }
 
@@ -346,7 +346,8 @@ class Lines {
   private map = new Map<string, Line>();
   add(l: Omit<Line, "spans" | "holes">, span: [number, number], holes: Hole[] = []) {
     if (span[1] - span[0] < 0.01 || l.thick <= 0) return;
-    const key = `${l.kind}|${l.alongX ? "x" : "z"}|${l.fixed.toFixed(2)}|${l.thick.toFixed(3)}`;
+    // Height in the key too: a terrace's low wall never merges into a full-height wall on the same line.
+    const key = `${l.kind}|${l.alongX ? "x" : "z"}|${l.fixed.toFixed(2)}|${l.thick.toFixed(3)}|${l.height.toFixed(2)}`;
     const line = this.map.get(key) ?? { ...l, spans: [], holes: [] };
     line.spans.push(span);
     line.holes.push(...holes);
@@ -465,6 +466,17 @@ function junctions(rooms: Rect[], env: Rect | null): Pt[] {
   const g = INT / 2;
   for (const r of rooms) {
     for (const [x, z] of [[r.x - g, r.z - g], [r.x + r.dx + g, r.z - g], [r.x - g, r.z + r.dz + g], [r.x + r.dx + g, r.z + r.dz + g]] as const) add(snapX(x), snapZ(z));
+  }
+  // Along every room side too (every ~4 ft), so the count entered can always be placed on a wall.
+  for (const r of rooms) {
+    for (let x = r.x + 4; x < r.x + r.dx - 2; x += 4) {
+      add(x, snapZ(r.z - g));
+      add(x, snapZ(r.z + r.dz + g));
+    }
+    for (let z = r.z + 4; z < r.z + r.dz - 2; z += 4) {
+      add(snapX(r.x - g), z);
+      add(snapX(r.x + r.dx + g), z);
+    }
   }
   // Along the outer walls too, so a long wall can carry columns between junctions.
   if (env) {
@@ -646,7 +658,7 @@ export function buildHouse(input: HouseInput): HouseModel {
         if (terrace && s.kind === "room") continue; // the room's own wall
         const outside = s.kind === "outside";
         const t = env ? s.gap : entered ? thicknessOf(entered, framed) : outside ? EXT : s.gap;
-        const kind = terrace ? "parapet" : "wall";
+        const kind = "wall";
         const height = terrace ? PARAPET_FT : h;
         const alongX = s.d % 2 === 0;
         const fixed = s.d === 0 ? p.z - t : s.d === 2 ? p.z + p.dz : s.d === 1 ? p.x + p.dx : p.x - t;
@@ -757,6 +769,8 @@ export function buildHouse(input: HouseInput): HouseModel {
       columnSizeIn: `${Math.round(cw * 12)}×${Math.round(cd * 12)}`,
       beamRunFt: Math.round(beamRun),
       beamSizeIn: `${Math.round(bw * 12)}×${Math.round(bd * 12)}`,
+      enteredBeamRunFt: fl.roof?.beamRunFt ?? null,
+      enteredColumns: fl.roof?.columnCount ?? null,
     });
 
     // Roof slab over the floor (not over a terrace), a little wider than the walls.
@@ -850,9 +864,11 @@ export function buildHouse(input: HouseInput): HouseModel {
       // As many footings / piles as entered (isolated: one per column when not entered), under the columns.
       const groundRooms = boxes.filter((b) => (b.kind === "floorFinish" || b.kind === "wetFloor") && b.floor === groundIdx).map((b) => ({ x: b.x, z: b.z, dx: b.w, dz: b.d }));
       const env0 = { x: minX + EXT, z: minZ + EXT, dx: maxX - minX - 2 * EXT, dz: maxZ - minZ - 2 * EXT };
-      const cands = [...groundSpots, ...junctions(groundRooms, env0)];
       const count = fnd.type === "PILE" ? (f?.pileCount ?? groundColumnCount) : (f?.footingCount ?? (groundColumnCount || gridColumns(env0.dx, env0.dz)));
-      const spots = spreadPoints(cands, count);
+      // Under the ground floor's columns first (a footing always carries a column); more than the
+      // columns: the rest spread along the walls.
+      const extra = count > groundSpots.length ? spreadPoints([...groundSpots, ...junctions(groundRooms, env0)], count).filter((c) => !groundSpots.includes(c)) : [];
+      const spots = [...groundSpots.slice(0, count), ...extra].slice(0, count);
       footings = fnd.type === "PILE" ? 0 : spots.length;
       piles = fnd.type === "PILE" ? spots.length : 0;
       const cw = 12 * IN;

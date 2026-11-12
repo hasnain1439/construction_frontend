@@ -198,7 +198,12 @@ function Model3D({ project }: { project: ProjectDetail }) {
             {s.floors
               .filter((f) => f.columns)
               .map((f) => (
-                <li key={f.name}>{t("projects.model3d.frameLine", { name: f.name, columns: f.columns, size: f.columnSizeIn, beams: f.beamRunFt, beamSize: f.beamSizeIn })}</li>
+                <li key={f.name}>
+                  {t("projects.model3d.frameLine", { name: f.name, columns: f.columns, size: f.columnSizeIn, beams: f.beamRunFt, beamSize: f.beamSizeIn })}
+                  {f.enteredBeamRunFt !== null && f.enteredBeamRunFt !== f.beamRunFt ? (
+                    <span className="block text-xs text-muted-foreground">{t("projects.model3d.enteredBeams", { ft: f.enteredBeamRunFt })}</span>
+                  ) : null}
+                </li>
               ))}
           </ul>
           <p className="mt-3 text-xs text-muted-foreground">{t("projects.model3d.hoverHint")}</p>

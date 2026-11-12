@@ -57,6 +57,7 @@ export const strings: Widen<typeof En.strings> = {
     pilesLine: "{n} piles",
     plinthBeamLine: "plinth beam {ft} ft",
     frameLine: "{name}: {columns} columns {size}″, beams {beams} ft ({beamSize}″)",
+    enteredBeams: "Setup mein: {ft} ft beams (3D bani deewaron ke hisaab se)",
     hoverHint: "Column, beam ya footing par mouse le jayein to us ka naam nazar aayega (maslan G-C4).",
     partBeam: "Beam",
     partPile: "Pile",
