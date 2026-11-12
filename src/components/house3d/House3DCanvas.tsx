@@ -190,10 +190,11 @@ export function House3DCanvas({
           const floorOn = o.show === "all" ? p.floor === o.upTo : p.floor === o.show;
           visible = o.labels && floorOn && !o.roofs;
         } else if (o.show === "foundation") {
-          // The foundation alone: everything below the plinth, with the ground made see-through.
-          visible = p.floor === null && p.kind !== "boundary";
+          // The foundation alone: nothing of the house above, no ground, road or boundary wall.
+          visible = p.floor === null && !SITE.has(p.kind as BoxKind) && p.kind !== "boundary";
         } else if (typeof o.show === "number") {
-          visible = (p.floor === o.show && (o.walls || !WALLISH.has(p.kind as BoxKind)) && (o.roofs || !ROOF.has(p.kind as BoxKind))) || SITE.has(p.kind as BoxKind);
+          // One floor alone.
+          visible = p.floor === o.show && (o.walls || !WALLISH.has(p.kind as BoxKind)) && (o.roofs || !ROOF.has(p.kind as BoxKind));
         } else {
           const floorShown = p.floor === null || p.floor <= o.upTo;
           visible = floorShown;
@@ -210,17 +211,42 @@ export function House3DCanvas({
       const seeThrough = o.show === "foundation" || (o.show === "all" && o.foundation);
       groundMaterial.opacity = seeThrough ? 0.3 : 1;
       groundMaterial.depthWrite = !seeThrough;
+      // A new part chosen: the camera goes to it.
+      const key = String(o.show);
+      if (key !== shownKey) {
+        shownKey = key;
+        focus = focusOf(o.show);
+        moveCamera.current?.(lastView);
+      }
     };
-    apply.current(latest.current);
 
-    const fovDistance = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2));
+    /** Centre and size of what is shown: the whole house, the foundation or one floor. */
+    const focusOf = (show: ViewOptions["show"]) => {
+      const part = model.boxes.filter((x) =>
+        show === "all" ? !SITE.has(x.kind) : show === "foundation" ? x.floor === null && !SITE.has(x.kind) && x.kind !== "boundary" : x.floor === show,
+      );
+      if (!part.length) return { centre, radius };
+      const lo = new THREE.Vector3(Math.min(...part.map((x) => x.x)), Math.min(...part.map((x) => x.y)), Math.min(...part.map((x) => x.z)));
+      const hi = new THREE.Vector3(Math.max(...part.map((x) => x.x + x.w)), Math.max(...part.map((x) => x.y + x.h)), Math.max(...part.map((x) => x.z + x.d)));
+      const c = lo.clone().add(hi).multiplyScalar(0.5);
+      if (show === "all") c.y = Math.max(0, hi.y) / 3;
+      return { centre: c, radius: Math.max(10, lo.distanceTo(hi) / 2) };
+    };
+    let shownKey = String(latest.current.show);
+    let focus = focusOf(latest.current.show);
+    let lastView: CameraView = "corner";
+
     moveCamera.current = (v: CameraView) => {
-      controls.target.copy(centre);
-      if (v === "top") camera.position.set(centre.x, centre.y + fovDistance * 1.05, centre.z + 0.01);
-      else if (v === "front") camera.position.set(centre.x, centre.y + radius * 0.25, centre.z + fovDistance * 1.05);
-      else camera.position.copy(centre).add(new THREE.Vector3(0.62, 0.48, 0.62).normalize().multiplyScalar(fovDistance * 0.95));
+      lastView = v;
+      const { centre: c, radius: r } = focus;
+      const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2));
+      controls.target.copy(c);
+      if (v === "top") camera.position.set(c.x, c.y + dist * 1.05, c.z + 0.01);
+      else if (v === "front") camera.position.set(c.x, c.y + r * 0.25, c.z + dist * 1.05);
+      else camera.position.copy(c).add(new THREE.Vector3(0.62, 0.48, 0.62).normalize().multiplyScalar(dist * 0.95));
       controls.update();
     };
+    apply.current(latest.current);
     moveCamera.current("corner");
 
     const resize = () => {

@@ -46,6 +46,8 @@ export const strings = {
     partWindow: "Window / ventilator",
     partBoundary: "Boundary wall",
     onlyFoundation: "Foundation only",
+    wholeHouse: "Whole house",
+    foundationTab: "Foundation",
     only: "{name} only",
     walls: "Walls, doors, windows",
     structure: "Structure",

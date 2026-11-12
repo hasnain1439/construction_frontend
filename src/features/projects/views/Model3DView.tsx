@@ -12,7 +12,6 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { CameraView, ViewOptions } from "@/components/house3d/House3DCanvas";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
@@ -120,6 +119,11 @@ function Model3D({ project }: { project: ProjectDetail }) {
     upTo: mode.startsWith("all:") ? Number(mode.slice(4)) : last,
   };
   const s = model.structure;
+  // One floor alone opens without its slab (rooms and names show); the whole house with its roofs.
+  const pick = (value: string) => {
+    setShow(value);
+    setOptions((o) => ({ ...o, roofs: !value.startsWith("only:") }));
+  };
   const set = (k: keyof typeof options) => (v: boolean) => setOptions((o) => ({ ...o, [k]: v }));
   const move = (v: CameraView) => setView((s) => ({ view: v, key: s.key + 1 }));
 
@@ -129,6 +133,19 @@ function Model3D({ project }: { project: ProjectDetail }) {
         {unsupported ? (
           <InlineAlert tone="warning">{t("projects.model3d.noWebgl")}</InlineAlert>
         ) : (
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t("projects.model3d.show")}>
+            {[
+              { value: `all:${last}`, label: t("projects.model3d.wholeHouse") },
+              { value: "foundation", label: t("projects.model3d.foundationTab") },
+              ...model.floors.map((f, i) => ({ value: `only:${i}`, label: f.name })),
+            ].map((o) => (
+              <Button key={o.value} size="sm" variant={mode === o.value ? "default" : "outline"} aria-pressed={mode === o.value} onClick={() => pick(o.value)}>
+                {o.label}
+              </Button>
+            ))}
+          </div>
+        )}
+        {unsupported ? null : (
           <div className="overflow-hidden rounded-xl border">
             <House3DCanvas model={model} options={shown} view={view.view} viewKey={view.key} onUnsupported={onUnsupported} describe={describe} className="h-[560px] w-full" />
           </div>
@@ -149,27 +166,6 @@ function Model3D({ project }: { project: ProjectDetail }) {
       <div className="space-y-4">
         <SectionCard title={t("projects.model3d.show")}>
           <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="model3d-floors">{t("projects.model3d.floors")}</Label>
-              <Select value={mode} onValueChange={setShow}>
-                <SelectTrigger id="model3d-floors" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {model.floors.map((f, i) => (
-                    <SelectItem key={`all-${i}`} value={`all:${i}`}>
-                      {i === last ? t("projects.model3d.allFloors") : t("projects.model3d.upTo", { name: f.name })}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="foundation">{t("projects.model3d.onlyFoundation")}</SelectItem>
-                  {model.floors.map((f, i) => (
-                    <SelectItem key={`only-${i}`} value={`only:${i}`}>
-                      {t("projects.model3d.only", { name: f.name })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <ToggleRow id="model3d-roofs" label={t("projects.model3d.roofs")} checked={options.roofs} onChange={set("roofs")} />
             <ToggleRow id="model3d-walls" label={t("projects.model3d.walls")} checked={options.walls} onChange={set("walls")} />
             <ToggleRow id="model3d-foundation" label={t("projects.model3d.foundation")} checked={options.foundation} onChange={set("foundation")} />

@@ -47,6 +47,8 @@ export const strings: Widen<typeof En.strings> = {
     partWindow: "کھڑکی / روشن دان",
     partBoundary: "چار دیواری",
     onlyFoundation: "صرف بنیاد",
+    wholeHouse: "پورا گھر",
+    foundationTab: "بنیاد",
     only: "صرف {name}",
     walls: "دیواریں، دروازے، کھڑکیاں",
     structure: "ڈھانچہ",
