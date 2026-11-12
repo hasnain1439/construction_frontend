@@ -798,6 +798,14 @@ export const PROJECT_NAV: NavSection[] = [
         href: "/overview",
         available: true,
       },
+      {
+        id: "p.overview.model3d",
+        label: L("3D View", "3D view", "تھری ڈی منظر"),
+        href: "/overview/3d",
+        available: true,
+        access: P("projects.project.view"),
+        keywords: ["3d", "model", "house", "naqsha", "design"],
+      },
     ],
   },
   {
