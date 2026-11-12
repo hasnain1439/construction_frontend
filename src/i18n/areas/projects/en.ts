@@ -3,6 +3,13 @@ import * as estimate from "./estimate/en";
 /** English texts for this area: `strings` become `t("projects.…")`, `enums` are extra `useEnumT()` groups. */
 export const strings = {
   estimate: estimate.strings,
+  projectFile: {
+    button: "Project file",
+    hint: "Everything about this project in one file: setup, rooms, estimate, money, labour, schedule, daily logs and close-out.",
+    pdf: "PDF",
+    excel: "Excel",
+    busy: "Making the file… a big project can take a minute.",
+  },
   model3d: {
     title: "3D view",
     open: "See in 3D",

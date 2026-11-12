@@ -4,6 +4,13 @@ import * as estimate from "./estimate/roman-ur";
 
 export const strings: Widen<typeof En.strings> = {
   estimate: estimate.strings,
+  projectFile: {
+    button: "Project file",
+    hint: "Is project ki har cheez ek file mein: setup, kamre, estimate, paisa, mazdoor, schedule, daily log aur handover.",
+    pdf: "PDF",
+    excel: "Excel",
+    busy: "File ban rahi hai… bara project ho to ek minute lag sakta hai.",
+  },
   model3d: {
     title: "3D view",
     open: "3D mein dekhein",

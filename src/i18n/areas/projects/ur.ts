@@ -4,6 +4,13 @@ import * as estimate from "./estimate/ur";
 
 export const strings: Widen<typeof En.strings> = {
   estimate: estimate.strings,
+  projectFile: {
+    button: "پراجیکٹ فائل",
+    hint: "اس پراجیکٹ کی ہر چیز ایک فائل میں: سیٹ اپ، کمرے، تخمینہ، رقم، مزدور، شیڈول، روزانہ لاگ اور حوالگی۔",
+    pdf: "پی ڈی ایف",
+    excel: "ایکسل",
+    busy: "فائل بن رہی ہے… بڑا پراجیکٹ ہو تو ایک منٹ لگ سکتا ہے۔",
+  },
   model3d: {
     title: "تھری ڈی منظر",
     open: "تھری ڈی میں دیکھیں",

@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { BILLING_ACCESS, projectHref } from "@/lib/navigation";
+import { ProjectFileMenu } from "@/features/reports/components/ProjectFileMenu";
 import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import {
   ClientCard,
@@ -208,6 +209,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const seesBilling = canAccess(BILLING_ACCESS);
   const canEstimate = can("projects.estimate.view");
   const canSchedule = can("schedule.plan.view");
+  const canProjectFile = !isMunshi && can("finance.reports.view");
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -223,6 +225,7 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
               </Link>
             </Button>
           ) : null}
+          {canProjectFile ? <ProjectFileMenu projectId={project.id} /> : null}
           {canManage && project.status === "DRAFT" ? (
             <Button asChild>
               <Link href={wizardHref(project.id)}>

@@ -24,7 +24,11 @@ export const reportsApi = baseApi.injectEndpoints({
     exportReportBook: build.mutation<ReportFile, { name: ReportBookName; projectId: string; format: Exclude<ReportFormat, "json"> } & BookFilters>({
       query: ({ name, projectId, ...params }) => ({ url: ENDPOINTS.reports.book(name, projectId), params: cleanParams(params) }),
     }),
+    /** The complete project file (A to Z): every section the caller may see, as a stored file. */
+    exportProjectFile: build.mutation<ReportFile, { projectId: string; format: "pdf" | "xlsx"; lang?: "en" | "roman" | "ur" }>({
+      query: ({ projectId, ...params }) => ({ url: ENDPOINTS.reports.projectFile(projectId), params: cleanParams(params) }),
+    }),
   }),
 });
 
-export const { useGetReportQuery, useExportReportMutation, useGetReportBookQuery, useExportReportBookMutation } = reportsApi;
+export const { useGetReportQuery, useExportReportMutation, useGetReportBookQuery, useExportReportBookMutation, useExportProjectFileMutation } = reportsApi;

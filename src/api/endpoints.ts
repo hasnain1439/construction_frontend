@@ -517,6 +517,8 @@ export const ENDPOINTS = {
     byName: (name: string) => `/reports/${id(name)}`,
     /** Step 18 · one project's report book (delay analysis, variance, snags). */
     book: (name: string, projectId: string) => `/reports/${id(name)}/${id(projectId)}`,
+    /** The complete project file (A to Z). */
+    projectFile: (projectId: string) => `/reports/project-file/${id(projectId)}`,
   },
 
   /** Offline office: office PCs that sync the company's data, and their sync problems. */
