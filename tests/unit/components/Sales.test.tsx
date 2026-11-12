@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteSummary } from "@/api/types";
+import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteScope, QuoteSummary } from "@/api/types";
 import { COMPANY_NAV } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
 import { meFixture, permissionsFor } from "../fixtures";
@@ -115,6 +115,15 @@ const INSIGHTS: QuoteInsights = {
   pipelineValuePaisa: "3900000000",
 };
 
+const LABOUR_SCOPE: QuoteScope = {
+  source: "DEFAULT",
+  sections: [{ title: "A · Up to DPC", items: [{ text: "Excavation of foundations", who: "INCLUDED" }, { text: "Anti-termite proofing", who: "OWNER" }] }],
+  terms: [{ title: "Plot depth", text: "Rs 15 per sq ft for each foot below road level." }],
+};
+const SCOPE_TEMPLATES = { LABOR_ONLY: LABOUR_SCOPE, GREY_OWNER_FINISHING: { ...LABOUR_SCOPE, sections: [{ title: "Grey structure", items: [{ text: "Brick work", who: "INCLUDED" as const }] }] }, FULL: LABOUR_SCOPE };
+const saveTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve({ ...LABOUR_SCOPE, source: "COMPANY" }) }));
+const createQuote = vi.fn(() => ({ unwrap: () => Promise.resolve({ id: "q9", number: "Q-2026-0009" }) }));
+
 let previewResult: QuoteComputed = COMPUTED;
 const preview = vi.fn(() => ({ unwrap: () => Promise.resolve(previewResult) }));
 const markWon = vi.fn(() => ({ unwrap: () => Promise.resolve({ quote: DETAIL, projectId: "p9", projectCode: "MSB-2026-017", created: true }) }));
@@ -127,7 +136,7 @@ vi.mock("@/api/services/sales.api", () => ({
   useGetQuoteRevisionsQuery: () => ({ data: [detail.latest, { ...detail.latest, id: "r1", revision: 1, pricePaisa: "1900000000" }] }),
   useGetQuoteInsightsQuery: () => ({ data: INSIGHTS, isLoading: false }),
   usePreviewQuoteMutation: () => [preview, { isLoading: false }],
-  useCreateQuoteMutation: mutation(),
+  useCreateQuoteMutation: () => [createQuote, { isLoading: false }],
   useAddQuoteRevisionMutation: mutation(),
   useDeleteQuoteMutation: mutation(),
   useSendQuoteMutation: mutation(),
@@ -135,6 +144,9 @@ vi.mock("@/api/services/sales.api", () => ({
   useMarkQuoteLostMutation: mutation(),
   useMarkQuoteWonMutation: () => [markWon, { isLoading: false }],
   useGetQuotePdfMutation: mutation(),
+  useGetQuoteScopeTemplatesQuery: () => ({ data: SCOPE_TEMPLATES, isLoading: false, isSuccess: true }),
+  useSaveQuoteScopeTemplateMutation: () => [saveTemplate, { isLoading: false }],
+  useResetQuoteScopeTemplateMutation: mutation(),
 }));
 vi.mock("@/api/services/clients.api", () => ({ useGetClientsQuery: () => ({ data: { items: [{ id: "c1", name: "Hamid Ali", phone: "+923214445566" }] } }) }));
 vi.mock("@/api/services/masterData.api", () => ({ useGetQualityCategoriesQuery: () => ({ data: [] }), useGetPaymentTemplatesQuery: () => ({ data: [] }) }));
@@ -143,6 +155,7 @@ const { QuotePipelineView } = await import("@/features/sales/QuotePipelineView")
 const { NewQuoteView } = await import("@/features/sales/NewQuoteView");
 const { QuoteDetailView } = await import("@/features/sales/QuoteDetailView");
 const { InsightsView } = await import("@/features/sales/InsightsView");
+const { QuoteTemplatesView } = await import("@/features/sales/QuoteTemplatesView");
 
 beforeEach(() => {
   push.mockClear();
@@ -275,5 +288,61 @@ describe("Sales — win / loss insights", () => {
     expect(screen.getByText("جیت کی شرح")).toBeInTheDocument();
     expect(screen.getByText("33.33%")).toBeInTheDocument();
     expect(within(screen.getByTestId("follow-ups")).getByText("Valencia · 1 Kanal")).toBeInTheDocument();
+  });
+});
+
+describe("Sales — work details & terms (scope)", () => {
+  it("a new quote shows the template of its contract type; Edit for this quote sends its own list", { timeout: 30_000 }, async () => {
+    const user = userEvent.setup();
+    createQuote.mockClear();
+    renderWithStore(<NewQuoteView />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByText("Work details & terms")).toBeInTheDocument();
+    expect(screen.getByText(/1 sections · 1 items · 1 notes/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Edit for this quote/ }));
+    expect(screen.getByText("Changes here are for this quote only.")).toBeInTheDocument();
+    const title = screen.getByDisplayValue("Grey structure");
+    await user.clear(title);
+    await user.type(title, "A · Foundation");
+    await user.type(screen.getByLabelText(/Plot size/), "10");
+    await user.type(screen.getByLabelText(/Covered area/), "3950");
+    await user.type(screen.getByLabelText(/Quote title/), "Valencia labour");
+    await user.click(screen.getByRole("radio", { name: "New client" }));
+    await user.type(screen.getByLabelText(/Client name/), "Hamid Ali");
+    await user.type(screen.getByLabelText(/Client phone/), "03214445566");
+    await user.click(screen.getAllByRole("button", { name: "Save quote" })[0]!);
+    await waitFor(() => expect(createQuote).toHaveBeenCalled());
+    const body = (createQuote.mock.calls.at(-1) as unknown as [{ inputs: { scope: unknown } }])[0];
+    expect(body.inputs.scope).toEqual({ sections: [{ title: "A · Foundation", items: [{ text: "Brick work", who: "INCLUDED" }] }], terms: [{ title: "Plot depth", text: "Rs 15 per sq ft for each foot below road level." }] });
+    // the live price never re-runs for the list
+    for (const call of preview.mock.calls as unknown as Array<[Record<string, unknown>]>) expect(call[0]).not.toHaveProperty("scope");
+  });
+
+  it("templates page: one tab per contract type; the owner saves the labour-only list", { timeout: 20_000 }, async () => {
+    const user = userEvent.setup();
+    saveTemplate.mockClear();
+    renderWithStore(<QuoteTemplatesView />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByRole("tab", { name: "Labour only" })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("A · Up to DPC")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Add item/ }));
+    const items = screen.getAllByRole("textbox", { name: "Work item" });
+    await user.type(items.at(-1)!, "DPC 50 mm thick");
+    await user.click(screen.getByRole("button", { name: /Save template/ }));
+    await waitFor(() => expect(saveTemplate).toHaveBeenCalled());
+    const arg = (saveTemplate.mock.calls.at(-1) as unknown as [{ contractType: string; body: { sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];
+    expect(arg.contractType).toBe("LABOR_ONLY");
+    expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED" });
+  });
+
+  it("a PM (no sales.quote.manage) only reads the templates", () => {
+    renderWithStore(<QuoteTemplatesView />, { me: meFixture("PM") });
+    expect(screen.queryByRole("button", { name: /Save template/ })).toBeNull();
+    expect(screen.getByText("Excavation of foundations")).toBeInTheDocument();
+  });
+
+  it("the quote detail lists the work items with who does them", () => {
+    detail = { ...DETAIL, latest: { ...DETAIL.latest, inputs: { ...DETAIL.latest.inputs, scope: LABOUR_SCOPE } } };
+    renderWithStore(<QuoteDetailView quoteId="q1" />, { me: meFixture("THEKEDAR") });
+    expect(screen.getByText("Anti-termite proofing")).toBeInTheDocument();
+    expect(screen.getAllByText("By owner").length).toBeGreaterThan(0);
   });
 });

@@ -13,6 +13,10 @@ import type {
   QuoteInsights,
   QuoteLostBody,
   QuoteRevision,
+  QuoteScope,
+  QuoteScopeBody,
+  QuoteScopeTemplates,
+  QuoteContractType,
   QuotesQuery,
   QuoteSummary,
   QuoteWonBody,
@@ -49,6 +53,19 @@ export const salesApi = baseApi.injectEndpoints({
     getQuoteInsights: build.query<QuoteInsights, { months?: number } | void>({
       query: (params) => ({ url: ENDPOINTS.quotes.insights, params: cleanParams(params ?? undefined) }),
       providesTags: [{ type: "Quotes", id: LIST }],
+    }),
+    /** Scope of work + terms template per contract type. */
+    getQuoteScopeTemplates: build.query<QuoteScopeTemplates, void>({
+      query: () => ENDPOINTS.quotes.scopeTemplates,
+      providesTags: [{ type: "Quotes", id: "SCOPE" }],
+    }),
+    saveQuoteScopeTemplate: build.mutation<QuoteScope, { contractType: QuoteContractType; body: QuoteScopeBody }>({
+      query: ({ contractType, body }) => ({ url: ENDPOINTS.quotes.scopeTemplate(contractType), method: "PUT", body }),
+      invalidatesTags: [{ type: "Quotes", id: "SCOPE" }],
+    }),
+    resetQuoteScopeTemplate: build.mutation<QuoteScope, QuoteContractType>({
+      query: (contractType) => ({ url: ENDPOINTS.quotes.scopeTemplate(contractType), method: "DELETE" }),
+      invalidatesTags: [{ type: "Quotes", id: "SCOPE" }],
     }),
     /** Live quick estimate — a mutation so typing never caches stale previews. */
     previewQuote: build.mutation<QuoteComputed, QuoteInputsBody>({
@@ -108,4 +125,7 @@ export const {
   useMarkQuoteLostMutation,
   useMarkQuoteWonMutation,
   useGetQuotePdfMutation,
+  useGetQuoteScopeTemplatesQuery,
+  useSaveQuoteScopeTemplateMutation,
+  useResetQuoteScopeTemplateMutation,
 } = salesApi;

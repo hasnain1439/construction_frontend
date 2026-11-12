@@ -41,6 +41,7 @@ export const COMPANY_ROUTES: CompanyRoute[] = [
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"clients"},{"kind":"param","name":"clientId"}], load: () => import("@/app/(company)/sales/clients/[clientId]/page") },
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"clients"}], load: () => import("@/app/(company)/sales/clients/page") },
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"insights"}], load: () => import("@/app/(company)/sales/insights/page") },
+  { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"quote-templates"}], load: () => import("@/app/(company)/sales/quote-templates/page") },
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"quotes"},{"kind":"param","name":"quoteId"}], load: () => import("@/app/(company)/sales/quotes/[quoteId]/page") },
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"quotes"},{"kind":"param","name":"quoteId"},{"kind":"static","name":"revise"}], load: () => import("@/app/(company)/sales/quotes/[quoteId]/revise/page") },
   { segments: [{"kind":"static","name":"sales"},{"kind":"static","name":"quotes"},{"kind":"static","name":"new"}], load: () => import("@/app/(company)/sales/quotes/new/page") },

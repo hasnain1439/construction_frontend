@@ -170,6 +170,14 @@ export const COMPANY_NAV: NavSection[] = [
         access: P("sales.quote.create"),
       },
       {
+        id: "sales.quoteTemplates",
+        label: L("Quotation Templates", "Quotation templates", "کوٹیشن ٹیمپلیٹ"),
+        href: "/sales/quote-templates",
+        available: true,
+        access: P("sales.quote.view"),
+        keywords: ["scope", "terms", "notes", "labour quotation"],
+      },
+      {
         id: "sales.insights",
         label: L("Win / Loss Insights", "Jeet / haar ka jaiza", "جیت / ہار کا جائزہ"),
         href: "/sales/insights",

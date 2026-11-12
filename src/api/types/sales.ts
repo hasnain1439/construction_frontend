@@ -36,7 +36,21 @@ export interface QuoteInputs {
   /** fields.contract + fields.profit */
   marginPercent?: number;
   finishingAllowancePercent?: number;
+  /** Scope of work + terms; missing on revisions saved before it existed. */
+  scope?: QuoteScope | null;
 }
+
+/** Who a work item is for: in the quoted rate, provided / done by the owner, or not in this quotation. */
+export type QuoteScopeWho = "INCLUDED" | "OWNER" | "EXCLUDED";
+export interface QuoteScopeBody {
+  sections: Array<{ title: string; items: Array<{ text: string; who: QuoteScopeWho }> }>;
+  terms: Array<{ title: string; text: string }>;
+}
+/** COMPANY / DEFAULT = copied from the template; QUOTE = edited for this quote. */
+export interface QuoteScope extends QuoteScopeBody {
+  source: "COMPANY" | "DEFAULT" | "QUOTE";
+}
+export type QuoteScopeTemplates = Record<QuoteContractType, QuoteScope>;
 
 export interface QuoteSummary {
   id: Id;
@@ -184,7 +198,7 @@ export interface QuotesQuery {
   followUp?: "true" | "false";
 }
 
-export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"];
+export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"] & { scope?: QuoteScopeBody | null };
 export type CreateQuoteBody = RequestBody<"/api/v1/quotes", "post">;
 export type UpdateQuoteBody = RequestBody<"/api/v1/quotes/{id}", "patch">;
 export type AddQuoteRevisionBody = RequestBody<"/api/v1/quotes/{id}/revisions", "post">;

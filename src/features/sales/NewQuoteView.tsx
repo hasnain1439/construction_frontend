@@ -26,6 +26,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
 import { newQuoteSchema, revisionSchema, toInputsBody, valuesFromInputs, DEFAULT_INPUT_VALUES, type NewQuoteValues, type QuoteInputValues } from "./schemas";
+import { QuoteScopeCard } from "./ScopeEditor";
 import { CustomerPanel, InternalPanel } from "./shared";
 
 const FORM_ID = "quote-form";
@@ -33,7 +34,8 @@ const FORM_ID = "quote-form";
 /** Debounced live quick estimate of the watched inputs (POST /quotes/preview). */
 function useLivePreview(control: Control<NewQuoteValues> | Control<QuoteInputValues>) {
   const values = useWatch({ control: control as Control<QuoteInputValues> });
-  const body = useMemo(() => toInputsBody(values), [values]);
+  // The work list does not change the price: leave it out so typing in it never re-prices.
+  const body = useMemo(() => toInputsBody({ ...values, scopeCustom: false, scope: null }), [values]);
   const key = JSON.stringify(body);
   const [preview] = usePreviewQuoteMutation();
   const [state, setState] = useState<{ key: string; data: QuoteComputed | null; failed: boolean }>({ key: "", data: null, failed: false });
@@ -118,6 +120,7 @@ function InputsFields({ contractType, basement }: { contractType: string | undef
         </FieldGrid>
         <TextField name="note" label={t("sales.form.note")} className="mt-4" />
       </SectionCard>
+      <QuoteScopeCard />
     </>
   );
 }

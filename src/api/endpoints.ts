@@ -240,6 +240,8 @@ export const ENDPOINTS = {
     assumptions: "/quotes/assumptions",
     preview: "/quotes/preview",
     insights: "/quotes/insights",
+    scopeTemplates: "/quotes/scope-templates",
+    scopeTemplate: (contractType: string) => `/quotes/scope-templates/${id(contractType)}`,
     byId: (quoteId: string) => `/quotes/${id(quoteId)}`,
     revisions: (quoteId: string) => `/quotes/${id(quoteId)}/revisions`,
     send: (quoteId: string) => `/quotes/${id(quoteId)}/send`,
