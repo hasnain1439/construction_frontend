@@ -74,6 +74,7 @@ export interface StaffQuery {
   limit?: number;
   search?: string;
   isActive?: "true" | "false" | "";
+  designationId?: string;
 }
 
 export interface SalarySheetRow {

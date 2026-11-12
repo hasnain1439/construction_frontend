@@ -327,6 +327,7 @@ export const strings = {
     listDesc: "People in the office on a monthly salary (not site labour).",
     sheetTitle: "Salary Sheet",
     chooseDesignation: "Choose a job",
+    allDesignations: "All designations",
     designationHint: "Add more jobs in Office Staff → Designations.",
     absences: "Absent",
     absentShort: "{absent} absent, {half} half",

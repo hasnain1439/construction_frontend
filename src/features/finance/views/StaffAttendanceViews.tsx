@@ -1,5 +1,6 @@
 "use client";
 
+import { DesignationFilter, useDesignationColumn } from "@/features/finance/components/DesignationFilter";
 import { BriefcaseBusiness, CalendarCheck, CheckCheck, Pencil, Plus, Save, Trash2, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -61,7 +62,8 @@ export function AttendanceMarkView() {
   const canManage = useCanManageStaff();
   const [date, setDate] = useState(todayPK);
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(date) && date <= todayPK();
-  const query = useGetStaffAttendanceDayQuery(date, { skip: !valid });
+  const [designationId, setDesignationId] = useState("");
+  const query = useGetStaffAttendanceDayQuery({ date, designationId }, { skip: !valid });
   const [mark, { isLoading: saving }] = useMarkStaffAttendanceMutation();
   const run = useMutationToast();
   // Changes not saved yet, per staff member (undefined = as saved).
@@ -125,6 +127,7 @@ export function AttendanceMarkView() {
             <Label htmlFor="attendance-date">{t("field.date")}</Label>
             <Input id="attendance-date" type="date" className="w-48" value={date} max={todayPK()} onChange={(e) => pickDate(e.target.value)} />
           </div>
+          <DesignationFilter value={designationId} onChange={setDesignationId} />
           {changed.length ? <p className="pb-2 text-sm text-warning">{t("cashSite.staff.unsaved", { n: changed.length })}</p> : null}
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -180,20 +183,14 @@ type MonthRow = StaffAttendanceMonth["rows"][number];
 export function AttendanceReportView() {
   const t = useT();
   const [month, setMonth] = useState(() => todayPK().slice(0, 7));
-  const query = useGetStaffAttendanceMonthQuery({ month }, { skip: !/^\d{4}-\d{2}$/.test(month) });
+  const [designationId, setDesignationId] = useState("");
+  const query = useGetStaffAttendanceMonthQuery({ month, designationId }, { skip: !/^\d{4}-\d{2}$/.test(month) });
+  const designationColumn = useDesignationColumn<MonthRow>((r) => r.staff.designation);
   const days = query.data?.daysInMonth ?? 0;
 
   const columns: Column<MonthRow>[] = [
-    {
-      id: "name",
-      header: t("field.name"),
-      cell: (r) => (
-        <div className="min-w-0">
-          <p className="font-medium">{r.staff.name}</p>
-          {r.staff.designation ? <p className="text-xs text-muted-foreground">{r.staff.designation}</p> : null}
-        </div>
-      ),
-    },
+    { id: "name", header: t("field.name"), cell: (r) => <span className="font-medium">{r.staff.name}</span> },
+    designationColumn,
     ...STAFF_ATTENDANCE_STATUSES.map((s) => ({
       id: s,
       header: t(STATUS_LABEL[s]),
@@ -231,9 +228,12 @@ export function AttendanceReportView() {
         breadcrumbs={[{ label: t("cashSite.staff.officeStaff") }, { label: t("cashSite.staff.reportTitle") }]}
       />
       <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="attendance-month">{t("cashSite.staff.month")}</Label>
-          <Input id="attendance-month" type="month" className="w-48" value={month} max={todayPK().slice(0, 7)} onChange={(e) => setMonth(e.target.value)} />
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="attendance-month">{t("cashSite.staff.month")}</Label>
+            <Input id="attendance-month" type="month" className="w-48" value={month} max={todayPK().slice(0, 7)} onChange={(e) => setMonth(e.target.value)} />
+          </div>
+          <DesignationFilter value={designationId} onChange={setDesignationId} />
         </div>
         <SectionCard flush title={month ? formatMonth(month) : undefined}>
           <DataTable

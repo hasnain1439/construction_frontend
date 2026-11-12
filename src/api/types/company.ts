@@ -22,7 +22,7 @@ export type AttachmentKind = Attachment["kind"];
 export type MemberDesignation = { id: string; name: string } | null;
 export type TeamUser = Schemas["TeamUser"] & { designation?: MemberDesignation };
 export type TeamUserDetail = Schemas["TeamUserDetail"] & { designation?: MemberDesignation };
-export type UsersQuery = QueryParams<"/api/v1/users", "get">;
+export type UsersQuery = QueryParams<"/api/v1/users", "get"> & { designationId?: string };
 export type UpdateUserBody = RequestBody<"/api/v1/users/{id}", "patch"> & { designationId?: string | null };
 export type SetUserProjectsBody = RequestBody<"/api/v1/users/{id}/projects", "put">;
 export interface UsersUsage {

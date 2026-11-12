@@ -315,6 +315,7 @@ export const strings: Widen<typeof En.strings> = {
     listDesc: "دفتر میں ماہانہ تنخواہ والے لوگ (سائٹ کے مزدور نہیں)۔",
     sheetTitle: "تنخواہ شیٹ",
     chooseDesignation: "عہدہ چنیں",
+    allDesignations: "تمام عہدے",
     designationHint: "مزید عہدے دفتری عملہ ← عہدے میں شامل کریں۔",
     absences: "غیر حاضر",
     absentShort: "{absent} غیر حاضر، {half} آدھا",
