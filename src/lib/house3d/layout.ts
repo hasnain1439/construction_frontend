@@ -719,8 +719,17 @@ export function buildHouse(input: HouseInput): HouseModel {
       const offTerrace = (c: Pt) => !terraces.some((q) => c.x > q.x - m && c.x < q.x + q.dx + m && c.z > q.z - m && c.z < q.z + q.dz + m);
       const inside = (c: Pt) => c.x > block.x - EXT - 0.1 && c.x < block.x + block.dx + EXT + 0.1 && c.z > block.z - EXT - 0.1 && c.z < block.z + block.dz + EXT + 0.1;
       // Upper floors stand on the ground floor's columns; the ground floor (and a basement) picks its own.
-      const own = junctions(rooms, env).filter(offTerrace);
-      const cands = groundSpots.length && i > groundIdx ? [...groundSpots.filter((c) => inside(c) && offTerrace(c)), ...own] : own;
+      // Never in a door or window: a column keeps 1 ft clear of every opening of this floor.
+      const clear = (c: Pt) =>
+        !built.some((l) =>
+          l.holes.some((hole) => {
+            const across = l.alongX ? c.z : c.x;
+            const along = l.alongX ? c.x : c.z;
+            return across > l.fixed - 0.6 && across < l.fixed + l.thick + 0.6 && along > hole.at - 1 - cd / 2 && along < hole.at + hole.width + 1 + cd / 2;
+          }),
+        );
+      const own = junctions(rooms, env).filter((c) => offTerrace(c) && clear(c));
+      const cands = groundSpots.length && i > groundIdx ? [...groundSpots.filter((c) => inside(c) && offTerrace(c) && clear(c)), ...own] : own;
       const spots = spreadPoints(cands, want);
       if (i === groundIdx) {
         groundSpots = spots;

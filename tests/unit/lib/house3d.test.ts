@@ -214,3 +214,33 @@ describe("house 3D: the structure follows the setup", () => {
     expect(m.structure.floors[0]).toMatchObject({ columns: 10, columnSizeIn: "12×18", beamSizeIn: "9×15" });
   });
 });
+
+describe("house 3D: columns keep out of doors and windows", () => {
+  it("no column stands in a door or window opening", () => {
+    const withOpenings = (r: Room): Room => ({
+      ...r,
+      openings: [
+        { id: `${r.id}-d`, type: "DOOR", widthFt: 3, heightFt: 7, quantity: 1, side: null },
+        { id: `${r.id}-w`, type: "WINDOW", widthFt: 5, heightFt: 4, quantity: 2, side: null },
+      ],
+    });
+    const m = buildHouse({
+      frontFt: 35,
+      depthFt: 65,
+      structureType: "FRAMED",
+      foundation: null,
+      coverage: null,
+      floors: [
+        floor("GROUND", [room("d", "Drawing", 16, 14, { type: "DRAWING_ROOM" }), room("m", "Master", 16, 14, { type: "MASTER_BEDROOM", sortOrder: 1 }), room("k", "Kitchen", 12, 10, { type: "KITCHEN", sortOrder: 2 })].map(withOpenings), {
+          roof: { columnCount: 16 } as never,
+        }),
+      ],
+    });
+    const hit = (a: { x: number; z: number; w: number; d: number }, b: { x: number; z: number; w: number; d: number }) =>
+      a.x < b.x + b.w && b.x < a.x + a.w && a.z < b.z + b.d && b.z < a.z + a.d;
+    const columns = m.boxes.filter((b) => b.kind === "column" && b.floor === 0);
+    const openings = m.boxes.filter((b) => (b.kind === "door" || b.kind === "window") && b.floor === 0);
+    expect(columns.length).toBeGreaterThan(4);
+    expect(columns.filter((c) => openings.some((o) => hit(c, o)))).toEqual([]);
+  });
+});
