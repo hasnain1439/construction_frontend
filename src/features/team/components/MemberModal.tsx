@@ -1,5 +1,7 @@
 "use client";
 
+import { SelectField } from "@/components/forms/SelectField";
+import { useGetStaffDesignationsQuery } from "@/api/services/staff.api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, HardHat, UserCheck, UserCog, UserX } from "lucide-react";
 import Link from "next/link";
@@ -72,6 +74,24 @@ type Tab = "details" | "roles" | "custom";
 const TABS: Tab[] = ["details", "roles", "custom"];
 
 /** Back / Next between the tabs (Save sits next to them on every tab). */
+/** Job title from the company list (Office Staff → Designations); a deleted one stays until changed. */
+function DesignationField({ current, disabled }: { current?: { id: string; name: string } | null; disabled?: boolean }) {
+  const t = useT();
+  const list = useGetStaffDesignationsQuery();
+  const options = (list.data ?? []).map((d) => ({ value: d.id, label: d.name }));
+  if (current && !options.some((o) => o.value === current.id)) options.push({ value: current.id, label: current.name });
+  return (
+    <SelectField
+      name="designationId"
+      label={t("cashSite.staff.designation")}
+      options={options}
+      disabled={disabled || list.isLoading}
+      placeholder={t("cashSite.staff.chooseDesignation")}
+      hint={t("common.optional")}
+    />
+  );
+}
+
 function StepButtons({
   tab,
   setTab,
@@ -211,7 +231,7 @@ export function InviteMemberModal({
   const run = useMutationToast();
   const form = useForm<z.input<typeof inviteSchema>, unknown, z.output<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { name: "", phone: "", email: "", role: "PM", projectIds: [] },
+    defaultValues: { name: "", phone: "", email: "", role: "PM", projectIds: [], designationId: null },
   });
   const roles = rolesQuery.data;
   const catalog = catalogQuery.data;
@@ -251,6 +271,7 @@ export function InviteMemberModal({
           ...(values.email ? { email: values.email } : {}),
           role: account,
           projectIds: values.projectIds,
+          ...(values.designationId ? { designationId: values.designationId } : {}),
           // The roles + checklist are the whole truth: no extra financial bundle from the company setting.
           ...(account === "PM" ? { canSeeFinancials: false } : {}),
           roleIds: sel.selected,
@@ -353,7 +374,10 @@ export function InviteMemberModal({
                 <TextField name="name" label={t("field.name")} required />
                 <PhoneField name="phone" label={t("field.phone")} required />
               </FieldGrid>
-              <TextField name="email" label={t("field.email")} type="email" hint={t("common.optional")} />
+              <FieldGrid>
+                <TextField name="email" label={t("field.email")} type="email" hint={t("common.optional")} />
+                <DesignationField />
+              </FieldGrid>
               <AccountTypeField decided={decided} />
               <ComboboxField
                 name="projectIds"
@@ -459,6 +483,7 @@ function EditMemberForm({
       role: user.role,
       canSeeFinancials: user.canSeeFinancials,
       projectIds: user.projects.map((p) => p.id),
+      designationId: user.designation?.id ?? null,
     },
   });
   const initial = useMemo(
@@ -491,6 +516,7 @@ function EditMemberForm({
     const body = {
       ...(dirtyFields.name ? { name: values.name } : {}),
       ...(dirtyFields.phone ? { phone: values.phone } : {}),
+      ...(dirtyFields.designationId ? { designationId: values.designationId } : {}),
       ...(!isOwner && !isSelf && account !== user.role && account !== "THEKEDAR" ? { role: account } : {}),
     };
     const fail = () => {
@@ -629,6 +655,7 @@ function EditMemberForm({
               <TextField name="name" label={t("field.name")} required disabled={readOnly} />
               <PhoneField name="phone" label={t("field.phone")} required disabled={readOnly} />
             </FieldGrid>
+            <DesignationField current={user.designation ?? null} disabled={readOnly} />
             {!isOwner && !isSelf ? <AccountTypeField decided={decided} disabled={readOnly} /> : null}
             {user.role === "MUNSHI" && account === "PM" ? (
               <InlineAlert tone="warning">{t("teamCompany.edit.munshiToPm")}</InlineAlert>

@@ -18,20 +18,22 @@ export type Attachment = Schemas["Attachment"];
 export type AttachmentKind = Attachment["kind"];
 
 // ─── Team ───────────────────────────────────────────────────────────────────
-export type TeamUser = Schemas["TeamUser"];
-export type TeamUserDetail = Schemas["TeamUserDetail"];
+/** Job title from the company list (GET /staff/designations); keeps its name after it is deleted. */
+export type MemberDesignation = { id: string; name: string } | null;
+export type TeamUser = Schemas["TeamUser"] & { designation?: MemberDesignation };
+export type TeamUserDetail = Schemas["TeamUserDetail"] & { designation?: MemberDesignation };
 export type UsersQuery = QueryParams<"/api/v1/users", "get">;
-export type UpdateUserBody = RequestBody<"/api/v1/users/{id}", "patch">;
+export type UpdateUserBody = RequestBody<"/api/v1/users/{id}", "patch"> & { designationId?: string | null };
 export type SetUserProjectsBody = RequestBody<"/api/v1/users/{id}/projects", "put">;
 export interface UsersUsage {
   usage: { officeUsers: number; maxOfficeUsers: number | null };
 }
 
-export type Invitation = Schemas["Invitation"];
+export type Invitation = Schemas["Invitation"] & { designation?: MemberDesignation };
 export type InvitationSent = Schemas["InvitationSent"];
 export type InvitationStatus = Invitation["status"];
 export type InvitationsQuery = QueryParams<"/api/v1/invitations", "get">;
-export type CreateInvitationBody = RequestBody<"/api/v1/invitations", "post">;
+export type CreateInvitationBody = RequestBody<"/api/v1/invitations", "post"> & { designationId?: string };
 export type CancelInvitationResult = ResponseData<"/api/v1/invitations/{id}", "delete">;
 
 /**

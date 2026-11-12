@@ -48,7 +48,7 @@ export function MembersView() {
     {
       id: "name",
       header: t("field.name"),
-      cell: (u) => <AvatarName name={u.name} subtitle={u.email ?? undefined} />,
+      cell: (u) => <AvatarName name={u.name} subtitle={[u.designation?.name, u.email].filter(Boolean).join(" · ") || undefined} />,
       sortValue: (u) => u.name,
     },
     { id: "phone", header: t("field.phone"), cell: (u) => <bdi dir="ltr" className="tabular">{formatPhone(u.phone)}</bdi> },
