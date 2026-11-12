@@ -453,7 +453,7 @@ function subtract(a: Rect, b: Rect): Rect[] {
 type Pt = { x: number; z: number };
 
 /** Where columns can stand: the block corners and the wall junctions (room corners), on the wall centre lines. */
-function junctions(rooms: Rect[], env: Rect | null): Pt[] {
+function junctions(rooms: Rect[], env: Rect | null, samples = true): Pt[] {
   const pts: Pt[] = [];
   const add = (x: number, z: number) => {
     if (!pts.some((q) => Math.abs(q.x - x) < 1.5 && Math.abs(q.z - z) < 1.5)) pts.push({ x, z });
@@ -467,6 +467,7 @@ function junctions(rooms: Rect[], env: Rect | null): Pt[] {
   for (const r of rooms) {
     for (const [x, z] of [[r.x - g, r.z - g], [r.x + r.dx + g, r.z - g], [r.x - g, r.z + r.dz + g], [r.x + r.dx + g, r.z + r.dz + g]] as const) add(snapX(x), snapZ(z));
   }
+  if (!samples) return pts;
   // Along every room side too (every ~4 ft), so the count entered can always be placed on a wall.
   for (const r of rooms) {
     for (let x = r.x + 4; x < r.x + r.dx - 2; x += 4) {
@@ -479,7 +480,7 @@ function junctions(rooms: Rect[], env: Rect | null): Pt[] {
     }
   }
   // Along the outer walls too, so a long wall can carry columns between junctions.
-  if (env) {
+  if (env && samples) {
     const x0 = env.x - EXT / 2, x1 = env.x + env.dx + EXT / 2, z0 = env.z - EXT / 2, z1 = env.z + env.dz + EXT / 2;
     for (let x = x0 + 4; x < x1 - 2; x += 4) {
       add(x, z0);
@@ -491,6 +492,31 @@ function junctions(rooms: Rect[], env: Rect | null): Pt[] {
     }
   }
   return pts;
+}
+
+/** A door / window that meets a column moves along its wall (after the column, else before it). */
+function moveOpeningsOffColumns(lines: Line[], columns: Pt[], half: number) {
+  for (const l of lines) {
+    const spans = merge(l.spans);
+    const on = columns.filter((c) => {
+      const across = l.alongX ? c.z : c.x;
+      return across > l.fixed - 0.6 && across < l.fixed + l.thick + 0.6;
+    });
+    if (!on.length) continue;
+    for (const h of l.holes) {
+      const span = spans.find(([a, b]) => h.at >= a - 0.01 && h.at + h.width <= b + 0.01);
+      if (!span) continue;
+      for (let pass = 0; pass < 3; pass++) {
+        const hit = on.map((c) => (l.alongX ? c.x : c.z)).find((u) => h.at < u + half && h.at + h.width > u - half);
+        if (hit === undefined) break;
+        const after = hit + half;
+        const before = hit - half - h.width;
+        if (after + h.width <= span[1] - 0.25) h.at = after;
+        else if (before >= span[0] + 0.25) h.at = before;
+        else break;
+      }
+    }
+  }
 }
 
 /** n points spread as far apart as possible: the four outer corners first, then always the spot farthest from those taken. */
@@ -711,7 +737,6 @@ export function buildHouse(input: HouseInput): HouseModel {
       }
     }
     const built = lines.all();
-    buildLines(boxes, i, baseY, built);
     if (i === groundIdx) groundLines = built.filter((l) => l.kind === "wall");
 
     // Frame of a framed house: columns (the count on the roof card, else the plan rule) at the wall
@@ -730,18 +755,11 @@ export function buildHouse(input: HouseInput): HouseModel {
       const m = EXT + 1;
       const offTerrace = (c: Pt) => !terraces.some((q) => c.x > q.x - m && c.x < q.x + q.dx + m && c.z > q.z - m && c.z < q.z + q.dz + m);
       const inside = (c: Pt) => c.x > block.x - EXT - 0.1 && c.x < block.x + block.dx + EXT + 0.1 && c.z > block.z - EXT - 0.1 && c.z < block.z + block.dz + EXT + 0.1;
-      // Upper floors stand on the ground floor's columns; the ground floor (and a basement) picks its own.
-      // Never in a door or window: a column keeps 1 ft clear of every opening of this floor.
-      const clear = (c: Pt) =>
-        !built.some((l) =>
-          l.holes.some((hole) => {
-            const across = l.alongX ? c.z : c.x;
-            const along = l.alongX ? c.x : c.z;
-            return across > l.fixed - 0.6 && across < l.fixed + l.thick + 0.6 && along > hole.at - 1 - cd / 2 && along < hole.at + hole.width + 1 + cd / 2;
-          }),
-        );
-      const own = junctions(rooms, env).filter((c) => offTerrace(c) && clear(c));
-      const cands = groundSpots.length && i > groundIdx ? [...groundSpots.filter((c) => inside(c) && offTerrace(c) && clear(c)), ...own] : own;
+      // Columns stand on the grid of wall junctions (corners first); a door / window that would meet
+      // one moves along instead. Upper floors stand on the ground floor's columns.
+      const core = junctions(rooms, env, false).filter(offTerrace);
+      const own = core.length >= want ? core : [...core, ...junctions(rooms, env, true).filter(offTerrace)];
+      const cands = groundSpots.length && i > groundIdx ? [...groundSpots.filter((c) => inside(c) && offTerrace(c)), ...own] : own;
       const spots = spreadPoints(cands, want);
       if (i === groundIdx) {
         groundSpots = spots;
@@ -749,6 +767,7 @@ export function buildHouse(input: HouseInput): HouseModel {
       }
       spots.forEach((c, k) => boxes.push({ kind: "column", x: c.x - cw / 2, y: baseY, z: c.z - cd / 2, w: cw, h, d: cd, floor: i, part: `${tag}-C${k + 1}` }));
       columns = spots.length;
+      moveOpeningsOffColumns(built, spots, Math.max(cw, cd) / 2 + 0.5);
       let k = 0;
       for (const l of built.filter((x) => x.kind === "wall")) {
         for (const [a, b] of merge(l.spans)) {
@@ -763,6 +782,7 @@ export function buildHouse(input: HouseInput): HouseModel {
         }
       }
     }
+    buildLines(boxes, i, baseY, built);
     structureFloors.push({
       name: fl.name,
       columns,
