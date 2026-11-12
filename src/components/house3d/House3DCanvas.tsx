@@ -112,7 +112,7 @@ export function House3DCanvas({
     sun.position.set(centre.x - radius * 1.2, radius * 2.2, centre.z + radius * 1.6);
     sun.target.position.copy(centre);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(4096, 4096);
     const sc = sun.shadow.camera;
     sc.left = -radius * 1.3;
     sc.right = radius * 1.3;
@@ -120,7 +120,7 @@ export function House3DCanvas({
     sc.bottom = -radius * 1.3;
     sc.near = 1;
     sc.far = radius * 6;
-    sun.shadow.bias = -0.0008;
+    sun.shadow.bias = -0.002;
     sun.shadow.normalBias = 0.45;
     scene.add(sun, sun.target);
 
@@ -137,6 +137,7 @@ export function House3DCanvas({
       let m = materials.get(kind);
       if (!m) {
         m = new THREE.MeshStandardMaterial({
+          // With the walls on, columns and beams are plastered like the wall: no stripes on the face.
           color: PART_COLOR[kind],
           roughness: ROUGHNESS[kind] ?? 0.88,
           metalness: GLASS.has(kind) ? 0.1 : 0,
@@ -203,6 +204,9 @@ export function House3DCanvas({
         }
         p.object.visible = visible;
       }
+      const frameColor = o.walls ? PART_COLOR.wall : PART_COLOR.column;
+      materialOf("column").color.set(frameColor);
+      materialOf("beam").color.set(o.walls ? PART_COLOR.wall : PART_COLOR.beam);
       const seeThrough = o.show === "foundation" || (o.show === "all" && o.foundation);
       groundMaterial.opacity = seeThrough ? 0.3 : 1;
       groundMaterial.depthWrite = !seeThrough;
