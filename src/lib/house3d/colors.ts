@@ -12,6 +12,7 @@ export const PART_COLOR: Record<BoxKind, string> = {
   pile: "#70767d",
   plinthFill: "#8b6b3d",
   plinthBeam: "#9aa0a6",
+  beam: "#c9c2b5",
   dpc: "#2b2b2b",
   plinthWall: "#8f8a82",
   floorFinish: "#d9cdb8",

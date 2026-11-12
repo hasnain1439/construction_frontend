@@ -11,13 +11,19 @@ const GLASS = new Set<BoxKind>(["window", "ventilator"]);
 /** Below the ground: shown with "Foundation". */
 const FOUNDATION = new Set<BoxKind>(["pcc", "footing", "foundationWall", "raft", "pile", "plinthFill", "plinthBeam"]);
 const ROOF = new Set<BoxKind>(["slab", "parapet"]);
+/** Masonry and its openings: hidden with "Walls" off, so the frame (columns, beams, slabs) shows. */
+const WALLISH = new Set<BoxKind>(["wall", "door", "window", "ventilator", "frame", "chajja", "parapet"]);
+const SITE = new Set<BoxKind>(["ground", "road", "paving"]);
 const NO_SHADOW = new Set<BoxKind>(["ground", "road", "paving", "floorFinish", "wetFloor", "window", "ventilator"]);
 const ROUGHNESS: Partial<Record<BoxKind, number>> = { window: 0.08, ventilator: 0.1, door: 0.6, frame: 0.5, road: 0.95, ground: 1 };
 
 export interface ViewOptions {
-  /** Floors shown: index into model.floors, up to and including this one. */
+  /** "all": the house up to floor `upTo`; "foundation": the foundation alone; a number: that floor alone. */
+  show: "all" | "foundation" | number;
+  /** Floors shown with show "all": index into model.floors, up to and including this one. */
   upTo: number;
   foundation: boolean;
+  walls: boolean;
   roofs: boolean;
   boundary: boolean;
   labels: boolean;
@@ -54,6 +60,7 @@ export function House3DCanvas({
   view,
   viewKey,
   onUnsupported,
+  describe,
   className,
 }: {
   model: HouseModel;
@@ -62,12 +69,15 @@ export function House3DCanvas({
   /** Bump to move the camera to `view` again. */
   viewKey: number;
   onUnsupported: () => void;
+  /** Text shown when hovering a structural member, e.g. "Column G-C4". */
+  describe?: (kind: BoxKind, part: string) => string;
   className?: string;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const apply = useRef<((o: ViewOptions) => void) | null>(null);
   const moveCamera = useRef<((v: CameraView) => void) | null>(null);
   const latest = useRef(options);
+  const describeRef = useRef(describe);
 
   useEffect(() => {
     const el = host.current;
@@ -130,8 +140,10 @@ export function House3DCanvas({
           color: PART_COLOR[kind],
           roughness: ROUGHNESS[kind] ?? 0.88,
           metalness: GLASS.has(kind) ? 0.1 : 0,
-          transparent: GLASS.has(kind) || kind === "ground",
-          opacity: GLASS.has(kind) ? 0.4 : 1,
+          transparent: GLASS.has(kind) || kind === "ground" || kind === "plinthFill",
+          // The plinth fill is see-through, so the footings and beams under it can be counted.
+          opacity: GLASS.has(kind) ? 0.4 : kind === "plinthFill" ? 0.35 : 1,
+          depthWrite: kind !== "plinthFill",
           // Closed boxes: casting from the back faces stops the speckled self-shadow on walls.
           shadowSide: THREE.BackSide,
         });
@@ -149,6 +161,7 @@ export function House3DCanvas({
       mesh.castShadow = !NO_SHADOW.has(box.kind);
       mesh.receiveShadow = !GLASS.has(box.kind);
       scene.add(mesh);
+      if (box.part) mesh.userData = { kind: box.kind, part: box.part };
       list.push({ object: mesh, kind: box.kind, floor: box.floor });
     }
     for (const l of model.labels) {
@@ -171,17 +184,28 @@ export function House3DCanvas({
 
     apply.current = (o: ViewOptions) => {
       for (const p of list) {
-        const floorShown = p.floor === null || p.floor <= o.upTo;
-        let visible = floorShown;
-        // Names only where they can be read: the top floor shown, when its roof is off.
-        if (p.kind === "label") visible = o.labels && p.floor === o.upTo && !o.roofs;
-        else if (FOUNDATION.has(p.kind)) visible = o.foundation;
-        else if (p.kind === "boundary") visible = o.boundary;
-        else if (ROOF.has(p.kind)) visible = floorShown && (o.roofs || p.floor! < o.upTo);
+        let visible: boolean;
+        if (p.kind === "label") {
+          const floorOn = o.show === "all" ? p.floor === o.upTo : p.floor === o.show;
+          visible = o.labels && floorOn && !o.roofs;
+        } else if (o.show === "foundation") {
+          // The foundation alone: everything below the plinth, with the ground made see-through.
+          visible = p.floor === null && p.kind !== "boundary";
+        } else if (typeof o.show === "number") {
+          visible = (p.floor === o.show && (o.walls || !WALLISH.has(p.kind as BoxKind)) && (o.roofs || !ROOF.has(p.kind as BoxKind))) || SITE.has(p.kind as BoxKind);
+        } else {
+          const floorShown = p.floor === null || p.floor <= o.upTo;
+          visible = floorShown;
+          if (FOUNDATION.has(p.kind as BoxKind)) visible = o.foundation;
+          else if (p.kind === "boundary") visible = o.boundary;
+          else if (ROOF.has(p.kind as BoxKind)) visible = floorShown && (o.roofs || p.floor! < o.upTo) && (o.walls || p.kind !== "parapet");
+          else if (WALLISH.has(p.kind as BoxKind)) visible = floorShown && o.walls;
+        }
         p.object.visible = visible;
       }
-      groundMaterial.opacity = o.foundation ? 0.3 : 1;
-      groundMaterial.depthWrite = !o.foundation;
+      const seeThrough = o.show === "foundation" || (o.show === "all" && o.foundation);
+      groundMaterial.opacity = seeThrough ? 0.3 : 1;
+      groundMaterial.depthWrite = !seeThrough;
     };
     apply.current(latest.current);
 
@@ -207,6 +231,27 @@ export function House3DCanvas({
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     observer?.observe(el);
 
+    // Hover a column / beam / footing: its name.
+    const tip = document.createElement("div");
+    Object.assign(tip.style, { position: "absolute", pointerEvents: "none", display: "none", background: "rgba(20,22,26,0.88)", color: "#fff", font: "500 12px system-ui, sans-serif", padding: "3px 8px", borderRadius: "6px", whiteSpace: "nowrap" });
+    el.appendChild(tip);
+    const ray = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const onMove = (e: PointerEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      ray.setFromCamera(pointer, camera);
+      const hit = ray.intersectObjects(scene.children, false).find((h) => h.object.visible && (h.object as THREE.Mesh).isMesh);
+      const data = hit?.object.userData as { kind?: BoxKind; part?: string } | undefined;
+      if (data?.part && data.kind && describeRef.current) {
+        tip.textContent = describeRef.current(data.kind, data.part);
+        tip.style.left = `${e.clientX - rect.left + 12}px`;
+        tip.style.top = `${e.clientY - rect.top + 12}px`;
+        tip.style.display = "block";
+      } else tip.style.display = "none";
+    };
+    renderer.domElement.addEventListener("pointermove", onMove);
+
     let frame = 0;
     const tick = () => {
       controls.update();
@@ -218,6 +263,7 @@ export function House3DCanvas({
 
     return () => {
       cancelAnimationFrame(frame);
+      renderer.domElement.removeEventListener("pointermove", onMove);
       observer?.disconnect();
       controls.dispose();
       geometry.dispose();
@@ -229,6 +275,10 @@ export function House3DCanvas({
       moveCamera.current = null;
     };
   }, [model, onUnsupported]);
+
+  useEffect(() => {
+    describeRef.current = describe;
+  }, [describe]);
 
   // Switch parts on / off.
   useEffect(() => {

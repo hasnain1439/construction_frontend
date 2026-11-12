@@ -8,7 +8,7 @@ describe("house 3D canvas", () => {
     const model = buildHouse({ frontFt: 30, depthFt: 60, structureType: "FRAMED", foundation: null, coverage: null, floors: [] });
     const unsupported = vi.fn();
     const { container } = render(
-      <House3DCanvas model={model} options={{ upTo: 0, foundation: false, roofs: true, boundary: true, labels: true }} view="corner" viewKey={0} onUnsupported={unsupported} />,
+      <House3DCanvas model={model} options={{ show: "all", upTo: 0, foundation: false, roofs: true, walls: true, boundary: true, labels: true }} view="corner" viewKey={0} onUnsupported={unsupported} />,
     );
     expect(unsupported).toHaveBeenCalledTimes(1);
     expect(container.querySelector("canvas")).toBeNull();

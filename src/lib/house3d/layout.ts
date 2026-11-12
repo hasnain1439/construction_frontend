@@ -28,6 +28,7 @@ export type BoxKind =
   | "pile"
   | "plinthFill"
   | "plinthBeam"
+  | "beam"
   | "dpc"
   | "plinthWall"
   | "floorFinish"
@@ -55,6 +56,8 @@ export interface Box {
   d: number;
   /** Index into `floors` (walls, slabs, openings …); null for foundation / site parts. */
   floor: number | null;
+  /** Name of a structural member, e.g. "F-3" (footing), "G-C4" (ground floor column 4), "1-B2" (first floor beam 2). */
+  part?: string;
 }
 
 export interface RoomLabel {
@@ -82,6 +85,11 @@ export interface HouseModel {
   bounds: { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number };
   /** Rooms placed next to the room they share a wall with / laid out in rows (no shared walls entered); rooms shown with an assumed door / window. */
   placement: { tied: number; packed: number; assumed: number };
+  /** What the structure holds, as drawn (counts follow the setup). */
+  structure: {
+    foundation: { type: string; depthFt: number; footings: number; piles: number; plinthBeamFt: number };
+    floors: Array<{ name: string; columns: number; columnSizeIn: string; beamRunFt: number; beamSizeIn: string }>;
+  };
 }
 
 export interface HouseInput {
@@ -92,6 +100,8 @@ export interface HouseInput {
   coverage: Pick<ProjectCoverage, "boundaryWall" | "boundaryHeightFt" | "boundaryThickness"> | null | undefined;
   floors: FloorWithRooms[];
   parapetHeightFt?: number;
+  /** Columns per floor from the plan rule (project calculations), used when the roof card has no count. */
+  columnsByLevel?: Partial<Record<FloorLevel, number | null>>;
 }
 
 // ─── Defaults (feet) ─────────────────────────────────────────────────────────
@@ -439,6 +449,57 @@ function subtract(a: Rect, b: Rect): Rect[] {
   return out.filter((r) => r.dx > 0.01 && r.dz > 0.01);
 }
 
+type Pt = { x: number; z: number };
+
+/** Where columns can stand: the block corners and the wall junctions (room corners), on the wall centre lines. */
+function junctions(rooms: Rect[], env: Rect | null): Pt[] {
+  const pts: Pt[] = [];
+  const add = (x: number, z: number) => {
+    if (!pts.some((q) => Math.abs(q.x - x) < 1.5 && Math.abs(q.z - z) < 1.5)) pts.push({ x, z });
+  };
+  const snapX = (x: number) => (env && Math.abs(x - env.x) < 1 ? env.x - EXT / 2 : env && Math.abs(x - (env.x + env.dx)) < 1 ? env.x + env.dx + EXT / 2 : x);
+  const snapZ = (z: number) => (env && Math.abs(z - env.z) < 1 ? env.z - EXT / 2 : env && Math.abs(z - (env.z + env.dz)) < 1 ? env.z + env.dz + EXT / 2 : z);
+  if (env) {
+    for (const x of [env.x - EXT / 2, env.x + env.dx + EXT / 2]) for (const z of [env.z - EXT / 2, env.z + env.dz + EXT / 2]) add(x, z);
+  }
+  const g = INT / 2;
+  for (const r of rooms) {
+    for (const [x, z] of [[r.x - g, r.z - g], [r.x + r.dx + g, r.z - g], [r.x - g, r.z + r.dz + g], [r.x + r.dx + g, r.z + r.dz + g]] as const) add(snapX(x), snapZ(z));
+  }
+  // Along the outer walls too, so a long wall can carry columns between junctions.
+  if (env) {
+    const x0 = env.x - EXT / 2, x1 = env.x + env.dx + EXT / 2, z0 = env.z - EXT / 2, z1 = env.z + env.dz + EXT / 2;
+    for (let x = x0 + 4; x < x1 - 2; x += 4) {
+      add(x, z0);
+      add(x, z1);
+    }
+    for (let z = z0 + 4; z < z1 - 2; z += 4) {
+      add(x0, z);
+      add(x1, z);
+    }
+  }
+  return pts;
+}
+
+/** n points spread as far apart as possible: the four outer corners first, then always the spot farthest from those taken. */
+function spreadPoints(cands: Pt[], n: number): Pt[] {
+  const left = cands.filter((c, k) => cands.findIndex((q) => Math.abs(q.x - c.x) < 0.5 && Math.abs(q.z - c.z) < 0.5) === k);
+  const chosen: Pt[] = [];
+  const take = (k: number) => chosen.push(left.splice(k, 1)[0]!);
+  const extreme = (f: (c: Pt) => number) => left.reduce((best, c, k) => (f(c) > f(left[best]!) ? k : best), 0);
+  for (const f of [(c: Pt) => -c.x - c.z, (c: Pt) => c.x - c.z, (c: Pt) => -c.x + c.z, (c: Pt) => c.x + c.z]) {
+    if (chosen.length >= n || !left.length) break;
+    take(extreme(f));
+  }
+  while (chosen.length < n && left.length) {
+    take(extreme((c) => Math.min(...chosen.map((q) => Math.hypot(q.x - c.x, q.z - c.z)))));
+  }
+  return chosen;
+}
+
+/** The plan rule when no count was entered: a column about every 15 ft each way. */
+const gridColumns = (w: number, d: number) => (Math.ceil(w / 15) + 1) * (Math.ceil(d / 15) + 1);
+
 /** A terrace's hole in the roof: out to the slab edge on the sides where it is on the block's edge. */
 function terraceCut(tr: Rect, block: Rect): Rect {
   const reach = EXT + SLAB_OVERHANG + 0.01;
@@ -513,7 +574,10 @@ export function buildHouse(input: HouseInput): HouseModel {
   let packed = 0;
   let assumedRooms = 0;
   let groundLines: Line[] = [];
-  const groundColumns: Array<{ x: number; z: number }> = [];
+  /** Column spots of the ground floor (the frame runs up from them) and the members drawn. */
+  let groundSpots: Pt[] = [];
+  let groundColumnCount = 0;
+  const structureFloors: HouseModel["structure"]["floors"] = [];
   let topRoof: { i: number; rects: Rect[]; y: number; base: number } | null = null;
 
   plans.forEach((plan, i) => {
@@ -638,28 +702,53 @@ export function buildHouse(input: HouseInput): HouseModel {
     buildLines(boxes, i, baseY, built);
     if (i === groundIdx) groundLines = built.filter((l) => l.kind === "wall");
 
-    // Columns of a framed house: the block corners and every ~12 ft along the outer walls.
-    if (framed && fl.level !== "MUMTY") {
-      const o = env ?? outline({ ...plan, placed: rooms } as FloorPlan);
-      if (o) {
-        const cw = (fl.roof?.columnWidthIn ?? 12) * IN;
-        const along = (a: number, b: number) => {
-          const n = Math.max(1, Math.round((b - a) / 12));
-          return Array.from({ length: n + 1 }, (_, k) => a + ((b - a) * k) / n);
-        };
-        const pts: Array<[number, number]> = [];
-        for (const x of along(o.x - EXT / 2, o.x + o.dx + EXT / 2)) pts.push([x, o.z - EXT / 2], [x, o.z + o.dz + EXT / 2]);
-        for (const z of along(o.z - EXT / 2, o.z + o.dz + EXT / 2).slice(1, -1)) pts.push([o.x - EXT / 2, z], [o.x + o.dx + EXT / 2, z]);
-        const terraces = rooms.filter((q) => q.room.type === "TERRACE");
-        const m = EXT + 1;
-        const onTerrace = (cx: number, cz: number) => terraces.some((q) => cx > q.x - m && cx < q.x + q.dx + m && cz > q.z - m && cz < q.z + q.dz + m);
-        for (const [cx, cz] of pts) {
-          if (onTerrace(cx, cz)) continue;
-          boxes.push({ kind: "column", x: cx - cw / 2, y: baseY, z: cz - cw / 2, w: cw, h, d: cw, floor: i });
-          if (i === groundIdx) groundColumns.push({ x: cx, z: cz });
+    // Frame of a framed house: columns (the count on the roof card, else the plan rule) at the wall
+    // junctions, and a beam on every wall line under the slab.
+    const block = env ?? outline({ ...plan, placed: rooms } as FloorPlan);
+    let columns = 0;
+    let beamRun = 0;
+    const cw = (fl.roof?.columnWidthIn ?? 9) * IN;
+    const cd = (fl.roof?.columnDepthIn ?? 12) * IN;
+    const bw = (fl.roof?.beamWidthIn ?? 9) * IN;
+    const bd = (fl.roof?.beamDepthIn ?? 12) * IN;
+    const tag = fl.level === "GROUND" ? "G" : fl.level === "BASEMENT" ? "B" : fl.level === "MUMTY" ? "M" : String(i - (floorsIn[0]?.level === "BASEMENT" ? 1 : 0));
+    if (framed && block) {
+      const want = fl.roof?.columnCount ?? input.columnsByLevel?.[fl.level] ?? gridColumns(block.dx, block.dz);
+      const terraces = rooms.filter((q) => q.room.type === "TERRACE");
+      const m = EXT + 1;
+      const offTerrace = (c: Pt) => !terraces.some((q) => c.x > q.x - m && c.x < q.x + q.dx + m && c.z > q.z - m && c.z < q.z + q.dz + m);
+      const inside = (c: Pt) => c.x > block.x - EXT - 0.1 && c.x < block.x + block.dx + EXT + 0.1 && c.z > block.z - EXT - 0.1 && c.z < block.z + block.dz + EXT + 0.1;
+      // Upper floors stand on the ground floor's columns; the ground floor (and a basement) picks its own.
+      const own = junctions(rooms, env).filter(offTerrace);
+      const cands = groundSpots.length && i > groundIdx ? [...groundSpots.filter((c) => inside(c) && offTerrace(c)), ...own] : own;
+      const spots = spreadPoints(cands, want);
+      if (i === groundIdx) {
+        groundSpots = spots;
+        groundColumnCount = spots.length;
+      }
+      spots.forEach((c, k) => boxes.push({ kind: "column", x: c.x - cw / 2, y: baseY, z: c.z - cd / 2, w: cw, h, d: cd, floor: i, part: `${tag}-C${k + 1}` }));
+      columns = spots.length;
+      let k = 0;
+      for (const l of built.filter((x) => x.kind === "wall")) {
+        for (const [a, b] of merge(l.spans)) {
+          const mid = l.fixed + l.thick / 2;
+          k += 1;
+          beamRun += b - a;
+          boxes.push(
+            l.alongX
+              ? { kind: "beam", x: a, y: baseY + h - bd, z: mid - bw / 2, w: b - a, h: bd, d: bw, floor: i, part: `${tag}-B${k}` }
+              : { kind: "beam", x: mid - bw / 2, y: baseY + h - bd, z: a, w: bw, h: bd, d: b - a, floor: i, part: `${tag}-B${k}` },
+          );
         }
       }
     }
+    structureFloors.push({
+      name: fl.name,
+      columns,
+      columnSizeIn: `${Math.round(cw * 12)}×${Math.round(cd * 12)}`,
+      beamRunFt: Math.round(beamRun),
+      beamSizeIn: `${Math.round(bw * 12)}×${Math.round(bd * 12)}`,
+    });
 
     // Roof slab over the floor (not over a terrace), a little wider than the walls.
     const o = env ?? outline({ ...plan, placed: rooms } as FloorPlan)!;
@@ -712,6 +801,9 @@ export function buildHouse(input: HouseInput): HouseModel {
   // Foundation under the ground floor walls; plinth wall above ground (always seen), DPC on top.
   const bottom = -fnd.depth;
   const plinthTop = fnd.plinth;
+  let footings = 0;
+  let piles = 0;
+  let plinthBeamFt = 0;
   for (const l of groundLines) {
     for (const [a, b] of merge(l.spans)) {
       const len = b - a;
@@ -725,7 +817,10 @@ export function buildHouse(input: HouseInput): HouseModel {
         band("pcc", fnd.footingW + 0.5, bottom, fnd.pcc);
         band("footing", fnd.footingW, bottom + fnd.pcc, fnd.footingT);
       }
-      if (fnd.type !== "STRIP" && fnd.type !== "RAFT") band("plinthBeam", l.thick, -1, 1);
+      if (fnd.type !== "STRIP" && fnd.type !== "RAFT") {
+        band("plinthBeam", Math.max(l.thick, 9 * IN), -1, 1);
+        plinthBeamFt += len;
+      }
       band("foundationWall", l.thick + (fnd.type === "STRIP" ? 4.5 * IN : 0), masonryFrom, 0 - masonryFrom);
       band("plinthWall", l.thick, 0, plinthTop - fnd.dpc);
       band("dpc", l.thick, plinthTop - fnd.dpc, fnd.dpc);
@@ -743,18 +838,27 @@ export function buildHouse(input: HouseInput): HouseModel {
       boxes.push({ kind: "raft", x: minX, y: bottom + fnd.pcc, z: minZ, w: maxX - minX, h: fnd.footingT, d: maxZ - minZ, floor: null });
     }
     if (fnd.type === "ISOLATED" || fnd.type === "COMBINED" || fnd.type === "PILE") {
-      for (const c of groundColumns) {
+      // As many footings / piles as entered (isolated: one per column when not entered), under the columns.
+      const groundRooms = boxes.filter((b) => (b.kind === "floorFinish" || b.kind === "wetFloor") && b.floor === groundIdx).map((b) => ({ x: b.x, z: b.z, dx: b.w, dz: b.d }));
+      const env0 = { x: minX + EXT, z: minZ + EXT, dx: maxX - minX - 2 * EXT, dz: maxZ - minZ - 2 * EXT };
+      const cands = [...groundSpots, ...junctions(groundRooms, env0)];
+      const count = fnd.type === "PILE" ? (f?.pileCount ?? groundColumnCount) : (f?.footingCount ?? (groundColumnCount || gridColumns(env0.dx, env0.dz)));
+      const spots = spreadPoints(cands, count);
+      footings = fnd.type === "PILE" ? 0 : spots.length;
+      piles = fnd.type === "PILE" ? spots.length : 0;
+      const cw = 12 * IN;
+      spots.forEach((c, k) => {
         if (fnd.type === "PILE") {
-          boxes.push({ kind: "pile", x: c.x - fnd.pileD / 2, y: bottom - fnd.pileDepth, z: c.z - fnd.pileD / 2, w: fnd.pileD, h: fnd.pileDepth, d: fnd.pileD, floor: null });
-          boxes.push({ kind: "footing", x: c.x - 1.5, y: bottom, z: c.z - 1.5, w: 3, h: fnd.footingT, d: 3, floor: null });
+          boxes.push({ kind: "pile", x: c.x - fnd.pileD / 2, y: bottom - fnd.pileDepth, z: c.z - fnd.pileD / 2, w: fnd.pileD, h: fnd.pileDepth, d: fnd.pileD, floor: null, part: `P-${k + 1}` });
+          boxes.push({ kind: "footing", x: c.x - 1.5, y: bottom, z: c.z - 1.5, w: 3, h: fnd.footingT, d: 3, floor: null, part: `PC-${k + 1}` });
         } else {
           const pw = fnd.footingW || 4;
           boxes.push({ kind: "pcc", x: c.x - fnd.padL / 2 - 0.25, y: bottom, z: c.z - pw / 2 - 0.25, w: fnd.padL + 0.5, h: fnd.pcc, d: pw + 0.5, floor: null });
-          boxes.push({ kind: "footing", x: c.x - fnd.padL / 2, y: bottom + fnd.pcc, z: c.z - pw / 2, w: fnd.padL, h: fnd.footingT, d: pw, floor: null });
+          boxes.push({ kind: "footing", x: c.x - fnd.padL / 2, y: bottom + fnd.pcc, z: c.z - pw / 2, w: fnd.padL, h: fnd.footingT, d: pw, floor: null, part: `F-${k + 1}` });
         }
-        const cw = 12 * IN;
-        boxes.push({ kind: "column", x: c.x - cw / 2, y: bottom + fnd.pcc + fnd.footingT, z: c.z - cw / 2, w: cw, h: 0 - (bottom + fnd.pcc + fnd.footingT), d: cw, floor: null });
-      }
+        const from = bottom + (fnd.type === "PILE" ? fnd.footingT : fnd.pcc + fnd.footingT);
+        boxes.push({ kind: "column", x: c.x - cw / 2, y: from, z: c.z - cw / 2, w: cw, h: 0 - from, d: cw, floor: null, part: `F-C${k + 1}` });
+      });
     }
     // Paved drive from the gate to the house front.
     const frontZ = maxZ;
@@ -803,6 +907,14 @@ export function buildHouse(input: HouseInput): HouseModel {
       }),
       { minX: 0, maxX: frontFt, minY: 0, maxY: 1, minZ: 0, maxZ: depthFt },
     );
-  return { boxes, labels, floors, plot: { frontFt, depthFt, known }, bounds, placement: { tied, packed, assumed: assumedRooms } };
+  return {
+    boxes,
+    labels,
+    floors,
+    plot: { frontFt, depthFt, known },
+    bounds,
+    placement: { tied, packed, assumed: assumedRooms },
+    structure: { foundation: { type: fnd.type, depthFt: fnd.depth, footings, piles, plinthBeamFt: Math.round(plinthBeamFt) }, floors: structureFloors },
+  };
 }
 

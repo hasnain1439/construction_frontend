@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { CameraView, ViewOptions } from "@/components/house3d/House3DCanvas";
-import { useT, type TranslationKey } from "@/i18n/useT";
+import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { PART_COLOR } from "@/lib/house3d/colors";
 import { buildHouse, type BoxKind } from "@/lib/house3d/layout";
 import { wizardHref } from "../utils/links";
@@ -35,6 +35,7 @@ const LEGEND: Array<[BoxKind, TranslationKey]> = [
   ["plinthFill", "projects.model3d.partPlinthFill"],
   ["wall", "projects.model3d.partWall"],
   ["column", "projects.model3d.partColumn"],
+  ["beam", "projects.model3d.partBeam"],
   ["slab", "projects.model3d.partSlab"],
   ["chajja", "projects.model3d.partChajja"],
   ["plinthWall", "projects.model3d.partPlinth"],
@@ -59,6 +60,7 @@ function ToggleRow({ id, label, checked, onChange }: { id: string; label: string
 /** The house in 3D from the project setup: plot, foundation, floors, rooms, walls, doors and windows. */
 function Model3D({ project }: { project: ProjectDetail }) {
   const t = useT();
+  const te = useEnumT();
   const floorsQuery = useGetFloorsQuery(project.id);
   const model = useMemo(
     () =>
@@ -70,12 +72,26 @@ function Model3D({ project }: { project: ProjectDetail }) {
             foundation: project.foundation,
             coverage: project.coverage,
             floors: floorsQuery.data.floors,
+            columnsByLevel: Object.fromEntries((project.calculations?.footprints?.floors ?? []).map((f) => [f.level, f.columns])),
           })
         : null,
     [floorsQuery.data, project],
   );
-  const [upTo, setUpTo] = useState<number | null>(null);
-  const [options, setOptions] = useState({ foundation: false, roofs: true, boundary: true, labels: true });
+  // "all:<i>" = the house up to floor i; "foundation" = the foundation alone; "only:<i>" = floor i alone.
+  const [show, setShow] = useState<string | null>(null);
+  const [options, setOptions] = useState({ foundation: false, roofs: true, walls: true, boundary: true, labels: true });
+  const describe = useCallback(
+    (kind: BoxKind, part: string) => {
+      const name: Partial<Record<BoxKind, TranslationKey>> = {
+        column: "projects.model3d.partColumn",
+        beam: "projects.model3d.partBeam",
+        footing: "projects.model3d.partFooting",
+        pile: "projects.model3d.partPile",
+      };
+      return `${name[kind] ? t(name[kind]!) : kind} ${part}`;
+    },
+    [t],
+  );
   const [view, setView] = useState<{ view: CameraView; key: number }>({ view: "corner", key: 0 });
   const [unsupported, setUnsupported] = useState(false);
   const onUnsupported = useCallback(() => setUnsupported(true), []);
@@ -97,7 +113,13 @@ function Model3D({ project }: { project: ProjectDetail }) {
     );
   }
   const last = model.floors.length - 1;
-  const shown: ViewOptions = { ...options, upTo: upTo ?? last };
+  const mode = show ?? `all:${last}`;
+  const shown: ViewOptions = {
+    ...options,
+    show: mode === "foundation" ? "foundation" : mode.startsWith("only:") ? Number(mode.slice(5)) : "all",
+    upTo: mode.startsWith("all:") ? Number(mode.slice(4)) : last,
+  };
+  const s = model.structure;
   const set = (k: keyof typeof options) => (v: boolean) => setOptions((o) => ({ ...o, [k]: v }));
   const move = (v: CameraView) => setView((s) => ({ view: v, key: s.key + 1 }));
 
@@ -108,7 +130,7 @@ function Model3D({ project }: { project: ProjectDetail }) {
           <InlineAlert tone="warning">{t("projects.model3d.noWebgl")}</InlineAlert>
         ) : (
           <div className="overflow-hidden rounded-xl border">
-            <House3DCanvas model={model} options={shown} view={view.view} viewKey={view.key} onUnsupported={onUnsupported} className="h-[560px] w-full" />
+            <House3DCanvas model={model} options={shown} view={view.view} viewKey={view.key} onUnsupported={onUnsupported} describe={describe} className="h-[560px] w-full" />
           </div>
         )}
         <p className="text-xs text-muted-foreground">{t("projects.model3d.howTo")}</p>
@@ -129,20 +151,27 @@ function Model3D({ project }: { project: ProjectDetail }) {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="model3d-floors">{t("projects.model3d.floors")}</Label>
-              <Select value={String(upTo ?? last)} onValueChange={(v) => setUpTo(Number(v))}>
+              <Select value={mode} onValueChange={setShow}>
                 <SelectTrigger id="model3d-floors" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {model.floors.map((f, i) => (
-                    <SelectItem key={`${f.level}-${i}`} value={String(i)}>
+                    <SelectItem key={`all-${i}`} value={`all:${i}`}>
                       {i === last ? t("projects.model3d.allFloors") : t("projects.model3d.upTo", { name: f.name })}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="foundation">{t("projects.model3d.onlyFoundation")}</SelectItem>
+                  {model.floors.map((f, i) => (
+                    <SelectItem key={`only-${i}`} value={`only:${i}`}>
+                      {t("projects.model3d.only", { name: f.name })}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <ToggleRow id="model3d-roofs" label={t("projects.model3d.roofs")} checked={options.roofs} onChange={set("roofs")} />
+            <ToggleRow id="model3d-walls" label={t("projects.model3d.walls")} checked={options.walls} onChange={set("walls")} />
             <ToggleRow id="model3d-foundation" label={t("projects.model3d.foundation")} checked={options.foundation} onChange={set("foundation")} />
             <ToggleRow id="model3d-boundary" label={t("projects.model3d.boundary")} checked={options.boundary} onChange={set("boundary")} />
             <ToggleRow id="model3d-labels" label={t("projects.model3d.labels")} checked={options.labels} onChange={set("labels")} />
@@ -161,6 +190,22 @@ function Model3D({ project }: { project: ProjectDetail }) {
               {t("projects.model3d.viewTop")}
             </Button>
           </div>
+        </SectionCard>
+        <SectionCard title={t("projects.model3d.structure")}>
+          <ul className="space-y-1 text-sm">
+            <li>
+              {t("projects.model3d.foundationLine", { type: te("projectFoundationType", s.foundation.type), depth: s.foundation.depthFt })}
+              {s.foundation.footings ? ` · ${t("projects.model3d.footingsLine", { n: s.foundation.footings })}` : ""}
+              {s.foundation.piles ? ` · ${t("projects.model3d.pilesLine", { n: s.foundation.piles })}` : ""}
+              {s.foundation.plinthBeamFt ? ` · ${t("projects.model3d.plinthBeamLine", { ft: s.foundation.plinthBeamFt })}` : ""}
+            </li>
+            {s.floors
+              .filter((f) => f.columns)
+              .map((f) => (
+                <li key={f.name}>{t("projects.model3d.frameLine", { name: f.name, columns: f.columns, size: f.columnSizeIn, beams: f.beamRunFt, beamSize: f.beamSizeIn })}</li>
+              ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">{t("projects.model3d.hoverHint")}</p>
         </SectionCard>
         <SectionCard title={t("projects.model3d.legend")}>
           <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">

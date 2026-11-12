@@ -176,3 +176,41 @@ describe("house 3D: no shared walls entered (the usual case)", () => {
     expect(sideWalls.every((b) => b.z + b.d <= Math.min(...walls.map((w) => w.z)) + 0.01 || b.z >= front - 0.01)).toBe(true);
   });
 });
+
+describe("house 3D: the structure follows the setup", () => {
+  const rooms = [room("d", "Drawing", 16, 14, { type: "DRAWING_ROOM" }), room("m", "Master", 16, 14, { type: "MASTER_BEDROOM", sortOrder: 1 }), room("k", "Kitchen", 12, 10, { type: "KITCHEN", sortOrder: 2 })];
+  const fnd = (over: Record<string, unknown>) =>
+    ({ type: "ISOLATED", excavationDepthFt: 5, footingWidthFt: 4, footingThicknessIn: 15, plinthHeightFt: 2, dpcThicknessIn: 1.5, footingCount: 9, footingLengthFt: 4, pileCount: null, pileDiameterIn: null, pileDepthFt: null, masonry: "BRICK", pccMix: "1:4:8", pccThicknessIn: 3, ...over }) as never;
+  const house = (foundation: never, roof: Record<string, unknown> | null = null) =>
+    buildHouse({ frontFt: 35, depthFt: 65, structureType: "FRAMED", foundation, coverage: null, floors: [floor("GROUND", rooms, { roof: roof as never })] });
+
+  it("isolated: as many footings as entered, at the depth entered, each with its name", () => {
+    const m = house(fnd({}));
+    const pads = m.boxes.filter((b) => b.kind === "footing");
+    expect(pads).toHaveLength(9);
+    expect(pads.map((p) => p.part)).toEqual(Array.from({ length: 9 }, (_, k) => `F-${k + 1}`));
+    expect(Math.min(...m.boxes.filter((b) => b.kind === "pcc").map((b) => b.y))).toBeCloseTo(-5);
+    expect(m.structure.foundation).toMatchObject({ type: "ISOLATED", depthFt: 5, footings: 9, piles: 0 });
+    expect(m.structure.foundation.plinthBeamFt).toBeGreaterThan(0);
+  });
+
+  it("pile: as many piles as entered; strip: footings run under the walls (no pads)", () => {
+    const piles = house(fnd({ type: "PILE", pileCount: 14, pileDiameterIn: 18, pileDepthFt: 25 }));
+    expect(piles.boxes.filter((b) => b.kind === "pile")).toHaveLength(14);
+    const strip = house(fnd({ type: "STRIP", footingCount: null }));
+    expect(strip.structure.foundation.footings).toBe(0);
+    expect(strip.boxes.filter((b) => b.kind === "footing").every((b) => !b.part)).toBe(true);
+  });
+
+  it("columns: the count and size on the roof card; a beam on every wall line under the slab", () => {
+    const m = house(fnd({}), { columnCount: 10, columnWidthIn: 12, columnDepthIn: 18, beamWidthIn: 9, beamDepthIn: 15 });
+    const cols = m.boxes.filter((b) => b.kind === "column" && b.floor === 0);
+    expect(cols).toHaveLength(10);
+    expect(cols[0]!.part).toBe("G-C1");
+    expect([cols[0]!.w, cols[0]!.d]).toEqual([1, 1.5]);
+    const beams = m.boxes.filter((b) => b.kind === "beam");
+    expect(beams.length).toBeGreaterThan(4);
+    expect(beams.every((b) => Math.abs(b.y + b.h - (2 + 10)) < 0.01 && Math.abs(b.h - 15 / 12) < 0.01)).toBe(true);
+    expect(m.structure.floors[0]).toMatchObject({ columns: 10, columnSizeIn: "12×18", beamSizeIn: "9×15" });
+  });
+});
