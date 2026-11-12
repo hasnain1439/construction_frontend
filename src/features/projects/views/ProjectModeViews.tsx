@@ -1,7 +1,7 @@
 "use client";
 
 import { DemoBadge, DemoProjectBanner } from "@/features/onboarding/components/DemoBadge";
-import { Pencil, Play, Trash2 } from "lucide-react";
+import { Box, Pencil, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -215,6 +215,14 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
       actions={(project) => (
         <>
           <StatusActions project={project} />
+          {!isMunshi ? (
+            <Button asChild variant="outline">
+              <Link href={projectHref(project.id, "/overview/3d")}>
+                <Box data-icon="inline-start" />
+                {t("projects.model3d.title")}
+              </Link>
+            </Button>
+          ) : null}
           {canManage && project.status === "DRAFT" ? (
             <Button asChild>
               <Link href={wizardHref(project.id)}>
