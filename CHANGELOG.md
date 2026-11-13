@@ -13,6 +13,10 @@ All notable changes to the construction web app. The format follows [Keep a Chan
 - **Added:** Labour rates → ✏️ on each sub-contract trade: rename it, change its rate / unit, or switch it off (sub-contractors who have it keep it).
 - **Added:** Supplier and sub-contractor forms → **Payment account** (bank or wallet, title, number, IBAN), shown on their pages. Suppliers also get a **Credit limit** (with 'See rates'): the udhaar balance turns red with 'Over the credit limit' in the list and on the page.
 
+### Company profile opens read-only (10 Nov 2026)
+
+- **Changed:** Settings → Company Profile now opens as a read-only view of the saved details. An **Edit** button turns it into the form; Save or Cancel goes back to the view. No Edit while the company is read-only.
+
 ### Office PC sync badge (6 Nov 2026)
 
 - **Fixed:** the footer's "All synced" was fixed text. On an office PC it now follows the sync agent: all synced, offline, entries waiting, syncing or a sync problem.

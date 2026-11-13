@@ -1,12 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Pencil, Phone } from "lucide-react";
+import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import { useUpdateCompanyMutation } from "@/api/services/company.api";
 import type { Company } from "@/api/types";
 import { FileUpload } from "@/components/common/FileUpload";
+import { InfoList } from "@/components/common/InfoList";
 import { InlineAlert } from "@/components/common/InlineAlert";
 import { SectionCard } from "@/components/common/SectionCard";
 import { FieldGrid, Form, FormSection } from "@/components/forms/Form";
@@ -17,6 +19,7 @@ import { RadioCards } from "@/components/forms/RadioCards";
 import { SegmentedField } from "@/components/forms/SegmentedField";
 import { TextareaField } from "@/components/forms/TextareaField";
 import { TextField } from "@/components/forms/TextField";
+import { Button } from "@/components/ui/button";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
@@ -60,9 +63,9 @@ function LetterheadPreview() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logo.url} alt="" className="size-16 rounded object-contain" />
           ) : (
-            <span className="flex size-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
-              {(name || "?").charAt(0)}
-            </span>
+              <span className="flex size-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+                {(name || "?").charAt(0)}
+              </span>
           )}
           <div className="min-w-0 space-y-1">
             <p className="text-lg leading-tight font-bold">{name || t("teamCompany.profile.companyName")}</p>
@@ -96,7 +99,52 @@ function LetterheadPreview() {
   );
 }
 
+/** The saved profile, read-only: what opens first. */
+function CompanyProfileDetails({ company }: { company: Company }) {
+  const t = useT();
+  const te = useEnumT();
+  const marla = company.marlaStandard === 272.25 ? "272.25" : "225";
+  return (
+    <div className="space-y-6" data-testid="company-profile-view">
+      <FormSection title={t("teamCompany.profile.identity")}>
+        <InfoList
+          items={[
+            { label: t("teamCompany.profile.companyName"), value: company.name },
+            { label: t("field.ntn"), value: company.ntn ? <bdi dir="ltr">{company.ntn}</bdi> : null },
+            {
+              label: t("teamCompany.profile.logo"),
+              value: company.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={company.logoUrl} alt="" className="size-16 rounded object-contain" />
+              ) : null,
+            },
+          ]}
+        />
+      </FormSection>
+      <FormSection title={t("teamCompany.profile.contact")}>
+        <InfoList
+          items={[
+            { label: t("field.address"), value: company.address || null },
+            { label: t("teamCompany.profile.officePhone"), value: company.phone ? <bdi dir="ltr">{formatPhone(company.phone)}</bdi> : null },
+            { label: t("field.email"), value: company.email || null },
+          ]}
+        />
+      </FormSection>
+      <FormSection title={t("teamCompany.profile.defaults")}>
+        <InfoList
+          items={[
+            { label: t("teamCompany.profile.region"), value: te("region", company.region) },
+            { label: t("teamCompany.profile.marla"), value: `${marla} ${t("field.sqft")}` },
+          ]}
+        />
+      </FormSection>
+    </div>
+  );
+}
+
 export function CompanyProfileForm({ company }: { company: Company }) {
+  // Opens read-only; Edit turns the same card into the form.
+  const [editing, setEditing] = useState(false);
   const t = useT();
   const te = useEnumT();
   const readOnly = useReadOnly();
@@ -122,13 +170,34 @@ export function CompanyProfileForm({ company }: { company: Company }) {
         }).unwrap(),
       { success: t("teamCompany.profile.saved"), setError: form.setError },
     );
-    if (result) form.reset(defaults(result, t));
+    if (result) {
+      form.reset(defaults(result, t));
+      setEditing(false);
+    }
+  };
+
+  const stopEditing = () => {
+    form.reset();
+    setEditing(false);
   };
 
   return (
     <Form form={form} onSubmit={onSubmit}>
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        <SectionCard title={t("teamCompany.profile.details")}>
+        <SectionCard
+          title={t("teamCompany.profile.details")}
+          actions={
+            !editing && !readOnly ? (
+              <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
+                <Pencil className="size-4" aria-hidden />
+                {t("common.edit")}
+              </Button>
+            ) : null
+          }
+        >
+          {!editing ? (
+            <CompanyProfileDetails company={company} />
+          ) : (
           <div className="space-y-6">
             <FormSection title={t("teamCompany.profile.identity")}>
               <FieldGrid>
@@ -172,9 +241,10 @@ export function CompanyProfileForm({ company }: { company: Company }) {
               submitLabel={t("common.saveChanges")}
               loading={isLoading}
               disabled={readOnly || !form.formState.isDirty}
-              onCancel={form.formState.isDirty ? () => form.reset() : undefined}
+              onCancel={stopEditing}
             />
           </div>
+          )}
         </SectionCard>
         <div>
           <LetterheadPreview />
