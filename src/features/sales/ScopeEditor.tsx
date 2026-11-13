@@ -166,8 +166,8 @@ export function MaterialsField({ name }: { name: string }) {
         return (
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" variant="outline" size="sm" className="max-w-full justify-start truncate">
-                {value.length ? t("sales.scope.materialsSome", { list: value.map((k) => enumT("projectSupplyCategory", k)).join(", ") }) : t("sales.scope.materialsNone")}
+              <Button type="button" variant="outline" size="sm" className="max-w-full justify-start overflow-hidden" title={value.map((k) => enumT("projectSupplyCategory", k)).join(", ")}>
+                <span className="truncate">{value.length ? t("sales.scope.materialsSome", { list: value.map((k) => enumT("projectSupplyCategory", k)).join(", ") }) : t("sales.scope.materialsNone")}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64" align="start">

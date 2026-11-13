@@ -191,21 +191,21 @@ function WorkRatesEditor({ data, canEdit }: { data: QuoteWorkRates; canEdit: boo
       {data.source === "DEFAULT" ? <InlineAlert tone="info" className="mb-4">{t("sales.scope.ratesBuiltIn")}</InlineAlert> : null}
       <Form form={form} onSubmit={onSubmit} id="work-rates">
         <fieldset disabled={!canEdit} className="space-y-2">
-          <div className="hidden grid-cols-[minmax(0,1fr)_8rem_8rem_8rem_auto_auto] gap-2 text-xs font-medium text-muted-foreground md:grid">
+          <div className="hidden grid-cols-[minmax(0,1fr)_8rem_8rem_8rem_14rem_2.25rem] gap-2 text-xs font-medium text-muted-foreground md:grid">
             <span>{t("sales.scope.workName")}</span>
             <span>{t("sales.scope.priceBasis")}</span>
             <span>{t("sales.scope.rateWithMaterial")}</span>
             <span>{t("sales.scope.rateLabour")}</span>
-            <span />
+            <span>{t("sales.scope.baseItem")}</span>
             <span />
           </div>
           {rows.fields.map((f, i) => (
-            <div key={f.id} className="grid grid-cols-1 items-start gap-2 border-b border-dashed pb-2 md:grid-cols-[minmax(0,1fr)_8rem_8rem_8rem_auto_auto]">
+            <div key={f.id} className="grid grid-cols-1 items-start gap-2 border-b border-dashed pb-2 md:grid-cols-[minmax(0,1fr)_8rem_8rem_8rem_14rem_2.25rem]">
               <TextField name={`rates.${i}.name`} label={t("sales.scope.workName")} hideLabel dir="auto" />
               <SelectField name={`rates.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} />
               <MoneyField name={`rates.${i}.ratePaisa`} label={t("sales.scope.rateWithMaterial")} hideLabel />
               <MoneyField name={`rates.${i}.labourRatePaisa`} label={t("sales.scope.rateLabour")} hideLabel />
-              <div className="pt-0.5">
+              <div className="min-w-0 pt-0.5 [&_button]:w-full">
                 <MaterialsField name={`rates.${i}.materials`} />
               </div>
               {canEdit ? (
