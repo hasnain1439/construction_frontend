@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { QuoteInputs, QuoteInputsBody } from "@/api/types";
 import { msg } from "@/i18n/message";
-import { scopeBody, scopeSchema } from "./ScopeEditor";
+import { scopeBody, scopeFromForm, scopeSchema } from "./ScopeEditor";
 import { anyPhoneSchema, optionalNumber, optionalPaisaSchema, optionalText, requiredNumber } from "@/lib/validation";
 
 /** Quote inputs (plot, building, contract, price settings) — shared by New quote and New revision. */
@@ -121,6 +121,6 @@ export function toInputsBody(v: Partial<QuoteInputValues>): QuoteInputsBody | nu
     ...(v.marginPercent !== null && v.marginPercent !== undefined ? { marginPercent: v.marginPercent } : {}),
     ...(v.contractType === "FULL" && v.finishingAllowancePercent !== null && v.finishingAllowancePercent !== undefined ? { finishingAllowancePercent: v.finishingAllowancePercent } : {}),
     ...(v.finalPricePaisa ? { finalPricePaisa: v.finalPricePaisa } : {}),
-    ...(v.scopeCustom && v.scope ? { scope: v.scope } : v.scopeTemplateId ? { scopeTemplateId: v.scopeTemplateId } : {}),
+    ...(v.scopeCustom && v.scope ? { scope: scopeFromForm(v.scope) } : v.scopeTemplateId ? { scopeTemplateId: v.scopeTemplateId } : {}),
   } as QuoteInputsBody;
 }

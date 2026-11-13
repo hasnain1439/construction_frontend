@@ -26,7 +26,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
 import { newQuoteSchema, revisionSchema, toInputsBody, valuesFromInputs, DEFAULT_INPUT_VALUES, type NewQuoteValues, type QuoteInputValues } from "./schemas";
-import { QuoteScopeCard } from "./ScopeEditor";
+import { QuoteScopeCard, scopeSchema } from "./ScopeEditor";
 import { CustomerPanel, InternalPanel } from "./shared";
 
 const FORM_ID = "quote-form";
@@ -34,8 +34,12 @@ const FORM_ID = "quote-form";
 /** Debounced live quick estimate of the watched inputs (POST /quotes/preview). */
 function useLivePreview(control: Control<NewQuoteValues> | Control<QuoteInputValues>) {
   const values = useWatch({ control: control as Control<QuoteInputValues> });
-  // The work list does not change the price: leave it out so typing in it never re-prices.
-  const body = useMemo(() => toInputsBody({ ...values, scopeCustom: false, scopeTemplateId: null, scope: null }), [values]);
+  // The work list prices the quote (line prices + material), so it goes with the preview too — once it is
+  // complete (a half-typed line would only fail the preview).
+  const body = useMemo(() => {
+    const scope = values.scopeCustom ? scopeSchema.safeParse(values.scope) : null;
+    return toInputsBody({ ...values, scope: scope?.success ? (values.scope as QuoteInputValues["scope"]) : null, scopeCustom: Boolean(scope?.success) } as Partial<QuoteInputValues>);
+  }, [values]);
   const key = JSON.stringify(body);
   const [preview] = usePreviewQuoteMutation();
   const [state, setState] = useState<{ key: string; data: QuoteComputed | null; failed: boolean }>({ key: "", data: null, failed: false });

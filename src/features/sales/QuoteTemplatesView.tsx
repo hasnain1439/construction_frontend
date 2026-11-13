@@ -21,7 +21,7 @@ import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
 import { formatPKR } from "@/lib/money";
-import { rateTotal, scopeBody, scopeContentFields, ScopeFields, ScopeList } from "./ScopeEditor";
+import { lineRateTotal, rateTotal, scopeBody, scopeContentFields, ScopeFields, scopeFromForm, ScopeList } from "./ScopeEditor";
 
 const TYPES: QuoteContractType[] = ["LABOR_ONLY", "GREY_OWNER_FINISHING", "FULL"];
 const formSchema = z.object({ contractType: z.enum(["FULL", "GREY_OWNER_FINISHING", "LABOR_ONLY"]), isDefault: z.boolean(), ...scopeContentFields });
@@ -42,7 +42,9 @@ function TemplateEditor({ template, onDone }: { template: { id: string | null; b
   const [update, updating] = useUpdateQuoteTemplateMutation();
   const form = useForm<Values, unknown, z.output<typeof formSchema>>({ resolver: zodResolver(formSchema), defaultValues: valuesOf(template.body) });
   const onSubmit = async (v: z.output<typeof formSchema>) => {
-    const body = v as unknown as QuoteTemplateBody;
+    const { contractType, isDefault, ...content } = v as unknown as Values;
+    const { templateId: _t, ...scope } = scopeFromForm({ ...content, templateId: null });
+    const body: QuoteTemplateBody = { contractType, isDefault, ...scope };
     const res = await run(() => (template.id ? update({ id: template.id, body }).unwrap() : create(body).unwrap()), { success: () => t("sales.scope.saved") });
     if (res) onDone();
   };
@@ -74,7 +76,7 @@ function TemplateEditor({ template, onDone }: { template: { id: string | null; b
 
 function TemplateCard({ tpl, canEdit, onEdit, onCopy, onRemove }: { tpl: QuoteTemplate; canEdit: boolean; onEdit: () => void; onCopy: () => void; onRemove: () => void }) {
   const t = useT();
-  const total = rateTotal(tpl);
+  const total = rateTotal(tpl) || lineRateTotal(tpl);
   const items = tpl.sections.reduce((a, s) => a + s.items.length, 0);
   return (
     <div className="space-y-2 rounded-2xl border p-4">

@@ -4,7 +4,7 @@
  * field permission — hence `?`: price → fields.contract, cost → fields.rates, margin → contract + profit.
  */
 import type { Id, IsoDate, IsoDateTime, Paisa, RequestBody } from "./common";
-import type { ProjectStatus } from "./projects";
+import type { ProjectStatus, SupplyCategoryKey } from "./projects";
 
 export type QuoteStatus = "DRAFT" | "SENT" | "NEGOTIATION" | "WON" | "LOST" | "EXPIRED";
 export const QUOTE_STATUSES: QuoteStatus[] = ["DRAFT", "SENT", "NEGOTIATION", "WON", "LOST", "EXPIRED"];
@@ -43,9 +43,19 @@ export interface QuoteInputs {
 /** Who a work item is for: in the quoted rate, provided / done by the owner, or not in this quotation. */
 export type QuoteScopeWho = "INCLUDED" | "OWNER" | "EXCLUDED";
 /** What a quotation prints: work list, rate per sq ft in parts, material base rates, notes. */
+export type QuotePriceBasis = "SQFT" | "UNIT" | "LUMP_SUM";
+/** One work line: who does it, its price when included, and the supply categories of its material. */
+export interface QuoteScopeItem {
+  text: string;
+  who: QuoteScopeWho;
+  price?: { basis: QuotePriceBasis; ratePaisa: Paisa; quantity?: number | null } | null;
+  materials?: SupplyCategoryKey[];
+}
 export interface QuoteScopeContent {
+  /** Quality category for the material prices (price list); null = the quote's / company default. */
+  qualityCategoryId?: string | null;
   name: string;
-  sections: Array<{ title: string; items: Array<{ text: string; who: QuoteScopeWho }> }>;
+  sections: Array<{ title: string; outside?: boolean; items: QuoteScopeItem[] }>;
   rates: Array<{ label: string; ratePerSqftPaisa: Paisa }>;
   baseRates: Array<{ item: string; ratePaisa: Paisa; unit: string }>;
   terms: Array<{ title: string; text: string }>;
@@ -124,6 +134,18 @@ export interface QuoteQuantities {
 }
 
 /** A priced quote version (saved revision, or the live preview without id / revision). */
+export interface QuoteLinePricing {
+  lines: Array<{ section: string; outside: boolean; text: string; who: QuoteScopeWho; amountPaisa: Paisa }>;
+  workPaisa: Paisa;
+  insideWorkPaisa: Paisa;
+  outsideWorkPaisa: Paisa;
+  materialPaisa: Paisa;
+  materialMarginPaisa: Paisa;
+  materials: Array<{ categoryKey: string; amountPaisa: Paisa }>;
+  insideRatePaisa: Paisa | null;
+  outsideRatePaisa: Paisa | null;
+}
+
 export interface QuoteComputed {
   inputs: QuoteInputs;
   rulebook: { region: string; version: number | null };
@@ -135,7 +157,10 @@ export interface QuoteComputed {
   paymentTemplate: { id: Id; name: string } | null;
   /** Translated in the app from `code` + `params` / `materials` / `items` (QA-A-10). */
   warnings: Array<{ code: string; message: string; params?: Record<string, number>; materials?: string[]; items?: string[] }>;
+  /** Priced line by line (work list prices + material from the price list of the category). */
+  pricedByLine?: boolean;
   // fields.rates
+  linePricing?: QuoteLinePricing | null;
   costPaisa?: Paisa;
   directCostPaisa?: Paisa;
   overheadPaisa?: Paisa;

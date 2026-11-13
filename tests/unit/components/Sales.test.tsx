@@ -119,7 +119,7 @@ const LABOUR_SCOPE: QuoteScope = {
   source: "DEFAULT",
   templateId: "labour-grey",
   name: "Labour only · grey structure",
-  sections: [{ title: "A · Up to DPC", items: [{ text: "Excavation of foundations", who: "INCLUDED" }, { text: "Anti-termite proofing", who: "OWNER" }] }],
+  sections: [{ title: "A · Up to DPC", items: [{ text: "Excavation of foundations", who: "INCLUDED", price: { basis: "SQFT", ratePaisa: "4000" }, materials: [] }, { text: "Anti-termite proofing", who: "OWNER", price: { basis: "SQFT", ratePaisa: "1500" }, materials: [] }] }],
   rates: [{ label: "All work", ratePerSqftPaisa: "67500" }],
   baseRates: [],
   terms: [{ title: "Plot depth", text: "Rs 15 per sq ft for each foot below road level." }],
@@ -333,11 +333,8 @@ describe("Sales — quotation templates (scope)", () => {
     const body = (createQuote.mock.calls.at(-1) as unknown as [{ inputs: { scope: { templateId: string; name: string; sections: Array<{ title: string }>; rates: unknown[] } } }])[0];
     expect(body.inputs.scope).toMatchObject({ templateId: "grey-standard", name: "Grey · Standard", sections: [{ title: "A · Foundation" }] });
     expect(body.inputs.scope.rates).toHaveLength(2);
-    // the live price never re-runs for the list
-    for (const call of preview.mock.calls as unknown as Array<[Record<string, unknown>]>) {
-      expect(call[0]).not.toHaveProperty("scope");
-      expect(call[0]).not.toHaveProperty("scopeTemplateId");
-    }
+    // the live price follows the edited list (it prices the quote)
+    await waitFor(() => expect((preview.mock.calls.at(-1) as unknown as [Record<string, unknown>])[0]).toHaveProperty("scope"));
   });
 
   it("Use the template rate sets the agreed price = rate × covered area", { timeout: 20_000 }, async () => {
@@ -364,7 +361,7 @@ describe("Sales — quotation templates (scope)", () => {
     const arg = (updateTemplate.mock.calls.at(-1) as unknown as [{ id: string; body: { contractType: string; sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];
     expect(arg.id).toBe("labour-grey");
     expect(arg.body.contractType).toBe("LABOR_ONLY");
-    expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED" });
+    expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED", price: null, materials: [] });
   });
 
   it("a PM (no sales.quote.manage) only reads the templates", () => {
@@ -380,5 +377,9 @@ describe("Sales — quotation templates (scope)", () => {
     expect(screen.getByText("Anti-termite proofing")).toBeInTheDocument();
     expect(screen.getAllByText("By owner").length).toBeGreaterThan(0);
     expect(screen.getByText("Total Rs 675 per sq ft")).toBeInTheDocument();
+    // each line shows its price; the owner's line is struck out (it adds nothing)
+    expect(screen.getByText("Rs 40 / sq ft")).toBeInTheDocument();
+    expect(screen.getByText("Rs 15 / sq ft")).toHaveClass("line-through");
+    expect(screen.getByText("Included lines: Rs 40 per sq ft (+ material from the price list)")).toBeInTheDocument();
   });
 });
