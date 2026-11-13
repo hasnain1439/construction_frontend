@@ -243,6 +243,7 @@ export const ENDPOINTS = {
     scopeTemplates: "/quotes/scope-templates",
     scopeTemplate: (templateId: string) => `/quotes/scope-templates/${id(templateId)}`,
     scopeTemplatesReset: "/quotes/scope-templates/reset",
+    workRates: "/quotes/work-rates",
     byId: (quoteId: string) => `/quotes/${id(quoteId)}`,
     revisions: (quoteId: string) => `/quotes/${id(quoteId)}/revisions`,
     send: (quoteId: string) => `/quotes/${id(quoteId)}/send`,

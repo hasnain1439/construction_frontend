@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteScope, QuoteSummary, QuoteTemplate, QuoteTemplateList } from "@/api/types";
+import type { QuoteComputed, QuoteDetail, QuoteInsights, QuoteScope, QuoteSummary, QuoteTemplate, QuoteTemplateList, QuoteWorkRates } from "@/api/types";
 import { COMPANY_NAV } from "@/lib/navigation";
 import { canAccess } from "@/lib/permissions";
 import { meFixture, permissionsFor } from "../fixtures";
@@ -138,6 +138,14 @@ const TEMPLATE_LIST: QuoteTemplateList = {
 };
 const createTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve(TEMPLATE_LIST) }));
 const updateTemplate = vi.fn(() => ({ unwrap: () => Promise.resolve(TEMPLATE_LIST) }));
+const WORK_RATES: QuoteWorkRates = {
+  source: "DEFAULT",
+  rates: [
+    { name: "Excavation of foundations", basis: "SQFT", ratePaisa: "4000", labourRatePaisa: "4000", materials: [] },
+    { name: "Brick work up to roof slab", basis: "SQFT", ratePaisa: "14600", labourRatePaisa: "14600", materials: ["BRICKS", "CEMENT"] },
+  ],
+};
+const saveRates = vi.fn(() => ({ unwrap: () => Promise.resolve({ ...WORK_RATES, source: "COMPANY" }) }));
 const createQuote = vi.fn(() => ({ unwrap: () => Promise.resolve({ id: "q9", number: "Q-2026-0009" }) }));
 
 let previewResult: QuoteComputed = COMPUTED;
@@ -165,6 +173,9 @@ vi.mock("@/api/services/sales.api", () => ({
   useUpdateQuoteTemplateMutation: () => [updateTemplate, { isLoading: false }],
   useDeleteQuoteTemplateMutation: mutation(),
   useResetQuoteTemplatesMutation: mutation(),
+  useGetQuoteWorkRatesQuery: () => ({ data: WORK_RATES, isLoading: false, isSuccess: true }),
+  useSaveQuoteWorkRatesMutation: () => [saveRates, { isLoading: false }],
+  useResetQuoteWorkRatesMutation: mutation(),
 }));
 vi.mock("@/api/services/clients.api", () => ({ useGetClientsQuery: () => ({ data: { items: [{ id: "c1", name: "Hamid Ali", phone: "+923214445566" }] } }) }));
 vi.mock("@/api/services/masterData.api", () => ({ useGetQualityCategoriesQuery: () => ({ data: [] }), useGetPaymentTemplatesQuery: () => ({ data: [] }) }));
@@ -388,5 +399,30 @@ describe("Sales — quotation templates (scope)", () => {
     expect(screen.getByText("Rs 40 / sq ft")).toBeInTheDocument();
     expect(screen.getByText("Rs 15 / sq ft")).toHaveClass("line-through");
     expect(screen.getByText("Included lines: Rs 40 per sq ft (+ material from the price list)")).toBeInTheDocument();
+  });
+});
+
+describe("Sales — work rates", () => {
+  it("the Work rates tab lists each work's price; the owner changes one and saves the list", { timeout: 20_000 }, async () => {
+    const user = userEvent.setup();
+    saveRates.mockClear();
+    renderWithStore(<QuoteTemplatesView />, { me: meFixture("THEKEDAR") });
+    await user.click(screen.getByRole("tab", { name: "Work rates" }));
+    expect(screen.getByDisplayValue("Excavation of foundations")).toBeInTheDocument();
+    const rates = screen.getAllByRole("textbox", { name: "Rate (with material)" });
+    await user.clear(rates[0]!);
+    await user.type(rates[0]!, "60");
+    await user.click(screen.getByRole("button", { name: /Save rates/ }));
+    await waitFor(() => expect(saveRates).toHaveBeenCalled());
+    const sent = (saveRates.mock.calls.at(-1) as unknown as [Array<{ name: string; ratePaisa: string }>])[0];
+    expect(sent[0]).toMatchObject({ name: "Excavation of foundations", ratePaisa: "6000" });
+    expect(sent).toHaveLength(2);
+  });
+
+  it("a template line shows the work rate of its name, or that it has none", { timeout: 20_000 }, async () => {
+    const user = userEvent.setup();
+    renderWithStore(<QuoteTemplatesView />, { me: meFixture("THEKEDAR") });
+    await user.click(screen.getAllByRole("button", { name: /^Edit$/ })[0]!);
+    expect(screen.getAllByText("No rate — add it in Work rates").length).toBeGreaterThan(0);
   });
 });

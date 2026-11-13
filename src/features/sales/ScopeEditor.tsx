@@ -6,8 +6,8 @@ import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-
 import { toast } from "sonner";
 import { z } from "zod";
 import { useGetQualityCategoriesQuery } from "@/api/services/masterData.api";
-import { useGetQuoteTemplatesQuery } from "@/api/services/sales.api";
-import type { QuoteContractType, QuotePriceBasis, QuoteScopeBody, QuoteScopeContent, QuoteScopeItem, QuoteScopeWho, SupplyCategoryKey } from "@/api/types";
+import { useGetQuoteTemplatesQuery, useGetQuoteWorkRatesQuery } from "@/api/services/sales.api";
+import type { QuoteContractType, QuotePriceBasis, QuoteScopeBody, QuoteScopeContent, QuoteScopeItem, QuoteScopeWho, QuoteWorkRate, SupplyCategoryKey } from "@/api/types";
 import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { MoneyField } from "@/components/forms/MoneyInput";
@@ -94,6 +94,30 @@ export const scopeFromForm = (f: ScopeForm): QuoteScopeBody => ({
   terms: f.terms.map((x) => ({ title: x.title, text: x.text })),
 });
 
+/** A work line name as a lookup key (case and spaces do not matter) — same rule as the API. */
+export const workKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, " ");
+/** The work rate of a line for a contract type (labour-only takes the labour rate). */
+export function rateFor(rates: QuoteWorkRate[] | undefined, name: string, contractType: QuoteContractType): QuoteScopeItem["price"] {
+  const r = rates?.find((x) => workKey(x.name) === workKey(name));
+  const rate = r ? (contractType === "LABOR_ONLY" ? (r.labourRatePaisa ?? r.ratePaisa) : (r.ratePaisa ?? r.labourRatePaisa)) : null;
+  return r && rate ? { basis: r.basis, ratePaisa: rate, quantity: r.basis === "UNIT" ? 1 : null } : null;
+}
+/** A template's lines with the prices (and materials) of the work rates — what a quote starts from. */
+export function withWorkRates<T extends QuoteScopeContent>(scope: T, rates: QuoteWorkRate[] | undefined, contractType: QuoteContractType): T {
+  return {
+    ...scope,
+    sections: scope.sections.map((sec) => ({
+      ...sec,
+      items: sec.items.map((it) => {
+        if (it.price) return it;
+        const price = rateFor(rates, it.text, contractType);
+        const r = rates?.find((x) => workKey(x.name) === workKey(it.text));
+        return price ? { ...it, price, materials: it.materials?.length ? it.materials : [...(r?.materials ?? [])] } : it;
+      }),
+    })),
+  };
+}
+
 /** Sum of the rate parts (paisa). */
 export const rateTotal = (s: { rates: Array<{ ratePerSqftPaisa: string | null }> }) => s.rates.reduce((a, r) => a + BigInt(r.ratePerSqftPaisa || "0"), BigInt(0));
 /** Sum of the per-sq-ft prices of the included lines (paisa). */
@@ -131,7 +155,7 @@ function RemoveButton({ label, onClick, className }: { label: string; onClick: (
 }
 
 /** Supply categories of a line's material (who buys them follows the line). */
-function MaterialsField({ name }: { name: string }) {
+export function MaterialsField({ name }: { name: string }) {
   const t = useT();
   const enumT = useEnumT();
   return (
@@ -164,29 +188,40 @@ function MaterialsField({ name }: { name: string }) {
   );
 }
 
-function SectionItems({ name, section }: { name: string; section: number }) {
+function SectionItems({ name, section, withPrices, contractType }: { name: string; section: number; withPrices: boolean; contractType?: QuoteContractType }) {
   const t = useT();
+  const priceText = usePriceText();
   const base = `${pre(name)}sections.${section}.items`;
   const { fields, append, remove } = useFieldArray({ name: base });
   const items = (useWatch({ name: base }) ?? []) as FormItem[];
+  const { data: workRates } = useGetQuoteWorkRatesQuery(undefined, { skip: withPrices });
   const whoOptions = SCOPE_WHO.map((w) => ({ value: w, label: t(`sales.scope.whoLabel.${w}`) }));
   const basisOptions = BASES.map((b) => ({ value: b, label: t(`sales.scope.basis.${b}`) }));
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {fields.map((f, i) => {
         const basis = items[i]?.basis ?? "NONE";
+        const found = !withPrices && contractType ? rateFor(workRates?.rates, items[i]?.text ?? "", contractType) : null;
         return (
-          <div key={f.id} className="flex flex-wrap items-start gap-2 border-b border-dashed pb-2 last:border-0">
-            <span className="w-6 shrink-0 pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
-            <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" className="min-w-[16rem] flex-1" />
-            <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} className="w-36" />
-            <SelectField name={`${base}.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} className="w-32" />
-            {basis !== "NONE" ? <MoneyField name={`${base}.${i}.ratePaisa`} label={t("sales.scope.price")} hideLabel className="w-32" /> : null}
-            {basis === "UNIT" ? <NumberField name={`${base}.${i}.quantity`} label={t("sales.scope.quantity")} hideLabel placeholder={t("sales.scope.quantity")} className="w-20" /> : null}
-            <div className="max-w-56 pt-0.5">
-              <MaterialsField name={`${base}.${i}.materials`} />
+          <div key={f.id} className="space-y-2 border-b border-dashed pb-2 last:border-0">
+            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_9rem_auto] items-start gap-2">
+              <span className="pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+              <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
+              <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} />
+              <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
             </div>
-            <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
+            {withPrices ? (
+              <div className="ms-8 grid grid-cols-[8rem_8rem_5rem_minmax(0,1fr)] items-start gap-2">
+                <SelectField name={`${base}.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} />
+                {basis !== "NONE" ? <MoneyField name={`${base}.${i}.ratePaisa`} label={t("sales.scope.price")} hideLabel /> : <span />}
+                {basis === "UNIT" ? <NumberField name={`${base}.${i}.quantity`} label={t("sales.scope.quantity")} hideLabel placeholder={t("sales.scope.quantity")} /> : <span />}
+                <div className="min-w-0 pt-0.5">
+                  <MaterialsField name={`${base}.${i}.materials`} />
+                </div>
+              </div>
+            ) : contractType ? (
+              <p className={cn("ms-8 text-xs", found ? "text-muted-foreground" : "text-warning")}>{found ? priceText(found) : t("sales.scope.noRate")}</p>
+            ) : null}
           </div>
         );
       })}
@@ -199,7 +234,7 @@ function SectionItems({ name, section }: { name: string; section: number }) {
 }
 
 /** Editable name, quality category, rate parts, sections → priced items, material base rates and notes, under `name`. */
-export function ScopeFields({ name }: { name: string }) {
+export function ScopeFields({ name, withPrices = true, contractType }: { name: string; withPrices?: boolean; contractType?: QuoteContractType }) {
   const t = useT();
   const sections = useFieldArray({ name: `${pre(name)}sections` });
   const rates = useFieldArray({ name: `${pre(name)}rates` });
@@ -218,7 +253,7 @@ export function ScopeFields({ name }: { name: string }) {
         placeholder={t("sales.scope.qualityDefault")}
         options={(categories ?? []).filter((c) => !c.isArchived).map((c) => ({ value: c.id, label: c.name }))}
       />
-      <p className="text-xs text-muted-foreground">{t("sales.scope.pricingHint")}</p>
+      <p className="text-xs text-muted-foreground">{withPrices ? t("sales.scope.pricingHint") : t("sales.scope.templateLinesHint")}</p>
 
       <div className="space-y-4">
         {sections.fields.length === 0 ? <p className="text-sm text-muted-foreground">{t("sales.scope.empty")}</p> : null}
@@ -229,7 +264,7 @@ export function ScopeFields({ name }: { name: string }) {
               <RemoveButton className="mt-7" label={t("sales.scope.removeSection", { n: s + 1 })} onClick={() => sections.remove(s)} />
             </div>
             <ToggleField name={`${pre(name)}sections.${s}.outside`} label={t("sales.scope.outside")} />
-            <SectionItems name={name} section={s} />
+            <SectionItems name={name} section={s} withPrices={withPrices} contractType={contractType} />
           </div>
         ))}
         <Button type="button" variant="outline" size="sm" disabled={sections.fields.length >= 30} onClick={() => sections.append({ title: "", outside: false, items: [{ text: "", who: "INCLUDED", basis: "NONE", ratePaisa: null, quantity: null, materials: [] }] })}>
@@ -375,6 +410,7 @@ export function QuoteScopeCard() {
   const { setValue } = useFormContext();
   const [custom, contractType, templateId, covered] = useWatch({ name: ["scopeCustom", "contractType", "scopeTemplateId", "coveredAreaSqft"] }) as [boolean, QuoteContractType, string | null, number | null];
   const list = useGetQuoteTemplatesQuery();
+  const workRates = useGetQuoteWorkRatesQuery();
   const ofType = useMemo(() => (list.data?.templates ?? []).filter((x) => x.contractType === contractType), [list.data, contractType]);
   const template = ofType.find((x) => x.id === templateId) ?? ofType.find((x) => x.isDefault) ?? ofType[0] ?? null;
   // a template of another contract type no longer applies
@@ -384,7 +420,7 @@ export function QuoteScopeCard() {
 
   const customise = () => {
     if (!template) return;
-    setValue("scope", scopeBody(template), { shouldDirty: true });
+    setValue("scope", scopeBody(withWorkRates(template, workRates.data?.rates, contractType)), { shouldDirty: true });
     setValue("scopeCustom", true, { shouldDirty: true });
   };
   const back = () => {
@@ -397,7 +433,7 @@ export function QuoteScopeCard() {
     setValue("finalPricePaisa", String((total * BigInt(Math.round(covered * 100))) / BigInt(100)), { shouldDirty: true });
     toast.success(t("sales.scope.useRateDone"));
   };
-  const priced = template ? lineRateTotal(template) > BigInt(0) || template.sections.some((s) => s.items.some((i) => i.price)) : false;
+  const priced = template ? withWorkRates(template, workRates.data?.rates, contractType).sections.some((s) => s.items.some((i) => i.price)) : false;
   return (
     <SectionCard
       title={t("sales.scope.title")}
@@ -448,7 +484,7 @@ export function QuoteScopeCard() {
               {template.name}
             </summary>
             <div className="mt-3">
-              <ScopeList scope={template} />
+              <ScopeList scope={withWorkRates(template, workRates.data?.rates, contractType)} />
             </div>
           </details>
         </div>

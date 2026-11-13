@@ -76,6 +76,18 @@ export interface QuoteTemplateBody extends QuoteScopeContent {
 export interface QuoteTemplate extends QuoteTemplateBody {
   id: string;
 }
+/** The price of a work line, by name: one rate for contracts with material, one for labour only. */
+export interface QuoteWorkRate {
+  name: string;
+  basis: QuotePriceBasis;
+  ratePaisa: Paisa | null;
+  labourRatePaisa: Paisa | null;
+  materials: SupplyCategoryKey[];
+}
+export interface QuoteWorkRates {
+  source: "COMPANY" | "DEFAULT";
+  rates: QuoteWorkRate[];
+}
 /** COMPANY = the company saved its list; DEFAULT = the built-in list. */
 export interface QuoteTemplateList {
   source: "COMPANY" | "DEFAULT";

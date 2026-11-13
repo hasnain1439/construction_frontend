@@ -15,6 +15,8 @@ import type {
   QuoteRevision,
   QuoteTemplateBody,
   QuoteTemplateList,
+  QuoteWorkRate,
+  QuoteWorkRates,
   QuotesQuery,
   QuoteSummary,
   QuoteWonBody,
@@ -51,6 +53,19 @@ export const salesApi = baseApi.injectEndpoints({
     getQuoteInsights: build.query<QuoteInsights, { months?: number } | void>({
       query: (params) => ({ url: ENDPOINTS.quotes.insights, params: cleanParams(params ?? undefined) }),
       providesTags: [{ type: "Quotes", id: LIST }],
+    }),
+    /** Work rates: the price of each work line, by name. */
+    getQuoteWorkRates: build.query<QuoteWorkRates, void>({
+      query: () => ENDPOINTS.quotes.workRates,
+      providesTags: [{ type: "Quotes", id: "WORK_RATES" }],
+    }),
+    saveQuoteWorkRates: build.mutation<QuoteWorkRates, QuoteWorkRate[]>({
+      query: (rates) => ({ url: ENDPOINTS.quotes.workRates, method: "PUT", body: { rates } }),
+      invalidatesTags: [{ type: "Quotes", id: "WORK_RATES" }],
+    }),
+    resetQuoteWorkRates: build.mutation<QuoteWorkRates, void>({
+      query: () => ({ url: ENDPOINTS.quotes.workRates, method: "DELETE" }),
+      invalidatesTags: [{ type: "Quotes", id: "WORK_RATES" }],
     }),
     /** Quotation templates (work list, rate parts, base rates, notes). */
     getQuoteTemplates: build.query<QuoteTemplateList, void>({
@@ -136,4 +151,7 @@ export const {
   useUpdateQuoteTemplateMutation,
   useDeleteQuoteTemplateMutation,
   useResetQuoteTemplatesMutation,
+  useGetQuoteWorkRatesQuery,
+  useSaveQuoteWorkRatesMutation,
+  useResetQuoteWorkRatesMutation,
 } = salesApi;
