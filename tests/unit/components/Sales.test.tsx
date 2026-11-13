@@ -350,7 +350,12 @@ describe("Sales — quotation templates (scope)", () => {
     updateTemplate.mockClear();
     renderWithStore(<QuoteTemplatesView />, { me: meFixture("THEKEDAR") });
     expect(screen.getByText("These are the built-in templates. Your first change saves them as your company's list.")).toBeInTheDocument();
+    // one tab per contract type; Labour only first
+    expect(screen.getByRole("tab", { name: /Labour only \(1\)/ })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByText("Grey · Premium (A+)")).toBeNull();
+    await user.click(screen.getByRole("tab", { name: /Grey \+ owner finishing/ }));
     expect(screen.getByText("Grey · Premium (A+)")).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /Labour only/ }));
     await user.click(screen.getAllByRole("button", { name: /^Edit$/ })[0]!);
     expect(screen.getByDisplayValue("A · Up to DPC")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Add item/ }));
@@ -364,10 +369,12 @@ describe("Sales — quotation templates (scope)", () => {
     expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED", price: null, materials: [] });
   });
 
-  it("a PM (no sales.quote.manage) only reads the templates", () => {
+  it("a PM (no sales.quote.manage) only reads the templates", async () => {
+    const user = userEvent.setup();
     renderWithStore(<QuoteTemplatesView />, { me: meFixture("PM") });
     expect(screen.queryByRole("button", { name: /New template/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^Edit$/ })).toBeNull();
+    await user.click(screen.getByRole("tab", { name: /Grey \+ owner finishing/ }));
     expect(screen.getByText("Grey · Standard")).toBeInTheDocument();
   });
 

@@ -140,6 +140,7 @@ export const strings = {
       UNIT: "Per unit",
       LUMP_SUM: "One amount",
     },
+    noneOfType: "No template for this contract type yet — add one with New template.",
     whoLabel: {
       INCLUDED: "Included",
       OWNER: "By owner",

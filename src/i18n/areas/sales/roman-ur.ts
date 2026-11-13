@@ -142,6 +142,7 @@ export const strings: Widen<typeof En.strings> = {
       UNIT: "Fi adad",
       LUMP_SUM: "Ek raqam",
     },
+    noneOfType: "Is theke ka abhi koi template nahi — \"Naya template\" se banayein.",
     whoLabel: {
       INCLUDED: "Rate mein shamil",
       OWNER: "Malik dega",

@@ -142,6 +142,7 @@ export const strings: Widen<typeof En.strings> = {
       UNIT: "فی عدد",
       LUMP_SUM: "ایک رقم",
     },
+    noneOfType: "اس ٹھیکے کا ابھی کوئی ٹیمپلیٹ نہیں — \"نیا ٹیمپلیٹ\" سے بنائیں۔",
     whoLabel: {
       INCLUDED: "ریٹ میں شامل",
       OWNER: "مالک دے گا",

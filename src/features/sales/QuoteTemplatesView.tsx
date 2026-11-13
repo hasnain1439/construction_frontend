@@ -17,6 +17,7 @@ import { SelectField } from "@/components/forms/SelectField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT } from "@/i18n/useT";
@@ -124,6 +125,7 @@ function TemplatesBody({ list, canEdit }: { list: QuoteTemplateList; canEdit: bo
   const [editing, setEditing] = useState<{ id: string | null; body: QuoteTemplateBody } | null>(null);
   const [removing, setRemoving] = useState<QuoteTemplate | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [tab, setTab] = useState<QuoteContractType>("LABOR_ONLY");
   const [remove, removeState] = useDeleteQuoteTemplateMutation();
   const [reset, resetState] = useResetQuoteTemplatesMutation();
   const body = ({ id: _id, ...rest }: QuoteTemplate): QuoteTemplateBody => rest;
@@ -134,7 +136,7 @@ function TemplatesBody({ list, canEdit }: { list: QuoteTemplateList; canEdit: bo
       {list.source === "DEFAULT" ? <InlineAlert tone="info">{t("sales.scope.builtIn")}</InlineAlert> : null}
       {canEdit ? (
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={() => setEditing({ id: null, body: EMPTY })}>
+          <Button type="button" onClick={() => setEditing({ id: null, body: { ...EMPTY, contractType: tab } })}>
             <Plus data-icon="inline-start" />
             {t("sales.scope.addTemplate")}
           </Button>
@@ -146,26 +148,36 @@ function TemplatesBody({ list, canEdit }: { list: QuoteTemplateList; canEdit: bo
           ) : null}
         </div>
       ) : null}
-      {TYPES.map((type) => {
-        const ofType = list.templates.filter((x) => x.contractType === type);
-        if (!ofType.length) return null;
-        return (
-          <SectionCard key={type} title={enumT("projectContractType", type)}>
-            <div className="space-y-3">
-              {ofType.map((tpl) => (
-                <TemplateCard
-                  key={tpl.id}
-                  tpl={tpl}
-                  canEdit={canEdit}
-                  onEdit={() => setEditing({ id: tpl.id, body: body(tpl) })}
-                  onCopy={() => setEditing({ id: null, body: { ...body(tpl), isDefault: false, name: t("sales.scope.copyOf", { name: tpl.name }).slice(0, 80) } })}
-                  onRemove={() => setRemoving(tpl)}
-                />
-              ))}
-            </div>
-          </SectionCard>
-        );
-      })}
+      <Tabs value={tab} onValueChange={(v) => setTab(v as QuoteContractType)} className="gap-4">
+        <TabsList className="max-w-full overflow-x-auto">
+          {TYPES.map((type) => (
+            <TabsTrigger key={type} value={type}>
+              {enumT("projectContractType", type)} ({list.templates.filter((x) => x.contractType === type).length})
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {TYPES.map((type) => {
+          const ofType = list.templates.filter((x) => x.contractType === type);
+          return (
+            <TabsContent key={type} value={type} className="space-y-3">
+              {ofType.length ? (
+                ofType.map((tpl) => (
+                  <TemplateCard
+                    key={tpl.id}
+                    tpl={tpl}
+                    canEdit={canEdit}
+                    onEdit={() => setEditing({ id: tpl.id, body: body(tpl) })}
+                    onCopy={() => setEditing({ id: null, body: { ...body(tpl), isDefault: false, name: t("sales.scope.copyOf", { name: tpl.name }).slice(0, 80) } })}
+                    onRemove={() => setRemoving(tpl)}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("sales.scope.noneOfType")}</p>
+              )}
+            </TabsContent>
+          );
+        })}
+      </Tabs>
       <ConfirmDialog
         open={removing !== null}
         onOpenChange={(o) => (!o ? setRemoving(null) : undefined)}
