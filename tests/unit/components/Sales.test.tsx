@@ -374,6 +374,9 @@ describe("Sales — quotation templates (scope)", () => {
     const pickers = screen.getAllByRole("combobox", { name: "Work item" });
     await user.click(pickers.at(-1)!);
     await user.click(await screen.findByRole("option", { name: /Brick work up to roof slab/ }));
+    // the chosen work brings its price and unit into the row (labour-only → the labour rate)
+    expect(screen.getAllByTestId("line-rate").at(-1)).toHaveTextContent("Rs 146");
+    expect(screen.getAllByTestId("line-unit").at(-1)).toHaveTextContent("per sq ft");
     await user.click(screen.getByRole("button", { name: /Save template/ }));
     await waitFor(() => expect(updateTemplate).toHaveBeenCalled());
     const arg = (updateTemplate.mock.calls.at(-1) as unknown as [{ id: string; body: { contractType: string; sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];

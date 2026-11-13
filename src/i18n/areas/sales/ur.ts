@@ -162,6 +162,12 @@ export const strings: Widen<typeof En.strings> = {
     pickWork: "کام چنیں",
     searchWork: "کام تلاش کریں…",
     noWorkFound: "اس نام کا کام نہیں — پہلے کام کے ریٹ میں ڈالیں۔",
+    noRateShort: "ریٹ نہیں",
+    unit: {
+      SQFT: "فی مربع فٹ",
+      UNIT: "فی عدد",
+      LUMP_SUM: "ایک رقم",
+    },
     whoLabel: {
       INCLUDED: "ریٹ میں شامل",
       OWNER: "مالک دے گا",

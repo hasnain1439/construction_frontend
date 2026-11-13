@@ -162,6 +162,12 @@ export const strings: Widen<typeof En.strings> = {
     pickWork: "Kaam chunein",
     searchWork: "Kaam dhoondein…",
     noWorkFound: "Is naam ka kaam nahi — pehle Kaam ke rate mein daalein.",
+    noRateShort: "rate nahi",
+    unit: {
+      SQFT: "fi sq ft",
+      UNIT: "fi adad",
+      LUMP_SUM: "ek raqam",
+    },
     whoLabel: {
       INCLUDED: "Rate mein shamil",
       OWNER: "Malik dega",

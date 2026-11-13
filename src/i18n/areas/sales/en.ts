@@ -160,6 +160,12 @@ export const strings = {
     pickWork: "Choose the work",
     searchWork: "Search work…",
     noWorkFound: "No work with this name — add it in Work rates first.",
+    noRateShort: "no rate",
+    unit: {
+      SQFT: "per sq ft",
+      UNIT: "each",
+      LUMP_SUM: "lump sum",
+    },
     whoLabel: {
       INCLUDED: "Included",
       OWNER: "By owner",

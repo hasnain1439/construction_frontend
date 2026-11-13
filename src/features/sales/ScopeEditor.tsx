@@ -213,7 +213,7 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
         const found = !withPrices && contractType ? rateFor(workRates?.rates, items[i]?.text ?? "", contractType) : null;
         return (
           <div key={f.id} className="space-y-2 border-b border-dashed pb-2 last:border-0">
-            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_9rem_auto] items-start gap-2">
+            <div className={cn("grid items-start gap-2", withPrices ? "grid-cols-[1.5rem_minmax(0,1fr)_9rem_auto]" : "grid-cols-[1.5rem_minmax(0,1fr)_7rem_7rem_9rem_auto]")}>
               <span className="pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
               {withPrices ? (
                 <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
@@ -228,6 +228,17 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
                   options={workOptions(items[i]?.text)}
                 />
               )}
+              {!withPrices ? (
+                <>
+                  {/* the price and unit of the chosen work (from Work rates) */}
+                  <span className={cn("flex h-9 items-center rounded-md border px-2 text-sm tabular-nums", !found && "text-warning")} data-testid="line-rate">
+                    {found ? formatPKR(found.ratePaisa) : "—"}
+                  </span>
+                  <span className="flex h-9 items-center rounded-md border px-2 text-sm text-muted-foreground" data-testid="line-unit">
+                    {found ? t(`sales.scope.unit.${found.basis}`) : t("sales.scope.noRateShort")}
+                  </span>
+                </>
+              ) : null}
               <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} />
               <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
             </div>
@@ -240,8 +251,8 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
                   <MaterialsField name={`${base}.${i}.materials`} />
                 </div>
               </div>
-            ) : contractType ? (
-              <p className={cn("ms-8 text-xs", found ? "text-muted-foreground" : "text-warning")}>{found ? priceText(found) : t("sales.scope.noRate")}</p>
+            ) : contractType && !found && items[i]?.text ? (
+              <p className="ms-8 text-xs text-warning">{t("sales.scope.noRate")}</p>
             ) : null}
           </div>
         );
