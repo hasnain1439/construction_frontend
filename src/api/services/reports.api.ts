@@ -25,8 +25,10 @@ export const reportsApi = baseApi.injectEndpoints({
       query: ({ name, projectId, ...params }) => ({ url: ENDPOINTS.reports.book(name, projectId), params: cleanParams(params) }),
     }),
     /** The complete project file (A to Z): every section the caller may see, as a stored file. */
-    exportProjectFile: build.mutation<ReportFile, { projectId: string; format: "pdf" | "xlsx"; lang?: "en" | "roman" | "ur" }>({
-      query: ({ projectId, ...params }) => ({ url: ENDPOINTS.reports.projectFile(projectId), params: cleanParams(params) }),
+    exportProjectFile: build.mutation<ReportFile, { projectId: string; format: "pdf" | "xlsx"; lang?: "en" | "roman" | "ur"; images?: Array<{ title: string; dataUrl: string }> }>({
+      // With pictures (the house in 3D) the file is POSTed; without, a plain GET.
+      query: ({ projectId, images, ...params }) =>
+        images?.length ? { url: ENDPOINTS.reports.projectFile(projectId), method: "POST", body: { ...params, images } } : { url: ENDPOINTS.reports.projectFile(projectId), params: cleanParams(params) },
     }),
   }),
 });

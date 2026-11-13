@@ -1,9 +1,15 @@
 "use client";
 
-import { Box as BoxIcon, Camera, Info } from "lucide-react";
+import { Box as BoxIcon, Camera, Hammer, Info, Save, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { useMarkStructureProgressMutation } from "@/api/services/progress.api";
+import { useCan } from "@/components/common/PermissionGate";
+import { useMutationToast } from "@/hooks/useMutationToast";
+import { todayPK } from "@/lib/dates";
+import { nextMark, ProgressLegend, useSavedProgress, type Mark } from "@/features/site/StructureProgress";
 import { useGetFloorsQuery } from "@/api/services/projects.api";
 import type { ProjectDetail } from "@/api/types";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -13,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { CameraView, ViewOptions } from "@/components/house3d/House3DCanvas";
+import type { CameraView, PartProgress, ViewOptions } from "@/components/house3d/House3DCanvas";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { PART_COLOR } from "@/lib/house3d/colors";
 import { buildHouse, type BoxKind } from "@/lib/house3d/layout";
@@ -92,6 +98,29 @@ function Model3D({ project }: { project: ProjectDetail }) {
     [t],
   );
   const [view, setView] = useState<{ view: CameraView; key: number }>({ view: "corner", key: 0 });
+  // Progress: colour the parts done / in progress; "Mark work" = click parts to move them along, then save.
+  const search = useSearchParams();
+  const run = useMutationToast();
+  const canMark = useCan("dailylog.log.create") && (project.status === "ACTIVE" || project.status === "CLOSEOUT");
+  const saved = useSavedProgress(project.id);
+  const [showProgress, setShowProgress] = useState(search?.get("progress") === "1");
+  const [marking, setMarking] = useState(false);
+  const [pending, setPending] = useState<Record<string, Mark>>({});
+  const [markParts, markState] = useMarkStructureProgressMutation();
+  const marks: Record<string, Mark> = { ...saved, ...pending };
+  const colours: PartProgress | undefined =
+    showProgress || marking ? (Object.fromEntries(Object.entries(marks).filter(([, m]) => m !== "NOT_STARTED")) as PartProgress) : undefined;
+  const changed = Object.keys(pending).filter((k) => (saved[k] ?? "NOT_STARTED") !== pending[k]);
+  const onPick = useCallback((part: string) => setPending((p) => ({ ...p, [part]: nextMark(p[part] ?? saved[part] ?? "NOT_STARTED") })), [saved]);
+  const saveMarks = async () => {
+    const res = await run(() => markParts({ projectId: project.id, body: { date: todayPK(), parts: changed.map((partId) => ({ partId, status: pending[partId]! })) } }).unwrap(), {
+      success: () => t("projects.progress.saved", { n: changed.length }),
+    });
+    if (res) {
+      setPending({});
+      setMarking(false);
+    }
+  };
   const [unsupported, setUnsupported] = useState(false);
   const onUnsupported = useCallback(() => setUnsupported(true), []);
 
@@ -147,7 +176,17 @@ function Model3D({ project }: { project: ProjectDetail }) {
         )}
         {unsupported ? null : (
           <div className="overflow-hidden rounded-xl border">
-            <House3DCanvas model={model} options={shown} view={view.view} viewKey={view.key} onUnsupported={onUnsupported} describe={describe} className="h-[560px] w-full" />
+            <House3DCanvas
+              model={model}
+              options={shown}
+              view={view.view}
+              viewKey={view.key}
+              onUnsupported={onUnsupported}
+              describe={describe}
+              progress={colours}
+              onPick={marking ? onPick : undefined}
+              className="h-[560px] w-full"
+            />
           </div>
         )}
         <p className="text-xs text-muted-foreground">{t("projects.model3d.howTo")}</p>
@@ -164,6 +203,39 @@ function Model3D({ project }: { project: ProjectDetail }) {
       </div>
 
       <div className="space-y-4">
+        <SectionCard title={t("projects.progress.title")}>
+          <div className="space-y-3">
+            <ToggleRow id="model3d-progress" label={t("projects.progress.show")} checked={showProgress || marking} onChange={setShowProgress} />
+            <ProgressLegend />
+            {marking ? (
+              <>
+                <p className="text-xs text-muted-foreground">{t("projects.progress.clickHint")}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => void saveMarks()} disabled={!changed.length || markState.isLoading}>
+                    <Save data-icon="inline-start" />
+                    {t("projects.progress.saveN", { n: changed.length })}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setPending({});
+                      setMarking(false);
+                    }}
+                  >
+                    <X data-icon="inline-start" />
+                    {t("projects.progress.cancel")}
+                  </Button>
+                </div>
+              </>
+            ) : canMark ? (
+              <Button size="sm" variant="outline" onClick={() => setMarking(true)}>
+                <Hammer data-icon="inline-start" />
+                {t("projects.progress.markOn3d")}
+              </Button>
+            ) : null}
+          </div>
+        </SectionCard>
         <SectionCard title={t("projects.model3d.show")}>
           <div className="space-y-3">
             <ToggleRow id="model3d-roofs" label={t("projects.model3d.roofs")} checked={options.roofs} onChange={set("roofs")} />

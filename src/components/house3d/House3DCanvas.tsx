@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
@@ -30,6 +30,12 @@ export interface ViewOptions {
 }
 
 export type CameraView = "corner" | "top" | "front";
+
+/** Progress colours: done = green, in progress = amber (the rest keeps its material colour). */
+export const PROGRESS_COLOR = { DONE: "#2f9e5b", IN_PROGRESS: "#e2a72e" } as const;
+export type PartProgress = Record<string, keyof typeof PROGRESS_COLOR>;
+/** Takes a picture of the scene as it is shown (JPEG data URL), or null when WebGL failed. */
+export type Capture = (options?: ViewOptions) => string | null;
 
 /** A soft sky: light at the horizon, blue above. */
 function skyTexture() {
@@ -62,6 +68,9 @@ export function House3DCanvas({
   onUnsupported,
   describe,
   className,
+  progress,
+  onPick,
+  captureRef,
 }: {
   model: HouseModel;
   options: ViewOptions;
@@ -72,19 +81,29 @@ export function House3DCanvas({
   /** Text shown when hovering a structural member, e.g. "Column G-C4". */
   describe?: (kind: BoxKind, part: string) => string;
   className?: string;
+  /** Colour the parts by their progress (done / in progress); undefined = the normal colours. */
+  progress?: PartProgress;
+  /** A click (not a drag) on a named part. */
+  onPick?: (part: string, kind: BoxKind) => void;
+  /** Filled with a function that takes a picture of the scene (the project file). */
+  captureRef?: MutableRefObject<Capture | null>;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const apply = useRef<((o: ViewOptions) => void) | null>(null);
   const moveCamera = useRef<((v: CameraView) => void) | null>(null);
   const latest = useRef(options);
   const describeRef = useRef(describe);
+  const pickRef = useRef(onPick);
+  const paint = useRef<((p: PartProgress | undefined) => void) | null>(null);
+  const progressRef = useRef(progress);
 
   useEffect(() => {
     const el = host.current;
     if (!el) return;
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true });
+      // preserveDrawingBuffer: the picture for the project file reads the canvas after a render.
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     } catch {
       onUnsupported();
       return;
@@ -155,6 +174,16 @@ export function House3DCanvas({
     const groundMaterial = materialOf("ground");
 
     const list: { object: THREE.Object3D; kind: BoxKind | "label"; floor: number | null }[] = [];
+    const parts: Array<{ mesh: THREE.Mesh; kind: BoxKind; part: string }> = [];
+    const progressMaterials = new Map<string, THREE.MeshStandardMaterial>();
+    const progressMaterial = (status: keyof typeof PROGRESS_COLOR) => {
+      let m = progressMaterials.get(status);
+      if (!m) {
+        m = new THREE.MeshStandardMaterial({ color: PROGRESS_COLOR[status], roughness: 0.7, shadowSide: THREE.BackSide });
+        progressMaterials.set(status, m);
+      }
+      return m;
+    };
     for (const box of model.boxes) {
       const mesh = new THREE.Mesh(geometry, materialOf(box.kind));
       mesh.scale.set(Math.max(box.w, 0.01), Math.max(box.h, 0.01), Math.max(box.d, 0.01));
@@ -162,7 +191,10 @@ export function House3DCanvas({
       mesh.castShadow = !NO_SHADOW.has(box.kind);
       mesh.receiveShadow = !GLASS.has(box.kind);
       scene.add(mesh);
-      if (box.part) mesh.userData = { kind: box.kind, part: box.part };
+      if (box.part) {
+        mesh.userData = { kind: box.kind, part: box.part };
+        parts.push({ mesh, kind: box.kind, part: box.part });
+      }
       list.push({ object: mesh, kind: box.kind, floor: box.floor });
     }
     for (const l of model.labels) {
@@ -249,6 +281,14 @@ export function House3DCanvas({
     apply.current(latest.current);
     moveCamera.current("corner");
 
+    paint.current = (p: PartProgress | undefined) => {
+      for (const x of parts) {
+        const status = p?.[x.part];
+        x.mesh.material = status ? progressMaterial(status) : materialOf(x.kind);
+      }
+    };
+    paint.current(progressRef.current);
+
     const resize = () => {
       const w = el.clientWidth || 1;
       const h = el.clientHeight || 1;
@@ -281,6 +321,37 @@ export function House3DCanvas({
       } else tip.style.display = "none";
     };
     renderer.domElement.addEventListener("pointermove", onMove);
+    let down: { x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent) => {
+      down = { x: e.clientX, y: e.clientY };
+    };
+    const onUp = (e: PointerEvent) => {
+      const start = down;
+      down = null;
+      if (!start || !pickRef.current || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      ray.setFromCamera(pointer, camera);
+      const hit = ray.intersectObjects(scene.children, false).find((h) => h.object.visible && (h.object as THREE.Mesh).isMesh && (h.object.userData as { part?: string }).part);
+      const data = hit?.object.userData as { kind?: BoxKind; part?: string } | undefined;
+      if (data?.part && data.kind) pickRef.current(data.part, data.kind);
+    };
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointerup", onUp);
+
+    if (captureRef) {
+      captureRef.current = (o?: ViewOptions) => {
+        if (o) {
+          apply.current?.(o);
+          moveCamera.current?.(lastView);
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const url = renderer.domElement.toDataURL("image/jpeg", 0.85);
+        if (o) apply.current?.(latest.current);
+        return url;
+      };
+    }
 
     let frame = 0;
     const tick = () => {
@@ -294,6 +365,11 @@ export function House3DCanvas({
     return () => {
       cancelAnimationFrame(frame);
       renderer.domElement.removeEventListener("pointermove", onMove);
+      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointerup", onUp);
+      if (captureRef) captureRef.current = null;
+      for (const m of progressMaterials.values()) m.dispose();
+      paint.current = null;
       observer?.disconnect();
       controls.dispose();
       geometry.dispose();
@@ -304,11 +380,22 @@ export function House3DCanvas({
       apply.current = null;
       moveCamera.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- captureRef is a stable ref object
   }, [model, onUnsupported]);
 
   useEffect(() => {
     describeRef.current = describe;
   }, [describe]);
+
+  useEffect(() => {
+    pickRef.current = onPick;
+  }, [onPick]);
+
+  // Colour by progress.
+  useEffect(() => {
+    progressRef.current = progress;
+    paint.current?.(progress);
+  }, [progress]);
 
   // Switch parts on / off.
   useEffect(() => {

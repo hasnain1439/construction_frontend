@@ -952,6 +952,7 @@ export function buildHouse(input: HouseInput): HouseModel {
       }),
       { minX: 0, maxX: frontFt, minY: 0, maxY: 1, minZ: 0, maxZ: depthFt },
     );
+  nameWholeParts(boxes, floors);
   return {
     boxes,
     labels,
@@ -963,3 +964,57 @@ export function buildHouse(input: HouseInput): HouseModel {
   };
 }
 
+
+// ─── Parts for progress tracking ────────────────────────────────────────────
+
+/** Short tag of a floor in part ids: G (ground), B (basement), M (mumty / stair room), 1, 2 … */
+export function floorTag(floors: Pick<HouseFloor, "level">[], i: number): string {
+  const fl = floors[i];
+  if (!fl) return String(i);
+  return fl.level === "GROUND" ? "G" : fl.level === "BASEMENT" ? "B" : fl.level === "MUMTY" ? "M" : String(i - (floors[0]?.level === "BASEMENT" ? 1 : 0));
+}
+
+/** Whole-floor / whole-foundation parts besides the members already named (footings, columns, beams). */
+const WHOLE: Partial<Record<BoxKind, (tag: string) => string>> = {
+  wall: (tag) => `${tag}-W`,
+  slab: (tag) => `${tag}-S`,
+  stair: (tag) => `${tag}-ST`,
+  pcc: () => "F-PCC",
+  raft: () => "F-RAFT",
+  foundationWall: () => "F-WALL",
+  dpc: () => "F-DPC",
+  plinthBeam: () => "F-PB",
+  plinthFill: () => "F-FILL",
+};
+
+/** Names the walls, slab and stairs of each floor and the foundation layers, so they can be marked done. */
+function nameWholeParts(boxes: Box[], floors: HouseFloor[]) {
+  for (const b of boxes) {
+    if (b.part) continue;
+    const name = WHOLE[b.kind];
+    if (!name) continue;
+    if (b.floor === null) {
+      if (["pcc", "raft", "foundationWall", "dpc", "plinthBeam", "plinthFill"].includes(b.kind)) b.part = name("F");
+    } else b.part = name(floorTag(floors, b.floor));
+  }
+}
+
+export type PartGroupKey = "foundation" | number;
+/** One trackable part: id, kind, and the group it belongs to (the foundation or a floor index). */
+export interface TrackedPart {
+  id: string;
+  kind: BoxKind;
+  group: PartGroupKey;
+}
+
+/** Every trackable part of the model once (a part may span several boxes), foundation first, then floor by floor. */
+export function trackedParts(model: Pick<HouseModel, "boxes">): TrackedPart[] {
+  const seen = new Map<string, TrackedPart>();
+  for (const b of model.boxes) {
+    if (!b.part || seen.has(b.part)) continue;
+    seen.set(b.part, { id: b.part, kind: b.kind, group: b.floor === null ? "foundation" : b.floor });
+  }
+  const order = (p: TrackedPart) => (p.group === "foundation" ? -1 : p.group);
+  const num = (id: string) => Number(/(\d+)$/.exec(id)?.[1] ?? 0);
+  return [...seen.values()].sort((a, b) => order(a) - order(b) || a.kind.localeCompare(b.kind) || num(a.id) - num(b.id) || a.id.localeCompare(b.id));
+}

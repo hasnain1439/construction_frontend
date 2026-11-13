@@ -137,6 +137,8 @@ export const ENDPOINTS = {
   dailyLogs: {
     list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
     byId: (logId: string) => `/daily-logs/${id(logId)}`,
+    /** 3D parts marked done / in progress. */
+    structureProgress: (projectId: string) => `/projects/${id(projectId)}/structure-progress`,
   },
 
   subscription: {

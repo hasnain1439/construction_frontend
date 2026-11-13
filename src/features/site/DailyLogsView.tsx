@@ -1,5 +1,6 @@
 "use client";
 
+import { StructureWorkCard } from "./StructureProgress";
 import { ChevronLeft, ChevronRight, ClipboardList, Images, Mic, NotebookPen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useGetDailyLogQuery, useGetDailyLogsQuery } from "@/api/services/dailyLogs.api";
@@ -63,8 +64,9 @@ export function DailyLogsView({ projectId }: { projectId: string }) {
       crumb={t("cashSite.site.crumbDailyLogs")}
       actions={() => <DateRangePicker value={range} onChange={setRange} label={t("common.anyDate")} />}
     >
-      {() => (
+      {(project) => (
         <>
+          <StructureWorkCard project={project} />
           {logs.isLoading ? (
             <CardsSkeleton count={2} height="h-40" />
           ) : logs.error ? (
