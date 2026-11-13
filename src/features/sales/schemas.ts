@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { QuoteInputs, QuoteInputsBody } from "@/api/types";
 import { msg } from "@/i18n/message";
+import { scopeBody, scopeFromForm, scopeSchema } from "./ScopeEditor";
 import { anyPhoneSchema, optionalNumber, optionalPaisaSchema, optionalText, requiredNumber } from "@/lib/validation";
 
 /** Quote inputs (plot, building, contract, price settings) — shared by New quote and New revision. */
@@ -22,6 +23,11 @@ export const quoteInputsFields = {
   finishingAllowancePercent: optionalNumber({ min: 0, max: 200 }),
   finalPricePaisa: optionalPaisaSchema,
   note: optionalText(300),
+  /** true = this quote has its own work list (scope); false = the company template is used. */
+  scopeCustom: z.boolean(),
+  /** The quotation template to copy (null = the default of the contract type). */
+  scopeTemplateId: z.string().nullable().optional(),
+  scope: scopeSchema.nullable(),
 };
 
 export const revisionSchema = z.object(quoteInputsFields);
@@ -67,6 +73,9 @@ export const DEFAULT_INPUT_VALUES: QuoteInputValues = {
   finishingAllowancePercent: null,
   finalPricePaisa: null,
   note: "",
+  scopeCustom: false,
+  scopeTemplateId: null,
+  scope: null,
 };
 
 /** Form values of an existing revision's inputs (New revision starts from the latest). */
@@ -89,6 +98,9 @@ export function valuesFromInputs(i: QuoteInputs): QuoteInputValues {
     finishingAllowancePercent: i.finishingAllowancePercent ?? null,
     finalPricePaisa: i.finalPricePaisa ?? null,
     note: "",
+    scopeCustom: i.scope?.source === "QUOTE",
+    scopeTemplateId: i.scope?.templateId ?? null,
+    scope: i.scope?.source === "QUOTE" ? scopeBody(i.scope) : null,
   };
 }
 
@@ -109,5 +121,6 @@ export function toInputsBody(v: Partial<QuoteInputValues>): QuoteInputsBody | nu
     ...(v.marginPercent !== null && v.marginPercent !== undefined ? { marginPercent: v.marginPercent } : {}),
     ...(v.contractType === "FULL" && v.finishingAllowancePercent !== null && v.finishingAllowancePercent !== undefined ? { finishingAllowancePercent: v.finishingAllowancePercent } : {}),
     ...(v.finalPricePaisa ? { finalPricePaisa: v.finalPricePaisa } : {}),
+    ...(v.scopeCustom && v.scope ? { scope: scopeFromForm(v.scope) } : v.scopeTemplateId ? { scopeTemplateId: v.scopeTemplateId } : {}),
   } as QuoteInputsBody;
 }

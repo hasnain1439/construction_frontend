@@ -1,0 +1,31 @@
+import type { BoxKind } from "./layout";
+
+/** Colours of the house parts in the 3D view and its legend. */
+export const PART_COLOR: Record<BoxKind, string> = {
+  ground: "#7da35f",
+  road: "#6a6e74",
+  paving: "#bdb5a8",
+  pcc: "#a7a7a2",
+  footing: "#868b92",
+  foundationWall: "#a5583a",
+  raft: "#868b92",
+  pile: "#70767d",
+  plinthFill: "#8b6b3d",
+  plinthBeam: "#9aa0a6",
+  beam: "#c9c2b5",
+  dpc: "#2b2b2b",
+  plinthWall: "#8f8a82",
+  floorFinish: "#d9cdb8",
+  wetFloor: "#b9c7cf",
+  wall: "#f2ede3",
+  column: "#e4ddd0",
+  slab: "#d5d2cc",
+  parapet: "#ece5d8",
+  chajja: "#d5d2cc",
+  stair: "#c2ad8d",
+  door: "#6b4226",
+  window: "#8fb9d9",
+  ventilator: "#a9c8de",
+  frame: "#3e4146",
+  boundary: "#d8cbb5",
+};

@@ -8,6 +8,7 @@ export const inviteSchema = z.object({
   email: optionalEmailSchema,
   role: z.enum(["PM", "MUNSHI"], { error: msg("teamCompany.v.chooseRole") }),
   projectIds: z.array(z.string()),
+  designationId: z.string().nullable(),
   // Role + permissions live outside the form (RoleChecklist): roleId + permissionOverrides.
 });
 
@@ -17,4 +18,5 @@ export const editMemberSchema = z.object({
   role: z.enum(["THEKEDAR", "PM", "MUNSHI"]),
   canSeeFinancials: z.boolean(),
   projectIds: z.array(z.string()),
+  designationId: z.string().nullable(),
 });

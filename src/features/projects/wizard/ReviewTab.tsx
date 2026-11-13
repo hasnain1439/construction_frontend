@@ -1,6 +1,6 @@
 "use client";
 
-import { Calculator, CircleCheck, CircleX, TriangleAlert } from "lucide-react";
+import { Box, Calculator, CircleCheck, CircleX, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useGetEstimateQuery, useGetReviewQuery } from "@/api/services/projects.api";
@@ -24,6 +24,7 @@ import { ApplyMarginAction } from "../estimate/ContractFromEstimateCard";
 import { fmt, fmtUp, rupees, steelKgOf } from "../estimate/labels";
 import { isEstimateBlocked } from "../estimate/warningText";
 import { formatArea } from "../utils/calc";
+import { projectHref } from "@/lib/navigation";
 import { useWizard } from "./WizardContext";
 
 type IssueCode = keyof typeof projectStrings.issue;
@@ -284,6 +285,17 @@ export function ReviewTab() {
         <SectionCard title={t("projects.review.checkThese", { n: data.warnings.length })} description={t("projects.review.warningsDontBlock")}>
           <IssueList issues={data.warnings} tone="warning" onGo={goTo} />
         </SectionCard>
+      ) : null}
+      {data.summary.roomsPerFloor.some((f) => f.rooms > 0) ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Box className="size-5 text-primary" aria-hidden />
+            <p className="text-sm">{t("projects.model3d.openHint")}</p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href={projectHref(projectId, "/overview/3d")}>{t("projects.model3d.open")}</Link>
+          </Button>
+        </div>
       ) : null}
       {canViewEstimate ? <EstimateCard projectId={projectId} onOpen={() => goTo(ESTIMATE_STEP)} /> : null}
       <Summary review={data} />

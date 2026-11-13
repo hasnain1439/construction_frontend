@@ -315,6 +315,7 @@ export const strings: Widen<typeof En.strings> = {
     listDesc: "Office mein mahana tankhwah wale log (site ke mazdoor nahi).",
     sheetTitle: "Tankhwah sheet",
     chooseDesignation: "Ohda chunein",
+    allDesignations: "Sab ohde",
     designationHint: "Mazeed ohde Office staff → Ohde mein add karein.",
     absences: "Ghair haazir",
     absentShort: "{absent} ghair haazir, {half} aadha",

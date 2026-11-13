@@ -23,3 +23,4 @@ export * from "./edge";
 export * from "./officeExpenses";
 export * from "./staff";
 export * from "./companyAccounts";
+export * from "./progress";

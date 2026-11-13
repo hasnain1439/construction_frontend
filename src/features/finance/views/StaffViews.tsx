@@ -1,5 +1,6 @@
 "use client";
 
+import { DesignationFilter, useDesignationColumn } from "@/features/finance/components/DesignationFilter";
 import { Banknote, CalendarCheck, CalendarClock, CalendarMinus, CalendarX, HandCoins, Pencil, Plus, Trash2, Users, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -92,24 +93,17 @@ export function SalarySheetView() {
 function StaffList({ canManage }: { canManage: boolean }) {
   const t = useT();
   const router = useRouter();
-  const [initial] = useState({ isActive: "true" });
+  const [initial] = useState({ isActive: "true", designationId: "" });
   const list = useListState(initial);
   const { data, isLoading, isFetching, error, refetch } = useGetStaffQuery(list.query as StaffQuery);
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [advancing, setAdvancing] = useState<StaffMember | null>(null);
   const [paying, setPaying] = useState<Paying | null>(null);
 
+  const designationColumn = useDesignationColumn<StaffMember>((s) => s.designation);
   const columns: Column<StaffMember>[] = [
-    {
-      id: "name",
-      header: t("field.name"),
-      cell: (s) => (
-        <div className="min-w-0">
-          <p className="font-medium">{s.name}</p>
-          {s.designation ? <p className="text-xs text-muted-foreground">{s.designation}</p> : null}
-        </div>
-      ),
-    },
+    { id: "name", header: t("field.name"), cell: (s) => <span className="font-medium">{s.name}</span> },
+    designationColumn,
     { id: "phone", header: t("field.phone"), cell: (s) => (s.phone ? <bdi dir="ltr">{formatPhone(s.phone)}</bdi> : "—") },
     { id: "salary", header: t("cashSite.staff.monthlySalary"), align: "right", cell: (s) => <MoneyText paisa={s.monthlySalaryPaisa} className="font-medium" /> },
     {
@@ -156,6 +150,7 @@ function StaffList({ canManage }: { canManage: boolean }) {
           ]}
           allLabel={t("cashSite.staff.allStatus")}
         />
+        <DesignationFilter value={list.filters.designationId} onChange={(v) => list.setFilter("designationId", v)} />
         <SearchInput value={list.search} onChange={list.setSearch} placeholder={t("cashSite.staff.search")} className={SEARCH} />
       </FilterBar>
       <SectionCard flush>
@@ -187,21 +182,15 @@ function SalarySheetPanel({ canManage }: { canManage: boolean }) {
   const t = useT();
   const router = useRouter();
   const [month, setMonth] = useState(() => todayPK().slice(0, 7));
-  const query = useGetSalarySheetQuery(month, { skip: !/^\d{4}-\d{2}$/.test(month) });
+  const [designationId, setDesignationId] = useState("");
+  const query = useGetSalarySheetQuery({ month, designationId }, { skip: !/^\d{4}-\d{2}$/.test(month) });
   const [paying, setPaying] = useState<Paying | null>(null);
   const totals = query.data?.totals;
 
+  const designationColumn = useDesignationColumn<SalarySheetRow>((r) => r.staff.designation);
   const columns: Column<SalarySheetRow>[] = [
-    {
-      id: "name",
-      header: t("field.name"),
-      cell: (r) => (
-        <div className="min-w-0">
-          <p className="font-medium">{r.staff.name}</p>
-          {r.staff.designation ? <p className="text-xs text-muted-foreground">{r.staff.designation}</p> : null}
-        </div>
-      ),
-    },
+    { id: "name", header: t("field.name"), cell: (r) => <span className="font-medium">{r.staff.name}</span> },
+    designationColumn,
     { id: "salary", header: t("cashSite.staff.basic"), align: "right", cell: (r) => <MoneyText paisa={r.payment?.basicPaisa ?? r.monthlySalaryPaisa} /> },
     {
       id: "absent",
@@ -244,6 +233,7 @@ function SalarySheetPanel({ canManage }: { canManage: boolean }) {
           <Label htmlFor="salary-month">{t("cashSite.staff.month")}</Label>
           <Input id="salary-month" type="month" className="w-48" value={month} max={todayPK().slice(0, 7)} onChange={(e) => setMonth(e.target.value)} />
         </div>
+        <DesignationFilter value={designationId} onChange={setDesignationId} />
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <KpiCard

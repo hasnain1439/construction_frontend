@@ -13,6 +13,10 @@ import type {
   QuoteInsights,
   QuoteLostBody,
   QuoteRevision,
+  QuoteTemplateBody,
+  QuoteTemplateList,
+  QuoteWorkRate,
+  QuoteWorkRates,
   QuotesQuery,
   QuoteSummary,
   QuoteWonBody,
@@ -49,6 +53,40 @@ export const salesApi = baseApi.injectEndpoints({
     getQuoteInsights: build.query<QuoteInsights, { months?: number } | void>({
       query: (params) => ({ url: ENDPOINTS.quotes.insights, params: cleanParams(params ?? undefined) }),
       providesTags: [{ type: "Quotes", id: LIST }],
+    }),
+    /** Work rates: the price of each work line, by name. */
+    getQuoteWorkRates: build.query<QuoteWorkRates, void>({
+      query: () => ENDPOINTS.quotes.workRates,
+      providesTags: [{ type: "Quotes", id: "WORK_RATES" }],
+    }),
+    saveQuoteWorkRates: build.mutation<QuoteWorkRates, QuoteWorkRate[]>({
+      query: (rates) => ({ url: ENDPOINTS.quotes.workRates, method: "PUT", body: { rates } }),
+      invalidatesTags: [{ type: "Quotes", id: "WORK_RATES" }],
+    }),
+    resetQuoteWorkRates: build.mutation<QuoteWorkRates, void>({
+      query: () => ({ url: ENDPOINTS.quotes.workRates, method: "DELETE" }),
+      invalidatesTags: [{ type: "Quotes", id: "WORK_RATES" }],
+    }),
+    /** Quotation templates (work list, rate parts, base rates, notes). */
+    getQuoteTemplates: build.query<QuoteTemplateList, void>({
+      query: () => ENDPOINTS.quotes.scopeTemplates,
+      providesTags: [{ type: "Quotes", id: "TEMPLATES" }],
+    }),
+    createQuoteTemplate: build.mutation<QuoteTemplateList, QuoteTemplateBody>({
+      query: (body) => ({ url: ENDPOINTS.quotes.scopeTemplates, method: "POST", body }),
+      invalidatesTags: [{ type: "Quotes", id: "TEMPLATES" }],
+    }),
+    updateQuoteTemplate: build.mutation<QuoteTemplateList, { id: string; body: QuoteTemplateBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.quotes.scopeTemplate(id), method: "PUT", body }),
+      invalidatesTags: [{ type: "Quotes", id: "TEMPLATES" }],
+    }),
+    deleteQuoteTemplate: build.mutation<QuoteTemplateList, string>({
+      query: (id) => ({ url: ENDPOINTS.quotes.scopeTemplate(id), method: "DELETE" }),
+      invalidatesTags: [{ type: "Quotes", id: "TEMPLATES" }],
+    }),
+    resetQuoteTemplates: build.mutation<QuoteTemplateList, void>({
+      query: () => ({ url: ENDPOINTS.quotes.scopeTemplatesReset, method: "POST" }),
+      invalidatesTags: [{ type: "Quotes", id: "TEMPLATES" }],
     }),
     /** Live quick estimate — a mutation so typing never caches stale previews. */
     previewQuote: build.mutation<QuoteComputed, QuoteInputsBody>({
@@ -108,4 +146,12 @@ export const {
   useMarkQuoteLostMutation,
   useMarkQuoteWonMutation,
   useGetQuotePdfMutation,
+  useGetQuoteTemplatesQuery,
+  useCreateQuoteTemplateMutation,
+  useUpdateQuoteTemplateMutation,
+  useDeleteQuoteTemplateMutation,
+  useResetQuoteTemplatesMutation,
+  useGetQuoteWorkRatesQuery,
+  useSaveQuoteWorkRatesMutation,
+  useResetQuoteWorkRatesMutation,
 } = salesApi;

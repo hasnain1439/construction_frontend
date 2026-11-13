@@ -137,6 +137,8 @@ export const ENDPOINTS = {
   dailyLogs: {
     list: (projectId: string) => `/projects/${id(projectId)}/daily-logs`,
     byId: (logId: string) => `/daily-logs/${id(logId)}`,
+    /** 3D parts marked done / in progress. */
+    structureProgress: (projectId: string) => `/projects/${id(projectId)}/structure-progress`,
   },
 
   subscription: {
@@ -240,6 +242,10 @@ export const ENDPOINTS = {
     assumptions: "/quotes/assumptions",
     preview: "/quotes/preview",
     insights: "/quotes/insights",
+    scopeTemplates: "/quotes/scope-templates",
+    scopeTemplate: (templateId: string) => `/quotes/scope-templates/${id(templateId)}`,
+    scopeTemplatesReset: "/quotes/scope-templates/reset",
+    workRates: "/quotes/work-rates",
     byId: (quoteId: string) => `/quotes/${id(quoteId)}`,
     revisions: (quoteId: string) => `/quotes/${id(quoteId)}/revisions`,
     send: (quoteId: string) => `/quotes/${id(quoteId)}/send`,
@@ -517,6 +523,8 @@ export const ENDPOINTS = {
     byName: (name: string) => `/reports/${id(name)}`,
     /** Step 18 · one project's report book (delay analysis, variance, snags). */
     book: (name: string, projectId: string) => `/reports/${id(name)}/${id(projectId)}`,
+    /** The complete project file (A to Z). */
+    projectFile: (projectId: string) => `/reports/project-file/${id(projectId)}`,
   },
 
   /** Offline office: office PCs that sync the company's data, and their sync problems. */

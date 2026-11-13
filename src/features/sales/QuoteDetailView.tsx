@@ -37,6 +37,7 @@ import { useReadOnly } from "@/hooks/useReadOnly";
 import { useEnumT, useT, type TranslationKey } from "@/i18n/useT";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
+import { ScopeList } from "./ScopeEditor";
 import { CustomerPanel, InternalPanel, QuoteStatusBadge, useLostReasonLabel } from "./shared";
 
 const OPEN = ["DRAFT", "SENT", "NEGOTIATION", "EXPIRED"];
@@ -336,6 +337,11 @@ function QuoteDetailBody({ quote }: { quote: QuoteDetail }) {
           </SectionCard>
         </div>
       </div>
+      {quote.latest.inputs.scope ? (
+        <SectionCard title={t("sales.scope.title")} description={t("sales.scope.desc")}>
+          <ScopeList scope={quote.latest.inputs.scope} />
+        </SectionCard>
+      ) : null}
       <RevisionCompare quoteId={quote.id} latest={quote.revision} />
       <Activity quote={quote} />
 

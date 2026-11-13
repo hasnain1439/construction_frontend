@@ -66,8 +66,8 @@ export const staffApi = baseApi.injectEndpoints({
       query: ({ id }) => ({ url: ENDPOINTS.staff.salaryById(id), method: "DELETE" }),
       invalidatesTags: (_r, _e, { staffId }) => [{ type: "Staff", id: staffId }, ...MONEY],
     }),
-    getSalarySheet: build.query<SalarySheet, string>({
-      query: (month) => ({ url: ENDPOINTS.staff.salarySheet, params: { month } }),
+    getSalarySheet: build.query<SalarySheet, { month: string; designationId?: string }>({
+      query: (params) => ({ url: ENDPOINTS.staff.salarySheet, params: cleanParams(params) }),
       providesTags: ["SalarySheet"],
     }),
 
@@ -90,15 +90,15 @@ export const staffApi = baseApi.injectEndpoints({
     }),
 
     // Attendance: a day to mark, a month to check.
-    getStaffAttendanceDay: build.query<StaffAttendanceDay, string>({
-      query: (date) => ({ url: ENDPOINTS.staff.attendance, params: { date } }),
+    getStaffAttendanceDay: build.query<StaffAttendanceDay, { date: string; designationId?: string }>({
+      query: (params) => ({ url: ENDPOINTS.staff.attendance, params: cleanParams(params) }),
       providesTags: ["StaffAttendance"],
     }),
     markStaffAttendance: build.mutation<StaffAttendanceDay, MarkStaffAttendanceBody>({
       query: (body) => ({ url: ENDPOINTS.staff.attendance, method: "PUT", body }),
       invalidatesTags: ["StaffAttendance", "SalarySheet"],
     }),
-    getStaffAttendanceMonth: build.query<StaffAttendanceMonth, { month: string; staffId?: string }>({
+    getStaffAttendanceMonth: build.query<StaffAttendanceMonth, { month: string; staffId?: string; designationId?: string }>({
       query: (params) => ({ url: ENDPOINTS.staff.attendanceMonth, params: cleanParams(params) }),
       providesTags: ["StaffAttendance"],
     }),

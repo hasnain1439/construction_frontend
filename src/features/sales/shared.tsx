@@ -105,6 +105,28 @@ export function InternalPanel({ data, loading }: { data: QuoteComputed | null | 
             </Row>
           </div>
 
+          {data.linePricing ? (
+            <div data-testid="quote-lines">
+              <h3 className="mb-1 text-sm font-semibold">{t("sales.live.lineTitle")}</h3>
+              <div className="divide-y">
+                <Row label={t("sales.live.lineWork")}>
+                  <MoneyText paisa={data.linePricing.workPaisa} />
+                </Row>
+                {data.linePricing.outsideWorkPaisa !== "0" ? (
+                  <Row label={t("sales.live.lineOutside")}>
+                    <MoneyText paisa={data.linePricing.outsideWorkPaisa} />
+                  </Row>
+                ) : null}
+                <Row label={t("sales.live.lineMaterial")}>
+                  <MoneyText paisa={data.linePricing.materialPaisa} />
+                </Row>
+                <Row label={t("sales.live.lineMaterialMargin")}>
+                  <MoneyText paisa={data.linePricing.materialMarginPaisa} />
+                </Row>
+              </div>
+            </div>
+          ) : null}
+
           <div>
             <h3 className="mb-1 text-sm font-semibold">{t("sales.live.sections")}</h3>
             <div className="divide-y">

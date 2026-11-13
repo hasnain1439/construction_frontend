@@ -1,7 +1,7 @@
 "use client";
 
 import { DemoBadge, DemoProjectBanner } from "@/features/onboarding/components/DemoBadge";
-import { Pencil, Play, Trash2 } from "lucide-react";
+import { Box, Pencil, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutationToast } from "@/hooks/useMutationToast";
 import { useReadOnly } from "@/hooks/useReadOnly";
 import { BILLING_ACCESS, projectHref } from "@/lib/navigation";
+import { ProjectFileMenu } from "@/features/reports/components/ProjectFileMenu";
 import { useEnumT, useStatusT, useT } from "@/i18n/useT";
 import {
   ClientCard,
@@ -208,6 +209,8 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const seesBilling = canAccess(BILLING_ACCESS);
   const canEstimate = can("projects.estimate.view");
   const canSchedule = can("schedule.plan.view");
+  // Anyone who can open the project; the file holds only what they may see.
+  const canProjectFile = can("projects.project.view");
   return (
     <ProjectPageShell
       projectId={projectId}
@@ -215,6 +218,15 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
       actions={(project) => (
         <>
           <StatusActions project={project} />
+          {!isMunshi ? (
+            <Button asChild variant="outline">
+              <Link href={projectHref(project.id, "/overview/3d")}>
+                <Box data-icon="inline-start" />
+                {t("projects.model3d.title")}
+              </Link>
+            </Button>
+          ) : null}
+          {canProjectFile ? <ProjectFileMenu projectId={project.id} /> : null}
           {canManage && project.status === "DRAFT" ? (
             <Button asChild>
               <Link href={wizardHref(project.id)}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { DesignationFilter, useDesignationColumn } from "@/features/finance/components/DesignationFilter";
 import { Pencil, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { useGetRolesQuery } from "@/api/services/permissions.api";
@@ -37,13 +38,14 @@ export function MembersView() {
   const roles = useGetRolesQuery(undefined, { skip: !canManage });
   const roleById = new Map((roles.data ?? []).map((r) => [r.id, r]));
   const readOnly = useReadOnly();
-  const list = useListState({ role: "", status: "", projectId: "" });
+  const list = useListState({ role: "", status: "", projectId: "", designationId: "" });
   const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery(list.query as UsersQuery); // empty filters are dropped by cleanParams
   const { options: projectOptions } = useProjectOptions();
   const [inviteOpen, setInviteOpen] = useSearchFlag();
   const [editing, setEditing] = useState<string | null>(null);
   const usage = data?.meta.usage;
 
+  const designationColumn = useDesignationColumn<TeamUser>((u) => u.designation?.name);
   const columns: Column<TeamUser>[] = [
     {
       id: "name",
@@ -51,6 +53,7 @@ export function MembersView() {
       cell: (u) => <AvatarName name={u.name} subtitle={u.email ?? undefined} />,
       sortValue: (u) => u.name,
     },
+    designationColumn,
     { id: "phone", header: t("field.phone"), cell: (u) => <bdi dir="ltr" className="tabular">{formatPhone(u.phone)}</bdi> },
     {
       id: "permissionRole",
@@ -121,6 +124,7 @@ export function MembersView() {
             { value: "INACTIVE", label: ts("user", "INACTIVE") },
           ]}
         />
+        <DesignationFilter value={list.filters.designationId} onChange={(v) => list.setFilter("designationId", v)} />
         <div className="w-60">
           <Combobox
             value={list.filters.projectId || null}

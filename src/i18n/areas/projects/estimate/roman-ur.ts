@@ -347,6 +347,7 @@ export const strings: Widen<typeof En.strings> = {
     blockedTitle: "Abhi andaza nahi",
     blockedBody: "Jab tak kamre covered area ke kam az kam aadhe na hon, kharcha, BoQ aur theke ki raqam nahi dikhayi jati.",
     ROOMS_TOO_FEW: "Kamre covered area ka sirf {percent}% hain ({coveredAreaSqft} mein se {roomsAreaSqft} sq ft). Andaze par bharosa karne se pehle baqi kamre (ya rahdari) darj karein.",
+    WORK_RATE_MISSING: "In kaamon ka rate nahi: {items}. Sales → Quotation templates → Kaam ke rate mein daalein.",
     RULEBOOK_RATE_ZERO: "In rates ki qeemat Rs 0 hai, is liye in lines ka koi kharcha nahi lagta: {items}. Assumptions mein rate darj karein.",
     FOOTPRINT_EXCEEDS_PLOT: "Ground footprint ({footprintSqft} sq ft) plot ({plotAreaSqft} sq ft) se bara hai — covered area ya plot size theek karein.",
     FOOTINGS_COLUMNS_MISMATCH: "{footings} footings likhi hain, lekin frame mein {columns} columns hain. Aap ka likha number istemal ho raha hai; ise check karein (aam tor par har column ke neeche aik footing).",
