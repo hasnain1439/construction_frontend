@@ -176,19 +176,17 @@ function SectionItems({ name, section }: { name: string; section: number }) {
       {fields.map((f, i) => {
         const basis = items[i]?.basis ?? "NONE";
         return (
-          <div key={f.id} className="space-y-2 border-b border-dashed pb-3 last:border-0">
-            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_10rem_auto] items-start gap-2">
-              <span className="pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
-              <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
-              <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} />
-              <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
-            </div>
-            <div className="ms-8 flex flex-wrap items-start gap-2">
-              <SelectField name={`${base}.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} className="w-36" />
-              {basis !== "NONE" ? <MoneyField name={`${base}.${i}.ratePaisa`} label={t("sales.scope.price")} hideLabel className="w-36" /> : null}
-              {basis === "UNIT" ? <NumberField name={`${base}.${i}.quantity`} label={t("sales.scope.quantity")} hideLabel placeholder={t("sales.scope.quantity")} className="w-24" /> : null}
+          <div key={f.id} className="flex flex-wrap items-start gap-2 border-b border-dashed pb-2 last:border-0">
+            <span className="w-6 shrink-0 pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+            <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" className="min-w-[16rem] flex-1" />
+            <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} className="w-36" />
+            <SelectField name={`${base}.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} className="w-32" />
+            {basis !== "NONE" ? <MoneyField name={`${base}.${i}.ratePaisa`} label={t("sales.scope.price")} hideLabel className="w-32" /> : null}
+            {basis === "UNIT" ? <NumberField name={`${base}.${i}.quantity`} label={t("sales.scope.quantity")} hideLabel placeholder={t("sales.scope.quantity")} className="w-20" /> : null}
+            <div className="max-w-56 pt-0.5">
               <MaterialsField name={`${base}.${i}.materials`} />
             </div>
+            <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
           </div>
         );
       })}
