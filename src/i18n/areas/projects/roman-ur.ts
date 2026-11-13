@@ -12,6 +12,7 @@ export const strings: Widen<typeof En.strings> = {
     busy: "File ban rahi hai… bara project ho to ek minute lag sakta hai.",
   },
   progress: {
+    shotFloor: "{name} (akeli)",
     shotHouse: "Ghar 3D mein",
     shotFoundation: "Foundation",
     shotProgress: "Ab tak ka structure ka kaam (hara mukammal, peela jari)",

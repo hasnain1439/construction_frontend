@@ -11,6 +11,7 @@ export const strings = {
     busy: "Making the file… a big project can take a minute.",
   },
   progress: {
+    shotFloor: "{name} (on its own)",
     shotHouse: "The house in 3D",
     shotFoundation: "The foundation",
     shotProgress: "Structure work so far (green done, amber in progress)",

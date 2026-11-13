@@ -18,11 +18,12 @@ export interface Shot {
 
 const WHOLE: ViewOptions = { show: "all", upTo: 99, foundation: false, walls: true, roofs: true, boundary: true, labels: false };
 const FOUNDATION: ViewOptions = { show: "foundation", upTo: 0, foundation: true, walls: true, roofs: false, boundary: false, labels: false };
+const FLOOR: ViewOptions = { show: 0, upTo: 0, foundation: false, walls: true, roofs: false, boundary: false, labels: false };
 const FRAME: ViewOptions = { show: "all", upTo: 99, foundation: true, walls: false, roofs: false, boundary: false, labels: false };
 
 /**
  * Renders the project's house off screen and takes the pictures for the project file: the whole
- * house, the foundation and — when parts are marked — the frame coloured by progress. Calls `onDone`
+ * house, the foundation, each floor and — when parts are marked — the frame coloured by progress. Calls `onDone`
  * once ([] when there is no 3D: no rooms, no WebGL, or it takes too long).
  */
 export function Capture3D({ projectId, onDone }: { projectId: string; onDone: (shots: Shot[]) => void }) {
@@ -63,6 +64,8 @@ export function Capture3D({ projectId, onDone }: { projectId: string; onDone: (s
       };
       add(t("projects.progress.shotHouse"), WHOLE);
       if (model.boxes.some((b) => b.floor === null && b.kind !== "ground" && b.kind !== "road" && b.kind !== "paving" && b.kind !== "boundary")) add(t("projects.progress.shotFoundation"), FOUNDATION);
+      // Each floor on its own, without its slab, so its rooms, walls, doors and windows show.
+      model.floors.forEach((f, i) => add(t("projects.progress.shotFloor", { name: f.name }), { ...FLOOR, show: i, upTo: i }));
       if (colours) add(t("projects.progress.shotProgress"), FRAME);
       finish(shots);
     }, 1200);
@@ -75,8 +78,8 @@ export function Capture3D({ projectId, onDone }: { projectId: string; onDone: (s
 
   if (!model || !rooms) return null;
   return (
-    <div aria-hidden style={{ position: "fixed", left: -10000, top: 0, width: 1200, height: 750, pointerEvents: "none" }}>
-      <House3DCanvas model={model} options={WHOLE} view="corner" viewKey={0} onUnsupported={() => finish([])} progress={colours} captureRef={capture} className="h-[750px] w-[1200px]" />
+    <div aria-hidden style={{ position: "fixed", left: -10000, top: 0, width: 1100, height: 690, pointerEvents: "none" }}>
+      <House3DCanvas model={model} options={WHOLE} view="corner" viewKey={0} onUnsupported={() => finish([])} progress={colours} captureRef={capture} className="h-[690px] w-[1100px]" />
     </div>
   );
 }
