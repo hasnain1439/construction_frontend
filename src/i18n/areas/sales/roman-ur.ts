@@ -168,6 +168,7 @@ export const strings: Widen<typeof En.strings> = {
       UNIT: "fi adad",
       LUMP_SUM: "ek raqam",
     },
+    notAddedHint: "Qeemat mein nahi judta — malik karega / shamil nahi",
     whoLabel: {
       INCLUDED: "Rate mein shamil",
       OWNER: "Malik dega",

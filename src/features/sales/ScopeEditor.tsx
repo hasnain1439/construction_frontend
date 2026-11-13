@@ -219,6 +219,7 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
                 <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
               ) : (
                 <ComboboxField
+                  className={cn("transition-opacity", items[i]?.who !== "INCLUDED" && "opacity-45")}
                   name={`${base}.${i}.text`}
                   label={t("sales.scope.item")}
                   hideLabel
@@ -231,10 +232,14 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
               {!withPrices ? (
                 <>
                   {/* the price and unit of the chosen work (from Work rates) */}
-                  <span className={cn("flex h-9 items-center rounded-md border px-2 text-sm tabular-nums", !found && "text-warning")} data-testid="line-rate">
+                  <span
+                    className={cn("flex h-9 items-center rounded-md border px-2 text-sm tabular-nums transition-opacity", !found && "text-warning", found && items[i]?.who !== "INCLUDED" && "line-through opacity-45")}
+                    title={found && items[i]?.who !== "INCLUDED" ? t("sales.scope.notAddedHint") : undefined}
+                    data-testid="line-rate"
+                  >
                     {found ? formatPKR(found.ratePaisa) : "—"}
                   </span>
-                  <span className="flex h-9 items-center rounded-md border px-2 text-sm text-muted-foreground" data-testid="line-unit">
+                  <span className={cn("flex h-9 items-center rounded-md border px-2 text-sm text-muted-foreground transition-opacity", items[i]?.who !== "INCLUDED" && "opacity-45")} data-testid="line-unit">
                     {found ? t(`sales.scope.unit.${found.basis}`) : t("sales.scope.noRateShort")}
                   </span>
                 </>
@@ -389,7 +394,9 @@ export function ScopeList({ scope }: { scope: QuoteScopeContent }) {
           <ul className="space-y-1">
             {s.items.map((it, j) => (
               <li key={j} className="flex items-start justify-between gap-3 border-b border-dashed py-1 last:border-0">
-                <span dir="auto">{it.text}</span>
+                <span dir="auto" className={cn(it.who !== "INCLUDED" && "opacity-45")}>
+                  {it.text}
+                </span>
                 <span className="flex shrink-0 items-center gap-2">
                   {it.price ? <span className={cn("text-xs tabular-nums", it.who !== "INCLUDED" && "text-muted-foreground line-through")}>{priceText(it.price)}</span> : null}
                   <WhoBadge who={it.who} />

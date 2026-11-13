@@ -168,6 +168,7 @@ export const strings: Widen<typeof En.strings> = {
       UNIT: "فی عدد",
       LUMP_SUM: "ایک رقم",
     },
+    notAddedHint: "قیمت میں نہیں جڑتا — مالک کرے گا / شامل نہیں",
     whoLabel: {
       INCLUDED: "ریٹ میں شامل",
       OWNER: "مالک دے گا",

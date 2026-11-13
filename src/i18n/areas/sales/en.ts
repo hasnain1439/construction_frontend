@@ -166,6 +166,7 @@ export const strings = {
       UNIT: "each",
       LUMP_SUM: "lump sum",
     },
+    notAddedHint: "Not added to the price — the owner does it / not included",
     whoLabel: {
       INCLUDED: "Included",
       OWNER: "By owner",
