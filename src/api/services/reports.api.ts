@@ -25,12 +25,22 @@ export const reportsApi = baseApi.injectEndpoints({
       query: ({ name, projectId, ...params }) => ({ url: ENDPOINTS.reports.book(name, projectId), params: cleanParams(params) }),
     }),
     /** The complete project file (A to Z): every section the caller may see, as a stored file. */
-    exportProjectFile: build.mutation<ReportFile, { projectId: string; format: "pdf" | "xlsx"; lang?: "en" | "roman" | "ur"; images?: Array<{ title: string; dataUrl: string }> }>({
+    exportProjectFile: build.mutation<ReportFile, { projectId: string; format: "pdf" | "xlsx"; lang?: "en" | "roman" | "ur"; parts?: ProjectFilePart[]; images?: Array<{ title: string; dataUrl: string }> }>({
       // With pictures (the house in 3D) the file is POSTed; without, a plain GET.
-      query: ({ projectId, images, ...params }) =>
-        images?.length ? { url: ENDPOINTS.reports.projectFile(projectId), method: "POST", body: { ...params, images } } : { url: ENDPOINTS.reports.projectFile(projectId), params: cleanParams(params) },
+      query: ({ projectId, images, parts, ...params }) =>
+        images?.length
+          ? { url: ENDPOINTS.reports.projectFile(projectId), method: "POST", body: { ...params, ...(parts ? { parts } : {}), images } }
+          : { url: ENDPOINTS.reports.projectFile(projectId), params: cleanParams({ ...params, ...(parts ? { parts: parts.join(",") } : {}) }) },
+    }),
+    /** The parts of the project file this reader may see (the picker before a download). */
+    getProjectFileParts: build.query<ProjectFilePart[], string>({
+      query: (projectId) => ({ url: ENDPOINTS.reports.projectFile(projectId), params: { format: "json" } }),
+      transformResponse: (book: { extra?: { parts?: ProjectFilePart[] } }) => book.extra?.parts ?? [],
     }),
   }),
 });
 
-export const { useGetReportQuery, useExportReportMutation, useGetReportBookQuery, useExportReportBookMutation, useExportProjectFileMutation } = reportsApi;
+/** Parts of the project file a reader can pick. */
+export type ProjectFilePart = "setup" | "estimate" | "billing" | "schedule" | "daily" | "purchases" | "labour" | "cash" | "equipment" | "closeout";
+
+export const { useGetReportQuery, useExportReportMutation, useGetReportBookQuery, useExportReportBookMutation, useExportProjectFileMutation, useGetProjectFilePartsQuery } = reportsApi;

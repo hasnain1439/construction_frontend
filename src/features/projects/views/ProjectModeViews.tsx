@@ -209,7 +209,8 @@ export function ProjectOverviewView({ projectId }: { projectId: string }) {
   const seesBilling = canAccess(BILLING_ACCESS);
   const canEstimate = can("projects.estimate.view");
   const canSchedule = can("schedule.plan.view");
-  const canProjectFile = !isMunshi && can("finance.reports.view");
+  // Anyone who can open the project; the file holds only what they may see.
+  const canProjectFile = can("projects.project.view");
   return (
     <ProjectPageShell
       projectId={projectId}
