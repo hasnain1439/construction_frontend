@@ -370,14 +370,16 @@ describe("Sales — quotation templates (scope)", () => {
     await user.click(screen.getAllByRole("button", { name: /^Edit$/ })[0]!);
     expect(screen.getByDisplayValue("A · Up to DPC")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Add item/ }));
-    const items = screen.getAllByRole("textbox", { name: "Work item" });
-    await user.type(items.at(-1)!, "DPC 50 mm thick");
+    // the work is picked from the work rates (a dropdown, with each work's price)
+    const pickers = screen.getAllByRole("combobox", { name: "Work item" });
+    await user.click(pickers.at(-1)!);
+    await user.click(await screen.findByRole("option", { name: /Brick work up to roof slab/ }));
     await user.click(screen.getByRole("button", { name: /Save template/ }));
     await waitFor(() => expect(updateTemplate).toHaveBeenCalled());
     const arg = (updateTemplate.mock.calls.at(-1) as unknown as [{ id: string; body: { contractType: string; sections: Array<{ items: Array<{ text: string; who: string }> }> } }])[0];
     expect(arg.id).toBe("labour-grey");
     expect(arg.body.contractType).toBe("LABOR_ONLY");
-    expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "DPC 50 mm thick", who: "INCLUDED", price: null, materials: [] });
+    expect(arg.body.sections[0]!.items.at(-1)).toEqual({ text: "Brick work up to roof slab", who: "INCLUDED", price: null, materials: [] });
   });
 
   it("a PM (no sales.quote.manage) only reads the templates", async () => {

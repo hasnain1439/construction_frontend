@@ -157,6 +157,9 @@ export const strings = {
     noRate: "No rate — add it in Work rates",
     ratesBuiltIn: "These are the built-in work rates. Your first save makes them your company's list.",
     templateLinesHint: "Only the work and who does it — the price comes from Work rates (same name).",
+    pickWork: "Choose the work",
+    searchWork: "Search work…",
+    noWorkFound: "No work with this name — add it in Work rates first.",
     whoLabel: {
       INCLUDED: "Included",
       OWNER: "By owner",

@@ -10,6 +10,7 @@ import { useGetQuoteTemplatesQuery, useGetQuoteWorkRatesQuery } from "@/api/serv
 import type { QuoteContractType, QuotePriceBasis, QuoteScopeBody, QuoteScopeContent, QuoteScopeItem, QuoteScopeWho, QuoteWorkRate, SupplyCategoryKey } from "@/api/types";
 import { useCan } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
+import { ComboboxField } from "@/components/forms/ComboboxField";
 import { MoneyField } from "@/components/forms/MoneyInput";
 import { NumberField } from "@/components/forms/NumberField";
 import { SelectField } from "@/components/forms/SelectField";
@@ -197,6 +198,14 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
   const { data: workRates } = useGetQuoteWorkRatesQuery(undefined, { skip: withPrices });
   const whoOptions = SCOPE_WHO.map((w) => ({ value: w, label: t(`sales.scope.whoLabel.${w}`) }));
   const basisOptions = BASES.map((b) => ({ value: b, label: t(`sales.scope.basis.${b}`) }));
+  /** The work names of the work rates (with their price) — plus the line's own name when it is not one of them. */
+  const workOptions = (current: string | undefined) => {
+    const list = (workRates?.rates ?? []).map((r) => {
+      const price = contractType ? rateFor([r], r.name, contractType) : null;
+      return { value: r.name, label: r.name, ...(price ? { description: priceText(price) } : {}) };
+    });
+    return current && !list.some((o) => workKey(o.value) === workKey(current)) ? [{ value: current, label: current, description: t("sales.scope.noRate") }, ...list] : list;
+  };
   return (
     <div className="space-y-2">
       {fields.map((f, i) => {
@@ -206,7 +215,19 @@ function SectionItems({ name, section, withPrices, contractType }: { name: strin
           <div key={f.id} className="space-y-2 border-b border-dashed pb-2 last:border-0">
             <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_9rem_auto] items-start gap-2">
               <span className="pt-2 text-end text-xs text-muted-foreground tabular-nums">{i + 1}</span>
-              <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
+              {withPrices ? (
+                <TextField name={`${base}.${i}.text`} label={t("sales.scope.item")} hideLabel dir="auto" />
+              ) : (
+                <ComboboxField
+                  name={`${base}.${i}.text`}
+                  label={t("sales.scope.item")}
+                  hideLabel
+                  placeholder={t("sales.scope.pickWork")}
+                  searchPlaceholder={t("sales.scope.searchWork")}
+                  emptyText={t("sales.scope.noWorkFound")}
+                  options={workOptions(items[i]?.text)}
+                />
+              )}
               <SelectField name={`${base}.${i}.who`} label={t("sales.scope.who")} hideLabel options={whoOptions} />
               <RemoveButton className="mt-1" label={t("sales.scope.removeItem")} onClick={() => remove(i)} />
             </div>

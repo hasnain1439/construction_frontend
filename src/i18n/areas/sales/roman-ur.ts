@@ -159,6 +159,9 @@ export const strings: Widen<typeof En.strings> = {
     noRate: "Rate nahi — Kaam ke rate mein daalein",
     ratesBuiltIn: "Ye default rates hain. Pehli dafa save karne par ye aap ki company ki list ban jayegi.",
     templateLinesHint: "Sirf kaam aur kaun karega — qeemat Kaam ke rate se aati hai (usi naam se).",
+    pickWork: "Kaam chunein",
+    searchWork: "Kaam dhoondein…",
+    noWorkFound: "Is naam ka kaam nahi — pehle Kaam ke rate mein daalein.",
     whoLabel: {
       INCLUDED: "Rate mein shamil",
       OWNER: "Malik dega",

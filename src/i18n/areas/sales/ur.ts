@@ -159,6 +159,9 @@ export const strings: Widen<typeof En.strings> = {
     noRate: "ریٹ نہیں — کام کے ریٹ میں ڈالیں",
     ratesBuiltIn: "یہ ڈیفالٹ ریٹ ہیں۔ پہلی دفعہ محفوظ کرنے پر یہ آپ کی کمپنی کی فہرست بن جائے گی۔",
     templateLinesHint: "صرف کام اور کون کرے گا — قیمت کام کے ریٹ سے آتی ہے (اسی نام سے)۔",
+    pickWork: "کام چنیں",
+    searchWork: "کام تلاش کریں…",
+    noWorkFound: "اس نام کا کام نہیں — پہلے کام کے ریٹ میں ڈالیں۔",
     whoLabel: {
       INCLUDED: "ریٹ میں شامل",
       OWNER: "مالک دے گا",
