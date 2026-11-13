@@ -10,6 +10,8 @@ import type {
   CreateTenantResult,
   Paginated,
   TenantDetail,
+  TenantMobileAppBody,
+  TenantMobileAppResult,
   TenantOfflineOfficeBody,
   TenantOfflineOfficeResult,
   TenantOwnerAccountBody,
@@ -69,6 +71,10 @@ export const adminTenantsApi = adminBaseApi.injectEndpoints({
       query: ({ id, body }) => ({ url: ENDPOINTS.admin.tenantOfflineOffice(id), method: "PATCH", body }),
       invalidatesTags: (_r, _e, { id }) => tenantChanged(id),
     }),
+    setTenantMobileApp: build.mutation<TenantMobileAppResult, { id: string; body: TenantMobileAppBody }>({
+      query: ({ id, body }) => ({ url: ENDPOINTS.admin.tenantMobileApp(id), method: "PATCH", body }),
+      invalidatesTags: (_r, _e, { id }) => tenantChanged(id),
+    }),
     setTenantOwnerAccount: build.mutation<TenantOwnerAccountResult, { id: string; body: TenantOwnerAccountBody }>({
       query: ({ id, body }) => ({ url: ENDPOINTS.admin.tenantOwnerAccount(id), method: "PATCH", body }),
       invalidatesTags: (_r, _e, { id }) => tenantChanged(id),
@@ -86,5 +92,6 @@ export const {
   useSetTenantStatusMutation,
   useSetTenantPlanMutation,
   useSetTenantOfflineOfficeMutation,
+  useSetTenantMobileAppMutation,
   useSetTenantOwnerAccountMutation,
 } = adminTenantsApi;
