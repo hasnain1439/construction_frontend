@@ -106,6 +106,8 @@ export interface TenantDetail {
     taxEnabled: boolean;
     /** The company may run an offline office PC (the platform decides). */
     offlineOfficeAllowed: boolean;
+    /** The company's people may use the phone app (the platform decides). */
+    mobileAppAllowed: boolean;
   } | null;
   subscription: {
     id: Id;
@@ -432,4 +434,16 @@ export interface TenantOwnerAccountResult {
   id: string;
   email: string | null;
   ownerEmail: string | null;
+}
+
+/** PATCH /admin/tenants/:id/mobile-app */
+export interface TenantMobileAppBody {
+  allowed: boolean;
+  note?: string;
+}
+export interface TenantMobileAppResult {
+  id: Id;
+  mobileAppAllowed: boolean;
+  /** Phone sessions ended by stopping it. */
+  signedOut: number;
 }

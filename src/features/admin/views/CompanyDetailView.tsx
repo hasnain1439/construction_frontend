@@ -7,6 +7,8 @@ import {
   Lock,
   Monitor,
   MonitorOff,
+  Smartphone,
+  PhoneOff,
   PauseCircle,
   PlayCircle,
   XCircle,
@@ -16,6 +18,7 @@ import { useGetAdminPlansQuery } from "@/api/services/admin/plans.api";
 import {
   useGetTenantQuery,
   useSetTenantOfflineOfficeMutation,
+  useSetTenantMobileAppMutation,
   useSetTenantOwnerAccountMutation,
   useSetTenantPlanMutation,
   useSetTenantStatusMutation,
@@ -329,6 +332,44 @@ function OfflineOfficeDialog({
   );
 }
 
+/** Allow / stop the phone app for the company's people (stopping signs every phone out). */
+function MobileAppDialog({ tenant, open, onClose }: { tenant: TenantDetail; open: boolean; onClose: () => void }) {
+  const [setMobileApp, { isLoading }] = useSetTenantMobileAppMutation();
+  const run = useMutationToast();
+  const [note, setNote] = useState("");
+  const allowed = Boolean(tenant.settings?.mobileAppAllowed);
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      tone={allowed ? "danger" : "default"}
+      title={`${allowed ? "Stop the mobile app" : "Allow the mobile app"} — ${tenant.name}`}
+      description={
+        allowed
+          ? "Everyone of this company is signed out of the phone app at once and can't sign in on it again. The website keeps working."
+          : "The company's people can then sign in on the phone app."
+      }
+      confirmLabel={allowed ? "Stop the mobile app" : "Allow the mobile app"}
+      loading={isLoading}
+      onConfirm={async () => {
+        const res = await run(() => setMobileApp({ id: tenant.id, body: { allowed: !allowed, ...(note.trim() ? { note: note.trim() } : {}) } }).unwrap(), {
+          success: (r) => (r.mobileAppAllowed ? `${tenant.name}: mobile app allowed` : `${tenant.name}: mobile app stopped (${r.signedOut} phone sign-ins ended)`),
+        });
+        if (res) {
+          setNote("");
+          onClose();
+        }
+      }}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="mobile-app-note">Note (optional)</Label>
+        <Textarea id="mobile-app-note" rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
+        <p className="text-xs text-muted-foreground">Saved in the audit log.</p>
+      </div>
+    </ConfirmDialog>
+  );
+}
+
 /**
  * Support fix: the owner's login email / password and the company email, when the owner lost the
  * old mailbox or forgot the password. Only changed fields are sent; a new password signs the owner out.
@@ -403,6 +444,8 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
   const [action, setAction] = useState<(typeof ACTIONS)[number] | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [offlineOpen, setOfflineOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileAllowed = Boolean(tenant.settings?.mobileAppAllowed);
   const [ownerOpen, setOwnerOpen] = useState(false);
   const offlineAllowed = Boolean(tenant.settings?.offlineOfficeAllowed);
   const sub = tenant.subscription;
@@ -609,6 +652,22 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
                 </p>
               </div>
             </SectionCard>
+            <SectionCard title="Mobile app" description="The company's people sign in on the phone app (Android / iPhone).">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <StatusBadge tone={mobileAllowed ? "success" : "neutral"} label={mobileAllowed ? "Allowed" : "Not allowed"} />
+                  {tenant.status !== "CLOSED" && tenant.settings ? (
+                    <Button size="sm" variant={mobileAllowed ? "destructive-soft" : "outline"} onClick={() => setMobileOpen(true)}>
+                      {mobileAllowed ? <PhoneOff data-icon="inline-start" /> : <Smartphone data-icon="inline-start" />}
+                      {mobileAllowed ? "Stop" : "Allow"}
+                    </Button>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {mobileAllowed ? "On: phone sign-in works. Stop signs every phone of the company out." : "Off: sign-in on the phone app is refused; the website works."}
+                </p>
+              </div>
+            </SectionCard>
           </div>
           <SectionCard title="Timeline" flush>
             <DataTable
@@ -657,6 +716,7 @@ function CompanyBody({ tenant }: { tenant: TenantDetail }) {
       <StatusActionDialog tenant={tenant} action={action} onClose={() => setAction(null)} />
       <ChangePlanDialog tenant={tenant} open={planOpen} onClose={() => setPlanOpen(false)} />
       <OfflineOfficeDialog tenant={tenant} open={offlineOpen} onClose={() => setOfflineOpen(false)} />
+      <MobileAppDialog tenant={tenant} open={mobileOpen} onClose={() => setMobileOpen(false)} />
       {ownerOpen ? <OwnerAccountDialog tenant={tenant} open onClose={() => setOwnerOpen(false)} /> : null}
     </>
   );

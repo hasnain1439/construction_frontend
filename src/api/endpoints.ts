@@ -552,6 +552,7 @@ export const ENDPOINTS = {
     tenantPlan: (tenantId: string) => `/admin/tenants/${id(tenantId)}/plan`,
     /** Allow / stop offline office for a company. */
     tenantOfflineOffice: (tenantId: string) => `/admin/tenants/${id(tenantId)}/offline-office`,
+    tenantMobileApp: (tenantId: string) => `/admin/tenants/${id(tenantId)}/mobile-app`,
     tenantOwnerAccount: (tenantId: string) => `/admin/tenants/${id(tenantId)}/owner-account`,
     /** Read-only look into a company (each look is audited). */
     tenantProjects: (tenantId: string) => `/admin/tenants/${id(tenantId)}/projects`,
