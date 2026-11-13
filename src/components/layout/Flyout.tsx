@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVertical, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { pickLabel, useLanguage, useT } from "@/i18n/useT";
 import { cn } from "@/lib/cn";
 import type { NavItem, NavSection } from "@/lib/navigation";
+import { NAV_ITEM_ICONS } from "@/lib/navIcons";
 
 export interface FlyoutProps {
   section: NavSection | null;
@@ -79,6 +80,8 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
           const href = hrefFor(item);
           const current = pathname === href;
           const count = badgeFor?.(item);
+          // An icon for what the screen does; the section's own icon when it has none.
+          const Icon = NAV_ITEM_ICONS[item.id] ?? section.icon;
           return (
             <li key={item.id}>
               <Link
@@ -91,7 +94,7 @@ export function Flyout({ section, items, hrefFor, onClose, badgeFor, className }
                   current ? "bg-secondary font-semibold text-foreground shadow-sm" : "hover:bg-muted",
                 )}
               >
-                <EllipsisVertical className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <Icon className={cn("size-4 shrink-0", current ? "text-foreground" : "text-muted-foreground")} aria-hidden />
                 <span className="flex-1">{pickLabel(item.label, language)}</span>
                 {!item.available ? <StatusBadge tone="neutral" label={t("common.soon")} className="h-5 px-2 text-xs" /> : null}
                 {count ? (
