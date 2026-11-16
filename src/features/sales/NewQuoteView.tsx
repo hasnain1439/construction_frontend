@@ -67,6 +67,7 @@ function InputsFields({ contractType, basement }: { contractType: string | undef
   const seesProfit = seesProfitField && seesPrice;
   const { data: categories } = useGetQualityCategoriesQuery();
   const { data: templates } = useGetPaymentTemplatesQuery();
+  const discountKind = useWatch({ name: "discountKind" }) as "NONE" | "PERCENT" | "AMOUNT" | undefined;
   return (
     <>
       <SectionCard title={t("sales.form.sectionPlot")}>
@@ -122,6 +123,18 @@ function InputsFields({ contractType, basement }: { contractType: string | undef
           {seesProfit && contractType === "FULL" ? <NumberField name="finishingAllowancePercent" label={t("sales.form.finishing")} hint={t("sales.form.finishingHint")} decimals={2} /> : null}
           {seesPrice ? <MoneyField name="finalPricePaisa" label={t("sales.form.finalPrice")} hint={t("sales.form.finalPriceHint")} /> : null}
         </FieldGrid>
+        {seesPrice ? (
+          <FieldGrid className="mt-4">
+            <SelectField
+              name="discountKind"
+              label={t("sales.form.discount")}
+              hint={t("sales.form.discountHint")}
+              options={(["NONE", "PERCENT", "AMOUNT"] as const).map((k) => ({ value: k, label: t(`sales.form.discountKind.${k}`) }))}
+            />
+            {discountKind === "PERCENT" ? <NumberField name="discountPercent" label={t("sales.form.discountPercent")} decimals={2} /> : null}
+            {discountKind === "AMOUNT" ? <MoneyField name="discountPaisa" label={t("sales.form.discountAmount")} /> : null}
+          </FieldGrid>
+        ) : null}
         <TextField name="note" label={t("sales.form.note")} className="mt-4" />
       </SectionCard>
       <QuoteScopeCard />

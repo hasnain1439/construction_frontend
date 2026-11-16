@@ -73,6 +73,16 @@ export function InternalPanel({ data, loading }: { data: QuoteComputed | null | 
       ) : (
         <div className="space-y-5" data-testid="quote-internal" aria-busy={loading || undefined}>
           <div className="divide-y">
+            {data.discount ? (
+              <>
+                <Row label={t("sales.live.beforeDiscount")}>
+                  <MoneyText paisa={data.discount.grossPaisa} />
+                </Row>
+                <Row label={data.discount.percent !== null ? t("sales.live.discountPct", { p: data.discount.percent }) : t("sales.live.discount")} testId="quote-discount">
+                  − <MoneyText paisa={data.discount.discountPaisa} />
+                </Row>
+              </>
+            ) : null}
             <Row label={t("sales.live.price")} strong testId="quote-price">
               <MoneyText paisa={data.pricePaisa} />
             </Row>
@@ -198,6 +208,16 @@ export function CustomerPanel({ data, validUntil }: { data: QuoteComputed | null
     <SectionCard title={t("sales.customer.title")} description={t("sales.customer.description")}>
       <div className="space-y-4" data-testid="quote-customer">
         <div className="divide-y">
+          {data.discount ? (
+            <>
+              <Row label={t("sales.live.beforeDiscount")}>
+                <MoneyText paisa={data.discount.grossPaisa} />
+              </Row>
+              <Row label={data.discount.percent !== null ? t("sales.live.discountPct", { p: data.discount.percent }) : t("sales.live.discount")}>
+                − <MoneyText paisa={data.discount.discountPaisa} />
+              </Row>
+            </>
+          ) : null}
           <Row label={t("sales.customer.total")} strong>
             <MoneyText paisa={data.pricePaisa} />
           </Row>

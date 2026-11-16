@@ -146,6 +146,7 @@ const ratesSchema = z.object({
         basis: z.enum(["SQFT", "UNIT", "LUMP_SUM"]),
         ratePaisa: z.string().nullable(),
         labourRatePaisa: z.string().nullable(),
+        unit: z.string().trim().max(20).nullable().optional(),
         materials: z.array(z.string()),
       }),
     )
@@ -162,9 +163,10 @@ function WorkRatesEditor({ data, canEdit }: { data: QuoteWorkRates; canEdit: boo
   const [confirm, setConfirm] = useState(false);
   const form = useForm<RatesValues, unknown, z.output<typeof ratesSchema>>({ resolver: zodResolver(ratesSchema), defaultValues: { rates: data.rates.map((r) => ({ ...r, materials: [...r.materials] })) } });
   const rows = useFieldArray({ control: form.control, name: "rates" });
+  const bases = useWatch({ control: form.control, name: "rates" });
   const basisOptions = BASIS.map((b) => ({ value: b, label: t(`sales.scope.basis.${b}`) }));
   const onSubmit = async (v: z.output<typeof ratesSchema>) => {
-    const res = await run(() => save(v.rates.map((r) => ({ ...r, ratePaisa: r.ratePaisa || null, labourRatePaisa: r.labourRatePaisa || null })) as QuoteWorkRate[]).unwrap(), { success: () => t("sales.scope.ratesSaved") });
+    const res = await run(() => save(v.rates.map((r) => ({ ...r, ratePaisa: r.ratePaisa || null, labourRatePaisa: r.labourRatePaisa || null, unit: r.basis === "UNIT" && r.unit?.trim() ? r.unit.trim() : null })) as QuoteWorkRate[]).unwrap(), { success: () => t("sales.scope.ratesSaved") });
     if (res) form.reset({ rates: res.rates.map((r) => ({ ...r, materials: [...r.materials] })) });
   };
   return (
@@ -202,7 +204,10 @@ function WorkRatesEditor({ data, canEdit }: { data: QuoteWorkRates; canEdit: boo
           {rows.fields.map((f, i) => (
             <div key={f.id} className="grid grid-cols-1 items-start gap-2 border-b border-dashed pb-2 md:grid-cols-[minmax(0,1fr)_8rem_8rem_8rem_14rem_2.25rem]">
               <TextField name={`rates.${i}.name`} label={t("sales.scope.workName")} hideLabel dir="auto" />
-              <SelectField name={`rates.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} />
+              <div className="space-y-1">
+                <SelectField name={`rates.${i}.basis`} label={t("sales.scope.priceBasis")} hideLabel options={basisOptions} />
+                {bases?.[i]?.basis === "UNIT" ? <TextField name={`rates.${i}.unit`} label={t("sales.scope.unitName")} hideLabel placeholder={t("sales.scope.unitNamePlaceholder")} /> : null}
+              </div>
               <MoneyField name={`rates.${i}.ratePaisa`} label={t("sales.scope.rateWithMaterial")} hideLabel />
               <MoneyField name={`rates.${i}.labourRatePaisa`} label={t("sales.scope.rateLabour")} hideLabel />
               <div className="min-w-0 pt-0.5 [&_button]:w-full">
@@ -218,7 +223,7 @@ function WorkRatesEditor({ data, canEdit }: { data: QuoteWorkRates; canEdit: boo
             </div>
           ))}
           {canEdit ? (
-            <Button type="button" variant="outline" size="sm" disabled={rows.fields.length >= 400} onClick={() => rows.append({ name: "", basis: "SQFT", ratePaisa: null, labourRatePaisa: null, materials: [] })}>
+            <Button type="button" variant="outline" size="sm" disabled={rows.fields.length >= 400} onClick={() => rows.append({ name: "", basis: "SQFT", ratePaisa: null, labourRatePaisa: null, unit: null, materials: [] })}>
               <Plus data-icon="inline-start" />
               {t("sales.scope.addWorkRate")}
             </Button>

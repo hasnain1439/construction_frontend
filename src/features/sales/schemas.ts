@@ -22,6 +22,10 @@ export const quoteInputsFields = {
   marginPercent: optionalNumber({ min: 0, max: 100 }),
   finishingAllowancePercent: optionalNumber({ min: 0, max: 200 }),
   finalPricePaisa: optionalPaisaSchema,
+  /** Discount at the end: none, a % of the worked-out price, or a fixed amount. */
+  discountKind: z.enum(["NONE", "PERCENT", "AMOUNT"]),
+  discountPercent: optionalNumber({ min: 0.01, max: 100 }),
+  discountPaisa: optionalPaisaSchema,
   note: optionalText(300),
   /** true = this quote has its own work list (scope); false = the company template is used. */
   scopeCustom: z.boolean(),
@@ -30,7 +34,13 @@ export const quoteInputsFields = {
   scope: scopeSchema.nullable(),
 };
 
-export const revisionSchema = z.object(quoteInputsFields);
+/** The discount needs its % or amount. */
+function checkDiscount(v: { discountKind: string; discountPercent?: number | null; discountPaisa?: string | null }, ctx: z.RefinementCtx) {
+  if (v.discountKind === "PERCENT" && !(v.discountPercent && v.discountPercent > 0)) ctx.addIssue({ code: "custom", path: ["discountPercent"], message: msg("validation.required", { label: "sales.form.discountPercent" }) });
+  if (v.discountKind === "AMOUNT" && !(v.discountPaisa && /^\d+$/.test(v.discountPaisa) && v.discountPaisa !== "0")) ctx.addIssue({ code: "custom", path: ["discountPaisa"], message: msg("validation.required", { label: "sales.form.discountAmount" }) });
+}
+
+export const revisionSchema = z.object(quoteInputsFields).superRefine(checkDiscount);
 
 export const newQuoteSchema = z
   .object({
@@ -44,6 +54,7 @@ export const newQuoteSchema = z
     ...quoteInputsFields,
   })
   .superRefine((v, ctx) => {
+    checkDiscount(v, ctx);
     if (v.clientMode === "existing" && !v.clientId) ctx.addIssue({ code: "custom", path: ["clientId"], message: msg("validation.required", { label: "sales.form.client" }) });
     if (v.clientMode === "new") {
       if (!v.newName || v.newName.length < 2) ctx.addIssue({ code: "custom", path: ["newName"], message: msg("validation.required", { label: "sales.form.clientName" }) });
@@ -72,6 +83,9 @@ export const DEFAULT_INPUT_VALUES: QuoteInputValues = {
   marginPercent: null,
   finishingAllowancePercent: null,
   finalPricePaisa: null,
+  discountKind: "NONE",
+  discountPercent: null,
+  discountPaisa: null,
   note: "",
   scopeCustom: false,
   scopeTemplateId: null,
@@ -97,6 +111,9 @@ export function valuesFromInputs(i: QuoteInputs): QuoteInputValues {
     marginPercent: i.marginPercent ?? null,
     finishingAllowancePercent: i.finishingAllowancePercent ?? null,
     finalPricePaisa: i.finalPricePaisa ?? null,
+    discountKind: i.discount?.kind ?? "NONE",
+    discountPercent: i.discount?.kind === "PERCENT" ? (i.discount.percent ?? null) : null,
+    discountPaisa: i.discount?.kind === "AMOUNT" ? (i.discount.amountPaisa ?? null) : null,
     note: "",
     scopeCustom: i.scope?.source === "QUOTE",
     scopeTemplateId: i.scope?.templateId ?? null,
@@ -121,6 +138,8 @@ export function toInputsBody(v: Partial<QuoteInputValues>): QuoteInputsBody | nu
     ...(v.marginPercent !== null && v.marginPercent !== undefined ? { marginPercent: v.marginPercent } : {}),
     ...(v.contractType === "FULL" && v.finishingAllowancePercent !== null && v.finishingAllowancePercent !== undefined ? { finishingAllowancePercent: v.finishingAllowancePercent } : {}),
     ...(v.finalPricePaisa ? { finalPricePaisa: v.finalPricePaisa } : {}),
+    ...(v.discountKind === "PERCENT" && v.discountPercent ? { discount: { kind: "PERCENT", percent: v.discountPercent } } : {}),
+    ...(v.discountKind === "AMOUNT" && v.discountPaisa && v.discountPaisa !== "0" ? { discount: { kind: "AMOUNT", amountPaisa: v.discountPaisa } } : {}),
     ...(v.scopeCustom && v.scope ? { scope: scopeFromForm(v.scope) } : v.scopeTemplateId ? { scopeTemplateId: v.scopeTemplateId } : {}),
   } as QuoteInputsBody;
 }

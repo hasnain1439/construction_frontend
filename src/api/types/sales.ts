@@ -33,11 +33,20 @@ export interface QuoteInputs {
   paymentTemplateId: Id | null;
   /** fields.contract */
   finalPricePaisa?: Paisa | null;
+  /** fields.contract: discount at the end of the quotation */
+  discount?: QuoteDiscountInput | null;
   /** fields.contract + fields.profit */
   marginPercent?: number;
   finishingAllowancePercent?: number;
   /** Scope of work + terms; missing on revisions saved before it existed. */
   scope?: QuoteScope | null;
+}
+
+/** Discount at the end of the quotation: a % of the worked-out price, or a fixed amount. */
+export interface QuoteDiscountInput {
+  kind: "PERCENT" | "AMOUNT";
+  percent?: number | null;
+  amountPaisa?: Paisa | null;
 }
 
 /** Who a work item is for: in the quoted rate, provided / done by the owner, or not in this quotation. */
@@ -48,7 +57,8 @@ export type QuotePriceBasis = "SQFT" | "UNIT" | "LUMP_SUM";
 export interface QuoteScopeItem {
   text: string;
   who: QuoteScopeWho;
-  price?: { basis: QuotePriceBasis; ratePaisa: Paisa; quantity?: number | null } | null;
+  /** `unit` (UNIT only): what one unit is — cft, trolley, rft, point … */
+  price?: { basis: QuotePriceBasis; ratePaisa: Paisa; quantity?: number | null; unit?: string | null } | null;
   materials?: SupplyCategoryKey[];
 }
 export interface QuoteScopeContent {
@@ -82,6 +92,8 @@ export interface QuoteWorkRate {
   basis: QuotePriceBasis;
   ratePaisa: Paisa | null;
   labourRatePaisa: Paisa | null;
+  /** UNIT only: what one unit is (cft, trolley, rft …). */
+  unit?: string | null;
   materials: SupplyCategoryKey[];
 }
 export interface QuoteWorkRates {
@@ -180,6 +192,8 @@ export interface QuoteComputed {
   finishingAllowancePaisa?: Paisa;
   costPerSqftPaisa?: Paisa | null;
   // fields.contract
+  /** The discount taken off (null = none, or an agreed price replaced it). */
+  discount?: { kind: "PERCENT" | "AMOUNT"; percent: number | null; grossPaisa: Paisa; discountPaisa: Paisa } | null;
   pricePaisa?: Paisa | null;
   computedPricePaisa?: Paisa | null;
   perSqftPaisa?: Paisa | null;
@@ -255,7 +269,7 @@ export interface QuotesQuery {
   followUp?: "true" | "false";
 }
 
-export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"] & { scope?: QuoteScopeBody | null; scopeTemplateId?: string | null };
+export type QuoteInputsBody = RequestBody<"/api/v1/quotes/preview", "post">["inputs"] & { scope?: QuoteScopeBody | null; scopeTemplateId?: string | null; discount?: QuoteDiscountInput | null };
 export type CreateQuoteBody = RequestBody<"/api/v1/quotes", "post">;
 export type UpdateQuoteBody = RequestBody<"/api/v1/quotes/{id}", "patch">;
 export type AddQuoteRevisionBody = RequestBody<"/api/v1/quotes/{id}/revisions", "post">;
