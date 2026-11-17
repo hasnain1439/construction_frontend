@@ -55,7 +55,7 @@ const bilalPerms: UserPermissions = {
 vi.mock("@/api/services/permissions.api", () => ({
   useGetRolesQuery: () => ({ data: roles, refetch: vi.fn() }),
   useGetPermissionCatalogQuery: () => ({ data: catalogFixture, refetch: vi.fn() }),
-  useGetUserPermissionsQuery: () => ({ data: bilalPerms, refetch: vi.fn() }),
+  useGetUserPermissionsQuery: (_id: string, opts?: { skip?: boolean }) => ({ data: opts?.skip ? undefined : bilalPerms, refetch: vi.fn() }),
   useSetUserRolesMutation: () => [setRoles, { isLoading: false }],
   useSetUserOverridesMutation: () => [setOverrides, { isLoading: false }],
 }));
@@ -237,5 +237,30 @@ describe("Edit member modal", { timeout: 60_000 }, () => {
       userId: bilal.id,
       body: { overrides: [{ key: "clients.client.create", effect: "DENY" }, { key: "finance.pnl.view", effect: "ALLOW", scope: "ASSIGNED_PROJECTS" }] },
     });
+  });
+});
+
+describe("View member (the edit popup, locked)", { timeout: 60_000 }, () => {
+  it("same tabs and values, nothing can be changed, no Save; Edit unlocks it", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    renderWithStore(<EditMemberModal userId={bilal.id} onClose={() => {}} viewOnly onEdit={onEdit} />, { me: meFixture("THEKEDAR") });
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Personal details", "Roles", "Custom permissions"]);
+    expect(screen.getByLabelText(/Name/)).toHaveValue("Bilal Ahmed");
+    expect(screen.getByLabelText(/Name/)).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Deactivate/ })).toBeNull();
+    await user.click(screen.getByRole("tab", { name: "Roles" }));
+    expect(roleBox("PROJECT_MANAGER")).toBeChecked();
+    expect(roleBox("PROJECT_MANAGER")).toBeDisabled();
+    expect(screen.getAllByRole("button", { name: "Close" }).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    expect(onEdit).toHaveBeenCalled();
+  });
+
+  it("a reader who may not manage members sees the details only, and no Edit", () => {
+    renderWithStore(<EditMemberModal userId={bilal.id} onClose={() => {}} viewOnly canLoadPermissions={false} />, { me: meFixture("PM") });
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Personal details"]);
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
   });
 });
