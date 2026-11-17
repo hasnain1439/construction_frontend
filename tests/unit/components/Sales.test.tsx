@@ -431,3 +431,45 @@ describe("Sales — work rates", () => {
     expect(screen.getAllByText("No rate — add it in Work rates").length).toBeGreaterThan(0);
   });
 });
+
+describe("Sales — discount and the owner's lines", () => {
+  it("a discount at the end goes with the quote; the live view shows the price before it and the discount", { timeout: 30_000 }, async () => {
+    const user = userEvent.setup();
+    previewResult = { ...COMPUTED, pricePaisa: "1757500000", discount: { kind: "PERCENT", percent: 5, grossPaisa: "1850000000", discountPaisa: "92500000" } };
+    renderWithStore(<NewQuoteView />, { me: meFixture("THEKEDAR") });
+    await user.type(screen.getByLabelText(/Plot size/), "10");
+    await user.type(screen.getByLabelText(/Covered area/), "3950");
+    await user.click(screen.getByRole("combobox", { name: /^Discount/ }));
+    await user.click(await screen.findByRole("option", { name: "Percent (%)" }));
+    await user.type(screen.getByLabelText(/Discount %/), "5");
+    await waitFor(() => expect((preview.mock.calls.at(-1) as unknown as [Record<string, unknown>])[0]).toMatchObject({ discount: { kind: "PERCENT", percent: 5 } }), { timeout: 3000 });
+    const internal = await screen.findByTestId("quote-internal");
+    expect(within(internal).getByText("Price before discount")).toBeInTheDocument();
+    expect(within(within(internal).getByTestId("quote-discount")).getByText("Rs 9,25,000")).toBeInTheDocument();
+    expect(within(internal).getByText("Discount (5%)")).toBeInTheDocument();
+  });
+
+  it("a line the owner does shows what the contractor charges; one click gives it to the contractor", { timeout: 30_000 }, async () => {
+    const user = userEvent.setup();
+    createQuote.mockClear();
+    renderWithStore(<NewQuoteView />, { me: meFixture("THEKEDAR") });
+    await user.click(screen.getByRole("combobox", { name: /Contract type/ }));
+    await user.click(await screen.findByRole("option", { name: /Labour only/ }));
+    await user.click(screen.getByRole("button", { name: /Edit for this quote/ }));
+    const option = await screen.findByTestId("owner-option");
+    expect(within(option).getByText("If the contractor does it: Rs 15 / sq ft")).toBeInTheDocument();
+    await user.click(within(option).getByRole("button", { name: "Give to the contractor" }));
+    expect(screen.queryByTestId("owner-option")).toBeNull();
+    await user.type(screen.getByLabelText(/Plot size/), "10");
+    await user.type(screen.getByLabelText(/Covered area/), "3950");
+    await user.type(screen.getByLabelText(/Quote title/), "Labour quote");
+    await user.click(screen.getByRole("radio", { name: "New client" }));
+    await user.type(screen.getByLabelText(/Client name/), "Hamid Ali");
+    await user.type(screen.getByLabelText(/Client phone/), "03214445566");
+    await user.click(screen.getAllByRole("button", { name: "Save quote" })[0]!);
+    await waitFor(() => expect(createQuote).toHaveBeenCalled());
+    const body = (createQuote.mock.calls.at(-1) as unknown as [{ inputs: { scope: { sections: Array<{ items: Array<{ text: string; who: string }> }> } } }])[0];
+    expect(body.inputs.scope.sections[0]!.items.find((i) => i.text === "Anti-termite proofing")).toMatchObject({ who: "INCLUDED", price: { basis: "SQFT", ratePaisa: "1500" } });
+  });
+});
+
