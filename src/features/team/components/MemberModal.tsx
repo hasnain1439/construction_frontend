@@ -3,7 +3,7 @@
 import { SelectField } from "@/components/forms/SelectField";
 import { useGetStaffDesignationsQuery } from "@/api/services/staff.api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, HardHat, UserCheck, UserCog, UserX } from "lucide-react";
+import { ArrowLeft, ArrowRight, HardHat, Pencil, UserCheck, UserCog, UserX } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch, type FieldErrors } from "react-hook-form";
@@ -449,18 +449,27 @@ function EditMemberForm({
   roles,
   catalog,
   onDone,
+  viewOnly = false,
+  onEdit,
 }: {
   user: TeamUserDetail;
   perms: UserPermissions | undefined;
   roles: PermissionRole[] | undefined;
   catalog: PermissionCatalog | undefined;
   onDone: () => void;
+  /** View: the same popup with every field locked and no Save. */
+  viewOnly?: boolean;
+  /** View → Edit (left out when the reader may not edit). */
+  onEdit?: () => void;
 }) {
   const t = useT();
   const te = useEnumT();
   const language = useLanguage();
   const me = useMe();
-  const readOnly = useReadOnly();
+  const companyReadOnly = useReadOnly();
+  const readOnly = companyReadOnly || viewOnly;
+  // a reader who may only view gets no roles / permissions (they are not loaded)
+  const showRoles = isOwnerRole(user) || Boolean(perms);
   const isSelf = me?.user.id === user.id;
   const isOwner = user.role === "THEKEDAR";
   const inactive = user.status === "INACTIVE";
@@ -601,9 +610,15 @@ function EditMemberForm({
       footer={
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button type="button" variant="ghost" className="me-auto" onClick={onDone} disabled={busy}>
-            {t("common.cancel")}
+            {viewOnly ? t("common.close") : t("common.cancel")}
           </Button>
-          {!isOwner ? <StepButtons tab={tab} setTab={setTab} disabled={busy} /> : null}
+          {!isOwner && showRoles ? <StepButtons tab={tab} setTab={setTab} disabled={busy} /> : null}
+          {viewOnly && onEdit && !companyReadOnly ? (
+            <Button type="button" onClick={onEdit}>
+              <Pencil data-icon="inline-start" />
+              {t("common.edit")}
+            </Button>
+          ) : null}
           {!readOnly ? (
             <Button type="submit" form={EDIT_FORM} disabled={busy || !dirty}>
               {t("common.saveChanges")}
@@ -617,8 +632,8 @@ function EditMemberForm({
           <FormTabsList
             tabs={[
               { value: "details", label: t("roles.tabDetails"), error: hasErrors(form.formState.errors) },
-              { value: "roles", label: t("roles.tabRoles") },
-              ...(isOwner ? [] : [{ value: "custom", label: t("roles.tabCustom") }]),
+              ...(showRoles ? [{ value: "roles", label: t("roles.tabRoles") }] : []),
+              ...(isOwner || !showRoles ? [] : [{ value: "custom", label: t("roles.tabCustom") }]),
             ]}
           />
           <TabsContent value="details" forceMount className={TAB_CONTENT_CLASS}>
@@ -754,16 +769,35 @@ function EditMemberForm({
   );
 }
 
-/** Edit member: Details (profile, account type, projects, sign-in help, (de)activation) | Roles. */
-export function EditMemberModal({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+const isOwnerRole = (u: { role: string }) => u.role === "THEKEDAR";
+
+/**
+ * Edit member: Details (profile, account type, projects, sign-in help, (de)activation) | Roles.
+ * `viewOnly` opens the same popup locked (View); `canLoadPermissions` = false for a reader who may
+ * not manage members (only the details tab then).
+ */
+export function EditMemberModal({
+  userId,
+  onClose,
+  viewOnly = false,
+  onEdit,
+  canLoadPermissions = true,
+}: {
+  userId: string | null;
+  onClose: () => void;
+  viewOnly?: boolean;
+  onEdit?: () => void;
+  canLoadPermissions?: boolean;
+}) {
   const t = useT();
   const user = useGetUserQuery(userId ?? "", { skip: !userId });
   const owner = user.data?.role === "THEKEDAR";
-  const perms = useGetUserPermissionsQuery(userId ?? "", { skip: !userId || !user.data || owner });
-  const roles = useGetRolesQuery(undefined, { skip: !userId || owner });
-  const catalog = useGetPermissionCatalogQuery(undefined, { skip: !userId || owner });
+  const noPerms = owner || !canLoadPermissions;
+  const perms = useGetUserPermissionsQuery(userId ?? "", { skip: !userId || !user.data || noPerms });
+  const roles = useGetRolesQuery(undefined, { skip: !userId || noPerms });
+  const catalog = useGetPermissionCatalogQuery(undefined, { skip: !userId || noPerms });
   const error = user.error ?? perms.error ?? roles.error ?? catalog.error;
-  if (userId && user.data && !error && (owner || perms.data)) {
+  if (userId && user.data && !error && (noPerms || perms.data)) {
     return (
       <EditMemberForm
         // Re-mount when the server state changes (after a save).
@@ -773,6 +807,8 @@ export function EditMemberModal({ userId, onClose }: { userId: string | null; on
         roles={roles.data}
         catalog={catalog.data}
         onDone={onClose}
+        viewOnly={viewOnly}
+        onEdit={onEdit}
       />
     );
   }

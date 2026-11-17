@@ -42,7 +42,8 @@ export function MembersView() {
   const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery(list.query as UsersQuery); // empty filters are dropped by cleanParams
   const { options: projectOptions } = useProjectOptions();
   const [inviteOpen, setInviteOpen] = useSearchFlag();
-  const [editing, setEditing] = useState<string | null>(null);
+  // View (row click / Actions → View) and Edit open the same popup; View is locked.
+  const [open, setOpen] = useState<{ id: string; mode: "view" | "edit" } | null>(null);
   const usage = data?.meta.usage;
 
   const designationColumn = useDesignationColumn<TeamUser>((u) => u.designation?.name);
@@ -79,7 +80,7 @@ export function MembersView() {
     },
     {
       ...ACTIONS_COLUMN,
-      cell: (u) => <RowActions name={u.name} actions={[{ label: t("common.edit"), icon: Pencil, hidden: !canManage, onSelect: () => setEditing(u.id) }]} />,
+      cell: (u) => <RowActions name={u.name} actions={[{ label: t("common.edit"), icon: Pencil, hidden: !canManage, onSelect: () => setOpen({ id: u.id, mode: "edit" }) }]} />,
     },
   ];
 
@@ -139,6 +140,7 @@ export function MembersView() {
           rows={data?.items}
           columns={columns}
           getRowId={(u) => u.id}
+          onRowClick={(u) => setOpen({ id: u.id, mode: "view" })}
           loading={isLoading || isFetching}
           error={error}
           onRetry={refetch}
@@ -156,12 +158,14 @@ export function MembersView() {
           }
         />
       </SectionCard>
-      {canManage ? (
-        <>
-          <InviteMemberModal open={inviteOpen} onOpenChange={setInviteOpen} />
-          <EditMemberModal userId={editing} onClose={() => setEditing(null)} />
-        </>
-      ) : null}
+      {canManage ? <InviteMemberModal open={inviteOpen} onOpenChange={setInviteOpen} /> : null}
+      <EditMemberModal
+        userId={open?.id ?? null}
+        viewOnly={open?.mode !== "edit"}
+        onEdit={canManage && open ? () => setOpen({ id: open.id, mode: "edit" }) : undefined}
+        canLoadPermissions={canManage}
+        onClose={() => setOpen(null)}
+      />
     </>
   );
 }
