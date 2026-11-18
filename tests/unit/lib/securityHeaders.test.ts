@@ -19,12 +19,15 @@ describe("security headers", () => {
     expect(header("Strict-Transport-Security")).toContain("max-age=");
   });
 
-  it("production CSP: no eval, no framing, files from the API and Cloudinary only", () => {
+  it("production CSP: no eval, no framing, files from the API, Cloudinary and the S3 / R2 bucket only", () => {
     const csp = header("Content-Security-Policy")!;
     expect(directive(csp, "frame-ancestors")).toBe("frame-ancestors 'none'");
     expect(directive(csp, "object-src")).toBe("object-src 'none'");
     expect(directive(csp, "script-src")).not.toContain("unsafe-eval");
-    expect(directive(csp, "connect-src")).toBe("connect-src 'self'");
+    // API calls stay same-origin; the bucket (R2 / S3) is allowed for direct uploads and file saves.
+    expect(directive(csp, "connect-src")).toBe("connect-src 'self' https://*.r2.cloudflarestorage.com https://*.amazonaws.com");
+    expect(directive(csp, "img-src")).toContain("https://*.r2.cloudflarestorage.com");
+    expect(directive(csp, "frame-src")).toContain("https://*.r2.cloudflarestorage.com");
     expect(directive(csp, "img-src")).toContain("https://api.example.com");
     expect(directive(csp, "img-src")).toContain("https://res.cloudinary.com");
     expect(directive(csp, "frame-src")).toContain("https://api.example.com");
