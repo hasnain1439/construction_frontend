@@ -29,6 +29,11 @@ export interface SecurityHeaderOptions {
 }
 
 const CLOUDINARY = ["https://res.cloudinary.com", "https://api.cloudinary.com"];
+/**
+ * S3-compatible storage (STORAGE_PROVIDER=s3 on the API): signed links point straight at the bucket,
+ * and direct uploads PUT to it. Cloudflare R2 (account endpoint) and AWS S3.
+ */
+const OBJECT_STORES = ["https://*.r2.cloudflarestorage.com", "https://*.amazonaws.com"];
 
 /** "http://localhost:4000/api" → "http://localhost:4000"; invalid values are dropped. */
 export function originOf(value: string | undefined): string | null {
@@ -67,11 +72,11 @@ export function contentSecurityPolicy({ fileOrigins, dev, plainHttp, sentryDsn, 
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'", ...(dev ? ["'unsafe-eval'"] : [])],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:", ...files, ...CLOUDINARY],
+    "img-src": ["'self'", "data:", "blob:", ...files, ...CLOUDINARY, ...OBJECT_STORES],
     "font-src": ["'self'", "data:"],
-    "connect-src": ["'self'", ...telemetry, ...(dev ? ["ws:", "wss:"] : [])],
-    "media-src": ["'self'", "blob:", ...files, ...CLOUDINARY],
-    "frame-src": ["'self'", "blob:", ...files, ...CLOUDINARY],
+    "connect-src": ["'self'", ...OBJECT_STORES, ...telemetry, ...(dev ? ["ws:", "wss:"] : [])],
+    "media-src": ["'self'", "blob:", ...files, ...CLOUDINARY, ...OBJECT_STORES],
+    "frame-src": ["'self'", "blob:", ...files, ...CLOUDINARY, ...OBJECT_STORES],
     "worker-src": ["'self'", "blob:"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],

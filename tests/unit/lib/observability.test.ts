@@ -200,9 +200,9 @@ describe("CSP connect-src and observability hosts", () => {
   const connectSrc = (csp: string) => csp.split(";").find((d) => d.trim().startsWith("connect-src"))!.trim();
 
   it("stays 'self' when Sentry and PostHog are not configured", () => {
-    expect(connectSrc(contentSecurityPolicy({ fileOrigins: [], dev: false }))).toBe("connect-src 'self'");
+    expect(connectSrc(contentSecurityPolicy({ fileOrigins: [], dev: false }))).toBe("connect-src 'self' https://*.r2.cloudflarestorage.com https://*.amazonaws.com");
     expect(connectSrc(contentSecurityPolicy({ fileOrigins: [], dev: false, sentryDsn: "", posthogHost: "" }))).toBe(
-      "connect-src 'self'",
+      "connect-src 'self' https://*.r2.cloudflarestorage.com https://*.amazonaws.com",
     );
   });
 
@@ -214,13 +214,13 @@ describe("CSP connect-src and observability hosts", () => {
       posthogHost: "https://us.i.posthog.com",
     });
     expect(connectSrc(csp)).toBe(
-      "connect-src 'self' https://o123.ingest.us.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com",
+      "connect-src 'self' https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://o123.ingest.us.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com",
     );
     expect(csp).not.toContain("publickey");
   });
 
   it("allows a self-hosted PostHog host as-is", () => {
     const csp = contentSecurityPolicy({ fileOrigins: [], dev: false, posthogHost: "https://ph.example.com/ingest" });
-    expect(connectSrc(csp)).toBe("connect-src 'self' https://ph.example.com");
+    expect(connectSrc(csp)).toBe("connect-src 'self' https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://ph.example.com");
   });
 });
