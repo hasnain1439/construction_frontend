@@ -84,6 +84,125 @@ describe("startLiveUpdates", () => {
   });
 });
 
+/** A stream that sends `chunks` and then ends (`close`) or breaks (`error`). */
+function endingResponse(chunks: string[], end: "close" | "error") {
+  const encoder = new TextEncoder();
+  let next = 0;
+  // One chunk per read, then the end (an error in start() would drop the queued chunks).
+  const body = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (next < chunks.length) controller.enqueue(encoder.encode(chunks[next++]!));
+      else if (end === "close") controller.close();
+      else controller.error(new TypeError("network error"));
+    },
+  });
+  return new Response(body, { status: 200, headers: { "content-type": "text/event-stream" } });
+}
+
+const lastEventIdOf = (init?: RequestInit) => new Headers(init?.headers).get("Last-Event-ID");
+
+describe("reconnects (serverless: short streams, ids, Last-Event-ID)", () => {
+  it("the parser remembers ids, also from blocks without data (pings)", () => {
+    const parser = new SseParser();
+    expect(parser.push("id: 100\nevent: ready\ndata: {}\n\n")).toEqual([{ event: "ready", data: "{}", id: "100" }]);
+    expect(parser.push("id: 200\n: ping\n\n")).toEqual([]);
+    expect(parser.lastEventId).toBe("200");
+    expect(parser.push(change({ resource: "clients" }))).toEqual([expect.objectContaining({ event: "change", id: "200" })]);
+  });
+
+  it("on `reconnect` comes back at once with Last-Event-ID; the server's replay arrives, no full re-read", async () => {
+    const seen: ChangeEvent[] = [];
+    const inits: (RequestInit | undefined)[] = [];
+    const fetchFn = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+      inits.push(init);
+      if (inits.length === 1) {
+        // Stays open after `reconnect` (a proxy may hold the socket): the client must not wait for it.
+        return Promise.resolve(streamResponse([
+          "retry: 3000\n\nid: 100\nevent: ready\ndata: {\"syncLagMs\":0}\n\n",
+          `id: 150\n${change({ resource: "clients", origin: "someone-else" })}`,
+          "id: 200\n: ping\n\n",
+          "retry: 500\nid: 250\nevent: reconnect\ndata: {}\n\n",
+        ], init?.signal));
+      }
+      return Promise.resolve(streamResponse([
+        "id: 250\nevent: ready\ndata: {\"syncLagMs\":0}\n\n",
+        `id: 240\n${change({ resource: "invoices/issue", origin: "someone-else" })}`,
+        "id: 300\n\n",
+      ], init?.signal));
+    });
+    const stop = startLiveUpdates({ onChange: (e) => seen.push(e), refreshSession: async () => true, fetchFn });
+    await vi.waitFor(() => expect(seen).toHaveLength(2));
+    stop();
+
+    expect(seen.map((e) => e.resource)).toEqual(["clients", "invoices/issue"]);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(lastEventIdOf(inits[0])).toBeNull();
+    expect(lastEventIdOf(inits[1])).toBe("250");
+  });
+
+  it("a stream cut off without notice (killed at the time limit) reconnects at once with Last-Event-ID", async () => {
+    const inits: (RequestInit | undefined)[] = [];
+    const seen: ChangeEvent[] = [];
+    const fetchFn = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+      inits.push(init);
+      if (inits.length === 1) return Promise.resolve(endingResponse(["id: 100\nevent: ready\ndata: {}\n\n", "id: 180\n: ping\n\n"], "close"));
+      return Promise.resolve(streamResponse(["id: 180\nevent: ready\ndata: {}\n\n"], init?.signal));
+    });
+    const stop = startLiveUpdates({ onChange: (e) => seen.push(e), refreshSession: async () => true, fetchFn });
+    await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(2));
+    await new Promise((r) => setTimeout(r, 20));
+    stop();
+    expect(lastEventIdOf(inits[1])).toBe("180");
+    expect(seen).toEqual([]);
+  });
+
+  it("after a broken connection leaves the gap to a numbering server (it replays), but re-reads everything when the new server has no ids", async () => {
+    vi.useFakeTimers();
+    try {
+      const seen: ChangeEvent[] = [];
+      const inits: (RequestInit | undefined)[] = [];
+      const fetchFn = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+        inits.push(init);
+        if (inits.length === 1) return Promise.resolve(endingResponse(["id: 100\nevent: ready\ndata: {}\n\n"], "error"));
+        // The second server replays what was missed (it numbers its messages).
+        if (inits.length === 2) return Promise.resolve(endingResponse(["id: 100\nevent: ready\ndata: {}\n\n", "id: 120\n" + change({ resource: "clients" })], "error"));
+        // The third one does not number messages (always-on server without the setting).
+        return Promise.resolve(streamResponse(["event: ready\ndata: {}\n\n"], init?.signal));
+      });
+      const stop = startLiveUpdates({ onChange: (e) => seen.push(e), refreshSession: async () => true, fetchFn });
+      await vi.advanceTimersByTimeAsync(1_100);
+      await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(2));
+      await vi.advanceTimersByTimeAsync(3_100); // second back-off step
+      await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(3));
+      await vi.waitFor(() => expect(seen).toHaveLength(2));
+      stop();
+
+      expect(lastEventIdOf(inits[1])).toBe("100");
+      expect(lastEventIdOf(inits[2])).toBe("120");
+      // Replayed change from the second server, then "*" because the third one replays nothing.
+      expect(seen.map((e) => e.resource)).toEqual(["clients", "*"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("an always-on server ending the stream (no ids): reconnects at once, no Last-Event-ID, no full re-read — as before", async () => {
+    const seen: ChangeEvent[] = [];
+    const inits: (RequestInit | undefined)[] = [];
+    const fetchFn = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+      inits.push(init);
+      if (inits.length === 1) return Promise.resolve(endingResponse(["retry: 3000\n\nevent: ready\ndata: {}\n\n: ping\n\n"], "close"));
+      return Promise.resolve(streamResponse(["event: ready\ndata: {}\n\n"], init?.signal));
+    });
+    const stop = startLiveUpdates({ onChange: (e) => seen.push(e), refreshSession: async () => true, fetchFn });
+    await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(2));
+    await new Promise((r) => setTimeout(r, 20));
+    stop();
+    expect(inits.map(lastEventIdOf)).toEqual([null, null]);
+    expect(seen).toEqual([]);
+  });
+});
+
 describe("tagsForResource — only the screens a change touches refetch (QA pass 2)", () => {
   it("maps a write to its screens plus the totals every write moves", () => {
     const coverage = tagsForResource("projects/coverage");

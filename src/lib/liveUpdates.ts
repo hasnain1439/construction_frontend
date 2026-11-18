@@ -10,6 +10,13 @@
  *
  * Every request carries this tab's X-Client-Id (api/baseQuery.ts), so a tab skips the echo of its
  * own writes — its mutations already invalidated exactly the right tags.
+ *
+ * Reconnects: an always-on API ends a stream after ~10 minutes; a serverless one (Vercel,
+ * REALTIME_MAX_STREAM_SECONDS) after a few minutes, announced by a `reconnect` event. Either way the
+ * stream reopens at once. When the server numbers its messages (`id:`), the reopened stream sends
+ * the last id back (Last-Event-ID) and the server replays what was missed in between — or sends
+ * `resource: "*"` when it can't tell — so nothing is lost. A server without ids gets the old
+ * behaviour: after a failed connection the client itself asks for a full re-read.
  */
 import { API_BASE_URL, ENDPOINTS } from "@/api/endpoints";
 import type { CompanyTag } from "@/api/tags";
@@ -39,11 +46,15 @@ export interface ChangeEvent {
 export interface SseMessage {
   event: string;
   data: string;
+  /** The stream's last event id when this message arrived (only when the server sends ids). */
+  id?: string;
 }
 
 /** Incremental text/event-stream parser: feed it chunks, get complete messages back. */
 export class SseParser {
   private buffer = "";
+  /** Last `id:` seen, also from blocks without data (the server's pings move it on); null = none yet. */
+  lastEventId: string | null = null;
 
   push(chunk: string): SseMessage[] {
     this.buffer += chunk.replace(/\r\n?/g, "\n");
@@ -61,8 +72,12 @@ export class SseParser {
         const value = colon < 0 ? "" : line.slice(colon + 1).replace(/^ /, "");
         if (field === "event") event = value;
         else if (field === "data") data.push(value);
+        else if (field === "id" && !value.includes("\0")) this.lastEventId = value;
       }
-      if (data.length) out.push({ event, data: data.join("\n") });
+      if (!data.length) continue;
+      const message: SseMessage = { event, data: data.join("\n") };
+      if (this.lastEventId !== null) message.id = this.lastEventId;
+      out.push(message);
     }
     return out;
   }
@@ -112,13 +127,17 @@ async function runStream(signal: AbortSignal, emit: (event: ChangeEvent) => void
   const fetchFn = options.fetchFn ?? fetch;
   let failures = 0;
   let missed = false;
+  /** Last id of a server that numbers its messages: everything up to it was received. */
+  let lastEventId: string | null = null;
+  const everything = (): ChangeEvent => ({ resource: "*", origin: null, at: new Date().toISOString() });
   while (!signal.aborted) {
     let wait: number = RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length - 1)];
     try {
+      const resumeFrom = lastEventId;
       const res = await fetchFn(`${API_BASE_URL}${ENDPOINTS.realtime.stream}`, {
         credentials: "include",
         cache: "no-store",
-        headers: { Accept: "text/event-stream", [CLIENT_ID_HEADER]: TAB_ID },
+        headers: { Accept: "text/event-stream", [CLIENT_ID_HEADER]: TAB_ID, ...(resumeFrom === null ? {} : { "Last-Event-ID": resumeFrom }) },
         signal,
       });
       if (res.status === 401) {
@@ -129,21 +148,39 @@ async function runStream(signal: AbortSignal, emit: (event: ChangeEvent) => void
         wait = DISABLED_RETRY_MS;
       } else if (res.ok && res.body) {
         failures = 0;
-        // Reconnected after a failure: changes made meanwhile were never announced.
-        if (missed) emit({ resource: "*", origin: null, at: new Date().toISOString() });
+        // Reconnected after a failure: changes made meanwhile were never announced — unless the
+        // server replays them (it got our Last-Event-ID; `ready` shows whether it numbers messages).
+        let unsure = missed && resumeFrom !== null;
+        if (missed && resumeFrom === null) emit(everything());
         missed = false;
         const parser = new SseParser();
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        for (;;) {
+        let reconnect = false;
+        while (!reconnect) {
           const { value, done } = await reader.read();
           if (done) break;
           for (const message of parser.push(decoder.decode(value, { stream: true }))) {
+            if (message.event === "ready") {
+              if (message.id === undefined) {
+                // This server does not number its messages (any more): it replays nothing.
+                lastEventId = null;
+                if (unsure) emit(everything());
+              }
+              unsure = false;
+            }
+            // The server's time is up (serverless): it closes now — come back at once.
+            if (message.event === "reconnect") reconnect = true;
             const event = toChangeEvent(message);
             if (event) emit(event);
           }
+          if (parser.lastEventId !== null) lastEventId = parser.lastEventId;
         }
-        // The server ends a stream after ~10 minutes: reconnect at once.
+        if (reconnect) await reader.cancel().catch(() => undefined);
+        // Ended before `ready` said whether the server replays: still unsure on the next try.
+        if (unsure) missed = true;
+        // The server ends a stream after a while (~10 minutes; a few on serverless): reconnect at
+        // once. With Last-Event-ID the server first replays what was announced while away.
         continue;
       } else {
         failures += 1;

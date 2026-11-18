@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useLanguage, useT } from "@/i18n/useT";
 import { getErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/cn";
+import { isShrinkable } from "@/lib/imageShrink";
 
 const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 30 * 1024 * 1024;
 
 const ACCEPT: Record<AttachmentKind, string> = {
   LOGO: "image/jpeg,image/png,image/webp",
@@ -67,7 +69,8 @@ export function FileUpload({ kind, value, onChange, label, hint, invalid, disabl
       setError(kind === "LOGO" ? t("app.components.file.logoType") : t("app.components.file.anyType"));
       return;
     }
-    if (file.size > MAX_BYTES) {
+    // A large phone photo is fine: it is shrunk well under the limit before upload.
+    if (file.size > (isShrinkable(file, kind) ? MAX_PHOTO_BYTES : MAX_BYTES)) {
       setError(t("app.components.file.tooBig"));
       return;
     }
