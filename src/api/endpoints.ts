@@ -36,6 +36,8 @@ export const ENDPOINTS = {
 
   attachments: {
     upload: "/attachments",
+    uploadUrl: "/attachments/upload-url",
+    complete: "/attachments/complete",
     byId: (attachmentId: string) => `/attachments/${id(attachmentId)}`,
   },
 
