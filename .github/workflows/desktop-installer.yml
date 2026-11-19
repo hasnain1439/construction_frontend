@@ -1,0 +1,37 @@
+# After every merge to main: asks keystone-desktop to build a new office PC installer with this code
+# (its workflow "Build installers", event `code-merged`). The installer lands on a DRAFT release there;
+# office PCs get it only when it is published (cloud-backups/publish-desktop-update.ps1).
+#
+# Needs the repository secret DESKTOP_DISPATCH_TOKEN: a fine-grained token for keystone-desktop with
+# "Contents: Read and write" (a repository_dispatch needs it). Without the secret this does nothing.
+name: Desktop installer
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', '.github/**']
+
+jobs:
+  ask:
+    name: Ask keystone-desktop for a build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send code-merged
+        env:
+          GH_TOKEN: ${{ secrets.DESKTOP_DISPATCH_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          SHA: ${{ github.sha }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "DESKTOP_DISPATCH_TOKEN is not set — no desktop build asked for."
+            exit 0
+          fi
+          first_line=$(printf '%s' "$MESSAGE" | head -n 1 | cut -c1-200)
+          gh api "repos/$OWNER/keystone-desktop/dispatches" \
+            -f event_type=code-merged \
+            -f "client_payload[repo]=$REPO" \
+            -f "client_payload[sha]=${SHA:0:7}" \
+            -f "client_payload[message]=$first_line"
+          echo "Asked keystone-desktop for a build of $REPO ${SHA:0:7}."
