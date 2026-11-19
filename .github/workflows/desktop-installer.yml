@@ -1,8 +1,8 @@
-# After every merge to main: asks keystone-desktop to build a new office PC installer with this code
+# After every merge to main: asks construction_desktop_app (the desktop app repository) to build a new office PC installer with this code
 # (its workflow "Build installers", event `code-merged`). The installer lands on a DRAFT release there;
 # office PCs get it only when it is published (cloud-backups/publish-desktop-update.ps1).
 #
-# Needs the repository secret DESKTOP_DISPATCH_TOKEN: a fine-grained token for keystone-desktop with
+# Needs the repository secret DESKTOP_DISPATCH_TOKEN: a fine-grained token for construction_desktop_app with
 # "Contents: Read and write" (a repository_dispatch needs it). Without the secret this does nothing.
 name: Desktop installer
 
@@ -13,7 +13,7 @@ on:
 
 jobs:
   ask:
-    name: Ask keystone-desktop for a build
+    name: Ask the desktop repository for a build
     runs-on: ubuntu-latest
     steps:
       - name: Send code-merged
@@ -29,9 +29,9 @@ jobs:
             exit 0
           fi
           first_line=$(printf '%s' "$MESSAGE" | head -n 1 | cut -c1-200)
-          gh api "repos/$OWNER/keystone-desktop/dispatches" \
+          gh api "repos/$OWNER/construction_desktop_app/dispatches" \
             -f event_type=code-merged \
             -f "client_payload[repo]=$REPO" \
             -f "client_payload[sha]=${SHA:0:7}" \
             -f "client_payload[message]=$first_line"
-          echo "Asked keystone-desktop for a build of $REPO ${SHA:0:7}."
+          echo "Asked construction_desktop_app for a build of $REPO ${SHA:0:7}."
